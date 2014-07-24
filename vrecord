@@ -1,0 +1,7 @@
+#/bin/bash
+echo -n "Enter Identifier: "
+read id
+echo Hit enter to start
+read
+echo "hit control-c to stop"
+bmdcapture -m 0 -V 4 -A 2 -c 8 -s 32 -p 10 -F nut -f pipe:1 | ffmpeg -v verbose -i - -c:v v210 -c:a pcm_s24le -vf setfield=bff,setdar=40:27 "${id}.mov" -c copy -f nut - | ffplay -
