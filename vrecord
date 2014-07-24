@@ -23,9 +23,22 @@ else
 	echo "error not a valid option"
 	exit
 fi
+echo "Video Input Options: "
+echo "a) Composite"
+echo "b) SDI"
+echo -n "enter your option: "
+read videoinput
+if [ "${videoinput}" = "a" ] ; then 
+	videoinput=1
+elif [ "${videoinput}" = "b" ] ; then 
+	videoinput=4
+else
+	echo "error not a valid video input option"	
+	exit
+fi		
 echo
 echo "The selected bitdepth is ${bitdepth} and will capture to ${dir}/${id}.mov"
 echo Hit enter to start
 read
 echo "hit control-c to stop"
-bmdcapture -m 0 -V 4 -A 2 -c 8 -s 32 -p "${bitdepth}" -F nut -f pipe:1 | ffmpeg -v verbose -i - -c:v v210 -c:a pcm_s24le -vf setfield=bff,setdar=40:27 "${dir}/${id}.mov" -c copy -f nut - | ffplay -
+bmdcapture -m 0 -V "${videoinput}" -A 2 -c 8 -s 32 -p "${bitdepth}" -F nut -f pipe:1 | ffmpeg -v verbose -i - -c:v v210 -c:a pcm_s24le -vf setfield=bff,setdar=40:27 "${dir}/${id}.mov" -c copy -f nut - | ffplay -
