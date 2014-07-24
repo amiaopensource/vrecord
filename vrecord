@@ -3,6 +3,10 @@ echo -n "Enter Identifier: "
 read id
 echo -n "Enter Directory: "
 read dir
+if [ ! -d "$dir" ] ; then 
+	echo "error not a valid directory"
+	exit
+fi
 echo "Capture Options: "
 echo "a) 10 bit with 2 channels in stereo and 2 channels in mono"
 echo "b) 8 bit with 2 channels in stereo and 2 channels in mono"
@@ -20,7 +24,7 @@ else
 	exit
 fi
 echo
-echo "The selected bitdepth is ${bitdepth}."
+echo "The selected bitdepth is ${bitdepth} and will capture to ${dir}/${id}.mov"
 echo Hit enter to start
 read
 echo "hit control-c to stop"
