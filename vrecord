@@ -4,8 +4,8 @@ read id
 echo -n "Enter Directory: "
 read dir
 if [ ! -d "$dir" ] ; then 
-	echo "error not a valid directory"
-	exit
+    echo "error not a valid directory"
+    exit
 fi
 echo "Capture Options: "
 echo "a) 10 bit with 2 channels in stereo and 2 channels in mono"
@@ -14,14 +14,14 @@ echo "c) 10 bit with 2 channels in stereo"
 echo -n "enter your option: "
 read captureopt
 if [ "${captureopt}" = "a" ] ; then 
-	bitdepth=10
+    bitdepth=10
 elif [ "${captureopt}" = "b" ] ; then
-	bitdepth=8
+    bitdepth=8
 elif [ "${captureopt}" = "c" ] ; then
-	bitdepth=10
+    bitdepth=10
 else 
-	echo "error not a valid option"
-	exit
+    echo "error not a valid option"
+    exit
 fi
 echo "Video Input Options: "
 echo "a) Composite"
@@ -29,13 +29,13 @@ echo "b) SDI"
 echo -n "enter your option: "
 read videoinput
 if [ "${videoinput}" = "a" ] ; then 
-	videoinput=1
+    videoinput=1
 elif [ "${videoinput}" = "b" ] ; then 
-	videoinput=4
+    videoinput=4
 else
-	echo "error not a valid video input option"	
-	exit
-fi		
+    echo "error not a valid video input option"    
+    exit
+fi        
 echo
 echo "The selected bitdepth is ${bitdepth} and will capture to ${dir}/${id}.mov"
 echo Hit enter to start
