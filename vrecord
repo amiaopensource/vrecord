@@ -37,7 +37,7 @@ else
     exit
 fi        
 echo
-echo "The selected bitdepth is ${bitdepth} and will capture to ${dir}/${id}.mov"
+echo "The selected bitdepth is ${bitdepth} and the set video input is ${videoinput} and will capture to ${dir}/${id}.mov"
 echo Hit enter to start
 read
 echo "hit control-c to stop"
