@@ -30,14 +30,16 @@ echo -n "enter your option: "
 read videoinput
 if [ "${videoinput}" = "a" ] ; then 
     videoinput=1
+    videoinputname=composite
 elif [ "${videoinput}" = "b" ] ; then 
     videoinput=4
+    videoinputname=SDI
 else
     echo "error not a valid video input option"    
     exit
 fi        
 echo
-echo "The selected bitdepth is ${bitdepth} and the set video input is ${videoinput} and will capture to ${dir}/${id}.mov"
+echo "The selected bitdepth is ${bitdepth} and the set video input is ${videoinputname} and will capture to ${dir}/${id}.mov"
 echo Hit enter to start
 read
 echo "hit control-c to stop"
