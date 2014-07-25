@@ -2,6 +2,5 @@
 # probably buggy, but kills the first process with ffmpeg in it
 echo "Press enter to stop."
 read
-ps ux | grep ffmpeg | head -n 1 | awk '{print $2}'
 FFMPEG_PID=$(ps ux | grep ffmpeg | head -n 1 | awk '{print $2}')
 kill "${FFMPEG_PID}"
