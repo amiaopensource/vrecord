@@ -47,4 +47,4 @@ echo "The selected bitdepth is ${bitdepth} and the set video input is ${videoinp
 echo Hit enter to start
 read
 echo "hit control-c to stop"
-bmdcapture -m 0 -V "${videoinput}" -A 2 -c 8 -s 32 -p "${bitdepth}" -F nut -f pipe:1 | ffmpeg -v verbose -i - ${middleoptions[@]} -c:a pcm_s24le -vf setfield=bff,setdar=40:27 "${dir}/${id}.mov" -c copy -f nut - | ffplay -
+bmdcapture -m 0 -V "${videoinput}" -A 2 -c 8 -s 32 -p "${bitdepth}" -F nut -f pipe:1 | ffmpeg -v verbose -i - ${middleoptions[@]} -c:a pcm_s24le -vf setfield=bff,setsar=40/27,setdar=4/3  "${dir}/${id}.mov" -c copy -f nut - | ffplay -
