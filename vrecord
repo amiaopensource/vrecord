@@ -1,4 +1,5 @@
 #/bin/bash
+middleoptions=""
 echo -n "Enter Identifier: "
 read id
 echo -n "Enter Directory: "
@@ -15,10 +16,13 @@ echo -n "enter your option: "
 read captureopt
 if [ "${captureopt}" = "a" ] ; then 
     bitdepth=10
+    middleoptions+=(-c:v v210)
 elif [ "${captureopt}" = "b" ] ; then
     bitdepth=8
+    middleoptions=(-c:v rawvideo -pix_fmt uyvy422 -tag:v 2vuy)
 elif [ "${captureopt}" = "c" ] ; then
     bitdepth=10
+    middleoptions=(-c:v v210)
 else 
     echo "error not a valid option"
     exit
@@ -43,4 +47,4 @@ echo "The selected bitdepth is ${bitdepth} and the set video input is ${videoinp
 echo Hit enter to start
 read
 echo "hit control-c to stop"
-bmdcapture -m 0 -V "${videoinput}" -A 2 -c 8 -s 32 -p "${bitdepth}" -F nut -f pipe:1 | ffmpeg -v verbose -i - -c:v v210 -c:a pcm_s24le -vf setfield=bff,setdar=40:27 "${dir}/${id}.mov" -c copy -f nut - | ffplay -
+bmdcapture -m 0 -V "${videoinput}" -A 2 -c 8 -s 32 -p "${bitdepth}" -F nut -f pipe:1 | ffmpeg -v verbose -i - ${middleoptions[@]} -c:a pcm_s24le -vf setfield=bff,setdar=40:27 "${dir}/${id}.mov" -c copy -f nut - | ffplay -
