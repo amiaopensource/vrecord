@@ -75,10 +75,23 @@ elif [ "${videoinput}" = "b" ] ; then
 else
     echo "error not a valid video input option"    
     exit
-fi        
+fi
+echo "Audio Input Options: "
+echo "a) Analog"
+echo "b) SDI Embedded Audio"
+echo -n "enter your option: "
+read audioinput
+if [ "${audioinput}" = "a" ] ; then 
+    audioinput=1
+elif [ "${audioinput}" = "b" ] ; then 
+    audioinput=2
+else 
+    echo "error not a valid video input option"
+    exit
+fi
 echo
 echo "The selected bitdepth is ${bitdepth} and the set video input is ${videoinputname} and will capture to ${dir}/${id}.mov"
 echo Hit enter to start
 read
 echo "hit control-c to stop"
-bmdcapture -m 0 -V "${videoinput}" -A 2 -c 8 -s 32 -p "${bitdepth}" -F nut -f pipe:1 | ffmpeg -v verbose -i - ${middleoptions[@]} -c:a pcm_s24le -filter_complex "[0:v:0]setfield=bff,setsar=40/27,setdar=4/3[vid1];[0:a:0]channelsplit=channel_layout=4.0[a1][a2][a3][a4];[a1][a2]amerge,aformat=channel_layouts=stereo[stereo1];[a3][a4]amerge,aformat=channel_layouts=stereo[stereo2]" -map "[vid1]" -map "[stereo1]" -map "[stereo2]"  "${dir}/${id}.mov" -c copy -f nut - | ffplay -
+bmdcapture -m 0 -V "${videoinput}" -A "${audioinput}" -c 8 -s 32 -p "${bitdepth}" -F nut -f pipe:1 | ffmpeg -v verbose -i - ${middleoptions[@]} -c:a pcm_s24le -filter_complex "[0:v:0]setfield=bff,setsar=40/27,setdar=4/3[vid1];[0:a:0]channelsplit=channel_layout=4.0[a1][a2][a3][a4];[a1][a2]amerge,aformat=channel_layouts=stereo[stereo1];[a3][a4]amerge,aformat=channel_layouts=stereo[stereo2]" -map "[vid1]" -map "[stereo1]" -map "[stereo2]"  "${dir}/${id}.mov" -c copy -f nut - | ffplay -
