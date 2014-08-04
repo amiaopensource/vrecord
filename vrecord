@@ -61,15 +61,15 @@ else
     echo "error not a valid option"
     exit
 fi
-echo "Video Input Options: "
+echo "Video Input: "
 echo "a) Composite"
 echo "b) SDI"
 echo -n "enter your option: "
-read videoinput
-if [ "${videoinput}" = "a" ] ; then 
+read videochoice
+if [ "${videochoice}" = "a" ] ; then 
     videoinput=1
     videoinputname=composite
-elif [ "${videoinput}" = "b" ] ; then 
+elif [ "${videochoice}" = "b" ] ; then 
     videoinput=4
     videoinputname=SDI
 else
@@ -80,10 +80,10 @@ echo "Audio Input Options: "
 echo "a) Analog"
 echo "b) SDI Embedded Audio"
 echo -n "enter your option: "
-read audioinput
-if [ "${audioinput}" = "a" ] ; then 
+read audiochoice
+if [ "${audiochoice}" = "a" ] ; then 
     audioinput=1
-elif [ "${audioinput}" = "b" ] ; then 
+elif [ "${audiochoice}" = "b" ] ; then 
     audioinput=2
 else 
     echo "error not a valid video input option"
