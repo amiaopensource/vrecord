@@ -1,5 +1,39 @@
 #/bin/bash
 middleoptions=""
+
+usage(){
+    echo
+    echo "$(basename ${0}) ${version}"
+    echo "$(basename "${0}") will record a file via the blackmagic sdk and bmdtools. It is an interactive script and will either create 8 or 10 bit uncompressed video."
+    echo "Dependencies: ${dependencies[@]}"
+    echo "Usage: $(basename $0) [ -h ]"
+    echo "  -h ( display this help )"
+    echo
+    echo "Installation help:"
+    echo "To install (on a mac) run these commands:"
+    echo "brew update"
+    echo "brew tap amiaopensource/amiaos"
+    echo "brew install decklinksdk"
+    echo "brew install libav"
+    echo "git clone https://github.com/lu-zero/bmdtools.git"
+    echo "cd bmdtools/"
+    echo "make SDK_PATH=/usr/local/include SYS=Darwin"
+    echo "cp -v -n bmdcapture bmdplay /usr/local/bin/"
+    exit
+}
+[ "${#}" = 0 ] && usage
+
+# command-line options to set mediaid and original variables
+OPTIND=1
+while getopts "h" opt ; do
+    case "${opt}" in
+        h) usage ;;
+        *) echo "bad option -$OPTARG" ; usage ;;
+        :) echo "Option -$OPTARG requires an argument" ; exit 1 ;;
+    esac
+done
+shift $(( ${OPTIND} - 1 ))
+
 echo -n "Enter Identifier: "
 read id
 echo -n "Enter Directory: "
