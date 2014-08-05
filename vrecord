@@ -51,12 +51,15 @@ read captureopt
 if [ "${captureopt}" = "a" ] ; then 
     bitdepth=10
     middleoptions+=(-c:v v210)
+    middleoptions=(-metadata:s:v:0 encoder='Uncompressed 10-bit 4:2:2')
 elif [ "${captureopt}" = "b" ] ; then
     bitdepth=8
     middleoptions=(-c:v rawvideo -pix_fmt uyvy422 -tag:v 2vuy)
+    middleoptions=(-metadata:s:v:0 encoder='Uncompressed 8-bit 4:2:2')
 elif [ "${captureopt}" = "c" ] ; then
     bitdepth=10
     middleoptions=(-c:v v210)
+    middleoptions=(-metadata:s:v:0 encoder='Uncompressed 10-bit 4:2:2')
 else 
     echo "error not a valid option"
     exit
