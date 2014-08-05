@@ -21,7 +21,6 @@ usage(){
     echo "cp -v -n bmdcapture bmdplay /usr/local/bin/"
     exit
 }
-[ "${#}" = 0 ] && usage
 
 # command-line options to set mediaid and original variables
 OPTIND=1
