@@ -76,7 +76,7 @@ elif [ "${codecopt}" = "b" ] ; then
     suffix="_ffv1"
 elif [ "${codecopt}" = "c" ] ; then
     codecname="JPEG2000"
-    middleoptions+=(-c:v libopenjpeg
+    middleoptions+=(-c:v libopenjpeg)
     suffix="_j2k"
 else
     echo "error not a valid option"
