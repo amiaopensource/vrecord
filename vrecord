@@ -42,9 +42,8 @@ if [ ! -d "$dir" ] ; then
     exit
 fi
 echo "Capture Options: "
-echo "a) 10 bit with 2 channels in stereo and 2 channels in mono"
-echo "b) 8 bit with 2 channels in stereo and 2 channels in mono"
-echo "c) 10 bit with 2 channels in stereo"
+echo "a) 10 bit with 2 stereo tracks"
+echo "b) 8 bit with 2 stereo tracks"
 echo -n "enter your option: "
 read captureopt
 if [ "${captureopt}" = "a" ] ; then
@@ -55,10 +54,6 @@ elif [ "${captureopt}" = "b" ] ; then
     bitdepth=8
     codecname="Uncompressed 10-bit 4:2:2"
     middleoptions+=(-c:v rawvideo -pix_fmt uyvy422 -tag:v 2vuy)
-elif [ "${captureopt}" = "c" ] ; then
-    bitdepth=10
-    codecname="Uncompressed 10-bit 4:2:2"
-    middleoptions+=(-c:v v210)
 else
     echo "error not a valid option"
     exit
