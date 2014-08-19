@@ -1,5 +1,6 @@
 #!/bin/bash
 middleoptions=""
+suffix=""
 
 usage(){
     echo
@@ -48,12 +49,35 @@ echo -n "enter your option: "
 read captureopt
 if [ "${captureopt}" = "a" ] ; then
     bitdepth=10
-    codecname="Uncompressed 10-bit 4:2:2"
-    middleoptions+=(-c:v v210)
 elif [ "${captureopt}" = "b" ] ; then
     bitdepth=8
-    codecname="Uncompressed 10-bit 4:2:2"
-    middleoptions+=(-c:v rawvideo -pix_fmt uyvy422 -tag:v 2vuy)
+else
+    echo "error not a valid option"
+    exit
+fi
+echo "Codec Options: "
+echo "a) Uncompressed Video"
+echo "b) FFV1 version 3"
+echo "c) JPEG2000"
+echo -n "enter your option: "
+read codecopt
+if [ "${codecopt}" = "a" ] ; then
+    if [ "${bitdepth}" = "10" ] ; then
+        codecname="Uncompressed 10-bit 4:2:2"
+        middleoptions+=(-c:v v210)
+    elif [ "${bitdepth}" = "8" ] ; then
+        codecname="Uncompressed 10-bit 4:2:2"
+        middleoptions+=(-c:v rawvideo -pix_fmt uyvy422 -tag:v 2vuy)
+    fi
+    suffix="_j2k"
+elif [ "${codecopt}" = "b" ] ; then
+    codecname="FFV1 version 3"
+    middleoptions+=(-c:v ffv1 -level 3 -g 1)
+    suffix="_ffv1"
+elif [ "${codecopt}" = "c" ] ; then
+    codecname="JPEG2000"
+    middleoptions+=(-c:v libopenjpeg
+    suffix="_j2k"
 else
     echo "error not a valid option"
     exit
@@ -104,7 +128,7 @@ bmdcapture -m 0 -V "${videoinput}" -A "${audioinput}" -c 8 -s 32 -p "${bitdepth}
         -map "[vid1]" \
         -map "[stereo1]" \
         -map "[stereo2]" \
-        "${dir}/${id}.mov" \
+        "${dir}/${id}${suffix}.mov" \
         -c copy -f nut - | \
         ffplay - \
         -vf "split=5[a][b][c][d][e];\
