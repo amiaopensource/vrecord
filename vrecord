@@ -71,7 +71,7 @@ echo -n "enter your option: "
 read videochoice
 if [ "${videochoice}" = "a" ] ; then
     videoinput=1
-    videoinputname=composite
+    videoinputname=Composite
 elif [ "${videochoice}" = "b" ] ; then
     videoinput=4
     videoinputname=SDI
