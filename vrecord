@@ -14,12 +14,8 @@ usage(){
     echo "To install (on a mac) run these commands:"
     echo "brew update"
     echo "brew tap amiaopensource/amiaos"
-    echo "brew install decklinksdk"
+    echo "brew install vrecord"
     echo "brew install libav"
-    echo "git clone https://github.com/lu-zero/bmdtools.git"
-    echo "cd bmdtools/"
-    echo "make SDK_PATH=/usr/local/include SYS=Darwin"
-    echo "cp -v -n bmdcapture bmdplay /usr/local/bin/"
     exit
 }
 
