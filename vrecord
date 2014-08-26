@@ -69,7 +69,6 @@ if [ "${codecopt}" = "a" ] ; then
         codecname="Uncompressed 10-bit 4:2:2"
         middleoptions+=(-c:v rawvideo -pix_fmt uyvy422 -tag:v 2vuy)
     fi
-    suffix="_j2k"
 elif [ "${codecopt}" = "b" ] ; then
     codecname="FFV1 version 3"
     middleoptions+=(-c:v ffv1 -level 3 -g 1)
