@@ -55,6 +55,7 @@ echo "Codec Options: "
 echo "a) Uncompressed Video"
 echo "b) FFV1 version 3"
 echo "c) JPEG2000"
+echo "d) S-Video"
 echo -n "enter your option: "
 read codecopt
 if [ "${codecopt}" = "a" ] ; then
@@ -92,6 +93,9 @@ elif [ "${videochoice}" = "b" ] ; then
 elif [ "${videochoice}" = "c" ] ; then
     videoinput=2
     videoinputname=Component
+elif [ "${videochoice}" = "d" ] ; then
+    videoinput=6
+    videoinputname=S-Video
 else
     echo "error not a valid video input option"
     exit
