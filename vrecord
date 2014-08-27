@@ -55,7 +55,6 @@ echo "Codec Options: "
 echo "a) Uncompressed Video"
 echo "b) FFV1 version 3"
 echo "c) JPEG2000"
-echo "d) S-Video"
 echo -n "enter your option: "
 read codecopt
 if [ "${codecopt}" = "a" ] ; then
@@ -82,6 +81,7 @@ echo "Video Input: "
 echo "a) Composite"
 echo "b) SDI"
 echo "c) Component"
+echo "d) S-Video"
 echo -n "enter your option: "
 read videochoice
 if [ "${videochoice}" = "a" ] ; then
