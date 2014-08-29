@@ -65,7 +65,7 @@ fi
 if [[ "${passthrough}" = "Y" ]] ; then
 	bitdepth=10
 	bmdcapture -m 0 -V "${videoinput}" -A "${audioinput}" -c 8 -s 32 -p "${bitdepth}" -F nut -f pipe:1 | \
-	        ffplay -i - \
+	        ffplay -v info -hide_banner -stats -i - \
 	        -vf "split=5[a][b][c][d][e];\
 	        [b]field=top[b1];\
 	        [c]field=bottom[c1];\
@@ -169,7 +169,7 @@ bmdcapture -m 0 -V "${videoinput}" -A "${audioinput}" -c 8 -s 32 -p "${bitdepth}
         -map "[stereo2]" \
         "${dir}/${id}${suffix}.mov" \
         -c copy -f nut - | \
-        ffplay - \
+        ffplay -v info -hide_banner -stats - \
         -vf "split=5[a][b][c][d][e];\
         [b]field=top[b1];\
         [c]field=bottom[c1];\
