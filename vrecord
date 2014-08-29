@@ -29,7 +29,38 @@ while getopts "h" opt ; do
     esac
 done
 shift $(( ${OPTIND} - 1 ))
-
+echo "Video Input: "
+echo "a) Composite"
+echo "b) SDI"
+echo "c) Component"
+echo -n "enter your option: "
+read videochoice
+if [ "${videochoice}" = "a" ] ; then
+    videoinput=1
+    videoinputname=Composite
+elif [ "${videochoice}" = "b" ] ; then
+    videoinput=4
+    videoinputname=SDI
+elif [ "${videochoice}" = "c" ] ; then
+    videoinput=2
+    videoinputname=Component
+else
+    echo "error not a valid video input option"
+    exit
+fi
+echo "Audio Input Options: "
+echo "a) Analog"
+echo "b) SDI Embedded Audio"
+echo -n "enter your option: "
+read audiochoice
+if [ "${audiochoice}" = "a" ] ; then
+    audioinput=1
+elif [ "${audiochoice}" = "b" ] ; then
+    audioinput=2
+else
+    echo "error not a valid video input option"
+    exit
+fi
 echo -n "Enter Identifier: "
 read id
 echo -n "Enter Directory: "
@@ -75,42 +106,6 @@ elif [ "${codecopt}" = "c" ] ; then
     suffix="_j2k"
 else
     echo "error not a valid option"
-    exit
-fi
-echo "Video Input: "
-echo "a) Composite"
-echo "b) SDI"
-echo "c) Component"
-echo "d) S-Video"
-echo -n "enter your option: "
-read videochoice
-if [ "${videochoice}" = "a" ] ; then
-    videoinput=1
-    videoinputname=Composite
-elif [ "${videochoice}" = "b" ] ; then
-    videoinput=4
-    videoinputname=SDI
-elif [ "${videochoice}" = "c" ] ; then
-    videoinput=2
-    videoinputname=Component
-elif [ "${videochoice}" = "d" ] ; then
-    videoinput=6
-    videoinputname=S-Video
-else
-    echo "error not a valid video input option"
-    exit
-fi
-echo "Audio Input Options: "
-echo "a) Analog"
-echo "b) SDI Embedded Audio"
-echo -n "enter your option: "
-read audiochoice
-if [ "${audiochoice}" = "a" ] ; then
-    audioinput=1
-elif [ "${audiochoice}" = "b" ] ; then
-    audioinput=2
-else
-    echo "error not a valid video input option"
     exit
 fi
 echo
