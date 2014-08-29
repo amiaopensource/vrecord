@@ -81,6 +81,7 @@ echo "Video Input: "
 echo "a) Composite"
 echo "b) SDI"
 echo "c) Component"
+echo "d) S-Video"
 echo -n "enter your option: "
 read videochoice
 if [ "${videochoice}" = "a" ] ; then
@@ -92,6 +93,9 @@ elif [ "${videochoice}" = "b" ] ; then
 elif [ "${videochoice}" = "c" ] ; then
     videoinput=2
     videoinputname=Component
+elif [ "${videochoice}" = "d" ] ; then
+    videoinput=6
+    videoinputname=S-Video
 else
     echo "error not a valid video input option"
     exit
