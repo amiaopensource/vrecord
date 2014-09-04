@@ -3,6 +3,7 @@
 echo "Press enter to stop."
 read
 FFMPEG_PID=$(ps ux | grep ffmpeg | head -n 1 | awk '{print $2}')
-kill "${FFMPEG_PID}" 
+kill "${FFMPEG_PID}"
+sleep 2
 FFPLAY_PID=$(ps ux | grep ffplay | head -n 1 | awk '{print $2}')
 kill "${FFPLAY_PID}"
