@@ -138,6 +138,7 @@ echo "Codec Options: "
 echo "a) Uncompressed Video"
 echo "b) FFV1 version 3"
 echo "c) JPEG2000"
+echo "d) prores"
 echo -n "enter your option: "
 read codecopt
 if [ "${codecopt}" = "a" ] ; then
@@ -145,7 +146,7 @@ if [ "${codecopt}" = "a" ] ; then
         codecname="Uncompressed 10-bit 4:2:2"
         middleoptions+=(-c:v v210)
     elif [ "${bitdepth}" = "8" ] ; then
-        codecname="Uncompressed 10-bit 4:2:2"
+        codecname="Uncompressed 8-bit 4:2:2"
         middleoptions+=(-c:v rawvideo -pix_fmt uyvy422 -tag:v 2vuy)
     fi
 elif [ "${codecopt}" = "b" ] ; then
@@ -156,6 +157,10 @@ elif [ "${codecopt}" = "c" ] ; then
     codecname="JPEG2000"
     middleoptions+=(-c:v libopenjpeg)
     suffix="_j2k"
+elif [ "${codecopt}" = "d" ] ; then
+    codecname="Apple ProRes 422"
+    middleoptions+=(-c:v prores)
+    suffix="_prores"
 else
     echo "error not a valid option"
     exit
