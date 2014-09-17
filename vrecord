@@ -59,12 +59,15 @@ fi
 echo "Audio Input Options: "
 echo "a) Analog"
 echo "b) SDI Embedded Audio"
+echo "c) Digital Audio (AES/EBU)"
 echo -n "enter your option: "
 read audiochoice
 if [ "${audiochoice}" = "a" ] ; then
     audioinput=1
 elif [ "${audiochoice}" = "b" ] ; then
     audioinput=2
+elif [ "${audiochoice}" = "c" ] ; then
+    audioinput=3
 else
     echo "error not a valid video input option"
     exit
