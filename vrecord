@@ -17,7 +17,6 @@ usage(){
     echo "brew update"
     echo "brew tap amiaopensource/amiaos"
     echo "brew install vrecord"
-    echo "brew install libav"
     exit
 }
 
