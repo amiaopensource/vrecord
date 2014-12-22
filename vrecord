@@ -127,9 +127,9 @@ if [ ! -d "$dir" ] ; then
     echo "error not a valid directory"
     exit
 fi
-echo "Capture Options: "
-echo "a) 10 bit with 2 stereo tracks"
-echo "b) 8 bit with 2 stereo tracks"
+echo "Video Bit Depth: "
+echo "a) 10 bit"
+echo "b) 8 bit"
 echo -n "enter your option: "
 read captureopt
 if [ "${captureopt}" = "a" ] ; then
@@ -171,6 +171,27 @@ else
     echo "error not a valid option"
     exit
 fi
+echo "Audio Mapping Options: "
+echo "a) 2 Stereo Tracks"
+echo "b) 1 Stereo Track"
+echo -n "enter your option: "
+read audiomapchoice
+if [ "${audiomapchoice}" = "a" ] ; then
+    audiomap="[0:a:0]channelsplit=channel_layout=4.0[a1][a2][a3][a4];[a1][a2]amerge,aformat=channel_layouts=stereo[stereo1];[a3][a4]amerge,aformat=channel_layouts=stereo[stereo2]"
+    map1k="-map"
+    map1v="[stereo1]"
+    map2k="-map"
+    map2v="[stereo2]"
+elif [ "${audiomapchoice}" = "b" ] ; then
+    audiomap="[0:a:0]channelsplit=channel_layout=2[a1][a2];[a1][a2]amerge,aformat=channel_layouts=stereo[stereo1]"
+    map1k="-map"
+    map1v="[stereo1]"
+    map2k=""
+    map2v=""
+else
+    echo "error not a valid audio map input option"
+    exit
+fi
 echo
 echo "The selected bitdepth is ${bitdepth} and the set video input is ${videoinputname} and will capture to ${dir}/${id}.mov"
 echo Hit enter to start
@@ -182,10 +203,10 @@ bmdcapture -v -m 0 -V "${videoinput}" -A "${audioinput}" -c 8 -s 32 -p "${bitdep
     ffmpeg -v info -hide_banner -stats -i - ${middleoptions[@]} \
         -metadata:s:v:0 encoder="${codecname}" \
         -c:a pcm_s24le \
-        -filter_complex "${recordingfilter};[0:a:0]channelsplit=channel_layout=4.0[a1][a2][a3][a4];[a1][a2]amerge,aformat=channel_layouts=stereo[stereo1];[a3][a4]amerge,aformat=channel_layouts=stereo[stereo2]" \
+        -filter_complex "${recordingfilter};${audiomap}" \
         -map "[vid1]" \
-        -map "[stereo1]" \
-        -map "[stereo2]" \
+        $(if [ -n "$map1k" ] ; then echo ${map1k} ; fi) $(if [ -n "$map1v" ] ; then echo ${map1v} ; fi) \
+        $(if [ -n "$map2k" ] ; then echo ${map2k} ; fi) $(if [ -n "$map2v" ] ; then echo ${map2v} ; fi) \
         "${dir}/${id}${suffix}.mov" \
         -c copy -f nut - | \
         ffplay -v info -hide_banner -stats - \
