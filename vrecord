@@ -7,10 +7,11 @@ ffmpeglogsuffix=".log"
 usage(){
     echo
     echo "$(basename ${0}) ${version}"
-    echo "$(basename "${0}") will record a file via the blackmagic sdk and bmdtools. It is an interactive script and will either create 8 or 10 bit uncompressed video."
+    echo "$(basename "${0}") will record a file via the blackmagic sdk and bmdtools. It is an interactive script and will either create 8 or 10 bit video."
     echo "Dependencies: ${dependencies[@]}"
     echo "Usage: $(basename $0) [ -h ]"
     echo "  -h ( display this help )"
+    echo "  -p ( enable passthrough mode where video is played back but not written to file )"
     echo
     echo "Installation help:"
     echo "To install (on a mac) run these commands:"
