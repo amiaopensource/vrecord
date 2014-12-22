@@ -32,6 +32,7 @@ while getopts "hp" opt ; do
     esac
 done
 
+recordingfilter="[0:v:0]setfield=bff,setsar=40/27,setdar=4/3[vid1]"
 playbackfilter="split=5[a][b][c][d][e];\
         [b]field=top[b1];\
         [c]field=bottom[c1];\
@@ -182,7 +183,7 @@ bmdcapture -v -m 0 -V "${videoinput}" -A "${audioinput}" -c 8 -s 32 -p "${bitdep
     ffmpeg -v info -hide_banner -stats -i - ${middleoptions[@]} \
         -metadata:s:v:0 encoder="${codecname}" \
         -c:a pcm_s24le \
-        -filter_complex "[0:v:0]setfield=bff,setsar=40/27,setdar=4/3[vid1];[0:a:0]channelsplit=channel_layout=4.0[a1][a2][a3][a4];[a1][a2]amerge,aformat=channel_layouts=stereo[stereo1];[a3][a4]amerge,aformat=channel_layouts=stereo[stereo2]" \
+        -filter_complex "${recordingfilter};[0:a:0]channelsplit=channel_layout=4.0[a1][a2][a3][a4];[a1][a2]amerge,aformat=channel_layouts=stereo[stereo1];[a3][a4]amerge,aformat=channel_layouts=stereo[stereo2]" \
         -map "[vid1]" \
         -map "[stereo1]" \
         -map "[stereo2]" \
