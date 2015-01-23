@@ -92,7 +92,6 @@ elif [ "${videochoice}" = "c" ] ; then
 elif [ "${videochoice}" = "d" ] ; then
     videoinput=6
     videoinputname=S-Video
--else
 else
     echo "error not a valid video input option"
     exit
