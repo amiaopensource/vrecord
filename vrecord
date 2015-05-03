@@ -74,33 +74,37 @@ playbackfilter="split=5[a][b][c][d][e];\
 
 shift $(( ${OPTIND} - 1 ))
 
-video_input_options=("Composite" "SDI" "Component" "S-Video")
-echo "Which VIDEO input are you using?"
-PS3="Select a video input: "
-select video_input_choice in "${video_input_options[@]}" ; do
-    case "${REPLY}" in
-        1)  video_input=1 ; break ;;
-        2)  video_input=4 ; break ;;
-        3)  video_input=2 ; break ;;
-        4)  video_input=6 ; break ;;
-        Q) exit ;;
-        q) exit ;;
-        *)  echo "Error not a valid option, select a valid number or [q] to quit." ;;
-    esac
-done
+if [ ! "${video_input}" ] ; then
+    video_input_options=("Composite" "SDI" "Component" "S-Video")
+    echo "Which VIDEO input are you using?"
+    PS3="Select a video input: "
+    select video_input_choice in "${video_input_options[@]}" ; do
+        case "${REPLY}" in
+            1)  video_input=1 ; break ;;
+            2)  video_input=4 ; break ;;
+            3)  video_input=2 ; break ;;
+            4)  video_input=6 ; break ;;
+            Q) exit ;;
+            q) exit ;;
+            *)  echo "Error not a valid option, select a valid number or [q] to quit." ;;
+        esac
+    done
+fi
 
-audio_input_options=("Analog" "SDI Embedded Audio" "Digital Audio (AES/EBU)")
-PS3="Select an audio input: "
-select audio_input_choice in "${audio_input_options[@]}" ; do
-    case "${REPLY}" in
-        1)  audio_input=1 ; break ;;
-        2)  audio_input=2 ; break ;;
-        3)  audio_input=3 ; break ;;
-        Q) exit ;;
-        q) exit ;;
-        *)  echo "Error not a valid option, select a valid number or [q] to quit." ;;
-    esac
-done
+if [ ! "${audio_input}" ] ;then
+    audio_input_options=("Analog" "SDI Embedded Audio" "Digital Audio (AES/EBU)")
+    PS3="Select an audio input: "
+    select audio_input_choice in "${audio_input_options[@]}" ; do
+        case "${REPLY}" in
+            1)  audio_input=1 ; break ;;
+            2)  audio_input=2 ; break ;;
+            3)  audio_input=3 ; break ;;
+            Q) exit ;;
+            q) exit ;;
+            *)  echo "Error not a valid option, select a valid number or [q] to quit." ;;
+        esac
+    done
+fi
 
 if [[ "${passthrough}" = "Y" ]] ; then
     bitdepth=10
@@ -111,100 +115,108 @@ if [[ "${passthrough}" = "Y" ]] ; then
 fi
 echo -n "Enter Identifier: "
 read id
-echo -n "Enter Directory: "
-read dir
-if [ ! -d "$dir" ] ; then
-    echo "error not a valid directory"
-    exit
+if [ ! -d "${dir}" ] ; then
+    echo -n "Enter Directory: "
+    read dir
+    if [ ! -d "$dir" ] ; then
+        echo "error not a valid directory"
+        exit
+    fi
 fi
 
-video_bitdepth_options=("10 bit" "8 bit")
-PS3="Select a video bit depth: "
-select video_bit_depth_choice in "${video_bitdepth_options[@]}" ; do
-    case "${REPLY}" in
-        1)  bitdepth=10 ; break ;;
-        2)  bitdepth=8 ; break ;;
-        Q) exit ;;
-        q) exit ;;
-        *)  echo "Error not a valid option, select a valid number or [q] to quit." ;;
-    esac
-done
+if [ ! "$bitdepth" ] ; then
+    video_bitdepth_options=("10 bit" "8 bit")
+    PS3="Select a video bit depth: "
+    select video_bit_depth_choice in "${video_bitdepth_options[@]}" ; do
+        case "${REPLY}" in
+            1)  bitdepth=10 ; break ;;
+            2)  bitdepth=8 ; break ;;
+            Q) exit ;;
+            q) exit ;;
+            *)  echo "Error not a valid option, select a valid number or [q] to quit." ;;
+        esac
+    done
+fi
 
-video_codec_options=("Uncompressed Video" "FFV1 version 3" "JPEG2000" "ProRes")
-PS3="Select a video codec: "
-select video_codec_choice in "${video_codec_options[@]}" ; do
-    case "${REPLY}" in
-        1)
-            if [ "${bitdepth}" = "10" ] ; then
-                codecname="Uncompressed 10-bit 4:2:2"
-                middleoptions+=(-c:v v210)
-            elif [ "${bitdepth}" = "8" ] ; then
-                codecname="Uncompressed 8-bit 4:2:2"
-                middleoptions+=(-c:v rawvideo -pix_fmt uyvy422 -tag:v 2vuy)
-            fi
-            break ;;
-        2)
-            codecname="FFV1 version 3"
-            middleoptions+=(-c:v ffv1 -level 3 -g 1)
-            suffix="_ffv1"
-            break ;;
-        3)
-            codecname="JPEG2000"
-            middleoptions+=(-c:v libopenjpeg)
-            suffix="_j2k"
-            break ;;
-        4)
-            codecname="Apple ProRes 422"
-            middleoptions+=(-c:v prores)
-            suffix="_prores"
-            break ;;
-        Q) exit ;;
-        q) exit ;;
-        *)  echo "Error not a valid option, select a valid number or [q] to quit." ;;
-    esac
-done
+if [ ! "${codecname}" ] ; then
+    video_codec_options=("Uncompressed Video" "FFV1 version 3" "JPEG2000" "ProRes")
+    PS3="Select a video codec: "
+    select video_codec_choice in "${video_codec_options[@]}" ; do
+        case "${REPLY}" in
+            1)
+                if [ "${bitdepth}" = "10" ] ; then
+                    codecname="Uncompressed 10-bit 4:2:2"
+                    middleoptions+=(-c:v v210)
+                elif [ "${bitdepth}" = "8" ] ; then
+                    codecname="Uncompressed 8-bit 4:2:2"
+                    middleoptions+=(-c:v rawvideo -pix_fmt uyvy422 -tag:v 2vuy)
+                fi
+                break ;;
+            2)
+                codecname="FFV1 version 3"
+                middleoptions+=(-c:v ffv1 -level 3 -g 1)
+                suffix="_ffv1"
+                break ;;
+            3)
+                codecname="JPEG2000"
+                middleoptions+=(-c:v libopenjpeg)
+                suffix="_j2k"
+                break ;;
+            4)
+                codecname="Apple ProRes 422"
+                middleoptions+=(-c:v prores)
+                suffix="_prores"
+                break ;;
+            Q) exit ;;
+            q) exit ;;
+            *)  echo "Error not a valid option, select a valid number or [q] to quit." ;;
+        esac
+    done
+fi
 
-channel_mapping_options=(\
-    "2 Stereo Tracks" \
-    "1 Stereo Track" \
-    "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono" \
-    "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono" )
-PS3="Select an audio mapping: "
-select audio_mapping_choice in "${channel_mapping_options[@]}" ; do
-    case "${REPLY}" in
-        1)
-audiomap="[0:a:0]channelsplit=channel_layout=4.0[a1][a2][a3][a4];[a1][a2]amerge,aformat=channel_layouts=stereo[stereo1];[a3][a4]amerge,aformat=channel_layouts=stereo[stereo2]"
-        map1k="-map"
-        map1v="[stereo1]"
-        map2k="-map"
-        map2v="[stereo2]"
-        break ;;
-        2)
-audiomap="[0:a:0]channelsplit=channel_layout=2[a1][a2];[a1][a2]amerge,aformat=channel_layouts=stereo[stereo1]"
-        map1k="-map"
-        map1v="[stereo1]"
-        map2k=""
-        map2v=""
-        break ;;
-        3)
-audiomap="[0:a:0]channelsplit=channel_layout=2[a1][a2];[a1]aformat=channel_layouts=mono[mono1];[a2]aformat=channel_layouts=mono[mono2]"
-        map1k="-map"
-        map1v="[mono1]"
-        map2k="-map"
-        map2v="[mono2]"
-        break ;;
-        4)
-audiomap="[0:a:0]channelsplit=channel_layout=2[a1][a2];[a1]aformat=channel_layouts=mono[mono1];[a2]aformat=channel_layouts=mono[mono2]"
-        map1k="-map"
-        map1v="[mono2]"
-        map2k="-map"
-        map2v="[mono1]"
-        break ;;
-        Q) exit ;;
-        q) exit ;;
-        *)  echo "Error not a valid option, select a valid number or [q] to quit." ;;
-    esac
-done
+if [ ! "${audiomap}"] ; then
+    channel_mapping_options=(\
+        "2 Stereo Tracks" \
+        "1 Stereo Track" \
+        "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono" \
+        "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono" )
+    PS3="Select an audio mapping: "
+    select audio_mapping_choice in "${channel_mapping_options[@]}" ; do
+        case "${REPLY}" in
+            1)
+    audiomap="[0:a:0]channelsplit=channel_layout=4.0[a1][a2][a3][a4];[a1][a2]amerge,aformat=channel_layouts=stereo[stereo1];[a3][a4]amerge,aformat=channel_layouts=stereo[stereo2]"
+            map1k="-map"
+            map1v="[stereo1]"
+            map2k="-map"
+            map2v="[stereo2]"
+            break ;;
+            2)
+    audiomap="[0:a:0]channelsplit=channel_layout=2[a1][a2];[a1][a2]amerge,aformat=channel_layouts=stereo[stereo1]"
+            map1k="-map"
+            map1v="[stereo1]"
+            map2k=""
+            map2v=""
+            break ;;
+            3)
+    audiomap="[0:a:0]channelsplit=channel_layout=2[a1][a2];[a1]aformat=channel_layouts=mono[mono1];[a2]aformat=channel_layouts=mono[mono2]"
+            map1k="-map"
+            map1v="[mono1]"
+            map2k="-map"
+            map2v="[mono2]"
+            break ;;
+            4)
+    audiomap="[0:a:0]channelsplit=channel_layout=2[a1][a2];[a1]aformat=channel_layouts=mono[mono1];[a2]aformat=channel_layouts=mono[mono2]"
+            map1k="-map"
+            map1v="[mono2]"
+            map2k="-map"
+            map2v="[mono1]"
+            break ;;
+            Q) exit ;;
+            q) exit ;;
+            *)  echo "Error not a valid option, select a valid number or [q] to quit." ;;
+        esac
+    done
+fi
 
 echo "Summary: ${bitdepth} bit "${codecopt}" file from ${video_input} and ${audio_input} inputs recorded to ${dir}/${id}.mov"
 echo Hit enter to start
