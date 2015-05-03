@@ -1,8 +1,13 @@
 #!/bin/bash
+config_file=/opt/$(basename "${0}").conf
 middleoptions=""
 suffix=""
 bmdcapturelogsuffix="_bmdcapture.log"
 ffmpeglogsuffix=".log"
+
+if [ -f "${config_file}" ] ; then
+    . "${config_file}"
+fi
 
 usage(){
     echo
