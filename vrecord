@@ -2,8 +2,15 @@
 config_file=/opt/$(basename "${0}").conf
 middleoptions=""
 suffix=""
+runtype=""
 bmdcapturelogsuffix="_bmdcapture.log"
 ffmpeglogsuffix=".log"
+
+video_input_options=("Composite" "SDI" "Component" "S-Video")
+audio_input_options=("Analog" "SDI Embedded Audio" "Digital Audio (AES/EBU)")
+video_bitdepth_options=("10 bit" "8 bit")
+video_codec_options=("Uncompressed Video" "FFV1 version 3" "JPEG2000" "ProRes")
+channel_mapping_options=("2 Stereo Tracks" "1 Stereo Track" "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono" "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono" )
 
 if [ -f "${config_file}" ] ; then
     . "${config_file}"
@@ -26,12 +33,114 @@ usage(){
     exit
 }
 
+lookup_video_input(){
+    case "${1}" in
+        "Composite")    video_input=1 ;;
+        "SDI")          video_input=4 ;;
+        "Component")    video_input=2 ;;
+        "S-Video")      video_input=6 ;;
+        Q) exit 0 ;;
+        q) exit 0 ;;
+        *)  echo "Error not a valid option, select a valid number or [q] to quit." ; return 1 ;;
+    esac
+}
+
+lookup_audio_input(){
+    case "${1}" in
+        "Analog")                   audio_input=1 ;;
+        "SDI Embedded Audio")       audio_input=2 ;;
+        "Digital Audio (AES/EBU)")  audio_input=3 ;;
+        Q) exit 0 ;;
+        q) exit 0 ;;
+        *)  echo "Error not a valid option, select a valid number or [q] to quit." ; return 1 ;;
+    esac
+}
+
+lookup_video_bitdepth(){
+    case "${1}" in
+        "10 bit")   video_bitdepth=10 ;;
+        "8 bit")    video_bitdepth=8 ;;
+        Q) exit ;;
+        q) exit ;;
+        *)  echo "Error not a valid option, select a valid number or [q] to quit." ; return 1 ;;
+    esac
+}
+
+lookup_video_codec(){
+    case "${1}" in
+        "Uncompressed Video")
+            if [ "${video_bitdepth}" = "10" ] ; then
+                codecname="Uncompressed 10-bit 4:2:2"
+                middleoptions+=(-c:v v210)
+            elif [ "${video_bitdepth}" = "8" ] ; then
+                codecname="Uncompressed 8-bit 4:2:2"
+                middleoptions+=(-c:v rawvideo -pix_fmt uyvy422 -tag:v 2vuy)
+            fi ;;
+        "FFV1 version 3")
+            codecname="FFV1 version 3"
+            middleoptions+=(-c:v ffv1 -level 3 -g 1)
+            suffix="_ffv1"
+            ;;
+        "JPEG2000")
+            codecname="JPEG2000"
+            middleoptions+=(-c:v libopenjpeg)
+            suffix="_j2k"
+            ;;
+        "ProRes")
+            codecname="Apple ProRes 422"
+            middleoptions+=(-c:v prores)
+            suffix="_prores"
+            ;;
+        Q) exit ;;
+        q) exit ;;
+        *)  echo "Error not a valid option, select a valid number or [q] to quit." ; return 1 ;;
+    esac
+}
+
+lookup_audio_mapping(){
+    case "${1}" in
+        "2 Stereo Tracks")
+audiomap="[0:a:0]channelsplit=channel_layout=4.0[a1][a2][a3][a4];[a1][a2]amerge,aformat=channel_layouts=stereo[stereo1];[a3][a4]amerge,aformat=channel_layouts=stereo[stereo2]"
+        map1k="-map"
+        map1v="[stereo1]"
+        map2k="-map"
+        map2v="[stereo2]"
+        break ;;
+        "1 Stereo Track")
+audiomap="[0:a:0]channelsplit=channel_layout=2[a1][a2];[a1][a2]amerge,aformat=channel_layouts=stereo[stereo1]"
+        map1k="-map"
+        map1v="[stereo1]"
+        map2k=""
+        map2v=""
+        break ;;
+        "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono")
+audiomap="[0:a:0]channelsplit=channel_layout=2[a1][a2];[a1]aformat=channel_layouts=mono[mono1];[a2]aformat=channel_layouts=mono[mono2]"
+        map1k="-map"
+        map1v="[mono1]"
+        map2k="-map"
+        map2v="[mono2]"
+        break ;;
+        "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono")
+audiomap="[0:a:0]channelsplit=channel_layout=2[a1][a2];[a1]aformat=channel_layouts=mono[mono1];[a2]aformat=channel_layouts=mono[mono2]"
+        map1k="-map"
+        map1v="[mono2]"
+        map2k="-map"
+        map2v="[mono1]"
+        break ;;
+        Q) exit ;;
+        q) exit ;;
+        *)  echo "Error not a valid option, select a valid number or [q] to quit." ; return 1 ;;
+    esac
+}
+
 # command-line options to set mediaid and original variables
 OPTIND=1
-while getopts "hp" opt ; do
+while getopts "herp" opt ; do
     case "${opt}" in
         h) usage ;;
-        p) passthrough="Y" ;;
+        e) runtype="edit";;
+        r) runtype="record";;
+        p) runtype="passthrough" ;;
         *) echo "bad option -$OPTARG" ; usage ;;
         :) echo "Option -$OPTARG requires an argument" ; exit 1 ;;
     esac
@@ -79,40 +188,30 @@ playbackfilter="split=5[a][b][c][d][e];\
 
 shift $(( ${OPTIND} - 1 ))
 
-if [ ! "${video_input}" ] ; then
-    video_input_options=("Composite" "SDI" "Component" "S-Video")
+if [ "${video_input_choice}" ] ; then
+    lookup_video_input "${video_input_choice}"
+else
     echo "Which VIDEO input are you using?"
     PS3="Select a video input: "
     select video_input_choice in "${video_input_options[@]}" ; do
-        case "${REPLY}" in
-            1)  video_input=1 ; break ;;
-            2)  video_input=4 ; break ;;
-            3)  video_input=2 ; break ;;
-            4)  video_input=6 ; break ;;
-            Q) exit ;;
-            q) exit ;;
-            *)  echo "Error not a valid option, select a valid number or [q] to quit." ;;
-        esac
+        lookup_video_input "${video_input_choice}"
+        [ "${?}" -eq 0 ] && break
     done
 fi
 
-if [ ! "${audio_input}" ] ;then
-    audio_input_options=("Analog" "SDI Embedded Audio" "Digital Audio (AES/EBU)")
+if [ "${audio_input_choice}" ] ;then
+    lookup_audio_input "${audio_input_choice}"
+else
+    echo "Which AUDIO input are you using?"
     PS3="Select an audio input: "
     select audio_input_choice in "${audio_input_options[@]}" ; do
-        case "${REPLY}" in
-            1)  audio_input=1 ; break ;;
-            2)  audio_input=2 ; break ;;
-            3)  audio_input=3 ; break ;;
-            Q) exit ;;
-            q) exit ;;
-            *)  echo "Error not a valid option, select a valid number or [q] to quit." ;;
-        esac
+        lookup_audio_input "${audio_input_choice}"
+        [ "${?}" -eq 0 ] && break
     done
 fi
 
-if [[ "${passthrough}" = "Y" ]] ; then
-    bitdepth=10
+if [[ "${runtype}" = "p" ]] ; then
+    video_bitdepth=10
     bmdcapture -m 0 -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p "${bitdepth}" -F nut -f pipe:1 | \
             ffplay -v info -hide_banner -stats -i - \
             -vf "${playbackfilter}"
@@ -129,107 +228,47 @@ if [ ! -d "${dir}" ] ; then
     fi
 fi
 
-if [ ! "$bitdepth" ] ; then
-    video_bitdepth_options=("10 bit" "8 bit")
+if [ "$video_bit_depth_choice" ] ; then
+    lookup_video_bitdepth "$video_bit_depth_choice"
+else
+    echo "Which VIDEO bit depth?"
     PS3="Select a video bit depth: "
     select video_bit_depth_choice in "${video_bitdepth_options[@]}" ; do
-        case "${REPLY}" in
-            1)  bitdepth=10 ; break ;;
-            2)  bitdepth=8 ; break ;;
-            Q) exit ;;
-            q) exit ;;
-            *)  echo "Error not a valid option, select a valid number or [q] to quit." ;;
-        esac
+        lookup_video_bitdepth "$video_bit_depth_choice"
+        [ "${?}" -eq 0 ] && break
     done
 fi
 
-if [ ! "${codecname}" ] ; then
-    video_codec_options=("Uncompressed Video" "FFV1 version 3" "JPEG2000" "ProRes")
+
+if [ "${video_codec_choice}" ] ; then
+    lookup_video_codec "${video_codec_choice}"
+else
+    echo "Which VIDEO codec?"
     PS3="Select a video codec: "
     select video_codec_choice in "${video_codec_options[@]}" ; do
-        case "${REPLY}" in
-            1)
-                if [ "${bitdepth}" = "10" ] ; then
-                    codecname="Uncompressed 10-bit 4:2:2"
-                    middleoptions+=(-c:v v210)
-                elif [ "${bitdepth}" = "8" ] ; then
-                    codecname="Uncompressed 8-bit 4:2:2"
-                    middleoptions+=(-c:v rawvideo -pix_fmt uyvy422 -tag:v 2vuy)
-                fi
-                break ;;
-            2)
-                codecname="FFV1 version 3"
-                middleoptions+=(-c:v ffv1 -level 3 -g 1)
-                suffix="_ffv1"
-                break ;;
-            3)
-                codecname="JPEG2000"
-                middleoptions+=(-c:v libopenjpeg)
-                suffix="_j2k"
-                break ;;
-            4)
-                codecname="Apple ProRes 422"
-                middleoptions+=(-c:v prores)
-                suffix="_prores"
-                break ;;
-            Q) exit ;;
-            q) exit ;;
-            *)  echo "Error not a valid option, select a valid number or [q] to quit." ;;
-        esac
+        lookup_video_codec "${video_codec_choice}"
+        [ "${?}" -eq 0 ] && break
     done
 fi
 
-if [ ! "${audiomap}"] ; then
-    channel_mapping_options=(\
-        "2 Stereo Tracks" \
-        "1 Stereo Track" \
-        "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono" \
-        "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono" )
+if [ "${audio_mapping_choice}"] ; then
+    lookup_audio_mapping "${audio_mapping_choice}"
+else
+    echo "Select an audio mapping."
     PS3="Select an audio mapping: "
     select audio_mapping_choice in "${channel_mapping_options[@]}" ; do
-        case "${REPLY}" in
-            1)
-    audiomap="[0:a:0]channelsplit=channel_layout=4.0[a1][a2][a3][a4];[a1][a2]amerge,aformat=channel_layouts=stereo[stereo1];[a3][a4]amerge,aformat=channel_layouts=stereo[stereo2]"
-            map1k="-map"
-            map1v="[stereo1]"
-            map2k="-map"
-            map2v="[stereo2]"
-            break ;;
-            2)
-    audiomap="[0:a:0]channelsplit=channel_layout=2[a1][a2];[a1][a2]amerge,aformat=channel_layouts=stereo[stereo1]"
-            map1k="-map"
-            map1v="[stereo1]"
-            map2k=""
-            map2v=""
-            break ;;
-            3)
-    audiomap="[0:a:0]channelsplit=channel_layout=2[a1][a2];[a1]aformat=channel_layouts=mono[mono1];[a2]aformat=channel_layouts=mono[mono2]"
-            map1k="-map"
-            map1v="[mono1]"
-            map2k="-map"
-            map2v="[mono2]"
-            break ;;
-            4)
-    audiomap="[0:a:0]channelsplit=channel_layout=2[a1][a2];[a1]aformat=channel_layouts=mono[mono1];[a2]aformat=channel_layouts=mono[mono2]"
-            map1k="-map"
-            map1v="[mono2]"
-            map2k="-map"
-            map2v="[mono1]"
-            break ;;
-            Q) exit ;;
-            q) exit ;;
-            *)  echo "Error not a valid option, select a valid number or [q] to quit." ;;
-        esac
+        lookup_audio_mapping "${audio_mapping_choice}"
+        [ "${?}" -eq 0 ] && break
     done
 fi
 
-echo "Summary: ${bitdepth} bit "${codecopt}" file from ${video_input} and ${audio_input} inputs recorded to ${dir}/${id}.mov"
+echo "Summary: ${video_bitdepth} bit "${codecopt}" file from ${video_input} and ${audio_input} inputs recorded to ${dir}/${id}.mov"
 echo Hit enter to start
 read
 echo "Run vstop from a separate terminal window/tab to stop."
-echo "Running this: bmdcapture -m 0 -V \"${video_input}\" -A \"${audio_input}\" -c 8 -s 32 -p \"${bitdepth}\" -F nut -f pipe:1 | ffmpeg -v verbose -i - ${middleoptions[@]} -c:a pcm_s24le -filter_complex \"[0:v:0]setfield=bff,setsar=40/27,setdar=4/3[vid1];[0:a:0]channelsplit=channel_layout=4.0[a1][a2][a3][a4];[a1][a2]amerge,aformat=channel_layouts=stereo[stereo1];[a3][a4]amerge,aformat=channel_layouts=stereo[stereo2]\" -map \"[vid1]\" -map \"[stereo1]\" -map \"[stereo2]\"  \"${dir}/${id}.mov\" -c copy -f nut - | ffplay -"
+echo "Running this: bmdcapture -m 0 -V \"${video_input}\" -A \"${audio_input}\" -c 8 -s 32 -p \"${video_bitdepth}\" -F nut -f pipe:1 | ffmpeg -v verbose -i - ${middleoptions[@]} -c:a pcm_s24le -filter_complex \"[0:v:0]setfield=bff,setsar=40/27,setdar=4/3[vid1];[0:a:0]channelsplit=channel_layout=4.0[a1][a2][a3][a4];[a1][a2]amerge,aformat=channel_layouts=stereo[stereo1];[a3][a4]amerge,aformat=channel_layouts=stereo[stereo2]\" -map \"[vid1]\" -map \"[stereo1]\" -map \"[stereo2]\"  \"${dir}/${id}.mov\" -c copy -f nut - | ffplay -"
 export FFREPORT="file=${dir}/${id}_%p_%t${ffmpeglogsuffix}"
-bmdcapture -v -m 0 -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p "${bitdepth}" -F nut -f pipe:1 2> "${dir}/${id}${bmdcapturelogsuffix}" | \
+bmdcapture -v -m 0 -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p "${video_bitdepth}" -F nut -f pipe:1 2> "${dir}/${id}${bmdcapturelogsuffix}" | \
     ffmpeg -v info -hide_banner -stats -i - ${middleoptions[@]} \
         -metadata:s:v:0 encoder="${codecname}" \
         -c:a pcm_s24le \
