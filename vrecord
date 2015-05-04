@@ -2,7 +2,7 @@
 config_file="$HOME/.$(basename "${0}").conf"
 middleoptions=""
 suffix=""
-runtype=""
+runtype="record"
 bmdcapturelogsuffix="_bmdcapture.log"
 ffmpeglogsuffix=".log"
 
