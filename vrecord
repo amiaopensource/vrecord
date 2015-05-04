@@ -238,9 +238,9 @@ else
     done
 fi
 
-if [[ "${runtype}" = "p" ]] ; then
+if [[ "${runtype}" = "passthrough" ]] ; then
     video_bitdepth=10
-    bmdcapture -m 0 -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p "${bitdepth}" -F nut -f pipe:1 | \
+    bmdcapture -m 0 -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p "${video_bitdepth}" -F nut -f pipe:1 | \
             ffplay -v info -hide_banner -stats -i - \
             -vf "${playbackfilter}"
     exit 0
