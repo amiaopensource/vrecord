@@ -1,7 +1,9 @@
 #!/bin/bash
 config_file="$HOME/.$(basename "${0}").conf"
+inputoptions=""
 middleoptions=""
 suffix=""
+timer=""
 runtype="record"
 bmdcapturelogsuffix="_bmdcapture.log"
 ffmpeglogsuffix=".log"
@@ -282,6 +284,12 @@ if [ ! -d "${dir}" ] ; then
         exit
     fi
 fi
+report -q -n "Default recording time (minutes), blank for unlimited: "
+read duration
+if [ ! -z "${duration}" ] ; then
+    dur_seconds=$(echo "${duration} * 60" | bc)
+    inputoptions+=(-t "${dur_seconds}")
+fi
 
 if [ "$video_bit_depth_choice" ] ; then
     lookup_video_bitdepth "$video_bit_depth_choice"
@@ -324,7 +332,7 @@ report -d "Run vstop from a separate terminal window/tab to stop."
 report -d "Running this: bmdcapture -m 0 -V \"${video_input}\" -A \"${audio_input}\" -c 8 -s 32 -p \"${video_bitdepth}\" -F nut -f pipe:1 | ffmpeg -v verbose -i - ${middleoptions[@]} -c:a pcm_s24le -filter_complex \"[0:v:0]setfield=bff,setsar=40/27,setdar=4/3[vid1];[0:a:0]channelsplit=channel_layout=4.0[a1][a2][a3][a4];[a1][a2]amerge,aformat=channel_layouts=stereo[stereo1];[a3][a4]amerge,aformat=channel_layouts=stereo[stereo2]\" -map \"[vid1]\" -map \"[stereo1]\" -map \"[stereo2]\"  \"${dir}/${id}.mov\" -c copy -f nut - | ffplay -"
 export FFREPORT="file=${dir}/${id}_%p_%t${ffmpeglogsuffix}"
 bmdcapture -v -m 0 -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p "${video_bitdepth}" -F nut -f pipe:1 2> "${dir}/${id}${bmdcapturelogsuffix}" | \
-    ffmpeg -v info -hide_banner -stats -i - ${middleoptions[@]} \
+    ffmpeg -v info -hide_banner -stats ${inputoptions[@]} -i - ${middleoptions[@]} \
         -metadata:s:v:0 encoder="${codecname}" \
         -c:a pcm_s24le \
         -filter_complex "${recordingfilter};${audiomap}" \
