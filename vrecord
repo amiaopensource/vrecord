@@ -352,6 +352,7 @@ bmdcapture -v -m 0 -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p "${vide
             -v info \
             -hide_banner \
             -stats \
+            -autoexit \
             - \
             -window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" \
             -vf "${playbackfilter}"
