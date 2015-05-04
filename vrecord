@@ -242,6 +242,7 @@ if [[ "${runtype}" = "passthrough" ]] ; then
     video_bitdepth=10
     bmdcapture -m 0 -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p "${video_bitdepth}" -F nut -f pipe:1 | \
             ffplay -v info -hide_banner -stats -i - \
+            -window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" \
             -vf "${playbackfilter}"
     exit 0
 fi
@@ -307,4 +308,5 @@ bmdcapture -v -m 0 -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p "${vide
         "${dir}/${id}${suffix}.mov" \
         -c copy -f nut - | \
         ffplay -v info -hide_banner -stats - \
+        -window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" \
         -vf "${playbackfilter}"
