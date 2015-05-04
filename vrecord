@@ -348,6 +348,10 @@ bmdcapture -v -m 0 -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p "${vide
         "${dir}/${id}${suffix}.mov" \
         "${extraoutputs[@]}"\
         -c copy -f nut - | \
-        ffplay -v info -hide_banner -stats - \
-        -window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" \
-        -vf "${playbackfilter}"
+        ffplay \
+            -v info \
+            -hide_banner \
+            -stats \
+            - \
+            -window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" \
+            -vf "${playbackfilter}"
