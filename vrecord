@@ -335,7 +335,6 @@ report -d "Summary: ${video_bitdepth} bit "${codecopt}" file from ${video_input}
 report -q "Hit enter to start"
 read
 report -d "Run vstop from a separate terminal window/tab to stop."
-report -d "Running this: bmdcapture -m 0 -V \"${video_input}\" -A \"${audio_input}\" -c 8 -s 32 -p \"${video_bitdepth}\" -F nut -f pipe:1 | ffmpeg -v verbose -i - ${middleoptions[@]} -c:a pcm_s24le -filter_complex \"[0:v:0]setfield=bff,setsar=40/27,setdar=4/3[vid1];[0:a:0]channelsplit=channel_layout=4.0[a1][a2][a3][a4];[a1][a2]amerge,aformat=channel_layouts=stereo[stereo1];[a3][a4]amerge,aformat=channel_layouts=stereo[stereo2]\" -map \"[vid1]\" -map \"[stereo1]\" -map \"[stereo2]\"  \"${dir}/${id}.mov\" -c copy -f nut - | ffplay -"
 export FFREPORT="file=${dir}/${id}_%p_%t${ffmpeglogsuffix}"
 bmdcapture -v -m 0 -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p "${video_bitdepth}" -F nut -f pipe:1 2> "${dir}/${id}${bmdcapturelogsuffix}" | \
     ffmpeg -v info -hide_banner -stats ${inputoptions[@]} -i - ${middleoptions[@]} \
