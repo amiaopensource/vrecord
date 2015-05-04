@@ -16,6 +16,32 @@ if [ -f "${config_file}" ] ; then
     . "${config_file}"
 fi
 
+report(){
+        local RED="$(tput setaf 1)"   # Red      - For Warnings
+        local GREEN="$(tput setaf 2)" # Green    - For Declarations
+        local BLUE="$(tput setaf 4)"  # Blue     - For Questions
+        local NC="$(tput sgr0)"       # No Color
+        local color=""
+        local startmessage=""
+        local endmessage=""
+        local echoopt=""
+        local log_message=""
+        OPTIND=1
+        while getopts ":qdwstn" opt; do
+            case "${opt}" in
+                q) color="${BLUE}" ;;                         # question mode, use color blue
+                d) color="${GREEN}" ;;                        # declaration mode, use color green
+                w) color="${RED}" ; log_message="Y";;                 # warning mode, use color red
+                s) startmessage+=([$(basename "${0}")] ) ;;     # prepend scriptname to the message
+                t) startmessage+=($(get_iso8601) '- ' ) ;;     # prepend timestamp to the message
+                n) echoopt="-n" ;;                          # to avoid line breaks after echo
+            esac
+        done
+        shift $(( ${OPTIND} - 1 ))
+        message="${1}"
+        echo $echoopt "${color}${startmessage[@]}${message}${NC}"
+}
+
 usage(){
     echo
     echo "$(basename ${0}) ${version}"
@@ -41,7 +67,7 @@ lookup_video_input(){
         "S-Video")      video_input=6 ;;
         Q) exit 0 ;;
         q) exit 0 ;;
-        *)  echo "Error not a valid option, select a valid number or [q] to quit." ; return 1 ;;
+        *)  report -w "Error not a valid option, select a valid number or [q] to quit." ; return 1 ;;
     esac
 }
 
@@ -52,7 +78,7 @@ lookup_audio_input(){
         "Digital Audio (AES/EBU)")  audio_input=3 ;;
         Q) exit 0 ;;
         q) exit 0 ;;
-        *)  echo "Error not a valid option, select a valid number or [q] to quit." ; return 1 ;;
+        *)  report -w "Error not a valid option, select a valid number or [q] to quit." ; return 1 ;;
     esac
 }
 
@@ -62,7 +88,7 @@ lookup_video_bitdepth(){
         "8 bit")    video_bitdepth=8 ;;
         Q) exit ;;
         q) exit ;;
-        *)  echo "Error not a valid option, select a valid number or [q] to quit." ; return 1 ;;
+        *)  report -w "Error not a valid option, select a valid number or [q] to quit." ; return 1 ;;
     esac
 }
 
@@ -93,7 +119,7 @@ lookup_video_codec(){
             ;;
         Q) exit ;;
         q) exit ;;
-        *)  echo "Error not a valid option, select a valid number or [q] to quit." ; return 1 ;;
+        *)  report -w "Error not a valid option, select a valid number or [q] to quit." ; return 1 ;;
     esac
 }
 
@@ -129,7 +155,7 @@ audiomap="[0:a:0]channelsplit=channel_layout=2[a1][a2];[a1]aformat=channel_layou
         break ;;
         Q) exit ;;
         q) exit ;;
-        *)  echo "Error not a valid option, select a valid number or [q] to quit." ; return 1 ;;
+        *)  report -w "Error not a valid option, select a valid number or [q] to quit." ; return 1 ;;
     esac
 }
 
@@ -141,8 +167,8 @@ while getopts "herp" opt ; do
         e) runtype="edit";;
         r) runtype="record";;
         p) runtype="passthrough" ;;
-        *) echo "bad option -$OPTARG" ; usage ;;
-        :) echo "Option -$OPTARG requires an argument" ; exit 1 ;;
+        *) report -w "bad option -$OPTARG" ; usage ;;
+        :) report -w "Option -$OPTARG requires an argument" ; exit 1 ;;
     esac
 done
 
@@ -211,7 +237,7 @@ if [[ "${runtype}" = "edit" ]] ; then
         echo "dir=" >> "${config_file}"
     fi
     mate "${config_file}"
-    echo "After saving the config file, press any key to continue"
+    report -q "After saving the config file, press any key to continue"
     read
     . "${config_file}"
 fi
@@ -219,7 +245,7 @@ fi
 if [ "${video_input_choice}" ] ; then
     lookup_video_input "${video_input_choice}"
 else
-    echo "Which VIDEO input are you using?"
+    report -q "Which VIDEO input are you using?"
     PS3="Select a video input: "
     select video_input_choice in "${video_input_options[@]}" ; do
         lookup_video_input "${video_input_choice}"
@@ -230,7 +256,7 @@ fi
 if [ "${audio_input_choice}" ] ;then
     lookup_audio_input "${audio_input_choice}"
 else
-    echo "Which AUDIO input are you using?"
+    report -q "Which AUDIO input are you using?"
     PS3="Select an audio input: "
     select audio_input_choice in "${audio_input_options[@]}" ; do
         lookup_audio_input "${audio_input_choice}"
@@ -246,13 +272,13 @@ if [[ "${runtype}" = "passthrough" ]] ; then
             -vf "${playbackfilter}"
     exit 0
 fi
-echo -n "Enter Identifier: "
+report -q -n "Enter Identifier: "
 read id
 if [ ! -d "${dir}" ] ; then
-    echo -n "Enter Directory: "
+    report -q -n "Enter Directory: "
     read dir
     if [ ! -d "$dir" ] ; then
-        echo "error not a valid directory"
+        report -w "error not a valid directory"
         exit
     fi
 fi
@@ -260,7 +286,7 @@ fi
 if [ "$video_bit_depth_choice" ] ; then
     lookup_video_bitdepth "$video_bit_depth_choice"
 else
-    echo "Which VIDEO bit depth?"
+    report -q "Which VIDEO bit depth?"
     PS3="Select a video bit depth: "
     select video_bit_depth_choice in "${video_bitdepth_options[@]}" ; do
         lookup_video_bitdepth "$video_bit_depth_choice"
@@ -272,7 +298,7 @@ fi
 if [ "${video_codec_choice}" ] ; then
     lookup_video_codec "${video_codec_choice}"
 else
-    echo "Which VIDEO codec?"
+    report -q "Which VIDEO codec?"
     PS3="Select a video codec: "
     select video_codec_choice in "${video_codec_options[@]}" ; do
         lookup_video_codec "${video_codec_choice}"
@@ -283,7 +309,7 @@ fi
 if [ "${audio_mapping_choice}"] ; then
     lookup_audio_mapping "${audio_mapping_choice}"
 else
-    echo "Select an audio mapping."
+    report -q "Select an audio mapping."
     PS3="Select an audio mapping: "
     select audio_mapping_choice in "${channel_mapping_options[@]}" ; do
         lookup_audio_mapping "${audio_mapping_choice}"
@@ -291,11 +317,11 @@ else
     done
 fi
 
-echo "Summary: ${video_bitdepth} bit "${codecopt}" file from ${video_input} and ${audio_input} inputs recorded to ${dir}/${id}.mov"
-echo Hit enter to start
+report -d "Summary: ${video_bitdepth} bit "${codecopt}" file from ${video_input} and ${audio_input} inputs recorded to ${dir}/${id}.mov"
+report -q "Hit enter to start"
 read
-echo "Run vstop from a separate terminal window/tab to stop."
-echo "Running this: bmdcapture -m 0 -V \"${video_input}\" -A \"${audio_input}\" -c 8 -s 32 -p \"${video_bitdepth}\" -F nut -f pipe:1 | ffmpeg -v verbose -i - ${middleoptions[@]} -c:a pcm_s24le -filter_complex \"[0:v:0]setfield=bff,setsar=40/27,setdar=4/3[vid1];[0:a:0]channelsplit=channel_layout=4.0[a1][a2][a3][a4];[a1][a2]amerge,aformat=channel_layouts=stereo[stereo1];[a3][a4]amerge,aformat=channel_layouts=stereo[stereo2]\" -map \"[vid1]\" -map \"[stereo1]\" -map \"[stereo2]\"  \"${dir}/${id}.mov\" -c copy -f nut - | ffplay -"
+report -d "Run vstop from a separate terminal window/tab to stop."
+report -d "Running this: bmdcapture -m 0 -V \"${video_input}\" -A \"${audio_input}\" -c 8 -s 32 -p \"${video_bitdepth}\" -F nut -f pipe:1 | ffmpeg -v verbose -i - ${middleoptions[@]} -c:a pcm_s24le -filter_complex \"[0:v:0]setfield=bff,setsar=40/27,setdar=4/3[vid1];[0:a:0]channelsplit=channel_layout=4.0[a1][a2][a3][a4];[a1][a2]amerge,aformat=channel_layouts=stereo[stereo1];[a3][a4]amerge,aformat=channel_layouts=stereo[stereo2]\" -map \"[vid1]\" -map \"[stereo1]\" -map \"[stereo2]\"  \"${dir}/${id}.mov\" -c copy -f nut - | ffplay -"
 export FFREPORT="file=${dir}/${id}_%p_%t${ffmpeglogsuffix}"
 bmdcapture -v -m 0 -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p "${video_bitdepth}" -F nut -f pipe:1 2> "${dir}/${id}${bmdcapturelogsuffix}" | \
     ffmpeg -v info -hide_banner -stats -i - ${middleoptions[@]} \
