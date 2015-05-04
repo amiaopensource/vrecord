@@ -1,5 +1,5 @@
 #!/bin/bash
-config_file=/opt/$(basename "${0}").conf
+config_file="$HOME/.$(basename "${0}").conf"
 middleoptions=""
 suffix=""
 runtype=""
@@ -187,6 +187,34 @@ playbackfilter="split=5[a][b][c][d][e];\
         [abcd1][e1]overlay=720:0[out]"
 
 shift $(( ${OPTIND} - 1 ))
+
+if [[ "${runtype}" = "edit" ]] ; then
+    if [ ! -f "${config_file}" ] ; then
+        echo "#$(basename "${0}") config file" > "${config_file}"
+        echo "# Set each value to empty quotes (like \"\") to prompt during run, or set to a provided option."
+        echo "# Set video_input_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${video_input_options[@]}")" >> "${config_file}"
+        echo "video_input_choice=\"\"" >> "${config_file}"
+        echo  >> "${config_file}"
+        echo "#Set audio_input_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${audio_input_options[@]}")" >> "${config_file}"
+        echo "audio_input_choice=\"\"" >> "${config_file}"
+        echo  >> "${config_file}"
+        echo "#Set video_bit_depth_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${video_bitdepth_options[@]}")" >> "${config_file}"
+        echo "video_bit_depth_choice=\"\"" >> "${config_file}"
+        echo  >> "${config_file}"
+        echo "#Set video_codec_choice to one of these valid options or leave blank to request each run: $(printf "\"%s\" " "${video_codec_options[@]}")" >> "${config_file}"
+        echo "video_codec_choice=\"\"" >> "${config_file}"
+        echo  >> "${config_file}"
+        echo "#Set audio_mapping_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${channel_mapping_options[@]}")" >> "${config_file}"
+        echo "audio_mapping_choice=\"\"" >> "${config_file}"
+        echo  >> "${config_file}"
+        echo "#Set dir to the preferred recording directory or leave blank to request each run:" >> "${config_file}"
+        echo "dir=" >> "${config_file}"
+    fi
+    mate "${config_file}"
+    echo "After saving the config file, press any key to continue"
+    read
+    . "${config_file}"
+fi
 
 if [ "${video_input_choice}" ] ; then
     lookup_video_input "${video_input_choice}"
