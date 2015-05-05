@@ -317,9 +317,9 @@ if [ ! -d "${dir}" ] ; then
         exit
     fi
 fi
-report -q -n "Default recording time (minutes), blank for unlimited: "
-read duration
 if [ ! -z "${duration}" ] ; then
+    report -q -n "Default recording time (minutes), blank for unlimited: "
+    read duration
     dur_seconds=$(echo "${duration} * 60" | bc)
     inputoptions+=(-t "${dur_seconds}")
 fi
