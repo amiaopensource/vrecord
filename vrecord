@@ -388,7 +388,7 @@ if [[ "${framemd5}" = "Y" ]] ; then
     extraoutputs+=(-an -f framemd5 "${dir}/${id}${suffix}.framemd5")
 fi
 
-report -d "Summary: ${video_bitdepth} bit "${codecopt}" file from ${video_input} and ${audio_input} inputs recorded to ${dir}/${id}.mov"
+report -d "Summary: ${video_bitdepth} bit "${codecname}" file from ${video_input} and ${audio_input} inputs recorded to ${dir}/${id}.mov"
 report -q "Hit enter to start"
 read
 report -d "Run vstop from a separate terminal window/tab to stop."
