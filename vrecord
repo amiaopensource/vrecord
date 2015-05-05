@@ -244,7 +244,7 @@ playbackfilter="split=5[a][b][c][d][e];\
 shift $(( ${OPTIND} - 1 ))
 
 if [[ "${runtype}" = "edit" ]] ; then
-    if [ ! -f "${config_file}" ] ; then
+    if [ ! -s "${config_file}" ] ; then
         echo "#$(basename "${0}") config file" > "${config_file}"
         echo "# Set each value to empty quotes (like \"\") to prompt during run, or set to a provided option."
         echo "# Set video_input_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${video_input_options[@]}")" >> "${config_file}"
