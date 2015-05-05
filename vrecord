@@ -373,7 +373,7 @@ else
     done
 fi
 
-if [ "${audio_mapping_choice}"] ; then
+if [ "${audio_mapping_choice}" ] ; then
     lookup_audio_mapping "${audio_mapping_choice}"
 else
     report -q "Select an audio mapping."
