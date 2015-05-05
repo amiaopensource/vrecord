@@ -269,7 +269,7 @@ if [[ "${runtype}" = "edit" ]] ; then
         echo "container_choice=" >> "${config_file}"
         echo  >> "${config_file}"
         echo "#Set the recording time as a number (integer or decimal) in minutes." >> "${config_file}"
-        echo "duartion=" >> "${config_file}"
+        echo "duration=" >> "${config_file}"
     fi
     mate "${config_file}"
     report -q "After saving the config file, press any key to continue"
