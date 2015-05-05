@@ -55,6 +55,7 @@ usage(){
     echo "Usage: $(basename $0) [ -h ]"
     echo "  -h ( display this help )"
     echo "  -p ( enable passthrough mode where video is played back but not written to file )"
+    echo "  -x ( reset the configuration, this will clear the default configuration file at ${config_file} and create a new one)"
     echo
     echo "Installation help:"
     echo "To install (on a mac) run these commands:"
@@ -190,12 +191,13 @@ lookup_container(){
 
 # command-line options to set mediaid and original variables
 OPTIND=1
-while getopts "herp" opt ; do
+while getopts "herpx" opt ; do
     case "${opt}" in
         h) usage ;;
         e) runtype="edit";;
         r) runtype="record";;
         p) runtype="passthrough" ;;
+        x) runtype="reset" ;;
         *) report -w "bad option -$OPTARG" ; usage ;;
         :) report -w "Option -$OPTARG requires an argument" ; exit 1 ;;
     esac
@@ -243,6 +245,18 @@ playbackfilter="split=5[a][b][c][d][e];\
 
 shift $(( ${OPTIND} - 1 ))
 
+if [[ "${runtype}" = "reset" ]] ; then
+    report -q -n "Reseting the configuration will clear the ${config_file}. Please enter [Y] to confirm: "
+    read reset_response
+    if [[ "${reset_response}" = "Y" ]] ; then
+        report -d "Clearing ${config_file}."
+        echo -n "" > "${config_file}"
+        runtype="edit"
+    else
+        report -d "Reset aborted. Exiting."
+        exit 0
+    fi
+fi
 if [[ "${runtype}" = "edit" ]] ; then
     if [ ! -s "${config_file}" ] ; then
         echo "#$(basename "${0}") config file" > "${config_file}"
