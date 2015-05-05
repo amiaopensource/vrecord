@@ -139,28 +139,28 @@ audiomap="[0:a:0]channelsplit=channel_layout=4.0[a1][a2][a3][a4];[a1][a2]amerge,
         map1v="[stereo1]"
         map2k="-map"
         map2v="[stereo2]"
-        break ;;
+        ;;
         "1 Stereo Track")
 audiomap="[0:a:0]channelsplit=channel_layout=2[a1][a2];[a1][a2]amerge,aformat=channel_layouts=stereo[stereo1]"
         map1k="-map"
         map1v="[stereo1]"
         map2k=""
         map2v=""
-        break ;;
+        ;;
         "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono")
 audiomap="[0:a:0]channelsplit=channel_layout=2[a1][a2];[a1]aformat=channel_layouts=mono[mono1];[a2]aformat=channel_layouts=mono[mono2]"
         map1k="-map"
         map1v="[mono1]"
         map2k="-map"
         map2v="[mono2]"
-        break ;;
+        ;;
         "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono")
 audiomap="[0:a:0]channelsplit=channel_layout=2[a1][a2];[a1]aformat=channel_layouts=mono[mono1];[a2]aformat=channel_layouts=mono[mono2]"
         map1k="-map"
         map1v="[mono2]"
         map2k="-map"
         map2v="[mono1]"
-        break ;;
+        ;;
         Q) exit ;;
         q) exit ;;
         *)  report -w "Error not a valid option, select a valid number or [q] to quit." ; return 1 ;;
