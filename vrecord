@@ -15,6 +15,7 @@ audio_input_options=("Analog" "SDI Embedded Audio" "Digital Audio (AES/EBU)")
 video_bitdepth_options=("10 bit" "8 bit")
 video_codec_options=("Uncompressed Video" "FFV1 version 3" "JPEG2000" "ProRes")
 channel_mapping_options=("2 Stereo Tracks" "1 Stereo Track" "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono" "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono" )
+container_options=("QuickTime" "Matroska" "AVI" "MXF")
 
 if [ -f "${config_file}" ] ; then
     . "${config_file}"
@@ -163,6 +164,30 @@ audiomap="[0:a:0]channelsplit=channel_layout=2[a1][a2];[a1]aformat=channel_layou
     esac
 }
 
+lookup_container(){
+    case "${1}" in
+        "QuickTime")
+            extension="mov"
+            format="mov"
+            ;;
+        "Matroska")
+            extension="mkv"
+            format="matroska"
+            ;;
+        "AVI")
+            extension="avi"
+            format="avi"
+            ;;
+        "MXF")
+            extension="mxf"
+            format="mxf"
+            ;;
+        Q) exit 0 ;;
+        q) exit 0 ;;
+        *)  report -w "Error not a valid option, select a valid number or [q] to quit." ; return 1 ;;
+    esac
+}
+
 # command-line options to set mediaid and original variables
 OPTIND=1
 while getopts "herp" opt ; do
@@ -239,6 +264,9 @@ if [[ "${runtype}" = "edit" ]] ; then
         echo  >> "${config_file}"
         echo "#Set dir to the preferred recording directory or leave blank to request each run:" >> "${config_file}"
         echo "dir=" >> "${config_file}"
+        echo  >> "${config_file}"
+        echo "#Set container_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${container_options[@]}")" >> "${config_file}"
+        echo "container_choice=" >> "${config_file}"
     fi
     mate "${config_file}"
     report -q "After saving the config file, press any key to continue"
@@ -304,6 +332,16 @@ else
     done
 fi
 
+if [ "${container_choice}" ] ; then
+    lookup_container "${container_choice}"
+else
+    report -q "Which audiovisual container format?"
+    PS3="Select a container format: "
+    select container_choice in "${container_options[@]}" ; do
+        lookup_container "${container_choice}"
+        [ "${?}" -eq 0 ] && break
+    done
+fi
 
 if [ "${video_codec_choice}" ] ; then
     lookup_video_codec "${video_codec_choice}"
@@ -344,7 +382,8 @@ bmdcapture -v -m 0 -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p "${vide
         -map "[vid1]" \
         $(if [ -n "$map1k" ] ; then echo ${map1k} ; fi) $(if [ -n "$map1v" ] ; then echo ${map1v} ; fi) \
         $(if [ -n "$map2k" ] ; then echo ${map2k} ; fi) $(if [ -n "$map2v" ] ; then echo ${map2v} ; fi) \
-        "${dir}/${id}${suffix}.mov" \
+        -f "${format}" \
+        "${dir}/${id}${suffix}.${extension}" \
         "${extraoutputs[@]}"\
         -c copy -f nut - | \
         ffplay \
