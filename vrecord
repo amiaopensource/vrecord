@@ -333,12 +333,12 @@ if [ ! -d "${dir}" ] ; then
         exit
     fi
 fi
-if [ ! -z "${duration}" ] ; then
+if [ -z "${duration}" ] ; then
     report -q -n "Default recording time (minutes), blank for unlimited: "
     read duration
-    dur_seconds=$(echo "${duration} * 60" | bc)
-    inputoptions+=(-t "${dur_seconds}")
 fi
+dur_seconds=$(echo "${duration} * 60" | bc)
+inputoptions+=(-t "${dur_seconds}")
 
 if [ "$video_bit_depth_choice" ] ; then
     lookup_video_bitdepth "$video_bit_depth_choice"
