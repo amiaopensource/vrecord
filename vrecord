@@ -54,6 +54,8 @@ usage(){
     echo "Dependencies: ${dependencies[@]}"
     echo "Usage: $(basename $0) [ -h ]"
     echo "  -h ( display this help )"
+    echo "  -e ( edit the config_file before recording )"
+    echo "  -r ( enable record mode [default] )"
     echo "  -p ( enable passthrough mode where video is played back but not written to file )"
     echo "  -x ( reset the configuration, this will clear the default configuration file at ${config_file} and create a new one)"
     echo
