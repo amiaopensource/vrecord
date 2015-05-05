@@ -267,6 +267,9 @@ if [[ "${runtype}" = "edit" ]] ; then
         echo  >> "${config_file}"
         echo "#Set container_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${container_options[@]}")" >> "${config_file}"
         echo "container_choice=" >> "${config_file}"
+        echo  >> "${config_file}"
+        echo "#Set the recording time as a number (integer or decimal) in minutes." >> "${config_file}"
+        echo "duartion=" >> "${config_file}"
     fi
     mate "${config_file}"
     report -q "After saving the config file, press any key to continue"
