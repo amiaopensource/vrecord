@@ -10,6 +10,16 @@ ffmpeglogsuffix=".log"
 framemd5="Y"
 unset extraoutputs
 
+if [ $(which mate) ] ; then
+    TEXTEDITOR="$(which mate)"
+elif [ -d /Applications/TextMate.app/ ] ; then
+    TEXTEDITOR="open -a /Applications/TextMate.app"
+elif [ -d /Applications/TextEdit.app/ ] ; then
+    TEXTEDITOR="open -a /Applications/TextEdit.app"
+else
+    TEXTEDITOR="nano"
+fi
+
 video_input_options=("Composite" "SDI" "Component" "S-Video")
 audio_input_options=("Analog" "SDI Embedded Audio" "Digital Audio (AES/EBU)")
 video_bitdepth_options=("10 bit" "8 bit")
@@ -287,7 +297,7 @@ if [[ "${runtype}" = "edit" ]] ; then
         echo "#Set the recording time as a number (integer or decimal) in minutes." >> "${config_file}"
         echo "duration=" >> "${config_file}"
     fi
-    mate "${config_file}"
+    eval "${TEXTEDITOR} ${config_file}"
     report -q "After saving the config file, press any key to continue"
     read
     . "${config_file}"
