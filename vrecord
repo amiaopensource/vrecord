@@ -1,5 +1,6 @@
 #!/bin/bash
 config_file="$HOME/.$(basename "${0}").conf"
+
 inputoptions=""
 middleoptions=""
 suffix=""
@@ -10,15 +11,7 @@ ffmpeglogsuffix=".log"
 framemd5="Y"
 unset extraoutputs
 
-if [ $(which mate) ] ; then
-    TEXTEDITOR="$(which mate)"
-elif [ -d /Applications/TextMate.app/ ] ; then
-    TEXTEDITOR="open -a /Applications/TextMate.app"
-elif [ -d /Applications/TextEdit.app/ ] ; then
-    TEXTEDITOR="open -a /Applications/TextEdit.app"
-else
-    TEXTEDITOR="nano"
-fi
+. "${config_file}" || { echo "No config file, restarting in config mode." ; $(basename "${0}") -e ;};
 
 video_input_options=("Composite" "SDI" "Component" "S-Video")
 audio_input_options=("Analog" "SDI Embedded Audio" "Digital Audio (AES/EBU)")
@@ -201,6 +194,180 @@ lookup_container(){
     esac
 }
 
+pashua_run() {
+    # Wrapper function for interfacing to Pashua. Written by Carsten
+    # Bluem <carsten@bluem.net> in 10/2003, modified in 12/2003 (including
+    # a code snippet contributed by Tor Sigurdsson), 08/2004 and 12/2004.
+    # As 1st argument, you must pass a configuration string
+    # As 2nd argument, you may pass the encoding to use (see documentation)
+    # As 3rd argument, you may pass the path to the Pashua application,
+    #                  if it's not in one of the standard locations.
+    # Write config file
+    pashua_configfile=`/usr/bin/mktemp /tmp/pashua_XXXXXXXXX`
+    echo "$1" > $pashua_configfile
+
+    # Find Pashua binary. We do search both . and dirname "$0"
+    # , as in a doubleclickable application, cwd is /
+    # BTW, all these quotes below are necessary to handle paths
+    # containing spaces.
+    bundlepath="Pashua.app/Contents/MacOS/Pashua"
+    if [ "$3" = "" ]
+    then
+        mypath=`dirname "$0"`
+        for searchpath in "$mypath/Pashua" "$mypath/$bundlepath" "./$bundlepath" \
+                          "/Applications/$bundlepath" "$HOME/Applications/$bundlepath"
+        do
+            if [ -f "$searchpath" -a -x "$searchpath" ]
+            then
+                pashuapath=$searchpath
+                break
+            fi
+        done
+    else
+        # Directory given as argument
+        pashuapath="$3/$bundlepath"
+    fi
+
+    if [ ! "$pashuapath" ]
+    then
+        echo "Error: Pashua could not be found"
+        exit 1
+    fi
+
+    # Manage encoding
+    if [ "$2" = "" ]
+    then
+        encoding=""
+    else
+        encoding="-e $2"
+    fi
+
+    # Get result
+    result=`"$pashuapath" $encoding $pashua_configfile | sed 's/ /;;;/g'`
+
+    # Remove config file
+    rm $pashua_configfile
+
+    # Parse result
+    for line in $result
+    do
+        key=`echo $line | sed 's/^\([^=]*\)=.*$/\1/'`
+        value=`echo $line | sed 's/^[^=]*=\(.*\)$/\1/' | sed 's/;;;/ /g'`        
+        varname=$key
+        varvalue="$value"
+        eval $varname='$varvalue'
+    done
+
+} # pashua_run()
+
+# defines the GUI dialog
+conf="
+# Set transparency: 0 is transparent, 1 is opaque
+*.transparency=0.90
+
+# Set window title
+*.title = vrecord configuration
+
+# intro text
+intro.x = 20
+intro.y = 480
+intro.width = 500
+intro.type = text
+intro.text = Set file recording options. Leave the option blank to be prompted.
+
+# directory
+dir.x = 20
+dir.y = 420
+dir.type = openbrowser
+dir.label = Select a recording directory.
+dir.default = ${dir}
+dir.filetype = directory
+dir.width=400
+
+# video input
+video_input_choice.x = 20
+video_input_choice.y = 300
+video_input_choice.type = radiobutton
+video_input_choice.label = Select Video Input
+video_input_choice.default = ${video_input_choice}
+video_input_choice.option =
+video_input_choice.option = Composite
+video_input_choice.option = SDI
+video_input_choice.option = Component
+video_input_choice.option = S-Video
+
+# video bit depth
+video_bit_depth_choice.x = 200
+video_bit_depth_choice.y = 300
+video_bit_depth_choice.type = radiobutton
+video_bit_depth_choice.label = Select Bit Depth for Video
+video_bit_depth_choice.default = ${video_bit_depth_choice}
+video_bit_depth_choice.option =
+video_bit_depth_choice.option = 10 bit
+video_bit_depth_choice.option = 8 bit
+
+# video codec
+video_codec_choice.x = 380
+video_codec_choice.y = 300
+video_codec_choice.type = radiobutton
+video_codec_choice.label = Select Codec for Video
+video_codec_choice.default = ${video_codec_choice}
+video_codec_choice.option =
+video_codec_choice.option = Uncompressed Video
+video_codec_choice.option = FFV1 version 3
+video_codec_choice.option = JPEG2000
+video_codec_choice.option = ProRes
+
+# audio input
+audio_input_choice.x = 20
+audio_input_choice.y = 180
+audio_input_choice.type = radiobutton
+audio_input_choice.label = Select Audio Input
+audio_input_choice.default = ${audio_input_choice}
+audio_input_choice.option =
+audio_input_choice.option = Analog
+audio_input_choice.option = SDI Embedded Audio
+audio_input_choice.option = Digital Audio (AES/EBU)
+
+# audio mapping
+audio_mapping_choice.x = 240
+audio_mapping_choice.y = 180
+audio_mapping_choice.type = radiobutton
+audio_mapping_choice.label = Select Audio Channel Mapping
+audio_mapping_choice.default = ${audio_mapping_choice}
+audio_mapping_choice.option =
+audio_mapping_choice.option = 2 Stereo Tracks
+audio_mapping_choice.option = 1 Stereo Track
+audio_mapping_choice.option = Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono
+audio_mapping_choice.option = Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono
+
+# recording file format
+container_choice.x = 20
+container_choice.y = 60
+container_choice.type = radiobutton
+container_choice.label = Select File Format
+container_choice.default = ${container_choice}
+container_choice.option =
+container_choice.option = QuickTime
+container_choice.option = Matroska
+container_choice.option = AVI
+container_choice.option = MXF
+
+# duration
+duration.x = 220
+duration.y = 60
+duration.type = combobox
+duration.label = Set the recording time as a number (integer or decimal) in minutes.
+duration.option = 23
+duration.option = 33
+duration.option = 63
+duration.option = 93
+
+# Add a cancel button with default label
+cb.type=cancelbutton
+
+";
+
 # command-line options to set mediaid and original variables
 OPTIND=1
 while getopts "herpx" opt ; do
@@ -270,37 +437,65 @@ if [[ "${runtype}" = "reset" ]] ; then
     fi
 fi
 if [[ "${runtype}" = "edit" ]] ; then
-    if [ ! -s "${config_file}" ] ; then
+    #comments must be commented (start with #)
+    config_comment="# Set each value to empty quotes (like \"\") to prompt during run, or set to a provided option."
+    video_input_choice_comment="# Set video_input_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${video_input_options[@]}")"
+    audio_input_choice_comment="#Set audio_input_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${audio_input_options[@]}")"
+    video_bit_depth_choice_comment="#Set video_bit_depth_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${video_bitdepth_options[@]}")"
+    video_codec_choice_comment="#Set video_codec_choice to one of these valid options or leave blank to request each run: $(printf "\"%s\" " "${video_codec_options[@]}")"
+    audio_mapping_choice_comment="#Set audio_mapping_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${channel_mapping_options[@]}")"
+    dir_comment="#Set dir to the preferred recording directory or leave blank to request each run:"
+    container_choice_comment="#Set container_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${container_options[@]}")"
+    duration_comment="#Set the recording time as a number (integer or decimal) in minutes."
+
+    pashua_run "$conf"
+    if [[ "$cb" == 0 ]] ; then
+        # report back options
+        echo "Variables set:"
+        echo "  dir = ${dir}"
+        echo "  video_input_choice = ${video_input_choice}"
+        echo "  video_bit_depth_choice = ${video_bit_depth_choice}"
+        echo "  video_codec_choice = ${video_codec_choice}"
+        echo "  audio_input_choice = ${audio_input_choice}"
+        echo "  audio_mapping_choice = ${audio_mapping_choice}"
+        echo "  container_choice = ${container_choice}"
+        echo ""
+        # write config file
         echo "#$(basename "${0}") config file" > "${config_file}"
-        echo "# Set each value to empty quotes (like \"\") to prompt during run, or set to a provided option." >> "${config_file}"
-        echo "# Set video_input_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${video_input_options[@]}")" >> "${config_file}"
-        echo "video_input_choice=\"\"" >> "${config_file}"
+        echo  "${config_comment}" >> "${config_file}"
+        echo "${video_input_choice_comment}" >> "${config_file}"
+        echo "video_input_choice=\"${video_input_choice}\"" >> "${config_file}"
         echo  >> "${config_file}"
-        echo "#Set audio_input_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${audio_input_options[@]}")" >> "${config_file}"
-        echo "audio_input_choice=\"\"" >> "${config_file}"
+        echo  "${audio_input_choice_comment}" >> "${config_file}"
+        echo "audio_input_choice=\"${audio_input_choice}\"" >> "${config_file}"
         echo  >> "${config_file}"
-        echo "#Set video_bit_depth_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${video_bitdepth_options[@]}")" >> "${config_file}"
-        echo "video_bit_depth_choice=\"\"" >> "${config_file}"
+        echo  "${video_bit_depth_choice_comment}" >> "${config_file}"
+        echo "video_bit_depth_choice=\"${video_bit_depth_choice}\"" >> "${config_file}"
         echo  >> "${config_file}"
-        echo "#Set video_codec_choice to one of these valid options or leave blank to request each run: $(printf "\"%s\" " "${video_codec_options[@]}")" >> "${config_file}"
-        echo "video_codec_choice=\"\"" >> "${config_file}"
+        echo  "${video_codec_choice_comment}" >> "${config_file}"
+        echo "video_codec_choice=\"${video_codec_choice}\"" >> "${config_file}"
         echo  >> "${config_file}"
-        echo "#Set audio_mapping_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${channel_mapping_options[@]}")" >> "${config_file}"
-        echo "audio_mapping_choice=\"\"" >> "${config_file}"
+        echo  "${audio_mapping_choice_comment}" >> "${config_file}"
+        echo "audio_mapping_choice=\"${audio_mapping_choice}\"" >> "${config_file}"
         echo  >> "${config_file}"
-        echo "#Set dir to the preferred recording directory or leave blank to request each run:" >> "${config_file}"
-        echo "dir=" >> "${config_file}"
+        echo  "${dir_comment}" >> "${config_file}"
+        echo "dir=\"${dir}\"" >> "${config_file}"
         echo  >> "${config_file}"
-        echo "#Set container_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${container_options[@]}")" >> "${config_file}"
-        echo "container_choice=" >> "${config_file}"
+        echo  "${container_choice_comment}" >> "${config_file}"
+        echo "container_choice=\"${container_choice}\"" >> "${config_file}"
         echo  >> "${config_file}"
-        echo "#Set the recording time as a number (integer or decimal) in minutes." >> "${config_file}"
+        echo  "${duration_comment}" >> "${config_file}"
         echo "duration=" >> "${config_file}"
+        . "${config_file}"
+        report -nd "Press [q] to quit or another other key to proceed."
+        read aftereditresponse
+        if [[ "$aftereditresponse" == "q" ]] ; then
+            report -d "Bye then"
+            exit
+        fi
+    else
+        report -d "Edting preferences was canceled by user."
     fi
-    eval "${TEXTEDITOR} ${config_file}"
-    report -q "After saving the config file, press any key to continue"
-    read
-    . "${config_file}"
 fi
 
 if [ "${video_input_choice}" ] ; then
