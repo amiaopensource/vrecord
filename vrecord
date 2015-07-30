@@ -230,7 +230,8 @@ pashua_run() {
 
     if [ ! "$pashuapath" ]
     then
-        echo "Error: Pashua could not be found"
+        echo "Error: Pashua is used to edit vrecord options but is not found."
+        echo "Please run: brew cask install pashua"
         exit 1
     fi
 
