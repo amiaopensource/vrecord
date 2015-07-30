@@ -294,6 +294,7 @@ duration.x = 220
 duration.y = 60
 duration.type = combobox
 duration.label = Set the recording time as a number (integer or decimal) in minutes.
+duration.default = ${duration}
 duration.option = 23
 duration.option = 33
 duration.option = 63
@@ -450,6 +451,7 @@ if [[ "${runtype}" = "edit" ]] ; then
         echo "  audio_input_choice = ${audio_input_choice}"
         echo "  audio_mapping_choice = ${audio_mapping_choice}"
         echo "  container_choice = ${container_choice}"
+        echo "  duration = ${duration}"
         echo ""
         # write config file
         echo "#$(basename "${0}") config file" > "${config_file}"
@@ -476,7 +478,7 @@ if [[ "${runtype}" = "edit" ]] ; then
         echo "container_choice=\"${container_choice}\"" >> "${config_file}"
         echo  >> "${config_file}"
         echo  "${duration_comment}" >> "${config_file}"
-        echo "duration=" >> "${config_file}"
+        echo "duration=\"${duration}\"" >> "${config_file}"
         . "${config_file}"
         report -nd "Press [q] to quit or another other key to proceed."
         read aftereditresponse
