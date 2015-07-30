@@ -11,6 +11,7 @@ ffmpeglogsuffix=".log"
 framemd5="Y"
 pashuainstall=""
 unset extraoutputs
+undeclaredoption="Undeclared"
 
 . "${config_file}" || { echo "No config file, restarting in config mode." ; $(basename "${0}") -e ;};
 
@@ -208,7 +209,7 @@ intro.x = 20
 intro.y = 480
 intro.width = 500
 intro.type = text
-intro.text = Set file recording options. Leave the option blank to be prompted.
+intro.text = Set file recording options. Leave the option as \"${undeclaredoption}\" to be prompted.
 
 # directory
 dir.x = 20
@@ -225,7 +226,7 @@ video_input_choice.y = 300
 video_input_choice.type = radiobutton
 video_input_choice.label = Select Video Input
 video_input_choice.default = ${video_input_choice}
-video_input_choice.option =
+video_input_choice.option = ${undeclaredoption}
 video_input_choice.option = Composite
 video_input_choice.option = SDI
 video_input_choice.option = Component
@@ -237,7 +238,7 @@ video_bit_depth_choice.y = 300
 video_bit_depth_choice.type = radiobutton
 video_bit_depth_choice.label = Select Bit Depth for Video
 video_bit_depth_choice.default = ${video_bit_depth_choice}
-video_bit_depth_choice.option =
+video_bit_depth_choice.option = ${undeclaredoption}
 video_bit_depth_choice.option = 10 bit
 video_bit_depth_choice.option = 8 bit
 
@@ -247,7 +248,7 @@ video_codec_choice.y = 300
 video_codec_choice.type = radiobutton
 video_codec_choice.label = Select Codec for Video
 video_codec_choice.default = ${video_codec_choice}
-video_codec_choice.option =
+video_codec_choice.option = ${undeclaredoption}
 video_codec_choice.option = Uncompressed Video
 video_codec_choice.option = FFV1 version 3
 video_codec_choice.option = JPEG2000
@@ -259,7 +260,7 @@ audio_input_choice.y = 180
 audio_input_choice.type = radiobutton
 audio_input_choice.label = Select Audio Input
 audio_input_choice.default = ${audio_input_choice}
-audio_input_choice.option =
+audio_input_choice.option = ${undeclaredoption}
 audio_input_choice.option = Analog
 audio_input_choice.option = SDI Embedded Audio
 audio_input_choice.option = Digital Audio (AES/EBU)
@@ -270,7 +271,7 @@ audio_mapping_choice.y = 180
 audio_mapping_choice.type = radiobutton
 audio_mapping_choice.label = Select Audio Channel Mapping
 audio_mapping_choice.default = ${audio_mapping_choice}
-audio_mapping_choice.option =
+audio_mapping_choice.option = ${undeclaredoption}
 audio_mapping_choice.option = 2 Stereo Tracks
 audio_mapping_choice.option = 1 Stereo Track
 audio_mapping_choice.option = Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono
@@ -282,7 +283,7 @@ container_choice.y = 60
 container_choice.type = radiobutton
 container_choice.label = Select File Format
 container_choice.default = ${container_choice}
-container_choice.option =
+container_choice.option = ${undeclaredoption}
 container_choice.option = QuickTime
 container_choice.option = Matroska
 container_choice.option = AVI
@@ -488,7 +489,7 @@ if [[ "${runtype}" = "edit" ]] ; then
     fi
 fi
 
-if [ "${video_input_choice}" ] ; then
+if [[ "${video_input_choice}" && "${video_input_choice}" != "${undeclaredoption}" ]] ; then
     lookup_video_input "${video_input_choice}"
 else
     report -q "Which VIDEO input are you using?"
@@ -499,7 +500,7 @@ else
     done
 fi
 
-if [ "${audio_input_choice}" ] ;then
+if [[ "${audio_input_choice}" && "${audio_input_choice}" != "${undeclaredoption}" ]] ;then
     lookup_audio_input "${audio_input_choice}"
 else
     report -q "Which AUDIO input are you using?"
@@ -535,7 +536,7 @@ fi
 dur_seconds=$(echo "${duration} * 60" | bc)
 inputoptions+=(-t "${dur_seconds}")
 
-if [ "$video_bit_depth_choice" ] ; then
+if [[ "$video_bit_depth_choice" && "$video_bit_depth_choice" != "${undeclaredoption}" ]] ; then
     lookup_video_bitdepth "$video_bit_depth_choice"
 else
     report -q "Which VIDEO bit depth?"
@@ -546,7 +547,7 @@ else
     done
 fi
 
-if [ "${container_choice}" ] ; then
+if [[ "${container_choice}" && "${container_choice}" != "${undeclaredoption}" ]] ; then
     lookup_container "${container_choice}"
 else
     report -q "Which audiovisual container format?"
@@ -557,7 +558,7 @@ else
     done
 fi
 
-if [ "${video_codec_choice}" ] ; then
+if [[ "${video_codec_choice}" && "${video_codec_choice}" != "${undeclaredoption}" ]] ; then
     lookup_video_codec "${video_codec_choice}"
 else
     report -q "Which VIDEO codec?"
@@ -568,7 +569,7 @@ else
     done
 fi
 
-if [ "${audio_mapping_choice}" ] ; then
+if [[ "${audio_mapping_choice}" && "${audio_mapping_choice}" != "${undeclaredoption}" ]] ; then
     lookup_audio_mapping "${audio_mapping_choice}"
 else
     report -q "Select an audio mapping."
