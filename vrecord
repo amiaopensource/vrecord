@@ -9,6 +9,7 @@ runtype="record"
 bmdcapturelogsuffix="_bmdcapture.log"
 ffmpeglogsuffix=".log"
 framemd5="Y"
+pashuainstall=""
 unset extraoutputs
 
 . "${config_file}" || { echo "No config file, restarting in config mode." ; $(basename "${0}") -e ;};
@@ -194,73 +195,6 @@ lookup_container(){
     esac
 }
 
-pashua_run() {
-    # Wrapper function for interfacing to Pashua. Written by Carsten
-    # Bluem <carsten@bluem.net> in 10/2003, modified in 12/2003 (including
-    # a code snippet contributed by Tor Sigurdsson), 08/2004 and 12/2004.
-    # As 1st argument, you must pass a configuration string
-    # As 2nd argument, you may pass the encoding to use (see documentation)
-    # As 3rd argument, you may pass the path to the Pashua application,
-    #                  if it's not in one of the standard locations.
-    # Write config file
-    pashua_configfile=`/usr/bin/mktemp /tmp/pashua_XXXXXXXXX`
-    echo "$1" > $pashua_configfile
-
-    # Find Pashua binary. We do search both . and dirname "$0"
-    # , as in a doubleclickable application, cwd is /
-    # BTW, all these quotes below are necessary to handle paths
-    # containing spaces.
-    bundlepath="Pashua.app/Contents/MacOS/Pashua"
-    if [ "$3" = "" ]
-    then
-        mypath=`dirname "$0"`
-        for searchpath in "$mypath/Pashua" "$mypath/$bundlepath" "./$bundlepath" \
-                          "/Applications/$bundlepath" "$HOME/Applications/$bundlepath"
-        do
-            if [ -f "$searchpath" -a -x "$searchpath" ]
-            then
-                pashuapath=$searchpath
-                break
-            fi
-        done
-    else
-        # Directory given as argument
-        pashuapath="$3/$bundlepath"
-    fi
-
-    if [ ! "$pashuapath" ]
-    then
-        echo "Error: Pashua is used to edit vrecord options but is not found."
-        echo "Please run: brew cask install pashua"
-        exit 1
-    fi
-
-    # Manage encoding
-    if [ "$2" = "" ]
-    then
-        encoding=""
-    else
-        encoding="-e $2"
-    fi
-
-    # Get result
-    result=`"$pashuapath" $encoding $pashua_configfile | sed 's/ /;;;/g'`
-
-    # Remove config file
-    rm $pashua_configfile
-
-    # Parse result
-    for line in $result
-    do
-        key=`echo $line | sed 's/^\([^=]*\)=.*$/\1/'`
-        value=`echo $line | sed 's/^[^=]*=\(.*\)$/\1/' | sed 's/;;;/ /g'`        
-        varname=$key
-        varvalue="$value"
-        eval $varname='$varvalue'
-    done
-
-} # pashua_run()
-
 # defines the GUI dialog
 conf="
 # Set transparency: 0 is transparent, 1 is opaque
@@ -369,6 +303,57 @@ cb.type=cancelbutton
 
 ";
 
+pashua_run() {
+    # Wrapper function for interfacing to Pashua. Written by Carsten
+    # Bluem <carsten@bluem.net> in 10/2003, modified in 12/2003 (including
+    # a code snippet contributed by Tor Sigurdsson), 08/2004 and 12/2004.
+    # Write config file
+
+    # Find Pashua binary. We do search both . and dirname "$0"
+    # , as in a doubleclickable application, cwd is /
+    # BTW, all these quotes below are necessary to handle paths
+    # containing spaces.
+    bundlepath="Pashua.app/Contents/MacOS/Pashua"
+    mypath=`dirname "$0"`
+    for searchpath in "$mypath/Pashua" "$mypath/$bundlepath" "./$bundlepath" \
+                      "/Applications/$bundlepath" "$HOME/Applications/$bundlepath"
+    do
+        if [ -f "$searchpath" -a -x "$searchpath" ]
+        then
+            pashuapath=$searchpath
+            break
+        fi
+    done
+    if [ ! "$pashuapath" ] ; then
+        echo "Error: Pashua is used to edit vrecord options but is not found."
+        if [[ "${pashuainstall}" == "" ]] ; then
+            echo "Attempting to run: brew cask install pashua"
+            if [[ "${pashuainstall}" != "Y" ]] ; then
+                brew cask install pashua
+                pashuainstall="Y"
+                pashua_run
+            else
+                break 2
+            fi
+        fi
+    else
+        encoding=""
+        
+        # Get result
+        result=`"$pashuapath" $encoding $pashua_configfile | sed 's/ /;;;/g'`
+
+        # Parse result
+        for line in $result
+        do
+            key=`echo $line | sed 's/^\([^=]*\)=.*$/\1/'`
+            value=`echo $line | sed 's/^[^=]*=\(.*\)$/\1/' | sed 's/;;;/ /g'`        
+            varname=$key
+            varvalue="$value"
+            eval $varname='$varvalue'
+        done
+    fi
+} # pashua_run()
+
 # command-line options to set mediaid and original variables
 OPTIND=1
 while getopts "herpx" opt ; do
@@ -449,7 +434,11 @@ if [[ "${runtype}" = "edit" ]] ; then
     container_choice_comment="#Set container_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${container_options[@]}")"
     duration_comment="#Set the recording time as a number (integer or decimal) in minutes."
 
-    pashua_run "$conf"
+    pashua_configfile=`/usr/bin/mktemp /tmp/pashua_XXXXXXXXX`
+    echo "$conf" > $pashua_configfile
+    pashua_run
+    rm $pashua_configfile
+    
     if [[ "$cb" == 0 ]] ; then
         # report back options
         echo "Variables set:"
