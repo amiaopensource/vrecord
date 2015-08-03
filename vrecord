@@ -24,6 +24,8 @@ container_options=("QuickTime" "Matroska" "AVI" "MXF")
 
 if [ -f "${config_file}" ] ; then
     . "${config_file}"
+else
+    touch "${config_file}"
 fi
 
 report(){
