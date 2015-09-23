@@ -376,18 +376,19 @@ recordingfilter="[0:v:0]setfield=bff,setsar=40/27,setdar=4/3[vid1]"
 playbackfilter="split=5[a][b][c][d][e];\
         [b]field=top[b1];\
         [c]field=bottom[c1];\
-        [b1]histogram=step=20:mode=waveform:waveform_mode=column:waveform_mirror=1,\
-        crop=iw:256:0:0,\
+        [b1]format=yuv422p,\
+        waveform=intensity=0.1:mode=column:mirror=1:c=1:f=lowpass:e=instant,\
         drawbox=y=(256-16):w=iw:h=16:color=aqua@0.3:t=16,\
         drawbox=w=iw:h=(256-235):color=crimson@0.3:t=16[b2];\
-        [c1]histogram=step=20:mode=waveform:waveform_mode=column:waveform_mirror=1,\
-        crop=iw:256:0:0,\
+        [c1]format=yuv422p,\
+        waveform=intensity=0.1:mode=column:mirror=1:c=1:f=lowpass:e=instant,\
         drawbox=y=(256-16):w=iw:h=16:color=aqua@0.3:t=16,\
         drawbox=w=iw:h=(256-235):color=crimson@0.3:t=16[c2];\
         [b2][c2]framepack=tab,format=yuv422p[bc1];\
         [a]pad=iw+512:ih+512[a1];\
-        [d]histogram=mode=color2,lutyuv=y=val*5,\
-        transpose=dir=2,\
+        [d]format=yuv422p,\
+        vectorscope=i=0.04:mode=color2:envelope=instant,\
+        vflip,\
         scale=512:512,\
         drawgrid=w=32:h=32:t=1:c=white@0.1,\
         drawgrid=w=256:h=256:t=1:c=white@0.2,\
