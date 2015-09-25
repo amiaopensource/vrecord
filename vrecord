@@ -119,7 +119,7 @@ lookup_video_codec(){
             fi ;;
         "FFV1 version 3")
             codecname="FFV1 version 3"
-            middleoptions+=(-c:v ffv1 -level 3 -g 1)
+            middleoptions+=(-c:v ffv1 -level 3 -g 1 -slices 16 -slicecrc 1)
             suffix="_ffv1"
             ;;
         "JPEG2000")
