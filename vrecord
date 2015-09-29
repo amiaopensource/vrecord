@@ -21,6 +21,7 @@ video_bitdepth_options=("10 bit" "8 bit")
 video_codec_options=("Uncompressed Video" "FFV1 version 3" "JPEG2000" "ProRes")
 channel_mapping_options=("2 Stereo Tracks" "1 Stereo Track" "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono" "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono" )
 container_options=("QuickTime" "Matroska" "AVI" "MXF")
+standard_options=("NTSC" "PAL")
 
 if [ -f "${config_file}" ] ; then
     . "${config_file}"
@@ -198,21 +199,32 @@ lookup_container(){
     esac
 }
 
+lookup_standard(){
+    case "${1}" in
+        "NTSC")
+		standard="0"
+            ;;
+        "PAL")
+		standard="2"
+            ;;
+        Q) exit 0 ;;
+        q) exit 0 ;;
+        *)  report -w "Error not a valid option, select a valid number or [q] to quit." ; return 1 ;;
+    esac
+}
+
 # defines the GUI dialog
 conf="
 # Set transparency: 0 is transparent, 1 is opaque
 *.transparency=0.90
-
 # Set window title
 *.title = vrecord configuration
-
 # intro text
 intro.x = 20
 intro.y = 480
 intro.width = 500
 intro.type = text
 intro.text = Set file recording options. Leave the option as \"${undeclaredoption}\" to be prompted.
-
 # directory
 dir.x = 20
 dir.y = 420
@@ -221,7 +233,6 @@ dir.label = Select a recording directory.
 dir.default = ${dir}
 dir.filetype = directory
 dir.width=400
-
 # video input
 video_input_choice.x = 20
 video_input_choice.y = 300
@@ -233,7 +244,6 @@ video_input_choice.option = Composite
 video_input_choice.option = SDI
 video_input_choice.option = Component
 video_input_choice.option = S-Video
-
 # video bit depth
 video_bit_depth_choice.x = 200
 video_bit_depth_choice.y = 300
@@ -243,7 +253,6 @@ video_bit_depth_choice.default = ${video_bit_depth_choice}
 video_bit_depth_choice.option = ${undeclaredoption}
 video_bit_depth_choice.option = 10 bit
 video_bit_depth_choice.option = 8 bit
-
 # video codec
 video_codec_choice.x = 380
 video_codec_choice.y = 300
@@ -255,7 +264,6 @@ video_codec_choice.option = Uncompressed Video
 video_codec_choice.option = FFV1 version 3
 video_codec_choice.option = JPEG2000
 video_codec_choice.option = ProRes
-
 # audio input
 audio_input_choice.x = 20
 audio_input_choice.y = 180
@@ -266,7 +274,6 @@ audio_input_choice.option = ${undeclaredoption}
 audio_input_choice.option = Analog
 audio_input_choice.option = SDI Embedded Audio
 audio_input_choice.option = Digital Audio (AES/EBU)
-
 # audio mapping
 audio_mapping_choice.x = 240
 audio_mapping_choice.y = 180
@@ -278,7 +285,6 @@ audio_mapping_choice.option = 2 Stereo Tracks
 audio_mapping_choice.option = 1 Stereo Track
 audio_mapping_choice.option = Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono
 audio_mapping_choice.option = Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono
-
 # recording file format
 container_choice.x = 20
 container_choice.y = 60
@@ -290,7 +296,15 @@ container_choice.option = QuickTime
 container_choice.option = Matroska
 container_choice.option = AVI
 container_choice.option = MXF
-
+# video standard
+standard_choice.x = 240
+standard_choice.y = 105
+standard_choice.type = radiobutton
+standard_choice.label = Select Standard
+standard_choice.default = ${standard_choice}
+standard_choice.option = ${undeclaredoption}
+standard_choice.option = NTSC
+standard_choice.option = PAL
 # duration
 duration.x = 220
 duration.y = 60
@@ -301,10 +315,8 @@ duration.option = 23
 duration.option = 33
 duration.option = 63
 duration.option = 93
-
 # Add a cancel button with default label
 cb.type=cancelbutton
-
 ";
 
 pashua_run() {
@@ -432,6 +444,9 @@ if [[ "${runtype}" = "edit" ]] ; then
     config_comment="# Set each value to empty quotes (like \"\") to prompt during run, or set to a provided option."
     video_input_choice_comment="# Set video_input_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${video_input_options[@]}")"
     audio_input_choice_comment="#Set audio_input_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${audio_input_options[@]}")"
+
+    standard_choice_comment="#Set standard_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${standard_options[@]}")"
+
     video_bit_depth_choice_comment="#Set video_bit_depth_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${video_bitdepth_options[@]}")"
     video_codec_choice_comment="#Set video_codec_choice to one of these valid options or leave blank to request each run: $(printf "\"%s\" " "${video_codec_options[@]}")"
     audio_mapping_choice_comment="#Set audio_mapping_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${channel_mapping_options[@]}")"
@@ -454,6 +469,7 @@ if [[ "${runtype}" = "edit" ]] ; then
         echo "  audio_input_choice = ${audio_input_choice}"
         echo "  audio_mapping_choice = ${audio_mapping_choice}"
         echo "  container_choice = ${container_choice}"
+		echo "  standard_choice = ${standard_choice}"
         echo "  duration = ${duration}"
         echo ""
         # write config file
@@ -464,6 +480,9 @@ if [[ "${runtype}" = "edit" ]] ; then
         echo  >> "${config_file}"
         echo  "${audio_input_choice_comment}" >> "${config_file}"
         echo "audio_input_choice=\"${audio_input_choice}\"" >> "${config_file}"
+        echo  >> "${config_file}"
+        echo  "${standard_choice_comment}" >> "${config_file}"
+        echo "standard_choice=\"${standard_choice}\"" >> "${config_file}"
         echo  >> "${config_file}"
         echo  "${video_bit_depth_choice_comment}" >> "${config_file}"
         echo "video_bit_depth_choice=\"${video_bit_depth_choice}\"" >> "${config_file}"
@@ -587,16 +606,27 @@ else
     done
 fi
 
+if [[ "${standard_choice}" && "${standard_choice}" != "${undeclaredoption}" ]] ; then
+    lookup_standard "${standard_choice}"
+else
+    report -q "Which standard?."
+    PS3="Select a video standard "
+    select standard_choice in "${standard_options[@]}" ; do
+        lookup_standard "${standard_choice}"
+        [ "${?}" -eq 0 ] && break
+    done
+fi
+
 if [[ "${framemd5}" = "Y" ]] ; then
     extraoutputs+=(-an -f framemd5 "${dir}/${id}${suffix}.framemd5")
 fi
 
-report -d "Summary: ${video_bitdepth} bit ${codecname} ${container_choice} file from ${video_input_choice} and ${audio_input_choice} inputs recorded to ${dir}/${id}.mov"
+report -d "Summary: ${video_bitdepth} bit ${codecname} ${container_choice} file from ${standard_choice} ${video_input_choice} and ${audio_input_choice} inputs recorded to ${dir}/${id}.mov"
 report -q "Hit enter to start"
 read
 report -d "Run vstop from a separate terminal window/tab to stop."
 export FFREPORT="file=${dir}/${id}_%p_%t${ffmpeglogsuffix}"
-bmdcapture -v -m 0 -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p "${video_bitdepth}" -F nut -f pipe:1 2> "${dir}/${id}${bmdcapturelogsuffix}" | \
+bmdcapture -v -m ${standard} -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p "${video_bitdepth}" -F nut -f pipe:1 2> "${dir}/${id}${bmdcapturelogsuffix}" | \
     ffmpeg -v info -hide_banner -stats ${inputoptions[@]} -i - ${middleoptions[@]} \
         -metadata:s:v:0 encoder="${codecname}" \
         -c:a pcm_s24le \
