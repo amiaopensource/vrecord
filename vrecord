@@ -535,9 +535,21 @@ else
     done
 fi
 
+
+if [[ "${standard_choice}" && "${standard_choice}" != "${undeclaredoption}" ]] ; then
+    lookup_standard "${standard_choice}"
+else
+    report -q "Which standard?."
+    PS3="Select a video standard "
+    select standard_choice in "${standard_options[@]}" ; do
+        lookup_standard "${standard_choice}"
+        [ "${?}" -eq 0 ] && break
+    done
+fi
+
 if [[ "${runtype}" = "passthrough" ]] ; then
     video_bitdepth=10
-    bmdcapture -m 0 -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p "${video_bitdepth}" -F nut -f pipe:1 | \
+    bmdcapture -m ${standard} -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p "${video_bitdepth}" -F nut -f pipe:1 | \
             ffplay -v info -hide_banner -stats -i - \
             -window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" \
             -vf "${playbackfilter}"
@@ -602,17 +614,6 @@ else
     PS3="Select an audio mapping: "
     select audio_mapping_choice in "${channel_mapping_options[@]}" ; do
         lookup_audio_mapping "${audio_mapping_choice}"
-        [ "${?}" -eq 0 ] && break
-    done
-fi
-
-if [[ "${standard_choice}" && "${standard_choice}" != "${undeclaredoption}" ]] ; then
-    lookup_standard "${standard_choice}"
-else
-    report -q "Which standard?."
-    PS3="Select a video standard "
-    select standard_choice in "${standard_options[@]}" ; do
-        lookup_standard "${standard_choice}"
         [ "${?}" -eq 0 ] && break
     done
 fi
