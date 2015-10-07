@@ -820,4 +820,4 @@ bmdcapture -v -m ${standard} -V "${video_input}" -A "${audio_input}" -c 8 -s 32 
         $(if [ -n "$map1k" ] ; then echo ${map1k} ; fi) $(if [ -n "$map1v" ] ; then echo ${map1v} ; fi) \
         $(if [ -n "$map2k" ] ; then echo ${map2k} ; fi) $(if [ -n "$map2v" ] ; then echo ${map2v} ; fi) \
         -f "${format}" \
-        "${dir}/${id}${suffix}.${extension}"\
+        "${dir}/${id}${suffix}.${extension}"
