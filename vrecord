@@ -22,12 +22,68 @@ video_codec_options=("Uncompressed Video" "FFV1 version 3" "JPEG2000" "ProRes")
 channel_mapping_options=("2 Stereo Tracks" "1 Stereo Track" "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono" "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono" )
 container_options=("QuickTime" "Matroska" "AVI" "MXF")
 standard_options=("NTSC" "PAL")
+playbackview_options=("Visual" "Visual + Numerical")
 
 if [ -f "${config_file}" ] ; then
     . "${config_file}"
 else
     touch "${config_file}"
 fi
+
+set_up_drawtext(){
+    echo -e "%{pts:hms}
+
+  Y
+ Low  %{metadata:lavfi.signalstats.YLOW}	
+ Avg  %{metadata:lavfi.signalstats.YAVG}	
+ High %{metadata:lavfi.signalstats.YHIGH}	
+ Diff %{metadata:lavfi.signalstats.YDIF}
+
+  U
+ Low  %{metadata:lavfi.signalstats.ULOW}	
+ Avg  %{metadata:lavfi.signalstats.UAVG}	
+ High %{metadata:lavfi.signalstats.UHIGH}	
+ Diff %{metadata:lavfi.signalstats.UDIF}
+
+  V
+ Low  %{metadata:lavfi.signalstats.VLOW}	
+ Avg  %{metadata:lavfi.signalstats.VAVG}	
+ High %{metadata:lavfi.signalstats.VHIGH}	
+ Diff %{metadata:lavfi.signalstats.VDIF}
+
+  SAT
+ Low  %{metadata:lavfi.signalstats.SATLOW}	
+ Avg  %{metadata:lavfi.signalstats.SATAVG}	
+ High %{metadata:lavfi.signalstats.SATHIGH}	
+
+ HUE (med) %{metadata:lavfi.signalstats.HUEMED}
+ HUE (avg) %{metadata:lavfi.signalstats.HUEAVG}
+ TOUT	  %{metadata:lavfi.signalstats.TOUT}
+ VREP      %{metadata:lavfi.signalstats.VREP}
+ BRNG      %{metadata:lavfi.signalstats.BRNG}
+
+ cropdetect info
+ size    	%{metadata:lavfi.cropdetect.w}x%{metadata:lavfi.cropdetect.h}
+ columns    	%{metadata:lavfi.cropdetect.x1}-%{metadata:lavfi.cropdetect.x2}
+ rows    	%{metadata:lavfi.cropdetect.y1}-%{metadata:lavfi.cropdetect.y2}
+" > /tmp/drawtext.txt
+    echo -e "
+
+
+
+
+
+
+
+
+
+
+
+
+
+%{metadata:lavfi.signalstats.BRNG}
+" > /tmp/drawtext2.txt
+}
 
 report(){
         local RED="$(tput setaf 1)"   # Red      - For Warnings
@@ -213,6 +269,107 @@ lookup_standard(){
     esac
 }
 
+# set up drawtext.txt files in case needed.
+set_up_drawtext
+
+#select playback views
+lookup_playbackview(){
+    case "${1}" in
+        "Visual")
+        playbackfilter="split=5[a][b][c][d][e];\
+                [b]field=top[b1];\
+                [c]field=bottom[c1];\
+                [b1]format=yuv422p,\
+                waveform=intensity=0.1:mode=column:mirror=1:c=1:f=lowpass:e=instant,\
+                drawbox=y=(256-16):w=iw:h=16:color=aqua@0.3:t=16,\
+                drawbox=w=iw:h=(256-235):color=crimson@0.3:t=16[b2];\
+                [c1]format=yuv422p,\
+                waveform=intensity=0.1:mode=column:mirror=1:c=1:f=lowpass:e=instant,\
+                drawbox=y=(256-16):w=iw:h=16:color=aqua@0.3:t=16,\
+                drawbox=w=iw:h=(256-235):color=crimson@0.3:t=16[c2];\
+                [b2][c2]framepack=tab,format=yuv422p[bc1];\
+                [a]pad=iw+512:ih+512[a1];\
+                [d]format=yuv422p,\
+                vectorscope=i=0.04:mode=color2:envelope=instant,\
+                vflip,\
+                scale=512:512,\
+                drawgrid=w=32:h=32:t=1:c=white@0.1,\
+                drawgrid=w=256:h=256:t=1:c=white@0.2,\
+                drawbox=w=9:h=9:t=1:x=180-3:y=512-480-5:c=red@0.6,\
+                drawbox=w=9:h=9:t=1:x=108-3:y=512-68-5:c=green@0.6,\
+                drawbox=w=9:h=9:t=1:x=480-3:y=512-220-5:c=blue@0.6,\
+                drawbox=w=9:h=9:t=1:x=332-3:y=512-32-5:c=cyan@0.6,\
+                drawbox=w=9:h=9:t=1:x=404-3:y=512-444-5:c=magenta@0.6,\
+                drawbox=w=9:h=9:t=1:x=32-3:y=512-292-5:c=yellow@0.6,\
+                drawbox=w=9:h=9:t=1:x=199-3:y=512-424-5:c=red@0.8,\
+                drawbox=w=9:h=9:t=1:x=145-3:y=512-115-5:c=green@0.8,\
+                drawbox=w=9:h=9:t=1:x=424-3:y=512-229-5:c=blue@0.8,\
+                drawbox=w=9:h=9:t=1:x=313-3:y=512-88-5:c=cyan@0.8,\
+                drawbox=w=9:h=9:t=1:x=367-3:y=512-397-5:c=magenta@0.8,\
+                drawbox=w=9:h=9:t=1:x=88-3:y=512-283-5:c=yellow@0.8,\
+                drawbox=w=9:h=9:t=1:x=128-3:y=512-452-5:c=sienna@0.8,\
+                drawbox=w=9:h=9:t=1:x=160-3:y=512-404-5:c=sienna@0.8,\
+                drawbox=w=9:h=9:t=1:x=192-3:y=512-354-5:c=sienna@0.8,\
+                drawbox=w=9:h=9:t=1:x=224-3:y=512-304-5:c=sienna@0.8[d1];\
+                [e]signalstats=out=brng,scale=512:486[e1];\
+                [a1][bc1]overlay=0:486[abc1];\
+                [abc1][d1]overlay=720:486[abcd1];\
+                [abcd1][e1]overlay=720:0[out]"
+            ;;
+        "Visual + Numerical")
+        playbackfilter="split=6[a][b][c][d][e][f];\
+                [b]field=top[b1];\
+                [c]field=bottom[c1];\
+                [b1]format=yuv422p,\
+                waveform=intensity=0.1:mode=column:mirror=1:c=1:f=lowpass:e=instant,\
+                drawbox=y=(256-16):w=iw:h=16:color=aqua@0.3:t=16,\
+                drawbox=w=iw:h=(256-235):color=crimson@0.3:t=16[b2];\
+                [c1]format=yuv422p,\
+                waveform=intensity=0.1:mode=column:mirror=1:c=1:f=lowpass:e=instant,\
+                drawbox=y=(256-16):w=iw:h=16:color=aqua@0.3:t=16,\
+                drawbox=w=iw:h=(256-235):color=crimson@0.3:t=16[c2];\
+                [b2][c2]framepack=tab,format=yuv422p[bc1];\
+                [a]pad=iw+512:ih+512[a1];\
+                [d]format=yuv422p,\
+                vectorscope=i=0.04:mode=color2:envelope=instant,\
+                vflip,\
+                scale=512:512,\
+                drawgrid=w=32:h=32:t=1:c=white@0.1,\
+                drawgrid=w=256:h=256:t=1:c=white@0.2,\
+                drawbox=w=9:h=9:t=1:x=180-3:y=512-480-5:c=red@0.6,\
+                drawbox=w=9:h=9:t=1:x=108-3:y=512-68-5:c=green@0.6,\
+                drawbox=w=9:h=9:t=1:x=480-3:y=512-220-5:c=blue@0.6,\
+                drawbox=w=9:h=9:t=1:x=332-3:y=512-32-5:c=cyan@0.6,\
+                drawbox=w=9:h=9:t=1:x=404-3:y=512-444-5:c=magenta@0.6,\
+                drawbox=w=9:h=9:t=1:x=32-3:y=512-292-5:c=yellow@0.6,\
+                drawbox=w=9:h=9:t=1:x=199-3:y=512-424-5:c=red@0.8,\
+                drawbox=w=9:h=9:t=1:x=145-3:y=512-115-5:c=green@0.8,\
+                drawbox=w=9:h=9:t=1:x=424-3:y=512-229-5:c=blue@0.8,\
+                drawbox=w=9:h=9:t=1:x=313-3:y=512-88-5:c=cyan@0.8,\
+                drawbox=w=9:h=9:t=1:x=367-3:y=512-397-5:c=magenta@0.8,\
+                drawbox=w=9:h=9:t=1:x=88-3:y=512-283-5:c=yellow@0.8,\
+                drawbox=w=9:h=9:t=1:x=128-3:y=512-452-5:c=sienna@0.8,\
+                drawbox=w=9:h=9:t=1:x=160-3:y=512-404-5:c=sienna@0.8,\
+                drawbox=w=9:h=9:t=1:x=192-3:y=512-354-5:c=sienna@0.8,\
+                drawbox=w=9:h=9:t=1:x=224-3:y=512-304-5:c=sienna@0.8[d1];\
+                [e]signalstats=out=brng,scale=512:486[e1];\
+                [a1][bc1]overlay=0:486[abc1];\
+                [abc1][d1]overlay=720:486[abcd1];\
+                [abcd1][e1]overlay=720:0[abcde1];\
+                [abcde1]pad=iw+180:ih:180:0[abcde1p];\
+                [f]signalstats=stat=brng+vrep+tout,geq=lum=60:cb=128:cr=128,\
+                scale=180:ih+512,\
+                drawtext=fontcolor=white:fontsize=17:\
+                fontfile=/Library/Fonts/Andale\ Mono.ttf:textfile=/tmp/drawtext.txt,\
+                drawtext=fontcolor=white:fontsize=64:\
+                fontfile=/Library/Fonts/Andale\ Mono.ttf:textfile=/tmp/drawtext2.txt[f1];\
+                [abcde1p][f1]overlay[out]"
+            ;;
+        Q) exit 0 ;;
+        q) exit 0 ;;
+        *)  report -w "Error not a valid option, select a valid number or [q] to quit." ; return 1 ;;
+    esac
+}
 # defines the GUI dialog
 conf="
 # Set transparency: 0 is transparent, 1 is opaque
@@ -316,6 +473,15 @@ duration.option = 33
 duration.option = 63
 duration.option = 93
 # Add a cancel button with default label
+#playbackview choice
+playbackview_choice.x = 20
+playbackview_choice.y = 3
+playbackview_choice.type = popup
+playbackview_choice.label = Select View
+playbackview_choice.default = ${playbackview_choice}
+playbackview_choice.option = ${undeclaredoption}
+playbackview_choice.option = Visual
+playbackview_choice.option = Visual + Numerical
 cb.type=cancelbutton
 ";
 
@@ -354,7 +520,6 @@ pashua_run() {
         fi
     else
         encoding=""
-        
         # Get result
         result=`"$pashuapath" $encoding $pashua_configfile | sed 's/ /;;;/g'`
 
@@ -362,7 +527,7 @@ pashua_run() {
         for line in $result
         do
             key=`echo $line | sed 's/^\([^=]*\)=.*$/\1/'`
-            value=`echo $line | sed 's/^[^=]*=\(.*\)$/\1/' | sed 's/;;;/ /g'`        
+            value=`echo $line | sed 's/^[^=]*=\(.*\)$/\1/' | sed 's/;;;/ /g'`
             varname=$key
             varvalue="$value"
             eval $varname='$varvalue'
@@ -385,45 +550,8 @@ while getopts "herpx" opt ; do
 done
 
 recordingfilter="[0:v:0]setfield=bff,setsar=40/27,setdar=4/3[vid1]"
-playbackfilter="split=5[a][b][c][d][e];\
-        [b]field=top[b1];\
-        [c]field=bottom[c1];\
-        [b1]format=yuv422p,\
-        waveform=intensity=0.1:mode=column:mirror=1:c=1:f=lowpass:e=instant,\
-        drawbox=y=(256-16):w=iw:h=16:color=aqua@0.3:t=16,\
-        drawbox=w=iw:h=(256-235):color=crimson@0.3:t=16[b2];\
-        [c1]format=yuv422p,\
-        waveform=intensity=0.1:mode=column:mirror=1:c=1:f=lowpass:e=instant,\
-        drawbox=y=(256-16):w=iw:h=16:color=aqua@0.3:t=16,\
-        drawbox=w=iw:h=(256-235):color=crimson@0.3:t=16[c2];\
-        [b2][c2]framepack=tab,format=yuv422p[bc1];\
-        [a]pad=iw+512:ih+512[a1];\
-        [d]format=yuv422p,\
-        vectorscope=i=0.04:mode=color2:envelope=instant,\
-        vflip,\
-        scale=512:512,\
-        drawgrid=w=32:h=32:t=1:c=white@0.1,\
-        drawgrid=w=256:h=256:t=1:c=white@0.2,\
-        drawbox=w=9:h=9:t=1:x=180-3:y=512-480-5:c=red@0.6,\
-        drawbox=w=9:h=9:t=1:x=108-3:y=512-68-5:c=green@0.6,\
-        drawbox=w=9:h=9:t=1:x=480-3:y=512-220-5:c=blue@0.6,\
-        drawbox=w=9:h=9:t=1:x=332-3:y=512-32-5:c=cyan@0.6,\
-        drawbox=w=9:h=9:t=1:x=404-3:y=512-444-5:c=magenta@0.6,\
-        drawbox=w=9:h=9:t=1:x=32-3:y=512-292-5:c=yellow@0.6,\
-        drawbox=w=9:h=9:t=1:x=199-3:y=512-424-5:c=red@0.8,\
-        drawbox=w=9:h=9:t=1:x=145-3:y=512-115-5:c=green@0.8,\
-        drawbox=w=9:h=9:t=1:x=424-3:y=512-229-5:c=blue@0.8,\
-        drawbox=w=9:h=9:t=1:x=313-3:y=512-88-5:c=cyan@0.8,\
-        drawbox=w=9:h=9:t=1:x=367-3:y=512-397-5:c=magenta@0.8,\
-        drawbox=w=9:h=9:t=1:x=88-3:y=512-283-5:c=yellow@0.8,\
-        drawbox=w=9:h=9:t=1:x=128-3:y=512-452-5:c=sienna@0.8,\
-        drawbox=w=9:h=9:t=1:x=160-3:y=512-404-5:c=sienna@0.8,\
-        drawbox=w=9:h=9:t=1:x=192-3:y=512-354-5:c=sienna@0.8,\
-        drawbox=w=9:h=9:t=1:x=224-3:y=512-304-5:c=sienna@0.8[d1];\
-        [e]signalstats=out=brng,scale=512:486[e1];\
-        [a1][bc1]overlay=0:486[abc1];\
-        [abc1][d1]overlay=720:486[abcd1];\
-        [abcd1][e1]overlay=720:0[out]"
+
+
 
 shift $(( ${OPTIND} - 1 ))
 
@@ -446,6 +574,7 @@ if [[ "${runtype}" = "edit" ]] ; then
     audio_input_choice_comment="#Set audio_input_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${audio_input_options[@]}")"
 
     standard_choice_comment="#Set standard_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${standard_options[@]}")"
+    playbackview_choice_comment="#Set playbackview_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${playbackview_options[@]}")"
 
     video_bit_depth_choice_comment="#Set video_bit_depth_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${video_bitdepth_options[@]}")"
     video_codec_choice_comment="#Set video_codec_choice to one of these valid options or leave blank to request each run: $(printf "\"%s\" " "${video_codec_options[@]}")"
@@ -458,7 +587,6 @@ if [[ "${runtype}" = "edit" ]] ; then
     echo "$conf" > $pashua_configfile
     pashua_run
     rm $pashua_configfile
-    
     if [[ "$cb" == 0 ]] ; then
         # report back options
         echo "Variables set:"
@@ -469,8 +597,9 @@ if [[ "${runtype}" = "edit" ]] ; then
         echo "  audio_input_choice = ${audio_input_choice}"
         echo "  audio_mapping_choice = ${audio_mapping_choice}"
         echo "  container_choice = ${container_choice}"
-		echo "  standard_choice = ${standard_choice}"
+        echo "  standard_choice = ${standard_choice}"
         echo "  duration = ${duration}"
+        echo "  playbackview_choice = ${playbackview_choice}"
         echo ""
         # write config file
         echo "#$(basename "${0}") config file" > "${config_file}"
@@ -483,6 +612,9 @@ if [[ "${runtype}" = "edit" ]] ; then
         echo  >> "${config_file}"
         echo  "${standard_choice_comment}" >> "${config_file}"
         echo "standard_choice=\"${standard_choice}\"" >> "${config_file}"
+        echo  >> "${config_file}"
+        echo  "${playbackview_choice_comment}" >> "${config_file}"
+        echo "playbackview_choice=\"${playbackview_choice}\"" >> "${config_file}"
         echo  >> "${config_file}"
         echo  "${video_bit_depth_choice_comment}" >> "${config_file}"
         echo "video_bit_depth_choice=\"${video_bit_depth_choice}\"" >> "${config_file}"
@@ -535,7 +667,6 @@ else
     done
 fi
 
-
 if [[ "${standard_choice}" && "${standard_choice}" != "${undeclaredoption}" ]] ; then
     lookup_standard "${standard_choice}"
 else
@@ -544,6 +675,17 @@ else
     select standard_choice in "${standard_options[@]}" ; do
         lookup_standard "${standard_choice}"
         [ "${?}" -eq 0 ] && break
+    done
+fi
+
+if [[ "${playbackview_choice}" && "${playbackview_choice}" != "${undeclaredoption}" ]] ; then
+        lookup_playbackview "${playbackview_choice}"
+    else
+        report -q "Which playback view? "
+        PS3="Select a playback view "
+    select playbackview_choice in "${playbackview_options[@]}" ; do
+            lookup_playbackview "${playbackview_choice}"
+            [ "${?}" -eq 0 ] && break
     done
 fi
 
@@ -639,4 +781,4 @@ bmdcapture -v -m ${standard} -V "${video_input}" -A "${audio_input}" -c 8 -s 32 
         $(if [ -n "$map1k" ] ; then echo ${map1k} ; fi) $(if [ -n "$map1v" ] ; then echo ${map1v} ; fi) \
         $(if [ -n "$map2k" ] ; then echo ${map2k} ; fi) $(if [ -n "$map2v" ] ; then echo ${map2v} ; fi) \
         -f "${format}" \
-        "${dir}/${id}${suffix}.${extension}"
+        "${dir}/${id}${suffix}.${extension}"\
