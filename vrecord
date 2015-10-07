@@ -55,18 +55,50 @@ set_up_drawtext(){
  Low  %{metadata:lavfi.signalstats.SATLOW}	
  Avg  %{metadata:lavfi.signalstats.SATAVG}	
  High %{metadata:lavfi.signalstats.SATHIGH}	
+ " > /tmp/drawtext.txt
 
- HUE (med) %{metadata:lavfi.signalstats.HUEMED}
- HUE (avg) %{metadata:lavfi.signalstats.HUEAVG}
+    echo -e "
+ 
+ 
+ 
+ 
+ 
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ HUE(med) %{metadata:lavfi.signalstats.HUEMED}
+ HUE(avg) %{metadata:lavfi.signalstats.HUEAVG}
  TOUT	  %{metadata:lavfi.signalstats.TOUT}
- VREP      %{metadata:lavfi.signalstats.VREP}
- BRNG      %{metadata:lavfi.signalstats.BRNG}
+ VREP     %{metadata:lavfi.signalstats.VREP}
 
  cropdetect info
  size    	%{metadata:lavfi.cropdetect.w}x%{metadata:lavfi.cropdetect.h}
  columns    	%{metadata:lavfi.cropdetect.x1}-%{metadata:lavfi.cropdetect.x2}
  rows    	%{metadata:lavfi.cropdetect.y1}-%{metadata:lavfi.cropdetect.y2}
-" > /tmp/drawtext.txt
+" > /tmp/drawtext2.txt
     echo -e "
 
 
@@ -81,8 +113,13 @@ set_up_drawtext(){
 
 
 
+
+
+
+
+BRNG
 %{metadata:lavfi.signalstats.BRNG}
-" > /tmp/drawtext2.txt
+" > /tmp/drawtext3.txt
 }
 
 report(){
@@ -359,10 +396,12 @@ lookup_playbackview(){
                 [abcde1]pad=iw+180:ih:180:0[abcde1p];\
                 [f]signalstats=stat=brng+vrep+tout,geq=lum=60:cb=128:cr=128,\
                 scale=180:ih+512,\
-                drawtext=fontcolor=white:fontsize=17:\
+                drawtext=fontcolor=white:fontsize=22:\
                 fontfile=/Library/Fonts/Andale\ Mono.ttf:textfile=/tmp/drawtext.txt,\
-                drawtext=fontcolor=white:fontsize=64:\
-                fontfile=/Library/Fonts/Andale\ Mono.ttf:textfile=/tmp/drawtext2.txt[f1];\
+                drawtext=fontcolor=white:fontsize=17:\
+                fontfile=/Library/Fonts/Andale\ Mono.ttf:textfile=/tmp/drawtext2.txt,\
+                drawtext=fontcolor=white:fontsize=52:\
+                fontfile=/Library/Fonts/Andale\ Mono.ttf:textfile=/tmp/drawtext3.txt[f1];\
                 [abcde1p][f1]overlay[out]"
             ;;
         Q) exit 0 ;;
