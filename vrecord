@@ -8,7 +8,6 @@ duration=""
 runtype="record"
 bmdcapturelogsuffix="_bmdcapture.log"
 ffmpeglogsuffix=".log"
-framemd5="Y"
 pashuainstall=""
 unset extraoutputs
 undeclaredoption="Undeclared"
@@ -23,6 +22,7 @@ channel_mapping_options=("2 Stereo Tracks" "1 Stereo Track" "Channel 1 -> 1st Tr
 container_options=("QuickTime" "Matroska" "AVI" "MXF")
 standard_options=("NTSC" "PAL")
 playbackview_options=("Visual" "Visual + Numerical")
+framemd5_options=("Yes" "No")
 
 if [ -f "${config_file}" ] ; then
     . "${config_file}"
@@ -295,10 +295,10 @@ lookup_container(){
 lookup_standard(){
     case "${1}" in
         "NTSC")
-		standard="0"
+        standard="0"
             ;;
         "PAL")
-		standard="2"
+        standard="2"
             ;;
         Q) exit 0 ;;
         q) exit 0 ;;
@@ -501,6 +501,15 @@ standard_choice.default = ${standard_choice}
 standard_choice.option = ${undeclaredoption}
 standard_choice.option = NTSC
 standard_choice.option = PAL
+#frame md5 
+framemd5_choice.x = 400
+framemd5_choice.y = 105
+framemd5_choice.type = radiobutton
+framemd5_choice.label = Create frame MD5 checksums?
+framemd5_choice.default = ${framemd5_choice}
+framemd5_choice.option = ${undeclaredoption}
+framemd5_choice.option = Yes
+framemd5_choice.option = No
 # duration
 duration.x = 220
 duration.y = 60
@@ -611,10 +620,9 @@ if [[ "${runtype}" = "edit" ]] ; then
     config_comment="# Set each value to empty quotes (like \"\") to prompt during run, or set to a provided option."
     video_input_choice_comment="# Set video_input_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${video_input_options[@]}")"
     audio_input_choice_comment="#Set audio_input_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${audio_input_options[@]}")"
-
     standard_choice_comment="#Set standard_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${standard_options[@]}")"
     playbackview_choice_comment="#Set playbackview_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${playbackview_options[@]}")"
-
+    framemd5_choice_comment="#Set framemd5_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${framemd5_options[@]}")"
     video_bit_depth_choice_comment="#Set video_bit_depth_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${video_bitdepth_options[@]}")"
     video_codec_choice_comment="#Set video_codec_choice to one of these valid options or leave blank to request each run: $(printf "\"%s\" " "${video_codec_options[@]}")"
     audio_mapping_choice_comment="#Set audio_mapping_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${channel_mapping_options[@]}")"
@@ -637,6 +645,7 @@ if [[ "${runtype}" = "edit" ]] ; then
         echo "  audio_mapping_choice = ${audio_mapping_choice}"
         echo "  container_choice = ${container_choice}"
         echo "  standard_choice = ${standard_choice}"
+        echo "  framemd5_choice = ${framemd5_choice}"
         echo "  duration = ${duration}"
         echo "  playbackview_choice = ${playbackview_choice}"
         echo ""
@@ -654,6 +663,9 @@ if [[ "${runtype}" = "edit" ]] ; then
         echo  >> "${config_file}"
         echo  "${playbackview_choice_comment}" >> "${config_file}"
         echo "playbackview_choice=\"${playbackview_choice}\"" >> "${config_file}"
+        echo  >> "${config_file}"
+        echo  "${framemd5_choice_comment}" >> "${config_file}"
+        echo  "framemd5_choice=\"${framemd5_choice}\"" >> "${config_file}"
         echo  >> "${config_file}"
         echo  "${video_bit_depth_choice_comment}" >> "${config_file}"
         echo "video_bit_depth_choice=\"${video_bit_depth_choice}\"" >> "${config_file}"
@@ -706,6 +718,17 @@ else
     done
 fi
 
+if [[ "${framemd5_choice}" != "${undeclaredoption}" ]] ; then
+    echo ""
+else
+    report -q "Create frame MD5s?"
+    PS3="Select an option "
+    select framemd5_choice in "${framemd5_options[@]}" ; do
+        [ "${?}" -eq 0 ] && break
+    done
+fi
+
+
 if [[ "${standard_choice}" && "${standard_choice}" != "${undeclaredoption}" ]] ; then
     lookup_standard "${standard_choice}"
 else
@@ -746,6 +769,13 @@ if [ ! -d "${dir}" ] ; then
         exit
     fi
 fi
+
+if [[ "${framemd5_choice}" = "Yes" ]] ; then
+    extraoutputs+=(-an -f framemd5 "${dir}/${id}${suffix}.framemd5")
+else
+    extraoutputs+=( )
+fi
+
 if [ -z "${duration}" ] ; then
     report -q -n "Default recording time (minutes), blank for unlimited: "
     read duration
@@ -799,11 +829,8 @@ else
     done
 fi
 
-if [[ "${framemd5}" = "Y" ]] ; then
-    extraoutputs+=(-an -f framemd5 "${dir}/${id}${suffix}.framemd5")
-fi
 
-report -d "Summary: ${video_bitdepth} bit ${codecname} ${container_choice} file from ${standard_choice} ${video_input_choice} and ${audio_input_choice} inputs recorded to ${dir}/${id}.mov"
+report -d "Summary: ${video_bitdepth} bit ${codecname} ${container_choice} file from ${standard_choice} ${video_input_choice} ${audio_input_choice} and Frame MD5s=${framemd5_choice} inputs recorded to ${dir}/${id}.mov"
 report -q "Hit enter to start"
 read
 report -d "Close playback window to stop recording."
