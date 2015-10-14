@@ -12,12 +12,12 @@ Here's how you install vrecord...
 
 ###Passthrough Mode
 
+Passthrough mode means that the vrecord scopes and video windows will show up, but the video signal will not be recorded to a file. This is used for things like testing your equipment or setting up a tape to bars before actually recording. When you are finished using passthrough mode simply close the vrecord window.
+
 Run passthrough mode by typing:
 ```
 $ vrecord -p
 ```
-
-Passthrough mode means that the vrecord scopes and video windows will show up, but the video signal will not be recorded to a file. This is used for things like testing your equipment or setting up a tape to bars before actually recording. When you are finished using passthrough mode simply close the vrecord window.
 
 ###Edit Mode
 
