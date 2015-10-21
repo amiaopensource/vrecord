@@ -62,10 +62,11 @@ For those who want the simplest possible explanation:
 [[[A full description of all the elements of the vrecord window along with an image of the window TK]]]
 
 This is the default setup of the vrecord window in "Visual" mode. Vrecord also includes a "Visual + Numerical" mode, which is discussed in the "vrecord's Options for Video Capture" section.
+
 1. **Video feed** — [[[Description TK]]]
 2. **Video feed with broadcast-safe indicator** — Displays a feed of an underscanned version of the video signal with the proper aspect ratio. Pixels whose luminance is outside of broadcast range are colored yellow. 
-3. **Vectorscope** — Displays chrominance values for the signal
-4. **Waveform monitor** — Displays luminance values for the signal
+3. **Vectorscope** — Displays chrominance values for the signal. The boxes represent the standard values for each color. 
+4. **Waveform monitor** — Displays luminance values for the signal. The bottom of the green bar represents the limit for a broadcast safe white level. The top of the red bar represents the broacast safe limit for a black level. 
 
 ###Passthrough Mode
 
@@ -134,7 +135,9 @@ Click "OK" when you are finished with your selections. Vrecord will save all of 
 Vrecord will then prompt you for a unique ID. The ID that you type in will become a prefix for the filename of all the resulting files in that recording session. After entering your unique ID you will be asked to press enter enter to start recording. Press enter and start playing your tape. The vrecord window will appear. 
 
 #### A Few Quirks
-When you start recording there may be several seconds of delay before the vrecord window actually appears. But don't worry, once you've pressed enter vrecord is already capturing. If you are watching the videotape on a separate monitor and the video feeds on vrecord appear to be slightly behind the monitor, don't panic; all of your video has still been captured. 
+When you start recording there may be several seconds of delay before the vrecord window actually appears. But don't worry, once you've pressed enter, vrecord is already capturing. 
+
+If you are watching the videotape on a separate monitor and the video feeds on vrecord appear to be slightly behind the monitor, don't panic; all of your video has still been captured. 
 
 ### Clearing the Configuration File
 
