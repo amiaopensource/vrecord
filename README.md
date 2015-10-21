@@ -2,7 +2,7 @@
 
 ## Summary
 
-Vrecord is open-source software for capturing a video signal and turning it into a digital file. Vrecord can capture analog and digital signals through a variety of inputs and can create digital files in a variety of formats and codecs. Vrecord is designed with needs of audiovisual archivists in mind. 
+Vrecord is open-source software for capturing a video signal and turning it into a digital file. Vrecord can capture analog and digital signals through a variety of inputs and can create digital video files in a variety of formats and codecs. Vrecord is designed with needs of audiovisual archivists in mind. 
 
 Vrecord uses [ffmpeg](http://ffmpeg.org), [ffplay](http://ffmpeg.org/ffplay.html), and [bmdcapture](https://github.com/lu-zero/bmdtools) to do its dirty work.
 
@@ -14,25 +14,27 @@ If you use a Mac, you can easily install vrecord using a package manager called 
 
 To install vrecord, run the following commands:
 
-`$ brew tap amiaopensource/amiaos` { this taps the homebrew recipes of the amiaopensource account }
+`$ brew tap amiaopensource/amiaos` {taps the homebrew recipes of the amiaopensource account}
 
-`$ brew install vrecord`{ this installs vrecord and the other programs that it requires }
+`$ brew install vrecord` {installs vrecord and the other programs that it requires}
 
 You can update vrecord by first running:
 
-`$ brew update` {this updates all of your Homebrew recipes to the latest versions}
+`$ brew update` {updates all of your Homebrew recipes to the latest versions}
 
 Now run:
 
-`$ brew upgrade vrecord`
+`$ brew upgrade vrecord` {downloads the latest release of vrecord and the latest releases of any other packages it depends on}
 
 Alternatively you can run:
 
-`$ brew upgrade` {this will upgrade all of the programs you've installed through Homebrew}
+`$ brew upgrade` {this command will upgrade all of the programs you've installed through Homebrew}
 
 ## Using vrecord
 
 ###Setting up vrecord
+
+If you are using a Mac open System Preferences and click on the preferences for the Black Magic card. [[[More info TK about how to set up the Black Magic card]]]
 
 Start by typing 
 ```
@@ -47,10 +49,10 @@ For those who want the simplest possible explanation:
 
 1. Run `$ vrecord -p`.
 2. Choose appropriate options when prompted.
-3. Play your tape in the connected VTR and setup bars and audio.
-4. Close the vrecord window.
-5. Run `$ vrecord -e` and make sure all options are correct in the GUI window.
-6. Type in a unique identifier for your file when prompted.
+3. Play your tape in the connected VTR and set up to color bars and audio on the tape (if possible).
+4. Close the vrecord window to end passthrough mode.
+5. Now run `$ vrecord -e` and make sure all options are correct in vrecord's GUI window.
+6. Type in a unique identifier for your video file when prompted.
 7. Press "enter" to start recording.
 8. Let 'er rip! Play your tape!
 9. If you are finished recording and the vrecord window hasn't already closed, close the window.
@@ -59,9 +61,9 @@ For those who want the simplest possible explanation:
 
 ###The vrecord Window
 
-[[[A full description of all the elements of the vrecord window along with an image of the window TK]]]
+[[[Image of vrecord window TK]]]
 
-This is the default setup of the vrecord window in "Visual" mode. Vrecord also includes a "Visual + Numerical" mode, which is discussed in the "vrecord's Options for Video Capture" section.
+Shown above is the default setup of the vrecord window in "Visual" mode. Vrecord also includes a "Visual + Numerical" mode, which is discussed in the "Options for Video Capture" section.
 
 1. **Video feed** — [[[Description TK]]]
 2. **Video feed with broadcast-safe indicator** — Displays a feed of an underscanned version of the video signal with the proper aspect ratio. Pixels whose luminance is outside of broadcast range are colored yellow. 
@@ -80,7 +82,7 @@ Vrecord will prompt you to press enter. When you press enter the vrecord window 
 
 ###Edit Mode
 
-This mode opens a GUI window that allows you to change the options for recording the video signal. After selecting all of your options and pressing "OK" the video signal will be recorded to a file with some associated metadata files. When you are done recording, close the vrecord window. If you've set a time limit for capture the vrecord window should automatically close when the time limit has been reached.
+This mode opens a GUI window that allows you to change the options for recording the video signal. After selecting all of your options and pressing "OK" the user will be prompted to enter a unique ID for the file. After the ID is entered, the incoming video signal will be recorded to a file with some associated metadata files. When you are done recording, close the vrecord window. If you've set a time limit for capture the vrecord window should automatically close when the time limit has been reached.
 
 Run edit mode by typing:
 ```
@@ -93,11 +95,11 @@ By default vrecord will create a video file, a bmdcapture log, a framemd5 file (
 
 All of options in the vrecord GUI (which appears when running `vrecord -e`) are explained below. If you want to feel like a college freshman you can choose "Undeclared" for any of the options below. You will be prompted later to make a choice before the program actually starts recording:
 
-**Select a recording directory** — Choose the location where you want your video files and metadata files to be saved. Vrecord will work with an internal or external hard drive.
+**Select a recording directory** — Choose the location where you want your resulting video files and metadata files to be saved. Vrecord will work with an internal or external hard drive.
 
-**Select video input** — Choose how the video signal will be entering the capture card.
+**Select video input** — Choose how the video signal will be entering the capture card. You can receive the video signal from Composite, SDI, Component, or S-Video cables.
 
-**Select audio input** — Choose how the audio signal will be entering the capture card.
+**Select audio input** — Choose how the audio signal will be entering the capture card. You can receive the audio signal from Analog, SDI, or Digital audio cables.  
 
 **Select file format** — Choose the file format that you want the video to be saved in. This is also often called the container.
 
