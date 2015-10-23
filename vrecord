@@ -446,7 +446,7 @@ dir.filetype = directory
 dir.width=400
 # video input
 video_input_choice.x = 20
-video_input_choice.y = 300
+video_input_choice.y = 280
 video_input_choice.type = radiobutton
 video_input_choice.label = Select Video Input
 video_input_choice.default = ${video_input_choice}
@@ -456,17 +456,17 @@ video_input_choice.option = SDI
 video_input_choice.option = Component
 video_input_choice.option = S-Video
 # video bit depth
-video_bit_depth_choice.x = 200
-video_bit_depth_choice.y = 335
+video_bit_depth_choice.x = 470
+video_bit_depth_choice.y = 317
 video_bit_depth_choice.type = radiobutton
-video_bit_depth_choice.label = Select Bit Depth for Video
+video_bit_depth_choice.label = Select Video Bit Depth
 video_bit_depth_choice.default = ${video_bit_depth_choice}
 video_bit_depth_choice.option = ${undeclaredoption}
 video_bit_depth_choice.option = 10 bit
 video_bit_depth_choice.option = 8 bit
 # video codec
-video_codec_choice.x = 400
-video_codec_choice.y = 300
+video_codec_choice.x = 300
+video_codec_choice.y = 280
 video_codec_choice.type = radiobutton
 video_codec_choice.label = Select Codec for Video
 video_codec_choice.default = ${video_codec_choice}
@@ -477,7 +477,7 @@ video_codec_choice.option = JPEG2000
 video_codec_choice.option = ProRes
 # audio input
 audio_input_choice.x = 20
-audio_input_choice.y = 180
+audio_input_choice.y = 150
 audio_input_choice.type = radiobutton
 audio_input_choice.label = Select Audio Input
 audio_input_choice.default = ${audio_input_choice}
@@ -486,8 +486,8 @@ audio_input_choice.option = Analog
 audio_input_choice.option = SDI Embedded Audio
 audio_input_choice.option = Digital Audio (AES/EBU)
 # audio mapping
-audio_mapping_choice.x = 200
-audio_mapping_choice.y = 180
+audio_mapping_choice.x = 240
+audio_mapping_choice.y = 130
 audio_mapping_choice.type = radiobutton
 audio_mapping_choice.label = Select Audio Channel Mapping
 audio_mapping_choice.default = ${audio_mapping_choice}
@@ -497,8 +497,8 @@ audio_mapping_choice.option = 1 Stereo Track
 audio_mapping_choice.option = Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono
 audio_mapping_choice.option = Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono
 # recording file format
-container_choice.x = 20
-container_choice.y = 55
+container_choice.x = 170
+container_choice.y = 280
 container_choice.type = radiobutton
 container_choice.label = Select File Format
 container_choice.default = ${container_choice}
@@ -508,8 +508,8 @@ container_choice.option = Matroska
 container_choice.option = AVI
 container_choice.option = MXF
 # video standard
-standard_choice.x = 200
-standard_choice.y = 90
+standard_choice.x = 470
+standard_choice.y = 240
 standard_choice.type = radiobutton
 standard_choice.label = Select Standard
 standard_choice.default = ${standard_choice}
@@ -517,8 +517,8 @@ standard_choice.option = ${undeclaredoption}
 standard_choice.option = NTSC
 standard_choice.option = PAL
 #frame md5 
-framemd5_choice.x = 400
-framemd5_choice.y = 90
+framemd5_choice.x = 350
+framemd5_choice.y = 30
 framemd5_choice.type = radiobutton
 framemd5_choice.label = Create frame MD5 checksums?
 framemd5_choice.default = ${framemd5_choice}
@@ -526,10 +526,10 @@ framemd5_choice.option = ${undeclaredoption}
 framemd5_choice.option = Yes
 framemd5_choice.option = No
 # duration
-duration.x = 325
-duration.y = 30
+duration.x = 20
+duration.y = 60
 duration.type = combobox
-duration.label = Set the recording time as a number (integer or decimal) in minutes.
+duration.label = Set recording time (integer or decimal) in minutes.
 duration.default = ${duration}
 duration.option = 23
 duration.option = 33
@@ -538,7 +538,7 @@ duration.option = 93
 # Add a cancel button with default label
 #playbackview choice
 playbackview_choice.x = 20
-playbackview_choice.y = 0
+playbackview_choice.y = 3
 playbackview_choice.type = popup
 playbackview_choice.label = Select View
 playbackview_choice.default = ${playbackview_choice}
