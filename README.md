@@ -30,7 +30,7 @@ Alternatively you can run:
 
 `$ brew upgrade` {this command will upgrade all of the programs you've installed through Homebrew}
 
-[[[[More info TK about installing vrecord if you don't have a Mac]]]]
+[[[[More info TK about installing vrecord if you don't have a Mac?]]]]
 
 ## Using vrecord ##
 
@@ -45,7 +45,7 @@ $ vrecord
 The first time you use vrecord you will be asked to make some initial choices about how you want to capture. Any decisions you make will be saved in a cofiguration file. But don't worry, you will be able to alter these decisions later. 
 Vrecord will ask you for video and audio inputs. These should agree with your settings for the Blackmagic capture device. The other settings can be tailored to your liking. See the section on "Options for Video Capture" below which explains all of the settings in detail.
 
-### Basic Use ###
+### Basic Usage ###
 
 For those who want the simplest possible explanation on how to use vrecord:
 
@@ -91,7 +91,7 @@ Run edit mode by typing:
 $ vrecord -e
 ```
 
-By default vrecord will create a video file, a bmdcapture log, a framemd5 file (which creates an MD5 hash value for every frame of video), an ffmpeg log, and an ffplay log. 
+By default vrecord will create a video file, a bmdcapture log, a framemd5 file (which creates an MD5 hash value for every frame of video), an ffmpeg log, an ffplay log, and a capture options log (which records the options that you selected like codec and video bit depth). 
 
 #### Options for Video Capture ####
 
