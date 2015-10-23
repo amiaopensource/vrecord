@@ -168,6 +168,21 @@ usage(){
     exit
 }
 
+_get_iso8601(){
+    date +%FT%T
+}
+#This function creates a capture log of decisions made in vrecord
+_writeingestlog(){
+    if [ "${INGESTLOG}" ] ; then
+        KEY="${1}"
+        VALUE="${2}"
+        # need to add yaml style escaping
+        echo "${KEY}: ${VALUE}" >> "${INGESTLOG}"
+    else
+        _report -wt "The _writeingestlog function was called but the ingestlog file (${INGESTLOG}) is not declared."
+    fi
+}
+
 lookup_video_input(){
     case "${1}" in
         "Composite")    video_input=1 ;;
@@ -829,8 +844,7 @@ else
     done
 fi
 
-
-report -d "Summary: ${video_bitdepth} bit ${codecname} ${container_choice} file from ${standard_choice} ${video_input_choice} ${audio_input_choice} and Frame MD5s=${framemd5_choice} inputs recorded to ${dir}/${id}.mov"
+report -d "Summary: ${video_bitdepth} bit ${codecname} ${container_choice} file from ${standard_choice} ${video_input_choice} ${audio_input_choice} and Frame MD5s=${framemd5_choice} inputs recorded to ${dir}/${id}.${extension}"
 report -q "Hit enter to start"
 read
 report -d "Close playback window to stop recording."
@@ -848,4 +862,22 @@ bmdcapture -m ${standard} -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p 
         $(if [ -n "$map2k" ] ; then echo ${map2k} ; fi) $(if [ -n "$map2v" ] ; then echo ${map2v} ; fi) \
         -f "${format}" \
         "${dir}/${id}${suffix}.${extension}" \
-        "${extraoutputs[@]}"
+        "${extraoutputs[@]}" \
+
+#create log of vrecord decisions
+INGESTLOG="${dir}/${id}_capture_options.log"
+
+touch "${INGESTLOG}"
+
+_writeingestlog "computer_name" "$(uname -n)"
+_writeingestlog "user_name" "$(whoami)"
+_writeingestlog "operating_system_version" "$(uname -v)"
+_writeingestlog "datetime_start" "$(_get_iso8601)"
+_writeingestlog "video_bit_depth" "${video_bitdepth}"
+_writeingestlog "codec_name" "${codecname}"
+_writeingestlog "container" "${container_choice}"
+_writeingestlog "television standard" "${standard_choice}"
+_writeingestlog "video_input" "${video_input_choice}"
+_writeingestlog "audio_input" "${audio_input_choice}"
+_writeingestlog "framemd5_choice" "${framemd5_choice}"
+_writeingestlog "file_path" "${dir}/${id}.${extension}"
