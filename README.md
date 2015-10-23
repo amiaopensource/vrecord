@@ -30,22 +30,24 @@ Alternatively you can run:
 
 `$ brew upgrade` {this command will upgrade all of the programs you've installed through Homebrew}
 
+[[[[More info TK about installing vrecord if you don't have a Mac]]]]
+
 ## Using vrecord ##
 
-### Setting up vrecord ###
+### Setting up vrecord for the First Time###
 
-If you are using a Mac open System Preferences and click on the preferences for the Black Magic card. [[[More info TK about how to set up the Black Magic card]]]
+If you are using a Mac, open System Preferences and click on the preferences for the Black Magic capture device. [[[More info TK about how to set up the Black Magic card properly]]]
 
-Start by typing 
+Once your capture device is set up you can start vrecord by simply opening up a Terminal window and typing 
 ```
-$ vrecord -e
+$ vrecord
 ```
-The first time you use vrecord you will be asked to make some choices...
+The first time you use vrecord you will be asked to make some initial choices about how you want to capture. Any decisions you make will be saved in a cofiguration file. But don't worry, you will be able to alter these decisions later. 
 [[[More description on setting up vrecord TK]]]
 
 ### Basic Use ###
 
-For those who want the simplest possible explanation:
+For those who want the simplest possible explanation on how to use vrecord:
 
 1. Run `$ vrecord -p`.
 2. Choose the appropriate options when prompted.
