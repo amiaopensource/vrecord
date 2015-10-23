@@ -2,22 +2,22 @@
 
 ## Digitizing Betacam Tapes ##
 
-There are several steps in digitizing a Betacam tape. 
+There are several steps to digitizing a Betacam tape. 
 
 1. Route the video signal from the Betacam deck to the Black Magic capture card for the computer that you are using. [[[The available computers at CUNY are ING 14, 15, and 16. So you would use the switching panel to route VR-20 to ING-15 ]]]
-2. Start by testing the signal to make sure that everything is routed properly. Play the tape in the deck. Run `$ vecord -p` and watch the vrecord window to make sure the video signal from the tape is coming through. If it's not coming through, there may be some issues with your settings or how your equipment is routed. See the "Troubleshooting" section below.  
+2. Start by testing the signal to make sure that everything is routed properly. Play the tape in the deck. Run `$ vecord -p` and watch the vrecord window to make sure the video signal from the tape is coming through. If it's not coming through, there may be some issues with your settings or how the signal is routed. See the "Troubleshooting" section below.  
 3. If bars exist on the tape, set the tape to the bars. Otherwise, you will have to adjust the levels by eye. 
 
 ### How to Set Up the Equipment to Color Bars on a Tape ###
-First, play the tape with the color bars. Now take a look at your waveform monitor to examine the signal. At CUNY-TV you will need to route the signal to a monitor called QC-ING32. This monitor is connected to the waveform monitor and vectorscope.
+First, play the tape with the color bars. Now take a look at your waveform monitor to examine the signal. At CUNY-TV you will need to route the signal to a monitor called QC-ING32. This monitor is connected to the combination  waveform monitor, vectorscope, and audio monitor.
 
 **Using the Waveform Monitor**
 
-The waveform monitor is generally used to measure the lumaniance (brightness) levels of the signal. SMPTE color bars should look something like this on a waveform monitor similiar to a staircase:
+The waveform monitor is generally used to measure the lumaniance (brightness) levels of the signal. SMPTE color bars should look like this on a waveform monitor, similiar to a staircase:
 
 ![alt text](http://www.experimentaltvcenter.org/sites/default/files/history/images/preservationcom/waveform2.jpg "Color Bars in Waveoform Monitor")
 
-Start by setting up the black level in the waveform monitor. The lowest step in the color bars (the black level) should be at 7.5 IRE on the waveform monitor usually represented by a dotted line. [[[Information TK about how to find the black level line that you need to line up]]]
+Start by setting up the black level in the waveform monitor. The lowest step in the color bars (the black level) should be set to 7.5 IRE on the waveform monitor usually represented by a dashed line near the bottom of the monitor.
 
 Now set the luminance level, this could be the step all the way on the left, or it could be the second step from the left. One of these steps should hit the 75 IRE mark on the waveform monitor usually represented by a dotted line.
 
