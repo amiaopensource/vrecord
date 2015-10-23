@@ -4,33 +4,33 @@
 
 There are several steps in digitizing a Betacam tape. 
 
-1. Route the video signal from the Betacam deck to the Black Magic capture card for the computer that you are using. [[[available computers at CUNY are ING 14, 15, and 16 ]]]
+1. Route the video signal from the Betacam deck to the Black Magic capture card for the computer that you are using. [[[The available computers at CUNY are ING 14, 15, and 16. So you would use the switching panel to route VR-20 to ING-15 ]]]
 2. Start by testing the signal to make sure that everything is routed properly. Play the tape in the deck. Run `$ vecord -p` and watch the vrecord window to make sure the video signal from the tape is coming through. If it's not coming through, there may be some issues with your settings or how your equipment is routed. See the "Troubleshooting" section below.  
 3. If bars exist on the tape, set the tape to the bars. Otherwise, you will have to adjust the levels by eye. 
 
 ### How to Set Up the Equipment to Color Bars on a Tape ###
-First, play the tape with the color bars. Now take a look at your waveform monitor to examine the signal.
+First, play the tape with the color bars. Now take a look at your waveform monitor to examine the signal. At CUNY-TV you will need to route the signal to a monitor called QC-ING32. This monitor is connected to the waveform monitor and vectorscope.
 
 **Using the Waveform Monitor**
 
-The waveform monitor is generally used to measure the lumaniance (brightness) levels of the signal. SMPTE color bars should look something like this on a waveform monitor:
+The waveform monitor is generally used to measure the lumaniance (brightness) levels of the signal. SMPTE color bars should look something like this on a waveform monitor similiar to a staircase:
 
 ![alt text](http://www.experimentaltvcenter.org/sites/default/files/history/images/preservationcom/waveform2.jpg "Color Bars in Waveoform Monitor")
 
-Start by setting up the black level in the waveform monitor. The lowest black level should be at 7.5 IRE on the waveform monitor usually represented by a dotted line. [[[Information TK about how to find the black level line that you need to line up]]]
+Start by setting up the black level in the waveform monitor. The lowest step in the color bars (the black level) should be at 7.5 IRE on the waveform monitor usually represented by a dotted line. [[[Information TK about how to find the black level line that you need to line up]]]
 
-Now set the luminance level, the bar all the way on the left should hit the 75 IRE mark on the waveform monitor usually represented by a dotted line.
+Now set the luminance level, this could be the step all the way on the left, or it could be the second step from the left. One of these steps should hit the 75 IRE mark on the waveform monitor usually represented by a dotted line.
 
-There may also be another bar with a flat top to the right of the 75 IRE bar. Make sure this bar is at 100 IRE. Your black and luma levels should now be correctly set up.
+There may also be another bar with a flat top to the left of the 75 IRE bar. Make sure this bar is at 100 IRE. Your black and luma levels should now be correctly set up.
 
 **Using the Vectorscope**
 
 The vectorscope is used to measure the chrominance (color) levels of the video signal. Correctly adjusted color bars should look like this in the vectorscope:
 ![alt text](http://www.bhphotovideo.com/explora/sites/default/files/vectorscope.JPG "Color Bars in a vectorscope")
 
-The vectorscope has a few square target boxes. Inside of the larger box is a smaller box with a crosshair inside of it. These boxes represent standard values for primary and secondary colors (R stands for "red," B stands for "blue," YL stands for "yellow" and so on). Ideally the points where lines intersect on the vectorscope should hit all of those targets.  
+The vectorscope has a few square target boxes. Inside of the larger box is a smaller box with a crosshair inside of it. These boxes represent standard values for primary and secondary colors (R stands for "red," B stands for "blue," Y stands for "yellow" and so on). Ideally the points where lines intersect on the vectorscope should hit all of those targets.  
 
-Start adjusting the hue or phase. There should be one line that is on the left half of the vectorscope that is shorter than the others. This is the color reference signal. **Adjust the hue by turning the knob so that the color reference line is at 0 degrees on the vectorscope (or 9 o'clock).** This should move the other lines closer to their targets. 
+Start adjusting the hue or phase. There should be one line that is on the left half of the vectorscope that is shorter than the others. This is the color reference signal. **Adjust the hue by turning the knob so that the color reference line is at 0 degrees on the vectorscope (or 9 o'clock).** This should move the other lines closer to their targets. If there is no color reference signal, adjust the hue dial so that the yellow dot is in line with its target. 
 
 Now adjust the chrominance (or chroma). If the lines continue past the target, reduce the chroma. If the lines end before the target, increase the chroma. **Try to get all of the points as close to the middle of the crosshairs as possible.** Sometimes it is not possible to get all of the colors exactly inside of their respective crosshairs. If so, try to line up the yellow point with its target as closely as possible and let the other colors fall where they may.   
 
@@ -88,6 +88,17 @@ CUNY-TV uses the following settings for U-matic tapes:
 **Standard** — NTSC
 
 **Recording Time** — For a 30 minute tape set the recording time to 32. For a 60 minute tape set the recording time to 62. Usually tapes have the number 30 or 60 on them somewhere so you can figure out which kind of tape you have.
+
+## Checking the Files ##
+
+Check to make sure vrecord produced the correct files. These are:
+1. The video file itself 
+2. Bmdcapture log (filename_bmdcapture.log)
+3. FFmpeg log (filename_ffmpeg_date_time.log)
+4. FFplay log (filename_ffplay_date_time.log)
+5. Frame MD5 file (filename.framemd5
+
+Scroll through the video file to make sure it is complete; in other words, you've captured the entire tape. If all these files exist and the video file looks complete you can move on to further QC.
 
 ## Troubleshooting ##
 
