@@ -881,4 +881,6 @@ bmdcapture -m ${standard} -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p 
         $(if [ -n "$map2k" ] ; then echo ${map2k} ; fi) $(if [ -n "$map2v" ] ; then echo ${map2v} ; fi) \
         -f "${format}" \
         "${dir}/${id}${suffix}.${extension}" \
-        "${extraoutputs[@]}" \
+        "${extraoutputs[@]}"
+
+_writeingestlog "datetime_end" "$(_get_iso8601)"
