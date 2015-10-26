@@ -709,6 +709,7 @@ if [[ "${runtype}" = "edit" ]] ; then
     else
         report -d "Edting preferences was canceled by user."
     fi
+    runtype="record"
 fi
 
 if [[ "${video_input_choice}" && "${video_input_choice}" != "${undeclaredoption}" ]] ; then
