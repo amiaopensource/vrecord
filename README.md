@@ -1,5 +1,20 @@
 # Vrecord Documentation #
 
+## Table of Contents ##
+
+1. [Summary] (https://github.com/amiaopensource/vrecord#summary)
+2. [Installing vrecord] (https://github.com/amiaopensource/vrecord#installing-vrecord)
+3. [Using vrecord] (https://github.com/amiaopensource/vrecord#using-vrecord)
+  1. [Setting up vrecord for the First Time] (https://github.com/amiaopensource/vrecord#setting-up-vrecord-for-the-first-time)
+  2. [Basic Usage] (https://github.com/amiaopensource/vrecord#basic-usage)
+  3. [The vrecord Window] (https://github.com/amiaopensource/vrecord#the-vrecord-window)
+  4. [Passthrough Mode] (https://github.com/amiaopensource/vrecord#passthrough-mode)
+  5. [Edit Mode] (https://github.com/amiaopensource/vrecord#edit-mode)
+    1. [Options for Video Capture] (https://github.com/amiaopensource/vrecord#options-for-video-capture)
+    2. [A Few Quirks] (https://github.com/amiaopensource/vrecord#a-few-quirks)
+  6. [Clearing the Configuration File] (https://github.com/amiaopensource/vrecord#clearing-the-configuration-file)
+4. [Help and Issues] (https://github.com/amiaopensource/vrecord#help-and-issues)
+
 ## Summary ##
 
 Vrecord is open-source software for capturing a video signal and turning it into a digital file. Vrecord can capture analog and digital signals through a variety of inputs and can create digital video files in a variety of formats and codecs. Vrecord is designed with needs of audiovisual archivists in mind. 
@@ -43,7 +58,7 @@ Once your capture device is set up you can start vrecord by simply opening up a 
 $ vrecord 
 ```
 The first time you use vrecord you will be asked to make some initial choices about how you want to capture. Any decisions you make will be saved in a cofiguration file. But don't worry, you will be able to alter these decisions later. 
-Vrecord will ask you for video and audio inputs. These should agree with your settings for the Blackmagic capture device. Vrecord's other settings can be tailored to your liking. See the section on "Options for Video Capture" below which explains all of the settings in detail.
+Vrecord will ask you for video and audio inputs. These should agree with your settings for the Blackmagic capture device. Vrecord's other settings can be tailored to your liking. See the section on [Options for Video Capture] (https://github.com/amiaopensource/vrecord#options-for-video-capture) below which explains all of the settings in detail.
 
 ### Basic Usage ###
 
@@ -65,7 +80,7 @@ For those who want the simplest possible explanation on how to use vrecord:
 
 [[[Image of vrecord window with number labeling TK]]]
 
-Shown above is the setup of the vrecord window in "Visual" mode. Vrecord also includes a "Visual + Numerical" mode, which is discussed in the "Options for Video Capture" section below.
+Shown above is the setup of the vrecord window in "Visual" mode. Vrecord also includes a "Visual + Numerical" mode, which is discussed in the [Options for Video Capture] (https://github.com/amiaopensource/vrecord#options-for-video-capture) section below.
 
 1. **Video feed** — [[[Description TK]]]
 2. **Video feed with broadcast-safe indicator** — Displays a feed of an underscanned version of the video signal with the normal aspect ratio for a television screen. Pixels whose luminance is outside of broadcast range are colored yellow. 
@@ -131,7 +146,7 @@ All of options in the vrecord GUI (which appears when running `vrecord -e`) or o
 * VREP — The amount of vertical line repititions in the video. The VREP reading can be useful for detecting video artifacts, especially head clogs.
 * BRNG — Percentage of pixels that are in broadcast range. This may be helpful for detecting problems with the video signal such as dropout or if the signal has not been calibrated properly. If BRNG is 0.1 or greater, you probably have an issue.
 
-**Frame MD5s** — You can choose to create an MD5 hash value for each frame of video captured. A seperate .md5 file with all the hash values will be created along with the video file. Generally choosing to create frame-level MD5s will not slow down or hinder the capture of your video.
+**Frame MD5s** — You can choose to create an MD5 hash value for each frame of video captured. A seperate .md5 file with all the hash values will be created along with the video file. Generally choosing to create frame-level MD5s will not slow down or hinder the capture of your video. To read more about frame-level MD5s see this article: http://dericed.com/papers/reconsidering-the-checksum-for-audiovisual-preservation/ 
 
 **Set Recording time** — Set the amount of time (in minutes) that you would like vrecord to capture for. This number should be an integer or decimal. For example, if you are digitizing a tape with a capacity of 30 minutes of video, you might want set vrecord to capture for 33 minutes. After 33 minutes vrecord will automatically stop recording and shut down.
 
@@ -153,7 +168,7 @@ $ vrecord -x
 ```
 Vrecord will then prompt you to make selections for video capture and proceed to start recording a new tape. If you want to interrupt vrecord hold down control + c. 
 
-##Help and Issues 
+## Help and Issues ##
 
 If you are stuck and want to see vrecord's help menu run:
 ```
