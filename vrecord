@@ -321,6 +321,18 @@ lookup_standard(){
     esac
 }
 
+lookup_framemd5(){
+    case "${1}" in
+        "Yes")
+            ;;
+        "No")
+            ;;
+        Q) exit 0 ;;
+        q) exit 0 ;;
+        *)  report -w "Error: Not a valid option, select a valid number or [q] to quit." ; return 1 ;;
+    esac
+}
+
 # set up drawtext.txt files in case needed.
 set_up_drawtext
 
@@ -746,6 +758,7 @@ else
     report -q "Create frame-level MD5 checksums?"
     PS3="Select an option: "
     select framemd5_choice in "${framemd5_options[@]}" ; do
+        lookup_framemd5 "${framemd5_choice}"
         [ "${?}" -eq 0 ] && break
     done
 fi
