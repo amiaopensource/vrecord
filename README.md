@@ -34,7 +34,7 @@ Alternatively you can run:
 
 ## Using vrecord ##
 
-### Setting up vrecord for the First Time###
+### Setting up vrecord for the First Time ###
 
 If you are using a Mac, open System Preferences and click on the icon for Blackmagic Design. If you do not see this icon in system preferences you probably haven't installed the Blackmagic driver. Open up the Blackmagic Design preferences and click on the "Settings" tab. Select your input and output from the dropdown menu depending on what cables you have connected to the capture device. 
 
@@ -43,7 +43,7 @@ Once your capture device is set up you can start vrecord by simply opening up a 
 $ vrecord 
 ```
 The first time you use vrecord you will be asked to make some initial choices about how you want to capture. Any decisions you make will be saved in a cofiguration file. But don't worry, you will be able to alter these decisions later. 
-Vrecord will ask you for video and audio inputs. These should agree with your settings for the Blackmagic capture device. The other settings can be tailored to your liking. See the section on "Options for Video Capture" below which explains all of the settings in detail.
+Vrecord will ask you for video and audio inputs. These should agree with your settings for the Blackmagic capture device. Vrecord's other settings can be tailored to your liking. See the section on "Options for Video Capture" below which explains all of the settings in detail.
 
 ### Basic Usage ###
 
@@ -65,7 +65,7 @@ For those who want the simplest possible explanation on how to use vrecord:
 
 [[[Image of vrecord window with number labeling TK]]]
 
-Shown above is the setup of the vrecord window in "Visual" mode. Vrecord also includes a "Visual + Numerical" mode, which is discussed in the "Options for Video Capture" section.
+Shown above is the setup of the vrecord window in "Visual" mode. Vrecord also includes a "Visual + Numerical" mode, which is discussed in the "Options for Video Capture" section below.
 
 1. **Video feed** — [[[Description TK]]]
 2. **Video feed with broadcast-safe indicator** — Displays a feed of an underscanned version of the video signal with the normal aspect ratio for a television screen. Pixels whose luminance is outside of broadcast range are colored yellow. 
@@ -80,34 +80,35 @@ Run passthrough mode by typing:
 ```
 $ vrecord -p
 ```
-Vrecord will prompt you to press enter. When you press enter the vrecord window will open up and start displaying any video signal that is coming from the capture card. If you haven't already set up vrecord it will prompt you to choose some options.
+If you haven't already set up vrecord it will prompt you to make some selections related to your audio video inputs. Otherwise vrecord will just prompt you to press enter. When you press enter the vrecord window will open up and start displaying any video signal coming through from the capture device. 
 
 ### Edit Mode ###
 
-Edit mode opens a GUI window that allows you to change your recording options. After selecting all of your options and pressing "OK" the you will be prompted to enter a unique ID for the file. After the ID is entered, the incoming video signal will be recorded to a file with some associated metadata files. When you are done recording, close the vrecord window. If you've set a time limit for capture the vrecord window should automatically close when the time limit has been reached.
+Running vrecord in edit mode opens a GUI window that allows you to change your recording options and then start digitizing a tape. 
 
 Run edit mode by typing:
 ```
 $ vrecord -e
 ```
+After selecting all of your options and pressing "OK" the you will be prompted to enter a unique ID for the file. After the ID is entered, the incoming video signal will be recorded to a file with some associated metadata files. When you are done recording, close the vrecord window. If you've set a time limit for capture the vrecord window should automatically close when the time limit has been reached.
 
-By default vrecord will create a video file, a bmdcapture log, a framemd5 file (which creates an MD5 hash value for every frame of video), an ffmpeg log, an ffplay log, and a capture options log (which records the options that you selected like codec and video bit depth). 
+By default vrecord will create a video file, a bmdcapture log, a framemd5 file (which creates an MD5 hash value for every frame of video), an ffmpeg log, an ffplay log, and a capture options log (which records the options that you selected in the GUI like codec and video bit depth). 
 
 #### Options for Video Capture ####
 
-All of options in the vrecord GUI (which appears when running `vrecord -e`) are explained below. If you want to feel like a college freshman you can choose "Undeclared" for any of the options below. You will be prompted later to make a choice before the software actually starts recording:
+All of options in the vrecord GUI (which appears when running `vrecord -e`) or otherwise in text prompts are explained below. If you want to feel like a college freshman you can choose "Undeclared" for any of the options below. You will be prompted later to make a choice before the software actually starts recording:
 
 **Select a recording directory** — Choose the location (on an internal or external hard drive) where you want your resulting video files and metadata files to be saved.
 
 **Select video input** — Choose how the video signal will be entering the capture device. You can receive the video signal through Composite, SDI, Component, or S-Video cables.
 
-**Select audio input** — Choose how the audio signal will be entering the capture device. You can receive the audio signal through Analog (such as XLR), SDI, or Digital audio cables.  
+**Select audio input** — Choose how the audio signal will be entering the capture device. You can receive the audio signal through Analog (such as XLR), SDI, or other digital audio cables.  
 
 **Select file format** — Choose the file format that you want the video to be saved in. This is also often called the container.
 
 **Select codec for video** — Choose how you would like the video signal to be encoded digitally. You can choose from some uncompressed, lossless, and lossy codecs. 
 
-**Select bit depth for video** — Choose the amount of bit depth you would like for your video file. Vrecord currently supports 8 and 10-bit video capture.
+**Select bit depth for video** — Choose the level of bit depth you would like for your video file. Vrecord currently supports 8 and 10-bit video capture.
 
 **Select audio channel mapping** — Choose how you want the audio to be captured. Currently vrecord captures audio at 24-bits and can only capture 4 tracks. The options are: 
 * "2 Stereo Tracks" — For capturing videotape formats that have four tracks which are arranged as stereo pairs.
@@ -115,7 +116,7 @@ All of options in the vrecord GUI (which appears when running `vrecord -e`) are 
 * "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono" — For capturing videotapes with audio recorded on Channel 1 only. Vrecord will capture the audio from Channel 1 and create a mono track. 
 * "Channel 2 -> 1st Mono, Channel 1 -> 2nd Track Mono" — For capaturing videotapes with with audio recorded on Channel 2 only. Vrecord will take the audio from Channel 2 and place it in a Channel 1 mono track. 
 
-**Select standard** — Select the proper television standard for the tape you are digitizing. Currently vrecord only supports NTSC and PAL.
+**Select standard** — Select the television standard of the tape you are digitizing. Currently vrecord only supports NTSC and PAL.
 
 **Visual mode** — Visual mode displays the two video feeds, the waveform monitor, and the vectorscope in the vrecord window.
 
@@ -132,9 +133,9 @@ All of options in the vrecord GUI (which appears when running `vrecord -e`) are 
 
 **Frame MD5s** — You can choose to create an MD5 hash value for each frame of video captured. A seperate .md5 file with all the hash values will be created along with the video file. Generally choosing to create frame-level MD5s will not slow down or hinder the capture of your video.
 
-**Set Recording time** — Set the amount of time (in minutes) that you would like vrecord to capture for. This number should be an integer or decimal. For example, if you are digitizing a tape with a capacity of 30 minutes of video, you might want set vrecord to capture for 32 minutes. After 32 minutes vrecord will automatically stop recording and shut down.
+**Set Recording time** — Set the amount of time (in minutes) that you would like vrecord to capture for. This number should be an integer or decimal. For example, if you are digitizing a tape with a capacity of 30 minutes of video, you might want set vrecord to capture for 33 minutes. After 33 minutes vrecord will automatically stop recording and shut down.
 
-Click "OK" when you are finished with your selections. Vrecord will save all of your selections to a cofiguration file. If any selections are "Undeclared" vrecord will prompt you to make a choice. 
+Click "OK" when you are finished with your selections. Vrecord will save all of your selections to a cofiguration file. If any selections are "Undeclared" vrecord will prompt you in the terminal window to make a choice. 
 
 Vrecord will then prompt you for a unique ID. The ID that you type in will become a prefix for the filename of all the resulting files in that recording session. After entering your unique ID you will be asked to press enter to start recording. Press enter and start playing your tape. The vrecord window will appear. 
 
