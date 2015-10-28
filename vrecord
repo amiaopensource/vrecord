@@ -151,20 +151,20 @@ report(){
 usage(){
     echo
     echo "$(basename ${0}) ${version}"
-    echo "$(basename "${0}") will record a file via the blackmagic sdk and bmdtools. It is an interactive script and will either create 8 or 10 bit video."
+    echo "$(basename "${0}") will record a file via the Blackmagic SDK and bmdtools. It is an interactive script and will either create 8 or 10-bit video files."
     echo "Dependencies: ${dependencies[@]}"
     echo "Usage: $(basename $0) [ -h ]"
     echo "  -h ( display this help )"
-    echo "  -e ( edit the config_file before recording )"
+    echo "  -e ( edit the config file before recording )"
     echo "  -r ( enable record mode [default] )"
-    echo "  -p ( enable passthrough mode where video is played back but not written to file )"
+    echo "  -p ( enable passthrough mode where the video signal coming into the computer can be monitored, but not written to a file. Useful for testing equipment and setting up a tape. )"
     echo "  -x ( reset the configuration, this will clear the default configuration file at ${config_file} and create a new one)"
     echo
     echo "Installation help:"
-    echo "To install (on a mac) run these commands:"
-    echo "brew update"
-    echo "brew tap amiaopensource/amiaos"
-    echo "brew install vrecord"
+    echo "To install (on a Mac with Brew package manager installed) run these commands:"
+    echo "$ brew update"
+    echo "$ brew tap amiaopensource/amiaos"
+    echo "$ brew install vrecord"
     exit
 }
 
@@ -179,7 +179,7 @@ _writeingestlog(){
         # need to add yaml style escaping
         echo "${KEY}: ${VALUE}" >> "${INGESTLOG}"
     else
-        _report -wt "The _writeingestlog function was called but the ingestlog file (${INGESTLOG}) is not declared."
+        _report -wt "The _writeingestlog function was called, but the ingestlog file (${INGESTLOG}) is not declared."
     fi
 }
 
@@ -410,7 +410,7 @@ intro.x = 20
 intro.y = 480
 intro.width = 500
 intro.type = text
-intro.text = Set file recording options. Leave the option as \"${undeclaredoption}\" to be prompted.
+intro.text = Set file recording options. Leave the option as \"${undeclaredoption}\" to be prompted later.
 # directory
 dir.x = 20
 dir.y = 420
@@ -475,7 +475,7 @@ audio_mapping_choice.option = Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Trac
 container_choice.x = 170
 container_choice.y = 280
 container_choice.type = radiobutton
-container_choice.label = Select File Format
+container_choice.label = Select File Format (Container)
 container_choice.default = ${container_choice}
 container_choice.option = ${undeclaredoption}
 container_choice.option = QuickTime
@@ -486,7 +486,7 @@ container_choice.option = MXF
 standard_choice.x = 470
 standard_choice.y = 240
 standard_choice.type = radiobutton
-standard_choice.label = Select Standard
+standard_choice.label = Select Television Standard
 standard_choice.default = ${standard_choice}
 standard_choice.option = ${undeclaredoption}
 standard_choice.option = NTSC
@@ -495,7 +495,7 @@ standard_choice.option = PAL
 framemd5_choice.x = 350
 framemd5_choice.y = 30
 framemd5_choice.type = radiobutton
-framemd5_choice.label = Create frame MD5 checksums?
+framemd5_choice.label = Create frame-level MD5 checksums?
 framemd5_choice.default = ${framemd5_choice}
 framemd5_choice.option = ${undeclaredoption}
 framemd5_choice.option = Yes
@@ -682,7 +682,7 @@ if [[ "${runtype}" = "edit" ]] ; then
             exit
         fi
     else
-        report -d "Edting preferences was canceled by user."
+        report -d "Edting preferences was canceled by the user."
     fi
     runtype="record"
 fi
@@ -712,7 +712,7 @@ fi
 if [[ "${framemd5_choice}" != "${undeclaredoption}" ]] ; then
     echo ""
 else
-    report -q "Create frame MD5s?"
+    report -q "Create frame-level MD5s?"
     PS3="Select an option "
     select framemd5_choice in "${framemd5_options[@]}" ; do
         [ "${?}" -eq 0 ] && break
@@ -723,8 +723,8 @@ fi
 if [[ "${standard_choice}" && "${standard_choice}" != "${undeclaredoption}" ]] ; then
     lookup_standard "${standard_choice}"
 else
-    report -q "Which standard?."
-    PS3="Select a video standard "
+    report -q "Which television standard?"
+    PS3="Select a television standard "
     select standard_choice in "${standard_options[@]}" ; do
         lookup_standard "${standard_choice}"
         [ "${?}" -eq 0 ] && break
@@ -734,7 +734,7 @@ fi
 if [[ "${playbackview_choice}" && "${playbackview_choice}" != "${undeclaredoption}" ]] ; then
         lookup_playbackview "${playbackview_choice}"
     else
-        report -q "Which playback view? "
+        report -q "Which playback view?"
         PS3="Select a playback view "
     select playbackview_choice in "${playbackview_options[@]}" ; do
             lookup_playbackview "${playbackview_choice}"
@@ -768,7 +768,7 @@ else
 fi
 
 if [ -z "${duration}" ] ; then
-    report -q -n "Default recording time (minutes), blank for unlimited: "
+    report -q -n "Default recording time (in minutes), leave blank for unlimited recording time: "
     read duration
 fi
 if [ -n "${duration}" ] ; then
@@ -842,7 +842,7 @@ _writeingestlog "audio_input" "${audio_input_choice}"
 _writeingestlog "framemd5_choice" "${framemd5_choice}"
 _writeingestlog "file_path" "${dir}/${id}.${extension}"
 
-report -d "Close playback window to stop recording."
+report -d "Close the playback window to stop recording."
 export FFREPORT="file=${dir}/${id}_%p_%t${ffmpeglogsuffix}"
 bmdcapture -m ${standard} -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p "${video_bitdepth}" -F nut -f pipe:1 2> "${dir}/${id}${bmdcapturelogsuffix}" | \
     tee >(ffplay -i - -v info \
