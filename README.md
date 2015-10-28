@@ -151,7 +151,7 @@ By default vrecord saves the choices you made the last time you used the program
 ```
 $ vrecord -x
 ```
-Vrecord will then prompt you to make selections for video capture.
+Vrecord will then prompt you to make selections for video capture and proceed to start recording a new tape. If you want to interrupt vrecord hold down control + c. 
 
 ##Help and Issues 
 
