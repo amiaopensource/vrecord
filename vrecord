@@ -594,9 +594,9 @@ recordingfilter="[0:v:0]setfield=bff,setsar=40/27,setdar=4/3[vid1]"
 shift $(( ${OPTIND} - 1 ))
 
 if [[ "${runtype}" = "reset" ]] ; then
-    report -q -n "Reseting the configuration will clear the ${config_file}. Please enter [Y] to confirm: "
+    report -q -n "Reseting the configuration will clear ${config_file}. Please enter [Y] to confirm: "
     read reset_response
-    if [[ "${reset_response}" = "Y"]] ; then
+    if [[ "${reset_response}" = "Y" || "${reset_response}" = "y" ]] ; then
         report -d "Clearing ${config_file}."
         echo -n "" > "${config_file}"
         runtype="edit"
@@ -675,7 +675,7 @@ if [[ "${runtype}" = "edit" ]] ; then
         echo  "${duration_comment}" >> "${config_file}"
         echo "duration=\"${duration}\"" >> "${config_file}"
         . "${config_file}"
-        report -nd "Press [q] to quit or another other key to proceed."
+        report -nd "Press [q] to quit or another other key to proceed. "
         read aftereditresponse
         if [[ "$aftereditresponse" == "q" ]] ; then
             report -d "Bye then"
@@ -724,7 +724,7 @@ if [[ "${playbackview_choice}" && "${playbackview_choice}" != "${undeclaredoptio
         lookup_playbackview "${playbackview_choice}"
     else
         report -q "Which playback view?"
-        PS3="Select a playback view "
+        PS3="Select a playback view: "
     select playbackview_choice in "${playbackview_options[@]}" ; do
             lookup_playbackview "${playbackview_choice}"
             [ "${?}" -eq 0 ] && break
@@ -744,7 +744,7 @@ if [[ "${framemd5_choice}" != "${undeclaredoption}" ]] ; then
     echo ""
 else
     report -q "Create frame-level MD5 checksums?"
-    PS3="Select an option "
+    PS3="Select an option: "
     select framemd5_choice in "${framemd5_options[@]}" ; do
         [ "${?}" -eq 0 ] && break
     done
