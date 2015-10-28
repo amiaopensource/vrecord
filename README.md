@@ -45,8 +45,6 @@ Alternatively you can run:
 
 `$ brew upgrade` {this command will upgrade all of the programs you've installed through Homebrew}
 
-[[[[More info TK about installing vrecord if you don't have a Mac?]]]]
-
 ## Using vrecord ##
 
 ### Setting up vrecord for the First Time ###
