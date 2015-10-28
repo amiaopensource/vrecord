@@ -82,8 +82,8 @@ For those who want the simplest possible explanation on how to use vrecord:
 
 Shown above is the setup of the vrecord window in "Visual" mode. Vrecord also includes a "Visual + Numerical" mode, which is discussed in the [Options for Video Capture] (https://github.com/amiaopensource/vrecord#options-for-video-capture) section below.
 
-1. **Video feed** — [[[Description TK]]]
-2. **Video feed with broadcast-safe indicator** — Displays a feed of an underscanned version of the video signal with the normal aspect ratio for a television screen. Pixels whose luminance is outside of broadcast range are colored yellow. 
+1. **Video feed** — Displays the entire 720 x 486 video signal coming through. The image will appear a bit more stretched than it does on a television monitor. 
+2. **Video feed with broadcast-safe indicator** — Displays a feed of an underscanned version of the video signal with the normal aspect ratio for a television screen. Pixels whose luminance is outside of broadcast range are colored yellow. Due to space constraints in the vrecord window this feed will appear squeezed.  
 3. **Vectorscope** — Displays chrominance values for the signal. The boxes represent the standard values for each color. 
 4. **Waveform monitor** — Displays luminance values for the signal. The bottom of the green bar represents the limit for a broadcast safe white level. The top of the red bar represents the broacast safe limit for a black level. 
 
