@@ -151,17 +151,17 @@ report(){
 usage(){
     echo
     echo "$(basename ${0}) ${version}"
-    echo "$(basename "${0}") will record a file via the Blackmagic SDK and bmdtools. It is an interactive script and will either create 8 or 10-bit video files."
+    echo "$(basename "${0}") will record a file via the Blackmagic SDK and bmdtools. It is an interactive script and will create 8 or 10-bit video files."
     echo "Dependencies: ${dependencies[@]}"
     echo "Usage: $(basename $0) [ -h ]"
-    echo "  -h ( display this help )"
-    echo "  -e ( edit the config file before recording )"
+    echo "  -h ( display this help menu )"
+    echo "  -e ( edit the configuration file before recording )"
     echo "  -r ( enable record mode [default] )"
-    echo "  -p ( enable passthrough mode where the video signal coming into the computer can be monitored, but not written to a file. Useful for testing equipment and setting up a tape. )"
+    echo "  -p ( enable passthrough mode where the video signal coming into the computer can be monitored, but not written to a file. Useful for testing equipment and setting up a tape to bars. )"
     echo "  -x ( reset the configuration, this will clear the default configuration file at ${config_file} and create a new one)"
     echo
     echo "Installation help:"
-    echo "To install (on a Mac with Brew package manager installed) run these commands:"
+    echo "To install (on a Mac with Homebrew package manager installed) run these commands:"
     echo "$ brew update"
     echo "$ brew tap amiaopensource/amiaos"
     echo "$ brew install vrecord"
@@ -191,7 +191,7 @@ lookup_video_input(){
         "S-Video")      video_input=6 ;;
         Q) exit 0 ;;
         q) exit 0 ;;
-        *)  report -w "Error not a valid option, select a valid number or [q] to quit." ; return 1 ;;
+        *)  report -w "Error: Not a valid option, select a valid number or [q] to quit." ; return 1 ;;
     esac
 }
 
@@ -202,7 +202,7 @@ lookup_audio_input(){
         "Digital Audio (AES/EBU)")  audio_input=3 ;;
         Q) exit 0 ;;
         q) exit 0 ;;
-        *)  report -w "Error not a valid option, select a valid number or [q] to quit." ; return 1 ;;
+        *)  report -w "Error: Not a valid option, select a valid number or [q] to quit." ; return 1 ;;
     esac
 }
 
@@ -212,7 +212,7 @@ lookup_video_bitdepth(){
         "8 bit")    video_bitdepth=8 ;;
         Q) exit ;;
         q) exit ;;
-        *)  report -w "Error not a valid option, select a valid number or [q] to quit." ; return 1 ;;
+        *)  report -w "Error: Not a valid option, select a valid number or [q] to quit." ; return 1 ;;
     esac
 }
 
@@ -243,7 +243,7 @@ lookup_video_codec(){
             ;;
         Q) exit ;;
         q) exit ;;
-        *)  report -w "Error not a valid option, select a valid number or [q] to quit." ; return 1 ;;
+        *)  report -w "Error: Not a valid option, select a valid number or [q] to quit." ; return 1 ;;
     esac
 }
 
@@ -279,7 +279,7 @@ audiomap="[0:a:0]channelsplit=channel_layout=2[a1][a2];[a1]aformat=channel_layou
         ;;
         Q) exit ;;
         q) exit ;;
-        *)  report -w "Error not a valid option, select a valid number or [q] to quit." ; return 1 ;;
+        *)  report -w "Error: Not a valid option, select a valid number or [q] to quit." ; return 1 ;;
     esac
 }
 
@@ -303,7 +303,7 @@ lookup_container(){
             ;;
         Q) exit 0 ;;
         q) exit 0 ;;
-        *)  report -w "Error not a valid option, select a valid number or [q] to quit." ; return 1 ;;
+        *)  report -w "Error: Not a valid option, select a valid number or [q] to quit." ; return 1 ;;
     esac
 }
 
@@ -317,7 +317,7 @@ lookup_standard(){
             ;;
         Q) exit 0 ;;
         q) exit 0 ;;
-        *)  report -w "Error not a valid option, select a valid number or [q] to quit." ; return 1 ;;
+        *)  report -w "Error: Not a valid option, select a valid number or [q] to quit." ; return 1 ;;
     esac
 }
 
@@ -396,7 +396,7 @@ lookup_playbackview(){
             ;;
         Q) exit 0 ;;
         q) exit 0 ;;
-        *)  report -w "Error not a valid option, select a valid number or [q] to quit." ; return 1 ;;
+        *)  report -w "Error: Not a valid option, select a valid number or [q] to quit." ; return 1 ;;
     esac
 }
 # defines the GUI dialog
@@ -596,7 +596,7 @@ shift $(( ${OPTIND} - 1 ))
 if [[ "${runtype}" = "reset" ]] ; then
     report -q -n "Reseting the configuration will clear the ${config_file}. Please enter [Y] to confirm: "
     read reset_response
-    if [[ "${reset_response}" = "Y" ]] ; then
+    if [[ "${reset_response}" = "Y"]] ; then
         report -d "Clearing ${config_file}."
         echo -n "" > "${config_file}"
         runtype="edit"
@@ -682,7 +682,7 @@ if [[ "${runtype}" = "edit" ]] ; then
             exit
         fi
     else
-        report -d "Edting preferences was canceled by the user."
+        report -d "Edting of preferences was canceled by the user."
     fi
     runtype="record"
 fi
@@ -756,7 +756,7 @@ if [ ! -d "${dir}" ] ; then
     report -q -n "Enter Directory: "
     read dir
     if [ ! -d "$dir" ] ; then
-        report -w "error not a valid directory"
+        report -w "Error: Not a valid directory"
         exit
     fi
 fi
@@ -768,7 +768,7 @@ else
 fi
 
 if [ -z "${duration}" ] ; then
-    report -q -n "Default recording time (in minutes), leave blank for unlimited recording time: "
+    report -q -n "Set recording time (in minutes), leave blank for unlimited recording time: "
     read duration
 fi
 if [ -n "${duration}" ] ; then
@@ -812,7 +812,7 @@ fi
 if [[ "${audio_mapping_choice}" && "${audio_mapping_choice}" != "${undeclaredoption}" ]] ; then
     lookup_audio_mapping "${audio_mapping_choice}"
 else
-    report -q "Select an audio mapping."
+    report -q "Which AUDIO mapping?"
     PS3="Select an audio mapping: "
     select audio_mapping_choice in "${channel_mapping_options[@]}" ; do
         lookup_audio_mapping "${audio_mapping_choice}"
@@ -821,7 +821,7 @@ else
 fi
 
 report -d "Summary: ${video_bitdepth} bit ${codecname} ${container_choice} file from ${standard_choice} ${video_input_choice} ${audio_input_choice} and Frame MD5s=${framemd5_choice} inputs recorded to ${dir}/${id}.${extension}"
-report -q "Hit enter to start"
+report -q "Hit enter to start recording"
 read
 
 #create log of vrecord decisions
