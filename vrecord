@@ -484,7 +484,7 @@ container_choice.option = AVI
 container_choice.option = MXF
 # video standard
 standard_choice.x = 470
-standard_choice.y = 240
+standard_choice.y = 230
 standard_choice.type = radiobutton
 standard_choice.label = Select Television Standard
 standard_choice.default = ${standard_choice}
