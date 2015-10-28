@@ -475,7 +475,7 @@ audio_mapping_choice.option = Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Trac
 container_choice.x = 170
 container_choice.y = 280
 container_choice.type = radiobutton
-container_choice.label = Select File Format (Container)
+container_choice.label = Select File Format
 container_choice.default = ${container_choice}
 container_choice.option = ${undeclaredoption}
 container_choice.option = QuickTime
@@ -709,17 +709,6 @@ else
     done
 fi
 
-if [[ "${framemd5_choice}" != "${undeclaredoption}" ]] ; then
-    echo ""
-else
-    report -q "Create frame-level MD5s?"
-    PS3="Select an option "
-    select framemd5_choice in "${framemd5_options[@]}" ; do
-        [ "${?}" -eq 0 ] && break
-    done
-fi
-
-
 if [[ "${standard_choice}" && "${standard_choice}" != "${undeclaredoption}" ]] ; then
     lookup_standard "${standard_choice}"
 else
@@ -750,6 +739,17 @@ if [[ "${runtype}" = "passthrough" ]] ; then
             -vf "${playbackfilter}"
     exit 0
 fi
+
+if [[ "${framemd5_choice}" != "${undeclaredoption}" ]] ; then
+    echo ""
+else
+    report -q "Create frame-level MD5 checksums?"
+    PS3="Select an option "
+    select framemd5_choice in "${framemd5_options[@]}" ; do
+        [ "${?}" -eq 0 ] && break
+    done
+fi
+
 report -q -n "Enter Identifier: "
 read id
 if [ ! -d "${dir}" ] ; then
