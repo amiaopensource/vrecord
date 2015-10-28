@@ -93,6 +93,7 @@ CUNY-TV uses the following settings for U-matic tapes:
 ## Checking the Files ##
 
 Check to make sure vrecord produced the correct files. These are:
+
 1. The video file itself 
 2. Bmdcapture log (filename_bmdcapture.log)
 3. FFmpeg log (filename_ffmpeg_date_time.log)
