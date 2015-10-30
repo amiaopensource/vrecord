@@ -70,9 +70,10 @@ For those who want the simplest possible explanation on how to use vrecord:
 6. Type in a unique identifier for your video file when prompted.
 7. Press "enter" to start recording.
 8. Let 'er rip! Play your tape!
-9. If you are finished recording and the vrecord window hasn't already closed, close the window.
-10. Check to make sure your video and metadata files were successfully created. 
-11. Repeat steps 1–10 as needed.
+9. Let vrecord do its thing. Don't type any keys with the vrecord window open or start another instance of vrecord. 
+10. If you are finished recording and the vrecord window hasn't already closed, close the window.
+11. Check to make sure your video and metadata files were successfully created. 
+12. Repeat steps 1–10 as needed.
 
 ### The vrecord Window ###
 
@@ -150,7 +151,7 @@ All of options in the vrecord GUI (which appears when running `vrecord -e`) or o
 
 Click "OK" when you are finished with your selections. Vrecord will save all of your selections to a cofiguration file. If any selections are "Undeclared" vrecord will prompt you in the terminal window to make a choice. 
 
-Vrecord will then prompt you for a unique ID. The ID that you type in will become a prefix for the filename of all the resulting files in that recording session. After entering your unique ID you will be asked to press enter to start recording. Press enter and start playing your tape. The vrecord window will appear. 
+Vrecord will then prompt you for a unique ID. The ID that you type in will become a prefix for the filename of all the resulting files in that recording session. After entering your unique ID you will be asked to press enter to start recording. Press enter and start playing your tape. The vrecord window will appear. Do not type any keys while the vrecord is working. 
 
 #### A Few Quirks ####
 When you start recording there may be several seconds of delay before the vrecord window actually appears. But don't worry, once you've pressed enter, vrecord is already capturing. 
