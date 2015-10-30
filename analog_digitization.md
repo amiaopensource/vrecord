@@ -39,6 +39,8 @@ Now adjust the chrominance (or chroma). If the points are past their targets, re
 
 ### Setting up the Tape Without Color Bars ###
 
+Ideally, set up the your time based corrector or processing amplifier to the color bars on a test tape beforehand.
+
 Fast forward to some of the content, ideally a shot that has white and black in it. Check the waveform monitor to make sure that both the whites and blacks are within "broadcast range" (black is at 7.5 IRE and white at 75 IRE). If you can find a close up shot of person use this in combination with the vectorscope to try to set up hue and chroma. Make sure that the chroma is within broadcast range. The lines in the vectorscope should not be going past the color target boxes. If they are, reduce the chroma. In general, the color of skintones should fall on the line between the red and yellow target boxes (about 10:30–11 o'clock) on the vectorscope. Some people call this the "skin tone line." Adjust the hue until the color is centered around this line.     
 
 ### Setting the Audio Levels ###
