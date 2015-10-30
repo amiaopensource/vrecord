@@ -77,14 +77,15 @@ For those who want the simplest possible explanation on how to use vrecord:
 
 ### The vrecord Window ###
 
-[[[Image of vrecord window with number labeling TK]]]
+![Alt text](Resources/vrecord_window visual.jpg "Vrecord in Visual Mode")
 
 Shown above is the setup of the vrecord window in "Visual" mode. Vrecord also includes a "Visual + Numerical" mode, which is discussed in the [Options for Video Capture] (https://github.com/amiaopensource/vrecord#options-for-video-capture) section below.
 
 1. **Video feed** — Displays the entire 720 x 486 video signal coming through. The image will appear a bit more stretched than it does on a television monitor. 
 2. **Video feed with broadcast-safe indicator** — Displays a feed of an underscanned version of the video signal with the normal aspect ratio for a television screen. Pixels whose luminance is outside of broadcast range are colored yellow. Due to space constraints in the vrecord window this feed will appear squeezed.  
-3. **Vectorscope** — Displays chrominance values for the signal. The boxes represent the standard values for each color. 
-4. **Waveform monitor** — Displays luminance values for the signal. The bottom of the green bar represents the limit for a broadcast safe white level. The top of the red bar represents the broacast safe limit for a black level. 
+3. **Waveform monitor** — Displays luminance values for each field of the signal separately. The bottom of the green bar in each waveform represents the limit for a broadcast safe white level. The top of the red bar represents the broacast safe limit for a black level. 
+4. **Vectorscope** — Displays chrominance values for the signal. The boxes represent the standard values for each color. 
+
 
 ### Passthrough Mode ###
 
@@ -134,7 +135,11 @@ All of options in the vrecord GUI (which appears when running `vrecord -e`) or o
 
 **Visual mode** — Visual mode displays the two video feeds, the waveform monitor, and the vectorscope in the vrecord window.
 
-**Visual + Numerical mode** — Visual and Numerical mode displays your favorite video feeds and scopes as well as numerical values for the characteristics of the video signal on the left sidebar. The numerical values are as follows:
+**Visual + Numerical mode** — Visual and Numerical mode displays your favorite video feeds and scopes as well as numerical values for the characteristics of the video signal on the left sidebar. 
+
+![Alt text](Resources/vrecord_visual_numerical.jpg "Vrecord in Visual + Numerical Mode")
+
+The numerical values are as follows:
 
 * Y — Low, high, and average luminance of the video signal. "Diff" means the difference of the luminance between successive frames.
 * U — Low, high, and average of the U channel value of the video signal. "Diff" means the difference of the U value between successive frames.
@@ -173,6 +178,8 @@ If you are stuck and want to see vrecord's help menu run:
 ```
 $ vrecord -h
 ```
+
+If you want to see a more detailed description about how to digitize analog videotape see our document on [analog digitization](Resources/analog_digitization.md).
 
 We want vrecord to be a helpful tool for audiovisual archivists and others. If you experience any problems with vrecord you can open a new issue with our Github [issue tracker](https://github.com/amiaopensource/vrecord/issues). Try to see if you can replicate the issue yourself first and describe in detail what factors led to it. Let us know if you were able to succesfully replicate the issue. 
 
