@@ -168,7 +168,7 @@ If you are watching the videotape on a separate monitor and the video feeds on v
 ##### BMDCapture Update #####
 Sometimes you may see a green a purple flash frame at the beginning of your capture, or see green and purple bars in vrecord if no signal is coming through. This is a known issue and is due to vrecord not having the most recent code for bmdcapture. You can easily fix this issue by opening up a terminal and running: 
 ```
-$ brew install bmdtools --HEAD
+$ brew upgrade bmdtools --HEAD
 ```
 
 ### Clearing the Configuration File ###
