@@ -122,6 +122,12 @@ BRNG
 " > /tmp/drawtext3.txt
 }
 
+#grabs information from the bmdcapture help menu, which gives us information about the card being used. We can add to this function in the future to allow the user to choose different video configurations.
+get_standard_values(){
+    PAL_value="$(bmdcapture -h 2>&1 | grep "PAL" | cut -d: -f 1 | sed 's/ //g')"
+    NTSC_value="$(bmdcapture -h 2>&1 | grep "NTSC   "  | cut -d: -f 1 | sed 's/ //g')"
+}
+
 report(){
         local RED="$(tput setaf 1)"   # Red      - For Warnings
         local GREEN="$(tput setaf 2)" # Green    - For Declarations
@@ -310,10 +316,10 @@ lookup_container(){
 lookup_standard(){
     case "${1}" in
         "NTSC")
-        standard="0"
+        standard="${NTSC_value}"
             ;;
         "PAL")
-        standard="2"
+        standard="${PAL_value}"
             ;;
         Q) exit 0 ;;
         q) exit 0 ;;
@@ -332,6 +338,9 @@ lookup_framemd5(){
         *)  report -w "Error: Not a valid option, select a valid number or [q] to quit." ; return 1 ;;
     esac
 }
+
+#get the correct values for NTSC and PAL video depending on the capture card
+get_standard_values
 
 # set up drawtext.txt files in case needed.
 set_up_drawtext
