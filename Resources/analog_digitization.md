@@ -4,7 +4,7 @@
 
 There are several steps to digitizing a Betacam tape. 
 
-1. Route the video signal from the Betacam deck to the Black Magic capture card for the computer that you are using. [[[The available computers at CUNY are ING 14, 15, and 16. So you would use the switching panel to route VR-20 to ING-15 ]]]
+1. Route the video signal from the Betacam deck to the Black Magic capture card for the computer that you are using.
 2. Start by testing the signal to make sure that everything is routed properly. Play the tape in the deck. Run `$ vecord -p` and watch the vrecord window to make sure the video signal from the tape is coming through. If it's not coming through, there may be some issues with your settings or how the signal is routed. See the "Troubleshooting" section below.  
 3. If color bars exist on the tape, set the tape to the bars. Otherwise, you will have to adjust the levels by eye as well as using the vectorscope and waveform monitor. 
 
@@ -18,9 +18,9 @@ The waveform monitor is generally used to measure the lumaniance (brightness) le
 
 ![alt text](http://www.experimentaltvcenter.org/sites/default/files/history/images/preservationcom/waveform2.jpg "Color Bars in Waveoform Monitor")
 
-Start by setting up the black level in the waveform monitor. The lowest step in the color bars (the black level) should be set to 7.5 IRE on the waveform monitor usually represented by a dashed line near the bottom of the monitor.
+The color bars in the picture above are set up properly. Start by setting up the black level in the waveform monitor. The black level could also be called "Set up" or "Black" depending on your model of time based corrector or processing amplifier. Adjust this dial until the lowest step in the color bars (the black level) is set to 7.5 IRE on the waveform monitor. This is usually represented by a dashed line near the bottom of the monitor. The lowest step should intersect this dashed line.
 
-Now set the luminance level, this could be the step all the way on the left, or it could be the second step from the left. One of these steps should hit the 75 IRE mark on the waveform monitor usually represented by a dotted line.
+Now set the luminance level, this could be the step all the way on the left, or it could be the second step from the left. One of these steps should hit the 75 IRE mark on the waveform monitor usually represented by a dotted line. The lumianance level could be represented by a dial labeled "Luma" or "Video" again, depending on your model of TBC or Proc Amp.
 
 There may also be another step to the left of the 75 IRE bar. Make sure this line is at 100 IRE. Your black and luma levels should now be correctly set up. 
 
