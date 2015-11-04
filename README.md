@@ -159,9 +159,17 @@ Click "OK" when you are finished with your selections. Vrecord will save all of 
 Vrecord will then prompt you for a unique ID. The ID that you type in will become a prefix for the filename of all the resulting files in that recording session. After entering your unique ID you will be asked to press enter to start recording. Press enter and start playing your tape. The vrecord window will appear. Do not type any keys or click the mouse inside the window while the vrecord is working. 
 
 #### A Few Quirks ####
+
+##### Timing of Recording #####
 When you start recording there may be several seconds of delay before the vrecord window actually appears. But don't worry, once you've pressed enter, vrecord is already capturing. 
 
 If you are watching the videotape on a separate monitor and the video feeds on vrecord appear to be slightly behind the monitor, don't panic; all of your video has still been captured. 
+
+##### BMDCapture Update #####
+Sometimes you may see a green a purple flash frame at the beginning of your capture, or see green and purple bars in vrecord if no signal is coming through. This is a known issue and is due to vrecord not having the most recent code for bmdcapture. You can easily fix this issue by opening up a terminal and running: 
+```
+$ brew install bmdtools --HEAD
+```
 
 ### Clearing the Configuration File ###
 
