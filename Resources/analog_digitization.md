@@ -4,7 +4,7 @@
 
 There are several steps to digitizing a Betacam tape. 
 
-1. Route the video signal from the Betacam deck to the Black Magic capture card for the computer that you are using.
+1. Route the video signal from the Betacam deck to the Black Magic capture card for the computer that you plan to use.
 2. Start by testing the signal to make sure that everything is routed properly. Play the tape in the deck. Run `$ vecord -p` and watch the vrecord window to make sure the video signal from the tape is coming through. If it's not coming through, there may be some issues with your settings or how the signal is routed. See the "Troubleshooting" section below.  
 3. If color bars exist on the tape, set the tape to the bars. Otherwise, you will have to adjust the levels by eye as well as using the vectorscope and waveform monitor. 
 
@@ -18,7 +18,7 @@ The waveform monitor is generally used to measure the lumaniance (brightness) le
 
 ![alt text](http://www.experimentaltvcenter.org/sites/default/files/history/images/preservationcom/waveform2.jpg "Color Bars in Waveoform Monitor")
 
-The color bars in the picture above are set up properly. Start by setting up the black level in the waveform monitor. The black level could also be called "Set up" or "Black" depending on your model of time based corrector or processing amplifier. Adjust this dial until the lowest step in the color bars (the black level) is set to 7.5 IRE on the waveform monitor. This is usually represented by a dashed line near the bottom of the monitor. The lowest step should intersect this dashed line.
+The color bars in the picture above are set up properly. Start by setting up the black level in the waveform monitor. The black level could also be called "Set up" or "Black" depending on your model of time based corrector or processing amplifier. Adjust this dial until the second lowest line in the color bars (the black level), which runs along the bottom of the staircase is set to 7.5 IRE on the waveform monitor. This is usually represented by a dashed line near the bottom of the monitor. The black line should intersect the dashed 7.5 IRE line.
 
 Now set the luminance level, this could be the step all the way on the left, or it could be the second step from the left. One of these steps should hit the 75 IRE mark on the waveform monitor usually represented by a dotted line. The lumianance level could be represented by a dial labeled "Luma" or "Video" again, depending on your model of TBC or Proc Amp.
 
@@ -33,19 +33,21 @@ The vectorscope has a few square target boxes. Inside of the larger box is a sma
 
 Start by adjusting the hue or phase. There should be one line that is on the left half of the vectorscope that is shorter than the others. This is the color reference signal. **Adjust the hue by turning the knob so that the color reference line is at 0 degrees on the vectorscope (or 9 o'clock).** This should move the other lines closer to their targets. If there is no color reference signal, adjust the hue dial so that the yellow dot is in line with its target. 
 
-Now adjust the chrominance (or chroma). If the points are past their targets, reduce the chroma. If the dots are closer to the center than the target, increase the chroma. **Try to get all of the points as close to the middle of the crosshairs as possible.** Sometimes it is not possible to get all of the colors exactly inside of their respective crosshairs. If so, try to line up the yellow point with its target as closely as possible and let the other colors fall where they may.   
+Now adjust the chrominance (or chroma). If the dots are past their targets, reduce the chroma. If the dots are closer to the center than the target, increase the chroma. **Try to get all of the points as close to the middle of the crosshairs as possible.** Sometimes it is not possible to get all of the colors exactly inside of their respective crosshairs. If so, try to line up the yellow point with its target as closely as possible and let the other colors fall where they may.   
 
 4. You may have to rewind and replay the tape several times in order to set up the bars properly especially if the bars are onscreen for a short time. Be aware that sometimes the color bar signal can change on a tape. Check for excessive jumping of the levels on the vectorscope or waveform monitor. Try to find the most consistent levels and line them up as best you can.
 
 ### Setting up the Tape Without Color Bars ###
 
-Ideally, set up the your time based corrector or processing amplifier to the color bars on a test tape beforehand.
+Sometimes tapes you are digitizing do not include clolor bars at the beginning. If this is the case, and you have a test tape with color bars onhand, first set up your time based corrector or processing amplifier to the color bars on a test tape.
 
-Fast forward to some of the content, ideally a shot that has white and black in it. Check the waveform monitor to make sure that both the whites and blacks are within "broadcast range" (black is at 7.5 IRE and white at 75 IRE). If you can find a close up shot of person use this in combination with the vectorscope to try to set up hue and chroma. Make sure that the chroma is within broadcast range. The lines in the vectorscope should not be going past the color target boxes. If they are, reduce the chroma. In general, the color of skintones should fall on the line between the red and yellow target boxes (about 10:30–11 o'clock) on the vectorscope. Some people call this the "skin tone line." Adjust the hue until the color is centered around this line.     
+Fast forward to some of the content, ideally a shot that has both white and black in it. Check the waveform monitor to make sure that both the whites and blacks are within "broadcast range" (pure black is at 7.5 IRE and pure white is at 100 IRE). 
+
+If you can find a close up shot of person use this in combination with the vectorscope to try to set up hue and chroma. Make sure that the chroma is within broadcast range. The lines in the vectorscope should not be going past the color target boxes. If they are, reduce the chroma. In general, the color of skintones should fall on the line between the red and yellow target boxes (about 10:30–11 o'clock) on the vectorscope. Some people call this the "skin tone line." Adjust the hue until the color is centered around this line.     
 
 ### Setting the Audio Levels ###
 
-You will need to watch an audio monitor for the left and right audio channels. The test tone that accompanies the color bars should be set to hit the 0 db mark. Now, fast forward to the tape so that you can watch some of the content. If the content has stereo audio make sure the volume of the left and right channels is at an equal level. You may need to raise or lower the left or right audio level to make both sides even.
+You will need to watch an audio monitor for the left and right audio channels. The test tone that accompanies the color bars should be set to hit the -12 db mark. Now, fast forward to the tape so that you can watch some of the content. If the content has stereo audio make sure the volume of the left and right channels is at an equal level. You may need to raise or lower the left or right audio level to make both sides even.
 
 Now your tape is set up properly and you are ready to actually digitize. 
 
