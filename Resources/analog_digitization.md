@@ -47,7 +47,7 @@ If you can find a close up shot of person use this in combination with the vecto
 
 ### Setting the Audio Levels ###
 
-You will need to watch an audio monitor for the left and right audio channels. The test tone that accompanies the color bars should be set to hit the -12 db mark. Now, fast forward to the tape so that you can watch some of the content. If the content has stereo audio make sure the volume of the left and right channels is at an equal level. You may need to raise or lower the left or right audio level to make both sides even.
+You will need to watch an audio monitor for the left and right audio channels. The test tone that accompanies the color bars should be set to hit the -20 db mark. Now, fast forward the tape so that you can watch some of the content. If the content has stereo audio make sure the volume levels of the left and right channels are equal. You may need to raise or lower the left or right audio level to make both sides even.
 
 Now your tape is set up properly and you are ready to actually digitize. 
 
