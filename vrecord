@@ -784,7 +784,8 @@ if [ ! -d "${dir}" ] ; then
 fi
 
 if [[ "${framemd5_choice}" = "Yes" ]] ; then
-    extraoutputs+=(-an -f framemd5 "${dir}/${id}${suffix}.framemd5")
+    framemd5name="${dir}/${id}${suffix}.framemd5"
+    extraoutputs+=(-an -f framemd5 "${framemd5name}")
 else
     extraoutputs+=( )
 fi
