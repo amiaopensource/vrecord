@@ -887,6 +887,7 @@ _writeingestlog "datetime_end" "$(_get_iso8601)"
 if [[ "${framemd5_choice}" = "Yes" ]] ; then
     pts_discontinuity=$(cat "${framemd5named}" | grep -v "^#" | cut -d, -f3 | sed 's/ //g' | grep -v "^0$" | awk '$1!=p+1{printf p+1"-"$1-1" "}{p=$1}')
     _writeingestlog "pts_discontinuity" "${pts_discontinuity}"
+    _report -dts "WARNING: There were pts discontinuities for these frame ranges: ${pts_discontinuity}. The file may have sync issues."
 else
     _writeingestlog "pts_discontinuity" "none"
 fi
