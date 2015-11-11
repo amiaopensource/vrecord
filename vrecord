@@ -145,7 +145,7 @@ report(){
                 d) color="${GREEN}" ;;                        # declaration mode, use color green
                 w) color="${RED}" ; log_message="Y";;                 # warning mode, use color red
                 s) startmessage+=([$(basename "${0}")] ) ;;     # prepend scriptname to the message
-                t) startmessage+=($(get_iso8601) '- ' ) ;;     # prepend timestamp to the message
+                t) startmessage+=($(_get_iso8601) '- ' ) ;;     # prepend timestamp to the message
                 n) echoopt="-n" ;;                          # to avoid line breaks after echo
             esac
         done
@@ -185,7 +185,7 @@ _writeingestlog(){
         # need to add yaml style escaping
         echo "${KEY}: ${VALUE}" >> "${INGESTLOG}"
     else
-        _report -wt "The _writeingestlog function was called, but the ingestlog file (${INGESTLOG}) is not declared."
+        report -wt "The _writeingestlog function was called, but the ingestlog file (${INGESTLOG}) is not declared."
     fi
 }
 
@@ -885,9 +885,12 @@ bmdcapture -m ${standard} -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p 
 _writeingestlog "datetime_end" "$(_get_iso8601)"
 
 if [[ "${framemd5_choice}" = "Yes" ]] ; then
-    pts_discontinuity=$(cat "${framemd5named}" | grep -v "^#" | cut -d, -f3 | sed 's/ //g' | grep -v "^0$" | awk '$1!=p+1{printf p+1"-"$1-1" "}{p=$1}')
+    pts_discontinuity=$(cat "${framemd5name}" | grep -v "^#" | cut -d, -f3 | sed 's/ //g' | grep -v "^0$" | awk '$1!=p+1{printf p+1"-"$1-1" "}{p=$1}')
+    if [[ "${pts_discontinuity}" = "" ]] ; then
+        _writeingestlog "pts_discontinuity" "none"
+    else
     _writeingestlog "pts_discontinuity" "${pts_discontinuity}"
-    _report -dts "WARNING: There were pts discontinuities for these frame ranges: ${pts_discontinuity}. The file may have sync issues."
-else
-    _writeingestlog "pts_discontinuity" "none"
+    report -dts "WARNING: There were pts discontinuities for these frame ranges: ${pts_discontinuity}. The file may have sync issues."
+    fi
 fi
+
