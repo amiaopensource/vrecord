@@ -12,7 +12,47 @@ pashuainstall=""
 unset extraoutputs
 undeclaredoption="Undeclared"
 
-. "${config_file}" || { echo "No config file, restarting in config mode." ; $(basename "${0}") -e ;};
+usage(){
+    echo
+    echo "$(basename ${0}) ${version}"
+    echo "$(basename "${0}") will record a file via the Blackmagic SDK and bmdtools. It is an interactive script and will create 8 or 10-bit video files."
+    echo "Dependencies: ${dependencies[@]}"
+    echo "Usage: $(basename $0) [ -h ]"
+    echo "  -h ( display this help menu )"
+    echo "  -e ( edit the configuration file before recording )"
+    echo "  -r ( enable record mode [default] )"
+    echo "  -p ( enable passthrough mode where the video signal coming into the computer can be monitored, but not written to a file. Useful for testing equipment and setting up a tape to bars. )"
+    echo "  -x ( reset the configuration, this will clear the default configuration file at ${config_file} and create a new one)"
+    echo
+    echo "Installation help:"
+    echo "To install (on a Mac with Homebrew package manager installed) run these commands:"
+    echo "$ brew update"
+    echo "$ brew tap amiaopensource/amiaos"
+    echo "$ brew install vrecord"
+    exit
+}
+
+# command-line options to set mediaid and original variables
+OPTIND=1
+while getopts "herpx" opt ; do
+    case "${opt}" in
+        h) usage ;;
+        e) runtype="edit";;
+        r) runtype="record";;
+        p) runtype="passthrough" ;;
+        x) runtype="reset" ;;
+        *) report -w "bad option -$OPTARG" ; usage ;;
+        :) report -w "Option -$OPTARG requires an argument" ; exit 1 ;;
+    esac
+done
+
+if [[ -f "${config_file}" ]] ; then
+    . "${config_file}"
+elif [[ "${runtype}" = "record" || ${runtype} = "edit" ]] ; then
+    echo -e "No configuration file, restarting in edit mode."
+    touch "${config_file}"
+    $(basename "${0}") -e
+fi
 
 video_input_options=("Composite" "SDI" "Component" "S-Video")
 audio_input_options=("Analog" "SDI Embedded Audio" "Digital Audio (AES/EBU)")
@@ -24,11 +64,6 @@ standard_options=("NTSC" "PAL")
 playbackview_options=("Visual" "Visual + Numerical")
 framemd5_options=("Yes" "No")
 
-if [ -f "${config_file}" ] ; then
-    . "${config_file}"
-else
-    touch "${config_file}"
-fi
 
 set_up_drawtext(){
     echo -e "%{pts:hms}
@@ -152,26 +187,6 @@ report(){
         shift $(( ${OPTIND} - 1 ))
         message="${1}"
         echo $echoopt "${color}${startmessage[@]}${message}${NC}"
-}
-
-usage(){
-    echo
-    echo "$(basename ${0}) ${version}"
-    echo "$(basename "${0}") will record a file via the Blackmagic SDK and bmdtools. It is an interactive script and will create 8 or 10-bit video files."
-    echo "Dependencies: ${dependencies[@]}"
-    echo "Usage: $(basename $0) [ -h ]"
-    echo "  -h ( display this help menu )"
-    echo "  -e ( edit the configuration file before recording )"
-    echo "  -r ( enable record mode [default] )"
-    echo "  -p ( enable passthrough mode where the video signal coming into the computer can be monitored, but not written to a file. Useful for testing equipment and setting up a tape to bars. )"
-    echo "  -x ( reset the configuration, this will clear the default configuration file at ${config_file} and create a new one)"
-    echo
-    echo "Installation help:"
-    echo "To install (on a Mac with Homebrew package manager installed) run these commands:"
-    echo "$ brew update"
-    echo "$ brew tap amiaopensource/amiaos"
-    echo "$ brew install vrecord"
-    exit
 }
 
 _get_iso8601(){
@@ -594,19 +609,6 @@ pashua_run() {
     fi
 } # pashua_run()
 
-# command-line options to set mediaid and original variables
-OPTIND=1
-while getopts "herpx" opt ; do
-    case "${opt}" in
-        h) usage ;;
-        e) runtype="edit";;
-        r) runtype="record";;
-        p) runtype="passthrough" ;;
-        x) runtype="reset" ;;
-        *) report -w "bad option -$OPTARG" ; usage ;;
-        :) report -w "Option -$OPTARG requires an argument" ; exit 1 ;;
-    esac
-done
 
 recordingfilter="[0:v:0]setfield=bff,setsar=40/27,setdar=4/3[vid1]"
 
