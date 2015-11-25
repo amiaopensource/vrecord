@@ -63,6 +63,7 @@ container_options=("QuickTime" "Matroska" "AVI" "MXF")
 standard_options=("NTSC" "PAL")
 playbackview_options=("Visual" "Visual + Numerical")
 framemd5_options=("Yes" "No")
+qctoolsxml_options=("Yes" "No")
 
 
 set_up_drawtext(){
@@ -354,6 +355,18 @@ lookup_framemd5(){
     esac
 }
 
+lookup_qctoolsxml(){
+    case "${1}" in
+        "Yes")
+            ;;
+        "No")
+            ;;
+        Q) exit 0 ;;
+        q) exit 0 ;;
+        *)  report -w "Error: Not a valid option, select a valid number or [q] to quit." ; return 1 ;;
+    esac
+}
+
 #get the correct values for NTSC and PAL video depending on the capture card
 get_standard_values
 
@@ -528,14 +541,23 @@ standard_choice.option = ${undeclaredoption}
 standard_choice.option = NTSC
 standard_choice.option = PAL
 #frame md5 
-framemd5_choice.x = 350
-framemd5_choice.y = 30
+framemd5_choice.x = 660
+framemd5_choice.y = 230
 framemd5_choice.type = radiobutton
 framemd5_choice.label = Create frame-level MD5 checksums?
 framemd5_choice.default = ${framemd5_choice}
 framemd5_choice.option = ${undeclaredoption}
 framemd5_choice.option = Yes
 framemd5_choice.option = No
+#qctools xml 
+qctoolsxml_choice.x = 660
+qctoolsxml_choice.y = 317
+qctoolsxml_choice.type = radiobutton
+qctoolsxml_choice.label = Create QC Tools XML?
+qctoolsxml_choice.default = ${qctoolsxml_choice}
+qctoolsxml_choice.option = ${undeclaredoption}
+qctoolsxml_choice.option = Yes
+qctoolsxml_choice.option = No
 # duration
 duration.x = 20
 duration.y = 60
@@ -636,6 +658,7 @@ if [[ "${runtype}" = "edit" ]] ; then
     standard_choice_comment="#Set standard_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${standard_options[@]}")"
     playbackview_choice_comment="#Set playbackview_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${playbackview_options[@]}")"
     framemd5_choice_comment="#Set framemd5_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${framemd5_options[@]}")"
+    qctoolsxml_choice_comment="#Set qctoolsxml_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${qctoolsxml_options[@]}")"
     video_bit_depth_choice_comment="#Set video_bit_depth_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${video_bitdepth_options[@]}")"
     video_codec_choice_comment="#Set video_codec_choice to one of these valid options or leave blank to request each run: $(printf "\"%s\" " "${video_codec_options[@]}")"
     audio_mapping_choice_comment="#Set audio_mapping_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${channel_mapping_options[@]}")"
@@ -659,6 +682,7 @@ if [[ "${runtype}" = "edit" ]] ; then
         echo "  container_choice = ${container_choice}"
         echo "  standard_choice = ${standard_choice}"
         echo "  framemd5_choice = ${framemd5_choice}"
+        echo "  qctoolsxml_choice = ${qctoolsxml_choice}"
         echo "  duration = ${duration}"
         echo "  playbackview_choice = ${playbackview_choice}"
         echo ""
@@ -680,6 +704,8 @@ if [[ "${runtype}" = "edit" ]] ; then
         echo  "${framemd5_choice_comment}" >> "${config_file}"
         echo  "framemd5_choice=\"${framemd5_choice}\"" >> "${config_file}"
         echo  >> "${config_file}"
+        echo  "qctoolsxml_choice=\"${qctoolsxml_choice}\"" >> "${config_file}"
+                echo  >> "${config_file}"
         echo  "${video_bit_depth_choice_comment}" >> "${config_file}"
         echo "video_bit_depth_choice=\"${video_bit_depth_choice}\"" >> "${config_file}"
         echo  >> "${config_file}"
@@ -774,6 +800,17 @@ else
     done
 fi
 
+if [[ "${qctoolsxml_choice}" != "${undeclaredoption}" ]] ; then
+    echo ""
+else
+    report -q "Create QC Tools XML?"
+    PS3="Select an option: "
+    select qctoolsxml_choice in "${qctoolsxml_options[@]}" ; do
+        lookup_qctoolsxml "${qctoolsxml_choice}"
+        [ "${?}" -eq 0 ] && break
+    done
+fi
+
 report -q -n "Enter Identifier: "
 read id
 if [ ! -d "${dir}" ] ; then
@@ -845,7 +882,7 @@ else
     done
 fi
 
-report -d "Summary: ${video_bitdepth} bit ${codecname} ${container_choice} file from ${standard_choice} ${video_input_choice} ${audio_input_choice} and Frame MD5s=${framemd5_choice} inputs recorded to ${dir}/${id}.${extension}"
+report -d "Summary: ${video_bitdepth} bit ${codecname} ${container_choice} file from ${standard_choice} ${video_input_choice} ${audio_input_choice} Frame MD5s=${framemd5_choice} and QC Tools XML=${qctoolsxml_choice}. Inputs recorded to ${dir}/${id}.${extension}"
 report -q "Hit enter to start recording"
 read
 
@@ -865,10 +902,15 @@ _writeingestlog "television standard" "${standard_choice}"
 _writeingestlog "video_input" "${video_input_choice}"
 _writeingestlog "audio_input" "${audio_input_choice}"
 _writeingestlog "framemd5_choice" "${framemd5_choice}"
+_writeingestlog "qctoolsxml_choice" "${qctoolsxml_choice}"
 _writeingestlog "file_path" "${dir}/${id}.${extension}"
 
 report -d "Close the playback window to stop recording."
 export FFREPORT="file=${dir}/${id}_%p_%t${ffmpeglogsuffix}"
+
+if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
+# mkfifo needs to be conditional and maybe deal with deleting a preexisting pipe
+mkfifo PIPE2QCTOOLS
 bmdcapture -m ${standard} -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p "${video_bitdepth}" -F nut -f pipe:1 2> "${dir}/${id}${bmdcapturelogsuffix}" | \
     tee >(ffplay -i - -v info \
             -hide_banner -stats -autoexit \
@@ -882,7 +924,28 @@ bmdcapture -m ${standard} -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p 
         $(if [ -n "$map2k" ] ; then echo ${map2k} ; fi) $(if [ -n "$map2v" ] ; then echo ${map2v} ; fi) \
         -f "${format}" \
         "${dir}/${id}${suffix}.${extension}" \
-        "${extraoutputs[@]}"
+        "${extraoutputs[@]}" \
+        -c:v copy -c:a copy -syncpoints none -f_strict experimental -f nut -y PIPE2QCTOOLS | ffprobe -loglevel error -f lavfi \
+        "movie=PIPE2QCTOOLS:s=v+a[in0][in1],[in0]signalstats=stat=tout+vrep+brng, cropdetect=reset=1,split[a][b]; 
+        [a]field=top[a1];[b]field=bottom[b1],[a1][b1]psnr[out0];[in1]ebur128=metadata=1[out1]" -show_frames -show_versions -of xml=x=1:q=1 -noprivate | gzip > "${dir}/${id}${suffix}.qctools.xml.gz"
+fi
+
+if [[ "${qctoolsxml_choice}" = "No" ]] ; then
+    bmdcapture -m ${standard} -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p "${video_bitdepth}" -F nut -f pipe:1 2> "${dir}/${id}${bmdcapturelogsuffix}" | \
+        tee >(ffplay -i - -v info \
+                -hide_banner -stats -autoexit \
+                -window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" -vf "${playbackfilter}") | \
+        ffmpeg -v info -hide_banner -stats ${inputoptions[@]} -i - ${middleoptions[@]} \
+            -metadata:s:v:0 encoder="${codecname}" \
+            -c:a pcm_s24le \
+            -filter_complex "${recordingfilter};${audiomap}" \
+            -map "[vid1]" \
+            $(if [ -n "$map1k" ] ; then echo ${map1k} ; fi) $(if [ -n "$map1v" ] ; then echo ${map1v} ; fi) \
+            $(if [ -n "$map2k" ] ; then echo ${map2k} ; fi) $(if [ -n "$map2v" ] ; then echo ${map2v} ; fi) \
+            -f "${format}" \
+            "${dir}/${id}${suffix}.${extension}" \
+            "${extraoutputs[@]}"
+fi
 
 _writeingestlog "datetime_end" "$(_get_iso8601)"
 
@@ -895,4 +958,3 @@ if [[ "${framemd5_choice}" = "Yes" ]] ; then
     report -dts "WARNING: There were pts discontinuities for these frame ranges: ${pts_discontinuity}. The file may have sync issues."
     fi
 fi
-
