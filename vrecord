@@ -949,6 +949,7 @@ fi
 
 _writeingestlog "datetime_end" "$(_get_iso8601)"
 
+#check for discontinuities in the Frame MD5s
 if [[ "${framemd5_choice}" = "Yes" ]] ; then
     pts_discontinuity=$(cat "${framemd5name}" | grep -v "^#" | cut -d, -f3 | sed 's/ //g' | grep -v "^0$" | awk '$1!=p+1{printf p+1"-"$1-1" "}{p=$1}')
     if [[ "${pts_discontinuity}" = "" ]] ; then
@@ -956,5 +957,17 @@ if [[ "${framemd5_choice}" = "Yes" ]] ; then
     else
     _writeingestlog "pts_discontinuity" "${pts_discontinuity}"
     report -dts "WARNING: There were pts discontinuities for these frame ranges: ${pts_discontinuity}. The file may have sync issues."
+    fi
+fi
+
+#if user chose not to use Frame MD5s, check for frame discontinuties in the FFmpeg file
+if [[ "${framemd5_choice}" = "No" ]] ; then
+frames_encoded=$(cat ${dir}/${id}_ffmpeg_*.log | grep -w "frames encoded" | awk '{print $10}' | grep -m 1 [0-9])
+frames_decoded=$(cat ${dir}/${id}_ffmpeg_*.log | grep -w "frames decoded" | awk '{print $10}' | grep -m 1 [0-9])
+    if [[ ${frames_encoded} -lt $((${frames_decoded}-1)) ]] ; then
+        report -dts "WARNING: FFmpeg reported missing frames. The file may have sync issues." 
+        _writeingestlog "ffmpeg_missing_frames" "Yes"
+    else
+        _writeingestlog "ffmpeg_missing_frames" "None"
     fi
 fi
