@@ -5,6 +5,7 @@ inputoptions=""
 middleoptions=""
 suffix=""
 duration=""
+technician=""
 runtype="record"
 bmdcapturelogsuffix="_bmdcapture.log"
 ffmpeglogsuffix=".log"
@@ -568,6 +569,12 @@ duration.option = 23
 duration.option = 33
 duration.option = 63
 duration.option = 93
+#technician name
+technician.x = 350
+technician.y = 55
+technician.type = textbox
+technician.height = 30
+technician.label = Enter the name of the person digitizing this tape.
 # Add a cancel button with default label
 #playbackview choice
 playbackview_choice.x = 20
@@ -665,6 +672,7 @@ if [[ "${runtype}" = "edit" ]] ; then
     dir_comment="#Set dir to the preferred recording directory or leave blank to request each run:"
     container_choice_comment="#Set container_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${container_options[@]}")"
     duration_comment="#Set the recording time as a number (integer or decimal) in minutes."
+    technician_comment="#Enter the name of the person digitizing this tape."
 
     pashua_configfile=`/usr/bin/mktemp /tmp/pashua_XXXXXXXXX`
     echo "$conf" > $pashua_configfile
@@ -685,6 +693,7 @@ if [[ "${runtype}" = "edit" ]] ; then
         echo "  qctoolsxml_choice = ${qctoolsxml_choice}"
         echo "  duration = ${duration}"
         echo "  playbackview_choice = ${playbackview_choice}"
+        echo "  technician = ${technician}"
         echo ""
         # write config file
         echo "#$(basename "${0}") config file" > "${config_file}"
@@ -723,6 +732,9 @@ if [[ "${runtype}" = "edit" ]] ; then
         echo  >> "${config_file}"
         echo  "${duration_comment}" >> "${config_file}"
         echo "duration=\"${duration}\"" >> "${config_file}"
+        . "${config_file}"
+        echo "${technician_comment}" >> "${config_file}"
+        echo "technician=\"${technician}\"" >> "${config_file}"
         . "${config_file}"
         report -nd "Press [q] to quit or another other key to proceed. "
         read aftereditresponse
@@ -833,9 +845,16 @@ if [ -z "${duration}" ] ; then
     report -q -n "Set recording time (in minutes), leave blank for unlimited recording time: "
     read duration
 fi
+
+
 if [ -n "${duration}" ] ; then
     dur_seconds=$(echo "${duration} * 60" | bc)
     inputoptions+=(-t "${dur_seconds}")
+fi
+
+if [ -z "${technician}" ] ; then
+    report -q -n "Enter the name of the person digitizing the tape or leave blank. "
+    read technician
 fi
 
 if [[ "$video_bit_depth_choice" && "$video_bit_depth_choice" != "${undeclaredoption}" ]] ; then
@@ -882,7 +901,7 @@ else
     done
 fi
 
-report -d "Summary: ${video_bitdepth} bit ${codecname} ${container_choice} file from ${standard_choice} ${video_input_choice} ${audio_input_choice} Frame MD5s=${framemd5_choice} and QC Tools XML=${qctoolsxml_choice}. Inputs recorded to ${dir}/${id}.${extension}"
+report -d "Summary: ${video_bitdepth} bit ${codecname} ${container_choice} file from ${standard_choice} ${video_input_choice} ${audio_input_choice} Frame MD5s=${framemd5_choice} QC Tools XML=${qctoolsxml_choice} and Technician=${technician}. Inputs recorded to ${dir}/${id}.${extension} "
 report -q "Hit enter to start recording"
 read
 
@@ -904,6 +923,12 @@ _writeingestlog "audio_input" "${audio_input_choice}"
 _writeingestlog "framemd5_choice" "${framemd5_choice}"
 _writeingestlog "qctoolsxml_choice" "${qctoolsxml_choice}"
 _writeingestlog "file_path" "${dir}/${id}.${extension}"
+
+if [[ ${technician} = "" ]] ; then
+_writeingestlog "technician" "N/A"
+else
+_writeingestlog "technician" "${technician}"
+fi
 
 report -d "Close the playback window to stop recording."
 export FFREPORT="file=${dir}/${id}_%p_%t${ffmpeglogsuffix}"
