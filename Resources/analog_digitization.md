@@ -49,7 +49,9 @@ If you can find a close up shot of person use this in combination with the vecto
 
 You will need to watch an audio monitor for the left and right audio channels. The test tone that accompanies the color bars should be set to hit the -20 db mark. Now, fast forward the tape so that you can watch some of the content. If the content has stereo audio make sure the volume levels of the left and right channels are equal. You may need to raise or lower the left or right audio level to make both sides even.
 
-Now your tape is set up properly and you are ready to actually digitize. 
+Also note whether audio is coming in on both channels or just one channel. This will determine the vrecord settings that you will use later.
+
+**Now your tape is set up properly and you are ready to actually digitize.**
 
 ### Digitizing the Tape ###
 
@@ -65,11 +67,11 @@ Run `$ vrecord -e` and check the window that pops up to make sure your settings 
 
 **Codec for video** — FFV1 version 3
 
-**Audio channel mapping** — 2 Stereo tracks or 1 stereo track
+**Audio channel mapping** — The channel mappings can vary from tape to tape. For a Betacam tape that has audio coming in through both tracks use the "2 Stereo Tracks" setting. If the tape only has audio coming in through one side you will have to use the Channel 1 or Channel 2 mono mappings depending on which channel is carrying the audio
 
 **Standard** — NTSC
 
-**Recording Time** — For a 30 minute tape set the recording time to 32. For a 60 minute tape set the recording time to 62. Usually tapes have the number 30 or 60 on them somewhere so you can figure out which kind of tape you have.
+**Recording Time** — For a 30 minute tape set the recording time to 33. For a 60 minute tape set the recording time to 63. Usually tapes have the number 30 or 60 on them somewhere so you can figure out which kind of tape you have.
 
 As the color bars play, monitor your waveform, vectorscope, and audio levels. Make sure that all of the levels are still correct. If any of the levels are not correct, you will have to stop the recording (by closing the vrecord window), rewind the tape back to the beginning of the bars and then set them up again using passthrough mode. When they are properly set up, try recording again.
 
@@ -88,29 +90,31 @@ CUNY-TV uses the following settings for U-matic tapes:
 
 **Codec for video** — FFV1 version 3
 
-**Audio channel mapping** — 1 stereo track
+**Audio channel mapping** — 1 stereo track is generally used unless audio is only coming in throuh one channel. If so, you will have to use the Channel 1 or Channel 2 mono options.
 
 **Standard** — NTSC
 
-**Recording Time** — For a 30 minute tape set the recording time to 32. For a 60 minute tape set the recording time to 62. Usually tapes have the number 30 or 60 on them somewhere so you can figure out which kind of tape you have.
+**Recording Time** — For a 30 minute tape set the recording time to 33. For a 60 minute tape set the recording time to 63. Usually tapes have the number 30 or 60 on them somewhere so you can figure out which kind of tape you have.
 
 ## Checking the Files ##
 
-Check to make sure vrecord produced the correct files. These are:
+Check the terminal window for an error messages from vrecord. You may see a cow issuing a warning about your video file. You may see a warning that says "packet too small." You can safely ignore this, it's just ffmpeg complaining that it didn't receive a full frame of video when vrecord stopped.
+
+Next, check to make sure vrecord produced the correct files. These are:
 
 1. The video file itself 
 2. Bmdcapture log (filename_bmdcapture.log)
 3. FFmpeg log (filename_ffmpeg_date_time.log)
 4. FFplay log (filename_ffplay_date_time.log)
 5. Frame MD5 file (filename.framemd5)
-6. An ingest log (filename.log)
+6. An capture options log (filename_capture_options.log)
 
 Scroll through the video file to make sure it is complete; in other words, you've captured the entire tape. If all these files exist and the video file looks complete you can move on to further QC.
 
 ## Troubleshooting ##
 
 **I ran `$ vrecord -p` and no video is showing up in the vrecord window!**
+Answer: Check to make sure all of your cables are routed properly. Also check Mac OS System Preferences to make sure that the Black Magic capture device is set up properly. If you are using SDI for your input on vrecord, the output of the Black Magic should be set to SDI.
 
-**I can't set up the lumaniance properly!**
-
-**My tape finished early, how to do stop vrecord**
+**My tape finished early, how do I stop vrecord?**
+Answer: Simply close the vrecord window and the program will automatically stop. You should then examine your video file.
