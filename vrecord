@@ -898,7 +898,7 @@ _writeingestlog "datetime_start" "$(_get_iso8601)"
 _writeingestlog "video_bit_depth" "${video_bitdepth}"
 _writeingestlog "codec_name" "${codecname}"
 _writeingestlog "container" "${container_choice}"
-_writeingestlog "television standard" "${standard_choice}"
+_writeingestlog "television_standard" "${standard_choice}"
 _writeingestlog "video_input" "${video_input_choice}"
 _writeingestlog "audio_input" "${audio_input_choice}"
 _writeingestlog "framemd5_choice" "${framemd5_choice}"
@@ -965,8 +965,9 @@ if [[ "${framemd5_choice}" = "No" ]] ; then
 frames_encoded=$(cat ${dir}/${id}_ffmpeg_*.log | grep -w "frames encoded" | awk '{print $10}' | grep -m 1 [0-9])
 frames_decoded=$(cat ${dir}/${id}_ffmpeg_*.log | grep -w "frames decoded" | awk '{print $10}' | grep -m 1 [0-9])
     if [[ ${frames_encoded} -lt $((${frames_decoded}-1)) ]] ; then
+        frame_discrepency=$((${frames_decoded}-${frames_encoded}))
         report -dts "WARNING: FFmpeg reported missing frames. The file may have sync issues." 
-        _writeingestlog "ffmpeg_missing_frames" "Yes"
+        _writeingestlog "ffmpeg_missing_frames" "${frame_discrepency}"
     else
         _writeingestlog "ffmpeg_missing_frames" "None"
     fi
