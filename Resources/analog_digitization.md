@@ -67,7 +67,7 @@ Run `$ vrecord -e` and check the window that pops up to make sure your settings 
 
 **Codec for video** — FFV1 version 3
 
-**Audio channel mapping** — The channel mappings can vary from tape to tape. For a Betacam tape that has audio coming in through both tracks use the "2 Stereo Tracks" setting. If the tape only has audio coming in through one side you will have to use the Channel 1 or Channel 2 mono mappings depending on which channel is carrying the audio
+**Audio channel mapping** — The channel mappings can vary from tape to tape. For a Betacam tape that has audio coming in through both tracks use the "2 Stereo Tracks" setting. If the tape only has audio coming in through one side you will have to use the Channel 1 or Channel 2 mono mappings depending on which channel you determine is carrying the audio.
 
 **Standard** — NTSC
 
@@ -106,7 +106,7 @@ Next, check to make sure vrecord produced the correct files. These are:
 2. Bmdcapture log (filename_bmdcapture.log)
 3. FFmpeg log (filename_ffmpeg_date_time.log)
 4. FFplay log (filename_ffplay_date_time.log)
-5. Frame MD5 file (filename.framemd5)
+5. Frame MD5 file (filename.framemd5) if you chose to record frame MD5s, which you should do
 6. An capture options log (filename_capture_options.log)
 
 Scroll through the video file to make sure it is complete; in other words, you've captured the entire tape. If all these files exist and the video file looks complete you can move on to further QC.
@@ -117,4 +117,6 @@ Scroll through the video file to make sure it is complete; in other words, you'v
 Answer: Check to make sure all of your cables are routed properly. Also check Mac OS System Preferences to make sure that the Black Magic capture device is set up properly. If you are using SDI for your input on vrecord, the output of the Black Magic should be set to SDI.
 
 **My tape finished early, how do I stop vrecord?**
-Answer: Simply close the vrecord window and the program will automatically stop. You should then examine your video file.
+Answer: Simply close the vrecord window and the program will automatically stop. You should then examine your video file to make sure it's complete.
+
+
