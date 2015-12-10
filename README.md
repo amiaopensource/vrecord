@@ -17,7 +17,7 @@
 
 ## Summary ##
 
-Vrecord is open-source software for capturing a video signal and turning it into a digital file. Vrecord can capture analog and digital signals through a variety of inputs and can create digital video files in a variety of formats and codecs. Vrecord is designed with needs of audiovisual archivists in mind. 
+Vrecord is open-source software for capturing a video signal and turning it into a digital file. Its purpose is to make videotape digitization or transfer easier. Vrecord can capture analog and digital signals through a variety of inputs and can create digital video files in a variety of formats and codecs. Vrecord has been designed with needs of audiovisual archivists in mind. 
 
 Vrecord uses [ffmpeg](http://ffmpeg.org), [ffplay](http://ffmpeg.org/ffplay.html), and [bmdcapture](https://github.com/lu-zero/bmdtools) to do its dirty work.
 
@@ -45,13 +45,17 @@ Alternatively you can run:
 
 `$ brew upgrade` {this command will upgrade all of the programs you've installed through Homebrew}
 
+Thus far installations on Linux have not been successful.
+
 ## Using vrecord ##
 
 ### Setting up vrecord for the First Time ###
 
-If you are using a Mac, open System Preferences and click on the icon for Blackmagic Design. If you do not see this icon in system preferences you probably haven't installed the Blackmagic driver. Open up the Blackmagic Design preferences and click on the "Settings" tab. Select your input and output from the dropdown menu depending on what cables you have connected to the capture device. 
+In Mac OS X, open System Preferences and click on the icon for Blackmagic Design. If you do not see this icon in System Preferences you may not have installed the Blackmagic driver. 
 
-Once your capture device is set up you can start vrecord by simply opening up a Terminal window and typing 
+Open up the Blackmagic Design preferences and click on the "Settings" tab. Select your input and output from the dropdown menu depending on what cables you have connected to the capture device. 
+
+Once your capture device is set up you can start vrecord by simply opening up a [Terminal window](https://en.wikipedia.org/wiki/Terminal_%28OS_X%29) and typing 
 ```
 $ vrecord 
 ```
@@ -70,32 +74,32 @@ For those who want the simplest possible explanation on how to use vrecord:
 6. Type in a unique identifier for your video file when prompted.
 7. Press "enter" to start recording.
 8. Let 'er rip! Play your tape!
-9. Let vrecord do its thing. Don't type any keys with the vrecord window open, click the mouse inside the window, or start another instance of vrecord. 
+9. Let vrecord do its thing. Don't type any keys while the vrecord window is open, do not click the mouse inside the vrecord window, and do not start another instance of vrecord on the same computer. In fact it's best not to open or use any other programs on the computer that is capturing. Overtaxing the computer could cause errors in the capture. 
 10. If you are finished recording and the vrecord window hasn't already closed, close the window.
-11. Check to make sure your video and metadata files were successfully created. 
-12. Repeat steps 1–10 as needed.
+11. Check to make sure that your video and metadata files were successfully created. 
+12. Repeat steps 1–11 as needed.
 
 ### The vrecord Window ###
 
 ![Alt text](Resources/vrecord_window visual.jpg "Vrecord in Visual Mode")
 
-Shown above is the setup of the vrecord window in "Visual" mode. Vrecord also includes a "Visual + Numerical" mode, which is discussed in the [Options for Video Capture] (https://github.com/amiaopensource/vrecord#options-for-video-capture) section below.
+Shown above is the layout of the vrecord window in "Visual" mode. Vrecord also includes a "Visual + Numerical" mode, which is discussed in the [Options for Video Capture] (https://github.com/amiaopensource/vrecord#options-for-video-capture) section below.
 
 1. **Video feed** — Displays the entire 720 x 486 video signal coming through. The image will appear a bit more stretched than it does on a television monitor. 
-2. **Video feed with broadcast-safe indicator** — Displays a feed of an underscanned version of the video signal with the normal aspect ratio for a television screen. Pixels whose luminance is outside of broadcast range are colored yellow. Due to space constraints in the vrecord window this feed will appear squeezed.  
-3. **Waveform monitor** — Displays luminance values for each field of the signal separately. The bottom of the red bar in each window represents the limit for a broadcast safe white level. The top of the blue bar represents the broacast safe limit for a black level. 
+2. **Video feed with broadcast-safe indicator** — Displays a feed of an underscanned version of the video signal. Pixels whose luminance or chrominance is outside of broadcast range are colored yellow. Due to space constraints in the vrecord window this feed will appear slightly squeezed.  
+3. **Waveform monitor** — Displays luminance values for each field of the signal separately. The bottom of the red bar in each window represents the upper limit for a broadcast safe white level. The top of the blue bar represents the broacast safe limit for a black level. 
 4. **Vectorscope** — Displays chrominance values for the signal. The boxes represent the values for yellow, red, magenta, blue, cyan, and green. The boxes furthest from the center represent the broadcast limits for those colors. 
 
 
 ### Passthrough Mode ###
 
-Passthrough mode means that the vrecord window will appear with video feeds and scopes, but the video signal will not be recorded to a file. Passthrough mode is used for tasks like testing equipment or setting up a tape to bars before actually recording. When you are finished using passthrough mode simply close the vrecord window.
+Passthrough mode means that the vrecord window will appear with video feeds and scopes, but the incoming video signal will not be recorded to a file. Passthrough mode is best used for tasks like testing equipment or setting up a tape to bars before actually recording. When you are finished using passthrough mode simply close the vrecord window.
 
 Run passthrough mode by typing:
 ```
 $ vrecord -p
 ```
-If you haven't already set up vrecord it will prompt you to make some selections related to your audio video inputs. Otherwise vrecord will just prompt you to press enter. When you press enter the vrecord window will open up and start displaying any video signal coming through from the capture device. 
+If you haven't already set up vrecord it will prompt you to make some selections related to your audio video inputs. Otherwise the vrecord window will open up and start displaying any video signal coming through from the capture device. 
 
 ### Edit Mode ###
 
@@ -105,9 +109,9 @@ Run edit mode by typing:
 ```
 $ vrecord -e
 ```
-After selecting all of your options and pressing "OK" the you will be prompted to enter a unique ID for the file. After the ID is entered, the incoming video signal will be recorded to a file with some associated metadata files. When you are done recording, close the vrecord window. If you've set a time limit for capture the vrecord window should automatically close when the time limit has been reached.
+After selecting all of your options and clicking "OK" the you will be prompted to enter a unique ID for the file. After the ID is entered, the incoming video signal will be recorded to a file with some associated metadata files. When you are done recording, close the vrecord window. If you've set a time limit for capture the vrecord window should automatically close when the time limit has been reached.
 
-By default vrecord will create a video file, a bmdcapture log, a framemd5 file (which creates an MD5 hash value for every frame of video), an ffmpeg log, an ffplay log, and a capture options log (which records the options that you selected in the GUI like codec and video bit depth). 
+By default vrecord will create a video file, a bmdcapture log, a framemd5 file (which creates an MD5 hash value [AKA a checksum] for every frame of video), an ffmpeg log, an ffplay log, and a capture options log (which records the options that you selected in the GUI like codec and video bit depth). Vrecord can also create a [QC Tools](https://github.com/bavc/qctools) XML file, which records the characteristics of the video signal. This file can be imported into QC Tools for fast analysis. 
 
 #### Options for Video Capture ####
 
