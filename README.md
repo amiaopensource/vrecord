@@ -83,8 +83,8 @@ Shown above is the setup of the vrecord window in "Visual" mode. Vrecord also in
 
 1. **Video feed** — Displays the entire 720 x 486 video signal coming through. The image will appear a bit more stretched than it does on a television monitor. 
 2. **Video feed with broadcast-safe indicator** — Displays a feed of an underscanned version of the video signal with the normal aspect ratio for a television screen. Pixels whose luminance is outside of broadcast range are colored yellow. Due to space constraints in the vrecord window this feed will appear squeezed.  
-3. **Waveform monitor** — Displays luminance values for each field of the signal separately. The bottom of the green bar in each waveform represents the limit for a broadcast safe white level. The top of the red bar represents the broacast safe limit for a black level. 
-4. **Vectorscope** — Displays chrominance values for the signal. The boxes represent the standard values for each color. 
+3. **Waveform monitor** — Displays luminance values for each field of the signal separately. The bottom of the red bar in each window represents the limit for a broadcast safe white level. The top of the blue bar represents the broacast safe limit for a black level. 
+4. **Vectorscope** — Displays chrominance values for the signal. The boxes represent the values for yellow, red, magenta, blue, cyan, and green. The boxes furthest from the center represent the broadcast limits for those colors. 
 
 
 ### Passthrough Mode ###
