@@ -1,4 +1,5 @@
 # Vrecord Documentation #
+This documentation is up to date as of vrecord v0.7.10 (Released on 12/10/15)
 
 ## Table of Contents ##
 
@@ -76,8 +77,9 @@ For those who want the simplest possible explanation on how to use vrecord:
 8. Let 'er rip! Play your tape!
 9. Let vrecord do its thing. Don't type any keys while the vrecord window is open, do not click the mouse inside the vrecord window, and do not start another instance of vrecord on the same computer. In fact it's best not to open or use any other programs on the computer that is capturing. Overtaxing the computer could cause errors in the capture. 
 10. If you are finished recording and the vrecord window hasn't already closed, close the window.
-11. Check to make sure that your video and metadata files were successfully created. 
-12. Repeat steps 1–11 as needed.
+11. Check the Terminal window for any error messages. Hopefully you don't see any cows.  
+12. Check to make sure that your video and metadata files were successfully created. 
+13. Repeat steps 1–12 as needed.
 
 ### The vrecord Window ###
 
@@ -111,13 +113,13 @@ $ vrecord -e
 ```
 After selecting all of your options and clicking "OK" the you will be prompted to enter a unique ID for the file. After the ID is entered, the incoming video signal will be recorded to a file with some associated metadata files. When you are done recording, close the vrecord window. If you've set a time limit for capture the vrecord window should automatically close when the time limit has been reached.
 
-By default vrecord will create a video file, a bmdcapture log, a framemd5 file (which creates an MD5 hash value [AKA a checksum] for every frame of video), an ffmpeg log, an ffplay log, and a capture options log (which records the options that you selected in the GUI like codec and video bit depth). Vrecord can also create a [QC Tools](https://github.com/bavc/qctools) XML file, which records the characteristics of the video signal. This file can be imported into QC Tools for fast analysis. 
+By default vrecord will create a video file, a bmdcapture log, a framemd5 file (which creates an MD5 hash value [AKA a checksum] for every frame of video), an ffmpeg log, an ffplay log, and a capture options log (which records the options that you selected in the GUI like codec and video bit depth). Vrecord can also create a [QC Tools](https://github.com/bavc/qctools) XML file, which records the characteristics of the video signal. This file can be imported into QC Tools for further analysis. 
 
 #### Options for Video Capture ####
 
 All of options in the vrecord GUI (which appears when running `vrecord -e`) or otherwise in text prompts are explained below. If you want to feel like a college freshman you can choose "Undeclared" for any of the options below. You will be prompted later to make a choice before the software actually starts recording:
 
-**Select a recording directory** — Choose the location (on an internal or external hard drive) where you want your resulting video files and metadata files to be saved.
+**Select a recording directory** — Choose the location (on an internal or external hard drive) where you want your resulting video files and logs to be saved.
 
 **Select video input** — Choose how the video signal will be entering the capture device. You can receive the video signal through Composite, SDI, Component, or S-Video cables.
 
@@ -139,7 +141,7 @@ All of options in the vrecord GUI (which appears when running `vrecord -e`) or o
 
 **Visual mode** — Visual mode displays the two video feeds, the waveform monitor, and the vectorscope in the vrecord window.
 
-**Visual + Numerical mode** — Visual and Numerical mode displays your favorite video feeds and scopes as well as numerical values for the characteristics of the video signal on the left sidebar. 
+**Visual + Numerical mode** — Visual and Numerical mode displays your favorite video feeds and scopes as well as numerical values for the characteristics of the video signal in the left sidebar. 
 
 ![Alt text](Resources/vrecord_visual_numerical.jpg "Vrecord in Visual + Numerical Mode")
 
@@ -151,31 +153,36 @@ The numerical values are as follows:
 * SAT — Low, high, and average saturation values (sometimes called chroma) of the video signal.
 * HUE — Low, high, and average hue values of the video signal.
 * TOUT — The percentage of pixels that are temporal outliers. Temporal Outliers are pixels which have different values from the pixels above or below them. This is useful for detecting noise in the video signal or other artifacts. However, the number will also increase with fast motion, camera movement, or cuts to different shots.  
-* VREP — The amount of vertical line repititions in the video. The VREP reading can be useful for detecting video artifacts, especially head clogs.
+* VREP — The amount of vertical line repititions in the video. The VREP reading can be useful for detecting video artifacts, dropout, and especially head clogs.
 * BRNG — Percentage of pixels that are in broadcast range. This may be helpful for detecting problems with the video signal such as dropout or if the signal has not been calibrated properly. If BRNG is 0.1 or greater, you probably have an issue.
 
-**Frame MD5s** — You can choose to create an MD5 hash value for each frame of video captured. A seperate .md5 file with all the hash values will be created along with the video file. Generally choosing to create frame-level MD5s will not slow down or hinder the capture of your video. To read more about frame-level MD5s see this article: http://dericed.com/papers/reconsidering-the-checksum-for-audiovisual-preservation/ 
+**Create QC Tools XML** — While capturing the video signal, vrecord will also create an XML file that contains a record of the characteristics of the video signal (such as luminance, color saturation, audio levels, etc.). It will then compress the XML file using [gzip](https://www.gnu.org/software/gzip/). Choosing to create a QC Tools XML is highly recommended. This file can be quickly imported into QC Tools for further analysis of the video. In addition, if you choose this option, vrecord can analyze the video signal for potential errors. Currently vrecord only tests the saturation levels of the video, but more tests are coming soon!   
 
-If you choose to capture Frame MD5s vrecord will automatically check to make sure that no frames were missed during the capture. If frames were missed you may get the following message: "WARNING: There were pts discontinuities for these frame ranges: ##-##. The file may have sync issues." The message will give the frame numbers that are missing. Check the file immediately at these points and throughout the video to make sure there are no sync issues. The tape may need to be redigitized.
+**Frame MD5s** — You can choose to create an MD5 hash value (AKA a checksum) for each frame of video captured. A seperate .md5 file with all the hash values will be created along with the video file. Generally choosing to create frame-level MD5s will not slow down or hinder the capture of your video. To read more about the value of frame-level MD5s see this article: http://dericed.com/papers/reconsidering-the-checksum-for-audiovisual-preservation/ 
 
 **Set Recording time** — Set the amount of time (in minutes) that you would like vrecord to capture for. This number should be an integer or decimal. For example, if you are digitizing a tape with a capacity of 30 minutes of video, you might want set vrecord to capture for 33 minutes. After 33 minutes vrecord will automatically stop recording and shut down.
+
+**Enter the name of the person digitizing this tape** — This field is optional. You can enter the name of the technician digitizing the tape. The name will be written to the capture options log produced at the end of the transfer.
 
 Click "OK" when you are finished with your selections. Vrecord will save all of your selections to a cofiguration file. If any selections are "Undeclared" vrecord will prompt you in the terminal window to make a choice. 
 
 Vrecord will then prompt you for a unique ID. The ID that you type in will become a prefix for the filename of all the resulting files in that recording session. After entering your unique ID you will be asked to press enter to start recording. Press enter and start playing your tape. The vrecord window will appear. Do not type any keys or click the mouse inside the window while the vrecord is working. 
 
+After the transfer is finished, vrecord will automatically check to make sure that no frames were missed during the capture. Check the Terminal window for any error messages. If frames were missed you may get the following message: "WARNING: There were pts discontinuities for these frame ranges: ##-##. The file may have sync issues." The message will give the frame numbers that are missing. Check the file immediately at these points and throughout the video to make sure there are no sync issues. The tape may need to be redigitized.
+
 #### A Few Quirks ####
 
 ##### Timing of Recording #####
-When you start recording there may be several seconds of delay before the vrecord window actually appears. But don't worry, once you've pressed enter, vrecord is already capturing. 
+When you start recording there may be several seconds of delay before the vrecord window actually appears. But don't worry, once you've pressed enter, vrecord is already capturing the signal and encoding it into a file. 
 
-If you are watching the videotape on a separate monitor and the video feeds on vrecord appear to be slightly behind the monitor, don't panic; all of your video has still been captured. 
+If you are watching the videotape output on a separate monitor and the video feeds on vrecord appear to be slightly behind the monitor, don't panic; all of your video has still been captured. 
 
 ##### BMDCapture Update #####
 Sometimes you may see a green a purple flash frame at the beginning of your capture, or see green and purple bars in vrecord if no signal is coming through. This is a known issue and is due to vrecord not having the most recent code for bmdcapture. You can easily fix this issue by opening up a terminal and running: 
 ```
 $ brew upgrade bmdtools --HEAD
 ```
+Now run vrecord again. You should not see the green and purple bars even when no signal is coming through. When there is no signal the screen should appear black.
 
 ### Clearing the Configuration File ###
 
@@ -195,7 +202,7 @@ $ vrecord -h
 
 If you want to see a more detailed description about how to digitize analog videotape see our document on [analog digitization](Resources/analog_digitization.md).
 
-We want vrecord to be a helpful tool for audiovisual archivists and others. If you experience any problems with vrecord you can open a new issue with our Github [issue tracker](https://github.com/amiaopensource/vrecord/issues). Try to see if you can replicate the issue yourself first and describe in detail what factors led to it. Let us know if you were able to succesfully replicate the issue. 
+We want vrecord to be a helpful tool for audiovisual archivists and others. If you experience any problems with vrecord you can open a new issue with our Github [issue tracker](https://github.com/amiaopensource/vrecord/issues). Try to see if you can replicate the issue yourself first and describe in detail what factors led to it. Please let us know if you were able to succesfully replicate the issue. 
 
 Feel free to contribute to our github project by creating a fork and sending pull requests.
 
