@@ -2,15 +2,15 @@
 
 ## Digitizing Betacam Tapes ##
 
-There are several steps to digitizing a Betacam tape. 
+There are several steps to digitizing a Betacam tape. This procedure assumes you already have vrecord and a Blackmagic capture card installed. 
 
-1. Route the video signal from the Betacam deck to the Black Magic capture card for the computer that you plan to use.
+1. Route the video signal from the Betacam deck to the Blackmagic capture card for the computer that you plan to use.
 2. Start by testing the signal to make sure that everything is routed properly. Play the tape in the deck. Run `$ vecord -p` and watch the vrecord window to make sure the video signal from the tape is coming through. If it's not coming through, there may be some issues with your settings or how the signal is routed. See the "Troubleshooting" section below.  
 3. If color bars exist on the tape, set the tape to the bars. Otherwise, you will have to adjust the levels by eye as well as using the vectorscope and waveform monitor. 
 
 ### How to Set Up the Equipment to Color Bars on a Tape ###
 
-First, play the tape with the color bars. Now take a look at your waveform monitor to examine the signal. At CUNY-TV you will need to route the signal to a monitor called QC-ING32. This monitor is connected to the combination  waveform monitor, vectorscope, and audio monitor.
+First, play the tape with the color bars. Now take a look at your waveform monitor to examine the signal. At CUNY TV you will need to route the signal to a monitor called QC-ING32. This monitor is connected to the combination waveform monitor, vectorscope, and audio monitor.
 
 **Using the Waveform Monitor**
 
@@ -18,7 +18,7 @@ The waveform monitor is generally used to measure the lumaniance (brightness) le
 
 ![alt text](http://www.experimentaltvcenter.org/sites/default/files/history/images/preservationcom/waveform2.jpg "Color Bars in Waveoform Monitor")
 
-The color bars in the picture above are set up properly. Start by setting up the black level in the waveform monitor. The black level could also be called "Set up" or "Black" depending on your model of time based corrector or processing amplifier. Adjust this dial until the second lowest line in the color bars (the black level), which runs along the bottom of the staircase is set to 7.5 IRE on the waveform monitor. This is usually represented by a dashed line near the bottom of the monitor. The black line should intersect the dashed 7.5 IRE line.
+The color bars in the picture above are set up properly. Start by setting up the black level in the waveform monitor. The black level could also be called "Set up" or "Black" depending on your model of time base corrector or processing amplifier. Adjust this dial until the second lowest line in the color bars (the black level), which runs along the bottom of the staircase is set to 7.5 IRE on the waveform monitor. This is usually represented by a dashed line near the bottom of the monitor. The black line should intersect the dashed 7.5 IRE line.
 
 Now set the luminance level, this could be the step all the way on the left, or it could be the second step from the left. One of these steps should hit the 75 IRE mark on the waveform monitor usually represented by a dotted line. The lumianance level could be represented by a dial labeled "Luma" or "Video" again, depending on your model of TBC or Proc Amp.
 
@@ -41,13 +41,13 @@ Now adjust the chrominance (or chroma). If the dots are past their targets, redu
 
 Sometimes tapes you are digitizing do not include clolor bars at the beginning. If this is the case, and you have a test tape with color bars onhand, first set up your time based corrector or processing amplifier to the color bars on a test tape.
 
-Fast forward to some of the content, ideally a shot that has both white and black in it. Check the waveform monitor to make sure that both the whites and blacks are within "broadcast range" (pure black is at 7.5 IRE and pure white is at 100 IRE). 
+Fast forward to some of the content, ideally a shot that has both white and black in it. Check the waveform monitor to make sure that both the whites and blacks are within "broadcast range" (pure black is just above 7.5 IRE and pure white is just below 100 IRE). 
 
-If you can find a close up shot of person use this in combination with the vectorscope to try to set up hue and chroma. Make sure that the chroma is within broadcast range. The lines in the vectorscope should not be going past the color target boxes. If they are, reduce the chroma. In general, the color of skintones should fall on the line between the red and yellow target boxes (about 10:30–11 o'clock) on the vectorscope. Some people call this the "skin tone line." Adjust the hue until the color is centered around this line.     
+If you can find a close up shot of person use this in combination with the vectorscope to try to set up hue and chroma. Make sure that the chroma is within broadcast range. The lines in the vectorscope should not be going past the color target boxes. If they are, reduce the chroma. In general, the color of all human skintones should fall on the line between the red and yellow target boxes (about 10:30–11 o'clock) on the vectorscope. Some people call this the "skin tone line." Adjust the hue until the color is centered around this line.     
 
 ### Setting the Audio Levels ###
 
-You will need to watch an audio monitor for the left and right audio channels. The test tone that accompanies the color bars should be set to hit the -20 db mark. Now, fast forward the tape so that you can watch some of the content. If the content has stereo audio make sure the volume levels of the left and right channels are equal. You may need to raise or lower the left or right audio level to make both sides even.
+You will need to watch an audio monitor for the left and right audio channels. The test tone that accompanies the color bars should be set to hit either the -20 db or -12db mark depending on the tone. Now, fast forward the tape so that you can watch some of the content. If the content has stereo audio make sure the volume levels of the left and right channels are equal. You may need to raise or lower the left or right audio level to make both sides even. Make sure the audio levels are not peaking too high. 
 
 Also note whether audio is coming in on both channels or just one channel. This will determine the vrecord settings that you will use later.
 
@@ -76,7 +76,7 @@ Run `$ vrecord -e` and check the window that pops up to make sure your settings 
 As the color bars play, monitor your waveform, vectorscope, and audio levels. Make sure that all of the levels are still correct. If any of the levels are not correct, you will have to stop the recording (by closing the vrecord window), rewind the tape back to the beginning of the bars and then set them up again using passthrough mode. When they are properly set up, try recording again.
 
 ## Digitizing U-matic Tapes ##
-1. Inspect the tape to make sure that it does not already have sticky shed syndrome.
+Before playing the tape it's a good idea to inspect it to make sure that it does not already have sticky shed syndrome.
 
 CUNY-TV uses the following settings for U-matic tapes:
 
@@ -108,6 +108,7 @@ Next, check to make sure vrecord produced the correct files. These are:
 4. FFplay log (filename_ffplay_date_time.log)
 5. Frame MD5 file (filename.framemd5) if you chose to record frame MD5s, which you should do
 6. An capture options log (filename_capture_options.log)
+7. A QC Tools XML file, if you chose to create it (filename_nameOfCodec.qctools.xml.gz)
 
 Scroll through the video file to make sure it is complete; in other words, you've captured the entire tape. If all these files exist and the video file looks complete you can move on to further QC.
 
@@ -118,5 +119,3 @@ Answer: Check to make sure all of your cables are routed properly. Also check Ma
 
 **My tape finished early, how do I stop vrecord?**
 Answer: Simply close the vrecord window and the program will automatically stop. You should then examine your video file to make sure it's complete.
-
-
