@@ -34,11 +34,12 @@ To install vrecord, run the following commands:
 
 `$ brew install vrecord` {installs vrecord and the other programs that it requires}
 
-You can update vrecord by first running:
+
+Once vrecord has been successfully installed, you can update it to the latest release by first running:
 
 `$ brew update` {updates all of your Homebrew recipes to the latest versions}
 
-Now run:
+Then running:
 
 `$ brew upgrade vrecord` {downloads the latest release of vrecord and the latest releases of any other packages it depends on}
 
@@ -46,7 +47,7 @@ Alternatively you can run:
 
 `$ brew upgrade` {this command will upgrade all of the programs you've installed through Homebrew}
 
-Thus far installations on Linux have not been successful.
+Thus far installing vrecord on Linux has not been successful.
 
 ## Using vrecord ##
 
