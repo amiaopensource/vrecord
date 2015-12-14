@@ -180,7 +180,15 @@ If you are watching the videotape output on a separate monitor and the video fee
 
 ##### FFmpeg Error Message ####
 
-You may see a warning that says "packet too small." You can safely ignore this, it's just FFmpeg complaining that it didn't receive a full frame of video when vrecord stopped. 
+At the end of your capture you may see a warning in the Terminal that looks similar to this:
+
+```
+[v210 @ 0x7fad3c800000] packet too small
+Error while decoding stream #0:0: Invalid data found when processing input
+[v210 @ 0x7fe62301c000] packet too small
+```
+
+You can safely ignore this warning, it's just FFmpeg complaining that it didn't receive a full frame of video when vrecord stopped. 
 
 ##### BMDCapture Update #####
 Sometimes you may see a green a purple flash frame at the beginning of your capture, or see green and purple bars in vrecord if no signal is coming through. This is a known issue and is due to vrecord not having the most recent code for bmdcapture. You can easily fix this issue by opening up a terminal and running: 
