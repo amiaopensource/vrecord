@@ -178,6 +178,10 @@ When you start recording there may be several seconds of delay before the vrecor
 
 If you are watching the videotape output on a separate monitor and the video feeds on vrecord appear to be slightly behind the monitor, don't panic; all of your video has still been captured. 
 
+##### FFmpeg Error Message ####
+
+You may see a warning that says "packet too small." You can safely ignore this, it's just FFmpeg complaining that it didn't receive a full frame of video when vrecord stopped. 
+
 ##### BMDCapture Update #####
 Sometimes you may see a green a purple flash frame at the beginning of your capture, or see green and purple bars in vrecord if no signal is coming through. This is a known issue and is due to vrecord not having the most recent code for bmdcapture. You can easily fix this issue by opening up a terminal and running: 
 ```
