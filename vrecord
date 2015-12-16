@@ -639,15 +639,6 @@ pashua_run() {
     fi
 } # pashua_run()
 
-
-if [[ standard="${PAL_value}" ]] ; then
-    recordingfilter="[0:v:0]setfield=tff,setsar=40/27,setdar=4/3[vid1]"   
-else
-    recordingfilter="[0:v:0]setfield=bff,setsar=40/27,setdar=4/3[vid1]"
-fi
-
-
-
 shift $(( ${OPTIND} - 1 ))
 
 if [[ "${runtype}" = "reset" ]] ; then
@@ -937,6 +928,12 @@ fi
 
 report -d "Close the playback window to stop recording."
 export FFREPORT="file=${dir}/${id}_%p_%t${ffmpeglogsuffix}"
+
+if [[ "${standard_choice}" = "PAL" ]] ; then
+    recordingfilter="[0:v:0]setfield=tff,setsar=40/27,setdar=4/3[vid1]"   
+else
+    recordingfilter="[0:v:0]setfield=bff,setsar=40/27,setdar=4/3[vid1]"
+fi
 
 if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
 # mkfifo needs to be conditional and maybe deal with deleting a preexisting pipe
