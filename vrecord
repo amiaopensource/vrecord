@@ -408,18 +408,13 @@ VECTORSCOPE_FILTER="format=yuv422p,\
 lookup_playbackview(){
     case "${1}" in
         "Visual")
-        playbackfilter="split=5[a][b][c][d][e];\
-                [b]field=top[b1];\
-                [c]field=bottom[c1];\
-                [b1]${WAVEFORM_FILTER}[b2];\
-                [c1]${WAVEFORM_FILTER}[c2];\
-                [b2][c2]framepack=tab,format=yuv422p[bc1];\
-                [a]pad=iw+512:ih+512[a1];\
-                [d]${VECTORSCOPE_FILTER}[d1];\
-                [e]signalstats=out=brng,scale=512:486[e1];\
-                [a1][bc1]overlay=0:486[abc1];\
-                [abc1][d1]overlay=720:486[abcd1];\
-                [abcd1][e1]overlay=720:0[out]"
+        playbackfilter="split[b][c];\
+            [b]field=top[b1];\
+            [c]field=bottom[c1];\
+            [b1]${WAVEFORM_FILTER}[b2];\
+            [c1]${WAVEFORM_FILTER}[c2];\
+            [b2][c2]framepack=tab,format=yuv422p[bc1];\
+			[bc1]null[out0]"
             ;;
         "Visual + Numerical")
         playbackfilter="split=6[a][b][c][d][e][f];\
@@ -789,11 +784,10 @@ if [[ "${playbackview_choice}" && "${playbackview_choice}" != "${undeclaredoptio
 fi
 
 if [[ "${runtype}" = "passthrough" ]] ; then
-    video_bitdepth=10
-    bmdcapture -m ${standard} -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p "${video_bitdepth}" -F nut -f pipe:1 | \
-            ffplay -v info -hide_banner -stats -i - \
-            -window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" \
-            -vf "${playbackfilter}"
+    if [[ "${runtype}" = "passthrough" ]] ; then
+	    video_bitdepth=10
+	    bmdcapture -m ${standard} -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p "${video_bitdepth}" -F nut -f pipe:1 | \
+	            ffplay -f lavfi "movie='pipe\:0',${playbackfilter}"
     exit 0
 fi
 
