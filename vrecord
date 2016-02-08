@@ -408,13 +408,22 @@ VECTORSCOPE_FILTER="format=yuv422p,\
 lookup_playbackview(){
     case "${1}" in
         "Visual")
-        playbackfilter="split[b][c];\
+        playbackfilter="streams=dv+da[vid][aud];\
+			[aud]asplit=2[x][out1];[x]showvolume=f=255:h=20[xx];\
+			[vid]split=5[a][b][c][d][e];\
             [b]field=top[b1];\
             [c]field=bottom[c1];\
             [b1]${WAVEFORM_FILTER}[b2];\
             [c1]${WAVEFORM_FILTER}[c2];\
             [b2][c2]framepack=tab,format=yuv422p[bc1];\
-			[bc1]null[out0]"
+			[a]pad=iw+512:ih+512[a1];\
+			[a1][bc1]overlay=0:486[abc1];\
+			[d]null[d1];\
+			[e]signalstats=out=brng,scale=512:486[e1];\
+			[abc1][d1]overlay=720:486[abcd1];\
+			[abcd1][e1]overlay=720:0[abcde1];\
+			[abcde1][xx]overlay=10:10[out0]"
+		
             ;;
         "Visual + Numerical")
         playbackfilter="split=6[a][b][c][d][e][f];\
@@ -634,6 +643,11 @@ pashua_run() {
     fi
 } # pashua_run()
 
+
+recordingfilter="[0:v:0]setfield=bff,setsar=40/27,setdar=4/3[vid1]"
+
+
+
 shift $(( ${OPTIND} - 1 ))
 
 if [[ "${runtype}" = "reset" ]] ; then
@@ -783,11 +797,12 @@ if [[ "${playbackview_choice}" && "${playbackview_choice}" != "${undeclaredoptio
     done
 fi
 
+
+	
 if [[ "${runtype}" = "passthrough" ]] ; then
-    if [[ "${runtype}" = "passthrough" ]] ; then
 	    video_bitdepth=10
 	    bmdcapture -m ${standard} -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p "${video_bitdepth}" -F nut -f pipe:1 | \
-	            ffplay -f lavfi "movie='pipe\:0',${playbackfilter}"
+	            ffplay -f lavfi "movie='pipe\:0':${playbackfilter}"
     exit 0
 fi
 
@@ -922,12 +937,6 @@ fi
 
 report -d "Close the playback window to stop recording."
 export FFREPORT="file=${dir}/${id}_%p_%t${ffmpeglogsuffix}"
-
-if [[ "${standard_choice}" = "PAL" ]] ; then
-    recordingfilter="[0:v:0]setfield=tff,setsar=40/27,setdar=4/3[vid1]"   
-else
-    recordingfilter="[0:v:0]setfield=bff,setsar=40/27,setdar=4/3[vid1]"
-fi
 
 if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
 # mkfifo needs to be conditional and maybe deal with deleting a preexisting pipe
