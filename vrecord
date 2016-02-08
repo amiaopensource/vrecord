@@ -409,20 +409,20 @@ lookup_playbackview(){
     case "${1}" in
         "Visual")
         playbackfilter="streams=dv+da[vid][aud];\
-			[aud]asplit=2[x][out1];[x]showvolume=f=255:h=20[xx];\
-			[vid]split=5[a][b][c][d][e];\
-            [b]field=top[b1];\
-            [c]field=bottom[c1];\
-            [b1]${WAVEFORM_FILTER}[b2];\
-            [c1]${WAVEFORM_FILTER}[c2];\
-            [b2][c2]framepack=tab,format=yuv422p[bc1];\
-			[a]pad=iw+512:ih+512[a1];\
-			[a1][bc1]overlay=0:486[abc1];\
-			[d]null[d1];\
-			[e]signalstats=out=brng,scale=512:486[e1];\
-			[abc1][d1]overlay=720:486[abcd1];\
-			[abcd1][e1]overlay=720:0[abcde1];\
-			[abcde1][xx]overlay=10:10[out0]"
+		[aud]asplit=2[x][out1];[x]showvolume=f=255:h=20[xx];\
+		[vid]split=5[a][b][c][d][e];\
+        	[b]field=top[b1];\
+            	[c]field=bottom[c1];\
+            	[b1]${WAVEFORM_FILTER}[b2];\
+            	[c1]${WAVEFORM_FILTER}[c2];\
+            	[b2][c2]framepack=tab,format=yuv422p[bc1];\
+		[a]pad=iw+512:ih+512[a1];\
+		[a1][bc1]overlay=0:486[abc1];\
+		[d]null[d1];\
+		[e]signalstats=out=brng,scale=512:486[e1];\
+		[abc1][d1]overlay=720:486[abcd1];\
+		[abcd1][e1]overlay=720:0[abcde1];\
+		[abcde1][xx]overlay=10:10[out0]"
 		
             ;;
         "Visual + Numerical")
