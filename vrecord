@@ -408,9 +408,9 @@ VECTORSCOPE_FILTER="format=yuv422p,\
 lookup_playbackview(){
     case "${1}" in
         "Visual")
-        playbackfilter="streams=dv+da[vid][aud];\
-		[aud]asplit=2[x][out1];[x]showvolume=f=255:h=20[xx];\
-		[vid]split=5[a][b][c][d][e];\
+        playbackfilter="streams=dv+da[vision][sound];\
+		[sound]asplit=2[x][out1];[x]showvolume=f=255:h=20[xx];\
+		[vision]split=5[a][b][c][d][e];\
         	[b]field=top[b1];\
             	[c]field=bottom[c1];\
             	[b1]${WAVEFORM_FILTER}[b2];\
