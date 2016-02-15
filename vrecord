@@ -12,6 +12,7 @@ ffmpeglogsuffix=".log"
 pashuainstall=""
 unset extraoutputs
 undeclaredoption="Undeclared"
+defaultfont="/Library/Fonts/Andale Mono.ttf"
 SAT_OUTLIER_THRSHLD=14
 
 usage(){
@@ -436,11 +437,11 @@ split=6[a][b][c][d][e][f];\
 [f]signalstats=stat=brng+vrep+tout,geq=lum=60:cb=128:cr=128,\
 scale=180:ih+512,\
 drawtext=fontcolor=white:fontsize=22:\
-fontfile=/Library/Fonts/Andale\ Mono.ttf:textfile=/tmp/drawtext.txt,\
+fontfile=${defaultfont}:textfile=/tmp/drawtext.txt,\
 drawtext=fontcolor=white:fontsize=17:\
-fontfile=/Library/Fonts/Andale\ Mono.ttf:textfile=/tmp/drawtext2.txt,\
+fontfile=${defaultfont}:textfile=/tmp/drawtext2.txt,\
 drawtext=fontcolor=white:fontsize=52:\
-fontfile=/Library/Fonts/Andale\ Mono.ttf:textfile=/tmp/drawtext3.txt[f1];\
+fontfile=${defaultfont}:textfile=/tmp/drawtext3.txt[f1];\
 [f1][abc1][de1]hstack=inputs=3[out]"
             ;;
         Q) exit 0 ;;
