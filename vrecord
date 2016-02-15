@@ -416,13 +416,11 @@ split=5[a][b][c][d][e];\
 [c]field=bottom[c1];\
 [b1]${WAVEFORM_FILTER}[b2];\
 [c1]${WAVEFORM_FILTER}[c2];\
-[b2][c2]framepack=tab,format=yuv422p[bc1];\
-[a]pad=iw+512:ih+512[a1];\
+[a][b2][c2]vstack=inputs=3,format=yuv422p[abc1];\
 [d]${VECTORSCOPE_FILTER}[d1];\
 [e]signalstats=out=brng,scale=512:486[e1];\
-[a1][bc1]overlay=0:486[abc1];\
-[abc1][d1]overlay=720:486[abcd1];\
-[abcd1][e1]overlay=720:0[out]"
+[e1][d1]vstack[de1];\
+[abc1][de1]hstack[out]"
             ;;
         "Visual + Numerical")
         playbackfilter="\
@@ -431,14 +429,10 @@ split=6[a][b][c][d][e][f];\
 [c]field=bottom[c1];\
 [b1]${WAVEFORM_FILTER}[b2];\
 [c1]${WAVEFORM_FILTER}[c2];\
-[b2][c2]framepack=tab,format=yuv422p[bc1];\
-[a]pad=iw+512:ih+512[a1];\
+[a][b2][c2]vstack=inputs=3,format=yuv422p[abc1];\
 [d]${VECTORSCOPE_FILTER}[d1];\
 [e]signalstats=out=brng,scale=512:486[e1];\
-[a1][bc1]overlay=0:486[abc1];\
-[abc1][d1]overlay=720:486[abcd1];\
-[abcd1][e1]overlay=720:0[abcde1];\
-[abcde1]pad=iw+180:ih:180:0[abcde1p];\
+[e1][d1]vstack[de1];\
 [f]signalstats=stat=brng+vrep+tout,geq=lum=60:cb=128:cr=128,\
 scale=180:ih+512,\
 drawtext=fontcolor=white:fontsize=22:\
@@ -447,7 +441,7 @@ drawtext=fontcolor=white:fontsize=17:\
 fontfile=/Library/Fonts/Andale\ Mono.ttf:textfile=/tmp/drawtext2.txt,\
 drawtext=fontcolor=white:fontsize=52:\
 fontfile=/Library/Fonts/Andale\ Mono.ttf:textfile=/tmp/drawtext3.txt[f1];\
-[abcde1p][f1]overlay[out]"
+[f1][abc1][de1]hstack=inputs=3[out]"
             ;;
         Q) exit 0 ;;
         q) exit 0 ;;
