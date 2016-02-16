@@ -381,8 +381,11 @@ set_up_drawtext
 WAVEFORM_FILTER="\
 format=yuv422p,\
 waveform=intensity=0.1:mode=column:mirror=1:c=1:f=lowpass:e=instant,\
-drawbox=y=(256-16):w=iw:h=16:color=aqua@0.3:t=16,\
-drawbox=w=iw:h=(256-235):color=crimson@0.3:t=16"
+split=3[w1][w2][w3];\
+[w1]crop=in_w:16:0:0,lutyuv=v=146[wtop];\
+[w2]crop=in_w:220:0:16,lutyuv=v=110[wmid];\
+[w3]crop=in_w:20:0:235,lutyuv=u=146[wlow];\
+[wtop][wmid][wlow]vstack=3"
 
 VECTORSCOPE_FILTER="\
 format=yuv422p,\
