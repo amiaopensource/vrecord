@@ -419,7 +419,7 @@ split=5[a][b][c][d][e];\
 [c1]${WAVEFORM_FILTER}[c2];\
 [a][b2][c2]vstack=inputs=3,format=yuv422p[abc1];\
 [d]${VECTORSCOPE_FILTER}[d1];\
-[e]signalstats=out=brng,scale=512:486[e1];\
+[e]signalstats=out=brng,scale=512:ih[e1];\
 [e1][d1]vstack[de1];\
 [abc1][de1]hstack[out]"
             ;;
@@ -432,7 +432,7 @@ split=6[a][b][c][d][e][f];\
 [c1]${WAVEFORM_FILTER}[c2];\
 [a][b2][c2]vstack=inputs=3,format=yuv422p[abc1];\
 [d]${VECTORSCOPE_FILTER}[d1];\
-[e]signalstats=out=brng,scale=512:486[e1];\
+[e]signalstats=out=brng,scale=512:ih[e1];\
 [e1][d1]vstack[de1];\
 [f]signalstats=stat=brng+vrep+tout,geq=lum=60:cb=128:cr=128,\
 scale=180:ih+512,setsar=1/1,\
