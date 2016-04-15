@@ -263,7 +263,7 @@ lookup_video_codec(){
             ;;
         "ProRes")
             codecname="Apple ProRes 422"
-            middleoptions+=(-c:v prores)
+            middleoptions+=(-c:v prores_ks)
             suffix="_prores"
             ;;
         Q) exit ;;
