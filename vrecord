@@ -697,10 +697,19 @@ if [[ "${runtype}" = "edit" ]] ; then
             report -d "Bye then"
             exit
         fi
-    else
+       else
         report -d "Edting of preferences was canceled by the user."
     fi
     runtype="record"
+    report -nd "Press [q] to quit, [p] to enter passthrough mode or another other key to proceed. "
+    read aftereditresponse
+    if [[ "$aftereditresponse" == "q" ]] ; then
+        report -d "Bye then"
+        exit
+	elif [[ "$aftereditresponse" == "p" ]] ; then
+		runtype="passthrough"
+	fi
+	
 fi
 
 if [[ "${video_input_choice}" && "${video_input_choice}" != "${undeclaredoption}" ]] ; then
