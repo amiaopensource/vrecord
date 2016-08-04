@@ -691,14 +691,9 @@ if [[ "${runtype}" = "edit" ]] ; then
         echo "${technician_comment}" >> "${config_file}"
         echo "technician=\"${technician}\"" >> "${config_file}"
         . "${config_file}"
-        report -nd "Press [q] to quit or another other key to proceed. "
-        read aftereditresponse
-        if [[ "$aftereditresponse" == "q" ]] ; then
-            report -d "Bye then"
-            exit
-        fi
+
        else
-        report -d "Edting of preferences was canceled by the user."
+        report -d "Editing of preferences was canceled by the user."
     fi
     runtype="record"
     report -nd "Press [q] to quit, [p] to enter passthrough mode or another other key to proceed. "
