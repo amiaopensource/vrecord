@@ -353,7 +353,8 @@ lookup_playbackview(){
         "Visual")
         playbackfilter="\
 streams=dv+da[v][s];\
-[s]asplit=2[x][out1];\
+[s]asplit=2[z][out1];\
+[z]channelsplit=channel_layout=4.0[s1][s2][s3][s4];[s1][s2][s3][s4]amerge=inputs=4,aformat=channel_layouts=quad[x];\
 [x]showvolume=t=0:h=17:w=200[xx];\
 [v]split=5[a][b][c][d][e];\
 [b]field=top[b1];\
@@ -370,7 +371,8 @@ streams=dv+da[v][s];\
         "Visual + Numerical")
         playbackfilter="\
 streams=dv+da[v][s];\
-[s]asplit=2[x][out1];\
+[s]asplit=2[z][out1];\
+[z]channelsplit=channel_layout=4.0[s1][s2][s3][s4];[s1][s2][s3][s4]amerge=inputs=4,aformat=channel_layouts=quad[x];\
 [x]showvolume=t=0:h=17:w=200[xx];\
 [v]split=6[a][b][c][d][e][f];\
 [b]field=top[b1];\
