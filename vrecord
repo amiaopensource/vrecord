@@ -380,7 +380,7 @@ set_up_drawtext
 
 WAVEFORM_FILTER="\
 format=yuv422p,\
-waveform=intensity=0.1:mode=column:mirror=1:c=1:f=lowpass:e=instant:graticule=green:flags=numbers+dots\
+waveform=intensity=0.1:mode=column:mirror=1:c=1:f=lowpass:e=instant:graticule=green:flags=numbers+dots"\
 
 VECTORSCOPE_FILTER="\
 format=yuv422p,\
