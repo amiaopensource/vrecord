@@ -380,42 +380,29 @@ set_up_drawtext
 
 WAVEFORM_FILTER="\
 format=yuv422p,\
-waveform=intensity=0.1:mode=column:mirror=1:c=1:f=lowpass:e=instant,\
-split=3[w1][w2][w3];\
-[w1]crop=in_w:16:0:0,lutyuv=v=146[wtop];\
-[w2]crop=in_w:220:0:16,lutyuv=v=110[wmid];\
-[w3]crop=in_w:20:0:235,lutyuv=u=146[wlow];\
-[wtop][wmid][wlow]vstack=3"
+waveform=intensity=0.1:mode=column:mirror=1:c=1:f=lowpass:e=instant:graticule=green:flags=numbers+dots\
 
 VECTORSCOPE_FILTER="\
 format=yuv422p,\
-vectorscope=i=0.04:mode=color2:envelope=instant,\
-vflip,\
+vectorscope=i=0.04:mode=color2:envelope=instant:graticule=green:flags=name,\
 scale=512:512,\
-drawgrid=w=32:h=32:t=1:c=white@0.1,\
-drawgrid=w=256:h=256:t=1:c=white@0.2,\
-drawbox=w=9:h=9:t=1:x=180-3:y=512-480-5:c=red@0.6,\
-drawbox=w=9:h=9:t=1:x=108-3:y=512-68-5:c=green@0.6,\
-drawbox=w=9:h=9:t=1:x=480-3:y=512-220-5:c=blue@0.6,\
-drawbox=w=9:h=9:t=1:x=332-3:y=512-32-5:c=cyan@0.6,\
-drawbox=w=9:h=9:t=1:x=404-3:y=512-444-5:c=magenta@0.6,\
-drawbox=w=9:h=9:t=1:x=32-3:y=512-292-5:c=yellow@0.6,\
-drawbox=w=9:h=9:t=1:x=199-3:y=512-424-5:c=red@0.8,\
-drawbox=w=9:h=9:t=1:x=145-3:y=512-115-5:c=green@0.8,\
-drawbox=w=9:h=9:t=1:x=424-3:y=512-229-5:c=blue@0.8,\
-drawbox=w=9:h=9:t=1:x=313-3:y=512-88-5:c=cyan@0.8,\
-drawbox=w=9:h=9:t=1:x=367-3:y=512-397-5:c=magenta@0.8,\
-drawbox=w=9:h=9:t=1:x=88-3:y=512-283-5:c=yellow@0.8,\
 drawbox=w=9:h=9:t=1:x=128-3:y=512-452-5:c=sienna@0.8,\
 drawbox=w=9:h=9:t=1:x=160-3:y=512-404-5:c=sienna@0.8,\
 drawbox=w=9:h=9:t=1:x=192-3:y=512-354-5:c=sienna@0.8,\
-drawbox=w=9:h=9:t=1:x=224-3:y=512-304-5:c=sienna@0.8"
+drawbox=w=9:h=9:t=1:x=224-3:y=512-304-5:c=sienna@0.8,\
+drawgrid=w=32:h=32:t=1:c=white@0.1,\
+drawgrid=w=256:h=256:t=1:c=white@0.2"
+
 
 lookup_playbackview(){
     case "${1}" in
         "Visual")
         playbackfilter="\
-split=5[a][b][c][d][e];\
+streams=dv+da[v][s];\
+[s]asplit=2[z][out1];\
+[z]channelsplit=channel_layout=4.0[s1][s2][s3][s4];[s1][s2][s3][s4]amerge=inputs=4,aformat=channel_layouts=quad[x];\
+[x]showvolume=t=0:h=17:w=200[xx];\
+[v]split=5[a][b][c][d][e];\
 [b]field=top[b1];\
 [c]field=bottom[c1];\
 [b1]${WAVEFORM_FILTER}[b2];\
@@ -424,11 +411,16 @@ split=5[a][b][c][d][e];\
 [d]${VECTORSCOPE_FILTER}[d1];\
 [e]signalstats=out=brng,scale=512:ih[e1];\
 [e1][d1]vstack[de1];\
-[abc1][de1]hstack[out]"
+[abc1][de1]hstack[abcde1];\
+[abcde1][xx]overlay=10:10[out0]"
             ;;
-        "Visual + Numerical")
-        playbackfilter="\
-split=6[a][b][c][d][e][f];\
+            "Visual + Numerical")
+            playbackfilter="\
+streams=dv+da[v][s];\
+[s]asplit=2[z][out1];\
+[z]channelsplit=channel_layout=4.0[s1][s2][s3][s4];[s1][s2][s3][s4]amerge=inputs=4,aformat=channel_layouts=quad[x];\
+[x]showvolume=t=0:h=17:w=200[xx];\
+[v]split=6[a][b][c][d][e][f];\
 [b]field=top[b1];\
 [c]field=bottom[c1];\
 [b1]${WAVEFORM_FILTER}[b2];\
@@ -445,7 +437,8 @@ drawtext=fontcolor=white:fontsize=17:\
 fontfile=${defaultfont}:textfile=/tmp/drawtext2.txt,\
 drawtext=fontcolor=white:fontsize=52:\
 fontfile=${defaultfont}:textfile=/tmp/drawtext3.txt[f1];\
-[f1][abc1][de1]hstack=inputs=3[out]"
+[f1][abc1][de1]hstack=inputs=3[abcdef1];\
+[abcdef1][xx]overlay=200:10[out0]"
             ;;
         Q) exit 0 ;;
         q) exit 0 ;;
@@ -793,9 +786,10 @@ fi
 if [[ "${runtype}" = "passthrough" ]] ; then
     video_bitdepth=10
     bmdcapture -m ${standard} -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p "${video_bitdepth}" -F nut -f pipe:1 | \
-            ffplay -v info -hide_banner -stats -i - \
-            -window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" \
-            -vf "${playbackfilter}"
+		ffplay -v info -hide_banner -stats  \
+		-window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" \
+		-f lavfi -graph "movie=pipe\\\:0:${playbackfilter}" hi
+	
     exit 0
 fi
 
@@ -941,9 +935,9 @@ if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
 # mkfifo needs to be conditional and maybe deal with deleting a preexisting pipe
 mkfifo PIPE2QCTOOLS
 bmdcapture -m ${standard} -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p "${video_bitdepth}" -F nut -f pipe:1 2> "${dir}/${id}${bmdcapturelogsuffix}" | \
-    tee >(ffplay -i - -v info \
+    tee >(ffplay -v info \
             -hide_banner -stats -autoexit \
-            -window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" -vf "${playbackfilter}") | \
+            -window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" -f lavfi -graph "movie='pipe\:0':${playbackfilter}" hi) | \
     ffmpeg -v info -hide_banner -stats ${inputoptions[@]} -i - ${middleoptions[@]} \
         -metadata:s:v:0 encoder="${codecname}" \
         -c:a pcm_s24le \
@@ -963,9 +957,9 @@ fi
 
 if [[ "${qctoolsxml_choice}" = "No" ]] ; then
     bmdcapture -m ${standard} -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p "${video_bitdepth}" -F nut -f pipe:1 2> "${dir}/${id}${bmdcapturelogsuffix}" | \
-        tee >(ffplay -i - -v info \
+        tee >(ffplay -v info \
                 -hide_banner -stats -autoexit \
-                -window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" -vf "${playbackfilter}") | \
+                -window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" -f lavfi -graph "movie='pipe\:0':${playbackfilter}" hi) | \
         ffmpeg -v info -hide_banner -stats ${inputoptions[@]} -i - ${middleoptions[@]} \
             -metadata:s:v:0 encoder="${codecname}" \
             -c:a pcm_s24le \
