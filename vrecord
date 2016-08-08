@@ -67,6 +67,7 @@ standard_options=("NTSC" "PAL")
 playbackview_options=("Visual" "Visual + Numerical")
 framemd5_options=("Yes" "No")
 qctoolsxml_options=("Yes" "No")
+db_options=("Yes" "No")
 
 
 set_up_drawtext(){
@@ -370,6 +371,18 @@ lookup_qctoolsxml(){
     esac
 }
 
+lookup_db_choice(){
+    case "${1}" in
+        "Yes")
+            ;;
+        "No")
+            ;;
+        Q) exit 0 ;;
+        q) exit 0 ;;
+        *)  report -w "Error: Not a valid option, select a valid number or [q] to quit." ; return 1 ;;
+    esac
+}
+
 #get the correct values for NTSC and PAL video depending on the capture card
 get_standard_values
 
@@ -555,6 +568,15 @@ qctoolsxml_choice.default = ${qctoolsxml_choice}
 qctoolsxml_choice.option = ${undeclaredoption}
 qctoolsxml_choice.option = Yes
 qctoolsxml_choice.option = No
+#database integration
+db_choice.x = 660
+db_choice.y = 135
+db_choice.type = radiobutton
+db_choice.label = Use digibase integration?
+db_choice.default = ${db_choice}
+db_choice.option = ${undeclaredoption}
+db_choice.option = Yes
+db_choice.option = No
 # duration
 duration.x = 20
 duration.y = 60
@@ -657,6 +679,7 @@ if [[ "${runtype}" = "edit" ]] ; then
     playbackview_choice_comment="#Set playbackview_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${playbackview_options[@]}")"
     framemd5_choice_comment="#Set framemd5_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${framemd5_options[@]}")"
     qctoolsxml_choice_comment="#Set qctoolsxml_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${qctoolsxml_options[@]}")"
+    db_choice_comment="#Set db_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${db_options[@]}")"
     video_bit_depth_choice_comment="#Set video_bit_depth_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${video_bitdepth_options[@]}")"
     video_codec_choice_comment="#Set video_codec_choice to one of these valid options or leave blank to request each run: $(printf "\"%s\" " "${video_codec_options[@]}")"
     audio_mapping_choice_comment="#Set audio_mapping_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${channel_mapping_options[@]}")"
@@ -682,6 +705,7 @@ if [[ "${runtype}" = "edit" ]] ; then
         echo "  standard_choice = ${standard_choice}"
         echo "  framemd5_choice = ${framemd5_choice}"
         echo "  qctoolsxml_choice = ${qctoolsxml_choice}"
+        echo "  digibase_integration = ${db_choice}"
         echo "  duration = ${duration}"
         echo "  playbackview_choice = ${playbackview_choice}"
         echo "  technician = ${technician}"
@@ -705,7 +729,9 @@ if [[ "${runtype}" = "edit" ]] ; then
         echo  "framemd5_choice=\"${framemd5_choice}\"" >> "${config_file}"
         echo  >> "${config_file}"
         echo  "qctoolsxml_choice=\"${qctoolsxml_choice}\"" >> "${config_file}"
-                echo  >> "${config_file}"
+        echo  >> "${config_file}"
+        echo  "db_choice=\"${db_choice}\"" >> "${config_file}"
+        echo  >> "${config_file}"
         echo  "${video_bit_depth_choice_comment}" >> "${config_file}"
         echo "video_bit_depth_choice=\"${video_bit_depth_choice}\"" >> "${config_file}"
         echo  >> "${config_file}"
@@ -815,6 +841,17 @@ else
     done
 fi
 
+if [[ "${db_choice}" != "${undeclaredoption}" ]] ; then
+    echo ""
+else
+    report -q "Use digibase integration?"
+    PS3="Select an option: "
+    select db_choice in "${db_options[@]}" ; do
+        lookup_db_choice "${db_choice}"
+        [ "${?}" -eq 0 ] && break
+    done
+fi
+
 report -q -n "Enter Identifier: "
 read id
 if [ ! -d "${dir}" ] ; then
@@ -893,7 +930,7 @@ else
     done
 fi
 
-report -d "Summary: ${video_bitdepth} bit ${codecname} ${container_choice} file from ${standard_choice} ${video_input_choice} ${audio_input_choice} Frame MD5s=${framemd5_choice} QC Tools XML=${qctoolsxml_choice} and Technician=${technician}. Inputs recorded to ${dir}/${id}.${extension} "
+report -d "Summary: ${video_bitdepth} bit ${codecname} ${container_choice} file from ${standard_choice} ${video_input_choice} ${audio_input_choice} Frame MD5s=${framemd5_choice} QC Tools XML=${qctoolsxml_choice} Digibase Integration=${db_choice} and Technician=${technician}. Inputs recorded to ${dir}/${id}.${extension} "
 report -q "Hit enter to start recording"
 read
 
@@ -914,12 +951,23 @@ _writeingestlog "video_input" "${video_input_choice}"
 _writeingestlog "audio_input" "${audio_input_choice}"
 _writeingestlog "framemd5_choice" "${framemd5_choice}"
 _writeingestlog "qctoolsxml_choice" "${qctoolsxml_choice}"
+_writeingestlog "digibase_integration" "${db_choice}"
 _writeingestlog "file_path" "${dir}/${id}.${extension}"
 
 if [[ ${technician} = "" ]] ; then
 _writeingestlog "technician" "N/A"
 else
 _writeingestlog "technician" "${technician}"
+fi
+
+# Start running digibase scripts
+if [[ "${db_choice}" = "Yes" ]] ; then
+computer_name=$(uname -n)
+. "digibase_functions" || { echo "Missing 'digibase_functions'. Exiting." ; exit 1 ;};
+. "${digibase_config_file}"
+setuptables || { echo "Missing 'setuptables'. Exiting." ; exit 1 ;};
+mysql -h ${host_name} -u ${user_name} -p${password} -D ${database} -e "INSERT INTO ${table_name1} (action_type,technician,computer_name,time_started,time_ended,item_id) VALUES('digitization','${technician}','${computer_name}',CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,'${id}'); INSERT INTO ${table_name3} (digitization_status,item_id,object_type,file_path) VALUES('digitizing','${id}','videotape','${dir}/${id}.${extension}');"
+echo "'Digitizing' written to digibase"
 fi
 
 report -d "Close the playback window to stop recording."
@@ -1003,5 +1051,25 @@ fi
 
 if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
 report -d "Analysis is complete."
+fi
+
+# Write results of digitization to digibase
+if [[ "${db_choice}" = "Yes" ]] ; then
+    digi_errors=0
+mysql -h ${host_name} -u ${user_name} -p${password} -D ${database} -e "UPDATE ${table_name3} SET qc_status='awaiting qc' WHERE item_id=${id};"
+mysql -h ${host_name} -u ${user_name} -p${password} -D ${database} -e "UPDATE ${table_name1} SET time_ended=CURRENT_TIMESTAMP WHERE item_id=${id};" 
+    if [[ "${SAT_OUTLIERS}" -gt "${SAT_OUTLIER_THRSHLD}" ]] ; then
+        digi_errors=$((digi_errors+1))
+    fi
+    if [[ "${frame_discrepency}" != "" ]] ; then
+        digi_errors=$((digi_errors+1))
+    fi
+    if [[ "${digi_errors}" -gt 0 ]] ; then 
+mysql -h ${host_name} -u ${user_name} -p${password} -D ${database} -e "UPDATE ${table_name3} SET digitization_status='digitized with errors' WHERE item_id=${id};"
+        echo "Wrote 'digitized with errors' to digibase"
+    else
+mysql -h ${host_name} -u ${user_name} -p${password} -D ${database} -e "UPDATE ${table_name3} SET digitization_status='digitized without errors' WHERE item_id=${id};"
+        echo "Wrote 'digitized without errors' to digibase"
+    fi
 fi
 
