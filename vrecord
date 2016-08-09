@@ -25,6 +25,7 @@ usage(){
     echo "  -e ( edit the configuration file before recording )"
     echo "  -r ( enable record mode [default] )"
     echo "  -p ( enable passthrough mode where the video signal coming into the computer can be monitored, but not written to a file. Useful for testing equipment and setting up a tape to bars. )"
+    echo "  -a ( enable audio passthrough mode. Identical to passthrough except for the addition of audio bars. Note: Will eventually lag and crash if left on too long)"
     echo "  -x ( reset the configuration, this will clear the default configuration file at ${config_file} and create a new one)"
     echo
     echo "Installation help:"
