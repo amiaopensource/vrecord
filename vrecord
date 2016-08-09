@@ -25,6 +25,7 @@ usage(){
     echo "  -e ( edit the configuration file before recording )"
     echo "  -r ( enable record mode [default] )"
     echo "  -p ( enable passthrough mode where the video signal coming into the computer can be monitored, but not written to a file. Useful for testing equipment and setting up a tape to bars. )"
+    echo "  -a ( enable audio passthrough mode. Identical to passthrough except for the addition of audio bars. Note: Will eventually lag and crash if left on too long)"
     echo "  -x ( reset the configuration, this will clear the default configuration file at ${config_file} and create a new one)"
     echo
     echo "Installation help:"
@@ -37,12 +38,13 @@ usage(){
 
 # command-line options to set mediaid and original variables
 OPTIND=1
-while getopts "herpx" opt ; do
+while getopts "herpax" opt ; do
     case "${opt}" in
         h) usage ;;
         e) runtype="edit";;
         r) runtype="record";;
         p) runtype="passthrough" ;;
+        a) runtype="audiopassthrough" ;;
         x) runtype="reset" ;;
         *) report -w "bad option -$OPTARG" ; usage ;;
         :) report -w "Option -$OPTARG requires an argument" ; exit 1 ;;
@@ -394,6 +396,8 @@ drawgrid=w=32:h=32:t=1:c=white@0.1,\
 drawgrid=w=256:h=256:t=1:c=white@0.2"
 
 
+if [[ "${runtype}" = "audiopassthrough" ]] ; then
+
 lookup_playbackview(){
     case "${1}" in
         "Visual")
@@ -413,9 +417,10 @@ streams=dv+da[v][s];\
 [e1][d1]vstack[de1];\
 [abc1][de1]hstack[abcde1];\
 [abcde1][xx]overlay=10:10[out0]"
+
             ;;
-            "Visual + Numerical")
-            playbackfilter="\
+        "Visual + Numerical")
+	playbackfilter="\
 streams=dv+da[v][s];\
 [s]asplit=2[z][out1];\
 [z]channelsplit=channel_layout=4.0[s1][s2][s3][s4];[s1][s2][s3][s4]amerge=inputs=4,aformat=channel_layouts=quad[x];\
@@ -445,6 +450,51 @@ fontfile=${defaultfont}:textfile=/tmp/drawtext3.txt[f1];\
         *)  report -w "Error: Not a valid option, select a valid number or [q] to quit." ; return 1 ;;
     esac
 }
+
+else
+
+lookup_playbackview(){
+    case "${1}" in
+        "Visual")
+playbackfilter="\
+split=5[a][b][c][d][e];\
+[b]field=top[b1];\
+[c]field=bottom[c1];\
+[b1]${WAVEFORM_FILTER}[b2];\
+[c1]${WAVEFORM_FILTER}[c2];\
+[a][b2][c2]vstack=inputs=3,format=yuv422p[abc1];\
+[d]${VECTORSCOPE_FILTER}[d1];\
+[e]signalstats=out=brng,scale=512:ih[e1];\
+[e1][d1]vstack[de1];\
+[abc1][de1]hstack[out]"
+            ;;
+        "Visual + Numerical")
+playbackfilter="\
+split=6[a][b][c][d][e][f];\
+[b]field=top[b1];\
+[c]field=bottom[c1];\
+[b1]${WAVEFORM_FILTER}[b2];\
+[c1]${WAVEFORM_FILTER}[c2];\
+[a][b2][c2]vstack=inputs=3,format=yuv422p[abc1];\
+[d]${VECTORSCOPE_FILTER}[d1];\
+[e]signalstats=out=brng,scale=512:ih[e1];\
+[e1][d1]vstack[de1];\
+[f]signalstats=stat=brng+vrep+tout,geq=lum=60:cb=128:cr=128,\
+scale=180:ih+512,setsar=1/1,\
+drawtext=fontcolor=white:fontsize=22:\
+fontfile=${defaultfont}:textfile=/tmp/drawtext.txt,\
+drawtext=fontcolor=white:fontsize=17:\
+fontfile=${defaultfont}:textfile=/tmp/drawtext2.txt,\
+drawtext=fontcolor=white:fontsize=52:\
+fontfile=${defaultfont}:textfile=/tmp/drawtext3.txt[f1];\
+[f1][abc1][de1]hstack=inputs=3[out]"
+            ;;
+        Q) exit 0 ;;
+        q) exit 0 ;;
+        *)  report -w "Error: Not a valid option, select a valid number or [q] to quit." ; return 1 ;;
+    esac
+}
+fi
 # defines the GUI dialog
 conf="
 # Set transparency: 0 is transparent, 1 is opaque
@@ -744,13 +794,15 @@ if [[ "${runtype}" = "edit" ]] ; then
      report -d "Editing of preferences was canceled by the user."
  fi
  runtype="record"
- report -nd "Press [q] to quit, [p] to enter passthrough mode or any other key to proceed."
+ report -nd "Press [q] to quit, [p] to enter passthrough mode [a] to enter audio passthrough mode or any other key to proceed."
  read aftereditresponse
  if [[ "$aftereditresponse" == "q" ]] ; then
      report -d "Bye then"
      exit
 elif [[ "$aftereditresponse" == "p" ]] ; then
 	runtype="passthrough"
+elif [[ "$aftereditresponse" == "a" ]] ; then
+    runtype="audiopassthrough"
 fi
 
 fi
@@ -802,12 +854,24 @@ fi
 if [[ "${runtype}" = "passthrough" ]] ; then
     video_bitdepth=10
     bmdcapture -m ${standard} -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p "${video_bitdepth}" -F nut -f pipe:1 | \
-		ffplay -v info -hide_banner -stats  \
-		-window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" \
-		-f lavfi -graph "movie=pipe\\\:0:${playbackfilter}" hi
-	
+            ffplay -v info -hide_banner -stats -i - \
+            -window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" \
+            -vf "${playbackfilter}"
     exit 0
 fi
+
+if [[ "${runtype}" = "audiopassthrough" ]] ; then
+
+ video_bitdepth=10
+ bmdcapture -m ${standard} -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p "${video_bitdepth}" -F nut -f pipe:1 | \
+      ffplay -v info -hide_banner -stats  \
+      -window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" \
+      -f lavfi -graph "movie=pipe\\\:0:${playbackfilter}" hi
+	
+ exit 0
+fi
+    
+
 
 if [[ "${framemd5_choice}" != "${undeclaredoption}" ]] ; then
     echo ""
@@ -960,9 +1024,9 @@ if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
 # mkfifo needs to be conditional and maybe deal with deleting a preexisting pipe
 mkfifo PIPE2QCTOOLS
 bmdcapture -m ${standard} -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p "${video_bitdepth}" -F nut -f pipe:1 2> "${logdir}/${id}${bmdcapturelogsuffix}" | \
-    tee >(ffplay -v info \
-            -hide_banner -stats -autoexit \
-            -window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" -f lavfi -graph "movie='pipe\:0':${playbackfilter}" hi) | \
+    tee >(ffplay -i - -v info \
+                -hide_banner -stats -autoexit \
+                -window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" -vf "${playbackfilter}") | \
     ffmpeg -v info -hide_banner -stats ${inputoptions[@]} -i - ${middleoptions[@]} \
         -metadata:s:v:0 encoder="${codecname}" \
         -c:a pcm_s24le \
@@ -982,9 +1046,9 @@ fi
 
 if [[ "${qctoolsxml_choice}" = "No" ]] ; then
     bmdcapture -m ${standard} -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p "${video_bitdepth}" -F nut -f pipe:1 2> "${logdir}/${id}${bmdcapturelogsuffix}" | \
-        tee >(ffplay -v info \
-                -hide_banner -stats -autoexit \
-                -window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" -f lavfi -graph "movie='pipe\:0':${playbackfilter}" hi) | \
+        tee >(ffplay -i - -v info \
+                    -hide_banner -stats -autoexit \
+                    -window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" -vf "${playbackfilter}") | \
         ffmpeg -v info -hide_banner -stats ${inputoptions[@]} -i - ${middleoptions[@]} \
             -metadata:s:v:0 encoder="${codecname}" \
             -c:a pcm_s24le \
