@@ -731,7 +731,7 @@ if [[ "${runtype}" = "edit" ]] ; then
     if [[ "$cb" == 0 ]] ; then
         # report back options
         
-#confirm legal value for diration
+#confirm legal value for duration
 if [ -n "${duration}" ]; then
 real_regexp="[+-]?([0-9]+|[0-9]+\.[0-9]*|\.[0-9]+)"
 if [[ $duration =~ ^$real_regexp$ ]]; then
@@ -935,7 +935,7 @@ if [ -z "${duration}" ] ; then
     read duration
 fi
 
-# confirm legal value for diration
+# confirm legal value for duration
 if [ -n "${duration}" ]; then
 real_regexp="[+-]?([0-9]+|[0-9]+\.[0-9]*|\.[0-9]+)"
 if [[ $duration =~ ^$real_regexp$ ]]; then
