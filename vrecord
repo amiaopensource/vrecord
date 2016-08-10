@@ -730,6 +730,16 @@ if [[ "${runtype}" = "edit" ]] ; then
     rm $pashua_configfile
     if [[ "$cb" == 0 ]] ; then
         # report back options
+        
+#confirm legal value for diration
+if [ -n "${duration}" ]; then
+real_regexp="[+-]?([0-9]+|[0-9]+\.[0-9]*|\.[0-9]+)"
+if [[ $duration =~ ^$real_regexp$ ]]; then
+is_number=yes
+else echo "Illegal value for recording time. Input must only be numbers." && exit
+fi
+fi
+        # report back options
         echo "Variables set:"
         echo "  dir = ${dir}"
         echo "  logdir = ${logdir}"
@@ -923,6 +933,15 @@ fi
 if [ -z "${duration}" ] ; then
     report -q -n "Set recording time (in minutes), leave blank for unlimited recording time: "
     read duration
+fi
+
+# confirm legal value for diration
+if [ -n "${duration}" ]; then
+real_regexp="[+-]?([0-9]+|[0-9]+\.[0-9]*|\.[0-9]+)"
+if [[ $duration =~ ^$real_regexp$ ]]; then
+is_number=yes
+else echo "Illegal value for recording time. Input must only be numbers." && exit
+fi
 fi
 
 
