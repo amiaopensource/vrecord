@@ -198,6 +198,18 @@ report(){
 _get_iso8601(){
     date +%FT%T
 }
+
+#Sets up function to verify validitiy of duration settings
+real_regexp="[+-]?([0-9]+|[0-9]+\.[0-9]*|\.[0-9]+)"
+
+duration_check(){
+if [ -n "${duration}" ] ; then
+if [[ $duration =~ ^$real_regexp$ ]]; then
+is_number=yes
+else echo "Illegal value for recording time. Input must only be numbers." && exit
+fi fi
+}
+
 #This function creates a capture log of decisions made in vrecord
 _writeingestlog(){
     if [ "${INGESTLOG}" ] ; then
