@@ -1084,7 +1084,9 @@ if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
 audio_sum=$(gzcat ${logdir}/${id}${suffix}.qctools.xml.gz | grep lavfi.astats.Overall.RMS_peak | cut -d '"' -f 4 | awk '{ SUM += $1} END { print SUM }')
 audio_total=$(gzcat ${logdir}/${id}${suffix}.qctools.xml.gz | grep lavfi.astats.Overall.RMS_peak | cut -d '"' -f 4 | wc -l)
 RMS_avg="$(echo "scale=3; $audio_sum / $audio_total" | bc)"
-_writeingestlog "Audio RMS Average (dB)" "${RMS_avg}"
+audio_peak=$(gzcat ${logdir}/${id}${suffix}.qctools.xml.gz | grep lavfi.astats.Overall.Peak_level | cut -d '"' -f 4 | sort -n | tail -n 1)
+_writeingestlog "Peak Volume is (dB)" "${audio_peak}"
+_writeingestlog "Average RMS level is (dB)" "${RMS_avg}"
 fi
 
 #check for discontinuities in the Frame MD5s
