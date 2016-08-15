@@ -289,7 +289,7 @@ lookup_video_codec(){
 lookup_audio_mapping(){
     case "${1}" in
         "2 Stereo Tracks")
-audiomap="[0:a:0]channelsplit=channel_layout=4.0[a1][a2][a3][a4];[a1][a2]amerge,aformat=channel_layouts=stereo[stereo1];[a3][a4]amerge,aformat=channel_layouts=stereo[stereo2]"
+audiomap="[0:a:0]pan=stereo| c0=c0 | c1=c1[stereo1];[0:a:0]pan=stereo| c0=c2 | c1=c3[stereo2]"
         map1k="-map"
         map1v="[stereo1]"
         map2k="-map"
@@ -416,7 +416,7 @@ lookup_playbackview(){
         playbackfilter="\
 streams=dv+da[v][s];\
 [s]asplit=2[z][out1];\
-[z]channelsplit=channel_layout=4.0[s1][s2][s3][s4];[s1][s2][s3][s4]amerge=inputs=4,aformat=channel_layouts=quad[x];\
+[z]channelsplit=channel_layout=quad[s1][s2][s3][s4];[s1][s2][s3][s4]amerge=inputs=4,aformat=channel_layouts=quad[x];\
 [x]showvolume=t=0:h=17:w=200[xx];\
 [v]split=5[a][b][c][d][e];\
 [b]field=top[b1];\
@@ -435,7 +435,7 @@ streams=dv+da[v][s];\
 	playbackfilter="\
 streams=dv+da[v][s];\
 [s]asplit=2[z][out1];\
-[z]channelsplit=channel_layout=4.0[s1][s2][s3][s4];[s1][s2][s3][s4]amerge=inputs=4,aformat=channel_layouts=quad[x];\
+[z]channelsplit=channel_layout=quad[s1][s2][s3][s4];[s1][s2][s3][s4]amerge=inputs=4,aformat=channel_layouts=quad[x];\
 [x]showvolume=t=0:h=17:w=200[xx];\
 [v]split=6[a][b][c][d][e][f];\
 [b]field=top[b1];\
@@ -1078,6 +1078,12 @@ if [[ "${qctoolsxml_choice}" = "No" ]] ; then
 fi
 
 _writeingestlog "datetime_end" "$(_get_iso8601)"
+
+#check audio levels
+if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
+audio_peak=$(gzcat ${logdir}/${id}${suffix}.qctools.xml.gz | grep lavfi.astats.Overall.Peak_level | cut -d '"' -f 4 | sort -n | tail -n 1)
+_writeingestlog "Peak Volume is (dB)" "${audio_peak}"
+fi
 
 #check for discontinuities in the Frame MD5s
 if [[ "${framemd5_choice}" = "Yes" ]] ; then
