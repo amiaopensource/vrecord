@@ -1079,6 +1079,14 @@ fi
 
 _writeingestlog "datetime_end" "$(_get_iso8601)"
 
+#check audio levels
+if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
+audio_sum=$(gzcat ${logdir}/${id}${suffix}.qctools.xml.gz | grep lavfi.astats.Overall.RMS_peak | cut -d '"' -f 4 | awk '{ SUM += $1} END { print SUM }')
+audio_total=$(gzcat ${logdir}/${id}${suffix}.qctools.xml.gz | grep lavfi.astats.Overall.RMS_peak | cut -d '"' -f 4 | wc -l)
+RMS_avg="$(echo "scale=3; $audio_sum / $audio_total" | bc)"
+_writeingestlog "Audio RMS Average (dB)" "${RMS_avg}"
+fi
+
 #check for discontinuities in the Frame MD5s
 if [[ "${framemd5_choice}" = "Yes" ]] ; then
     pts_discontinuity=$(cat "${framemd5name}" | grep -v "^#" | cut -d, -f3 | sed 's/ //g' | grep -v "^0$" | awk '$1!=p+1{printf p+1"-"$1-1" "}{p=$1}')
