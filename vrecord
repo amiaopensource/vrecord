@@ -398,7 +398,7 @@ waveform=intensity=0.1:mode=column:mirror=1:c=1:f=lowpass:e=instant:graticule=gr
 
 VECTORSCOPE_FILTER="\
 format=yuv422p,\
-vectorscope=i=0.04:mode=color2:envelope=instant:graticule=green:flags=name,\
+vectorscope=i=0.04:mode=color2:c=1:envelope=instant:graticule=green:flags=name,\
 scale=512:512,\
 drawbox=w=9:h=9:t=1:x=128-3:y=512-452-5:c=sienna@0.8,\
 drawbox=w=9:h=9:t=1:x=160-3:y=512-404-5:c=sienna@0.8,\
