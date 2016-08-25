@@ -414,21 +414,19 @@ lookup_playbackview(){
     case "${1}" in
         "Visual")
         playbackfilter="\
-streams=dv+da[v][s];\
-[s]asplit=2[z][out1];\
-[z]channelsplit=channel_layout=quad[s1][s2][s3][s4];[s1][s2][s3][s4]amerge=inputs=4,aformat=channel_layouts=quad[x];\
-[x]showvolume=t=0:h=17:w=200[xx];\
-[v]split=5[a][b][c][d][e];\
-[b]field=top[b1];\
-[c]field=bottom[c1];\
-[b1]${WAVEFORM_FILTER}[b2];\
-[c1]${WAVEFORM_FILTER}[c2];\
-[a][b2][c2]vstack=inputs=3,format=yuv422p[abc1];\
-[d]${VECTORSCOPE_FILTER}[d1];\
-[e]signalstats=out=brng,scale=512:ih[e1];\
-[e1][d1]vstack[de1];\
-[abc1][de1]hstack[abcde1];\
-[abcde1][xx]overlay=10:10[out0]"
+[aid1]asplit=2[z][ao],\
+[z]showvolume=t=0:h=17:w=200[xx],\
+[vid1]split=5[a][b][c][d][e],\
+[b]field=top[b1],\
+[c]field=bottom[c1],\
+[b1]${WAVEFORM_FILTER}[b2],\
+[c1]${WAVEFORM_FILTER}[c2],\
+[a][b2][c2]vstack=inputs=3,format=yuv422p[abc1],\
+[d]${VECTORSCOPE_FILTER}[d1],\
+[e]signalstats=out=brng,scale=512:ih[e1],\
+[e1][d1]vstack[de1],\
+[abc1][de1]hstack[abcde1],\
+[abcde1][xx]overlay=10:10[vo]"
 
             ;;
         "Visual + Numerical")
@@ -877,9 +875,7 @@ if [[ "${runtype}" = "audiopassthrough" ]] ; then
 
  video_bitdepth=10
  bmdcapture -m ${standard} -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p "${video_bitdepth}" -F nut -f pipe:1 | \
-      ffplay -v info -hide_banner -stats  \
-      -window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" \
-      -f lavfi -graph "movie=pipe\\\:0:${playbackfilter}" hi
+      mpv - -lavfi-complex "${playbackfilter}"
 	
  exit 0
 fi
