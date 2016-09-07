@@ -872,7 +872,7 @@ if [[ "${runtype}" = "passthrough" ]] ; then
 fi
 
 if [[ "${runtype}" = "audiopassthrough" ]] ; then
-
+echo "ESC quit" > ~/.config/mpv/input.conf
  video_bitdepth=10
  bmdcapture -m ${standard} -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p "${video_bitdepth}" -F nut -f pipe:1 | \
       mpv - -lavfi-complex "${playbackfilter}"
