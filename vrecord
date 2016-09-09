@@ -415,7 +415,8 @@ lookup_playbackview(){
         "Visual")
         playbackfilter="\
 [aid1]asplit=2[z][ao],\
-[z]showvolume=t=0:h=17:w=200[xx],\
+[z]channelsplit=channel_layout=quad[s1][s2][s3][s4];[s1][s2][s3][s4]amerge=inputs=4,aformat=channel_layouts=quad[zz],\
+[zz]showvolume=t=0:h=17:w=200[xx],\
 [vid1]split=5[a][b][c][d][e],\
 [b]field=top[b1],\
 [c]field=bottom[c1],\
@@ -432,7 +433,8 @@ lookup_playbackview(){
             "Visual + Numerical")
             playbackfilter="\
 [aid1]asplit=2[z][ao],\
-[z]showvolume=t=0:h=17:w=200[xx],\
+[z]channelsplit=channel_layout=quad[s1][s2][s3][s4];[s1][s2][s3][s4]amerge=inputs=4,aformat=channel_layouts=quad[zz],\
+[zz]showvolume=t=0:h=17:w=200[xx],\
 [vid1]split=6[a][b][c][d][e][f],\
 [b]field=top[b1],\
 [c]field=bottom[c1],\
