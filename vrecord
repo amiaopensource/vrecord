@@ -410,9 +410,9 @@ drawgrid=w=256:h=256:t=1:c=white@0.2"
 
 if [[ "${runtype}" = "audiopassthrough" ]] ; then
 
-lookup_playbackview(){
-    case "${1}" in
-        "Visual")
+#lookup_playbackview(){
+#    case "${1}" in
+#        "Visual")
         playbackfilter="\
 [aid1]asplit=2[z][ao],\
 [z]channelsplit=channel_layout=quad[s1][s2][s3][s4];[s1][s2][s3][s4]amerge=inputs=4,aformat=channel_layouts=quad[zz],\
@@ -429,38 +429,38 @@ lookup_playbackview(){
 [abc1][de1]hstack[abcde1],\
 [abcde1][xx]overlay=10:10[vo]"
 
-            ;;
-            "Visual + Numerical")
-            playbackfilter="\
-[aid1]asplit=2[z][ao],\
-[z]channelsplit=channel_layout=quad[s1][s2][s3][s4];[s1][s2][s3][s4]amerge=inputs=4,aformat=channel_layouts=quad[zz],\
-[zz]showvolume=t=0:h=17:w=200[xx],\
-[vid1]split=6[a][b][c][d][e][f],\
-[b]field=top[b1],\
-[c]field=bottom[c1],\
-[b1]${WAVEFORM_FILTER}[b2],\
-[c1]${WAVEFORM_FILTER}[c2],\
-[a][b2][c2]vstack=inputs=3,format=yuv422p[abc1],\
-[d]${VECTORSCOPE_FILTER}[d1],\
-[e]signalstats=out=brng,scale=512:ih[e1],\
-[e1][d1]vstack[de1],\
-[abc1][de1]hstack[abcde1],\
-[f]signalstats=stat=brng+vrep+tout,geq=lum=60:cb=128:cr=128,\
-scale=180:ih+512,setsar=1/1,\
-drawtext=fontcolor=white:fontsize=22:\
-fontfile=${defaultfont}:textfile=/tmp/drawtext.txt,\
-drawtext=fontcolor=white:fontsize=17:\
-fontfile=${defaultfont}:textfile=/tmp/drawtext2.txt,\
-drawtext=fontcolor=white:fontsize=52:\
-fontfile=${defaultfont}:textfile=/tmp/drawtext3.txt[f1],\
-[f1][abcde1]hstack[abcdef1],\
-[abcdef1][xx]overlay=200:10[vo]"
-            ;;
-        Q) exit 0 ;;
-        q) exit 0 ;;
-        *)  report -w "Error: Not a valid option, select a valid number or [q] to quit." ; return 1 ;;
-    esac
-}
+#            ;;
+#           "Visual + Numerical")
+#            playbackfilter="\
+#[aid1]asplit=2[z][ao],\
+#[z]channelsplit=channel_layout=quad[s1][s2][s3][s4];[s1][s2][s3][s4]amerge=inputs=4,aformat=channel_layouts=quad[zz],\
+#[zz]showvolume=t=0:h=17:w=200[xx],\
+#[vid1]split=6[a][b][c][d][e][f],\
+#[b]field=top[b1],\
+#[c]field=bottom[c1],\
+#[b1]${WAVEFORM_FILTER}[b2],\
+#[c1]${WAVEFORM_FILTER}[c2],\
+#[a][b2][c2]vstack=inputs=3,format=yuv422p[abc1],\
+#[d]${VECTORSCOPE_FILTER}[d1],\
+#[e]signalstats=out=brng,scale=512:ih[e1],\
+#[e1][d1]vstack[de1],\
+#[abc1][de1]hstack[abcde1],\
+#[f]signalstats=stat=brng+vrep+tout,geq=lum=60:cb=128:cr=128,\
+#scale=180:ih+512,setsar=1/1,\
+#drawtext=fontcolor=white:fontsize=22:\
+#fontfile=${defaultfont}:textfile=/tmp/drawtext.txt,\
+#drawtext=fontcolor=white:fontsize=17:\
+#fontfile=${defaultfont}:textfile=/tmp/drawtext2.txt,\
+#drawtext=fontcolor=white:fontsize=52:\
+#fontfile=${defaultfont}:textfile=/tmp/drawtext3.txt[f1],\
+#[f1][abcde1]hstack[abcdef1],\
+#[abcdef1][xx]overlay=200:10[vo]"
+#            ;;
+#        Q) exit 0 ;;
+#        q) exit 0 ;;
+#        *)  report -w "Error: Not a valid option, select a valid number or [q] to quit." ; return 1 ;;
+#    esac
+#}
 
 else
 
@@ -852,6 +852,15 @@ else
     done
 fi
 
+if [[ "${runtype}" = "audiopassthrough" ]] ; then
+echo "ESC quit" > ~/.config/mpv/input.conf
+ video_bitdepth=10
+ bmdcapture -m ${standard} -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p "${video_bitdepth}" -F nut -f pipe:1 | \
+      mpv - --title="mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" -lavfi-complex "${playbackfilter}"
+	
+ exit 0
+fi
+
 if [[ "${playbackview_choice}" && "${playbackview_choice}" != "${undeclaredoption}" ]] ; then
         lookup_playbackview "${playbackview_choice}"
     else
@@ -872,14 +881,6 @@ if [[ "${runtype}" = "passthrough" ]] ; then
     exit 0
 fi
 
-if [[ "${runtype}" = "audiopassthrough" ]] ; then
-echo "ESC quit" > ~/.config/mpv/input.conf
- video_bitdepth=10
- bmdcapture -m ${standard} -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p "${video_bitdepth}" -F nut -f pipe:1 | \
-      mpv - --title="mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" -lavfi-complex "${playbackfilter}"
-	
- exit 0
-fi
     
 
 
