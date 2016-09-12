@@ -312,9 +312,9 @@ audiomap="[0:a:0]pan=mono| c0=c0[mono1];[0:a:0]pan=mono| c0=c1[mono2]"
         "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono")
 audiomap="[0:a:0]pan=mono| c0=c1[mono1];[0:a:0]pan=mono| c0=c0[mono2]"
         map1k="-map"
-        map1v="[mono2]"
+        map1v="[mono1]"
         map2k="-map"
-        map2v="[mono1]"
+        map2v="[mono2]"
         ;;
         Q) exit ;;
         q) exit ;;
