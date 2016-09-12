@@ -286,31 +286,32 @@ lookup_video_codec(){
     esac
 }
 
+
 lookup_audio_mapping(){
     case "${1}" in
         "2 Stereo Tracks")
-audiomap="[0:a:0]pan=stereo| c0=c0 | c1=c1[stereo1];[0:a:0]pan=stereo| c0=c2 | c1=c3[stereo2]"
+audiomap="[0:a:0]pan=stereo| c0=c0 | c1="$phase_value"c1[stereo1];[0:a:0]pan=stereo| c0=c2 | c1=c3[stereo2]"
         map1k="-map"
         map1v="[stereo1]"
         map2k="-map"
         map2v="[stereo2]"
         ;;
         "1 Stereo Track")
-audiomap="[0:a:0]pan=stereo| c0=c0 | c1=c1[stereo1]"
+audiomap="[0:a:0]pan=stereo| c0=c0 | c1="$phase_value"c1[stereo1]"
         map1k="-map"
         map1v="[stereo1]"
         map2k=""
         map2v=""
         ;;
         "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono")
-audiomap="[0:a:0]pan=mono| c0=c0[mono1];[0:a:0]pan=mono| c0=c1[mono2]"
+audiomap="[0:a:0]pan=mono| c0=c0[mono1];[0:a:0]pan=mono| c0="$phase_value"c1[mono2]"
         map1k="-map"
         map1v="[mono1]"
         map2k="-map"
         map2v="[mono2]"
         ;;
         "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono")
-audiomap="[0:a:0]pan=mono| c0=c1[mono1];[0:a:0]pan=mono| c0=c0[mono2]"
+audiomap="[0:a:0]pan=mono| c0="$phase_value"c1[mono1];[0:a:0]pan=mono| c0=c0[mono2]"
         map1k="-map"
         map1v="[mono1]"
         map2k="-map"
@@ -652,6 +653,16 @@ playbackview_choice.option = ${undeclaredoption}
 playbackview_choice.option = Visual
 playbackview_choice.option = Visual + Numerical
 cb.type=cancelbutton
+#Add option to invert second channel
+invert_phase.x = 410
+invert_phase.y = 0
+invert_phase.type = checkbox
+invert_phase.label = Invert Second Channel of Audio
+invert_phase.default = ${invert_phase}
+warning.x = 350
+warning.y = 0
+warning.type = text
+warning.default = WARNING: Do not use this option unless required
 ";
 
 pashua_run() {
@@ -759,6 +770,9 @@ duration_check
         echo "  duration = ${duration}"
         echo "  playbackview_choice = ${playbackview_choice}"
         echo "  technician = ${technician}"
+        if [ "$invert_phase" = 1 ] ; then
+            echo -e " \033[101mWARNING: Channel two's phase will be inverted\033[0m"
+        fi
         echo ""
         # write config file
         echo "#$(basename "${0}") config file" > "${config_file}"
@@ -794,6 +808,7 @@ duration_check
         echo  >> "${config_file}"
 		echo "logdir=\"${logdir}\"" >> "${config_file}"
 		echo  >> "${config_file}"
+        echo "invert_phase=\"${invert_phase}\"" >> "${config_file}"
         echo  "${container_choice_comment}" >> "${config_file}"
         echo "container_choice=\"${container_choice}\"" >> "${config_file}"
         echo  >> "${config_file}"
@@ -818,6 +833,11 @@ elif [[ "$aftereditresponse" == "p" ]] ; then
 fi
 
 fi
+
+if [ "$invert_phase" = 1 ] ; then
+    phase_value="-1*"
+fi
+
 
 if [[ "${video_input_choice}" && "${video_input_choice}" != "${undeclaredoption}" ]] ; then
     lookup_video_input "${video_input_choice}"
@@ -997,6 +1017,9 @@ else
 fi
 
 report -d "Summary: ${video_bitdepth} bit ${codecname} ${container_choice} file from ${standard_choice} ${video_input_choice} ${audio_input_choice} Frame MD5s=${framemd5_choice} QC Tools XML=${qctoolsxml_choice} and Technician=${technician}. Inputs recorded to ${dir}/${id}.${extension} Auxiliary Files created in ${logdir}"
+if [ "$invert_phase" = 1 ] ; then
+    echo -e " \033[101mWARNING: Channel two's phase will be inverted\033[0m"
+fi
 report -q "Hit enter to start recording"
 read
 
@@ -1023,6 +1046,9 @@ if [[ ${technician} = "" ]] ; then
 _writeingestlog "technician" "N/A"
 else
 _writeingestlog "technician" "${technician}"
+fi
+if [ "$invert_phase" = 1 ] ; then
+    _writeingestlog "invert_phase" "Yes"
 fi
 
 report -d "Close the playback window to stop recording."
