@@ -771,7 +771,7 @@ duration_check
         echo "  playbackview_choice = ${playbackview_choice}"
         echo "  technician = ${technician}"
         if [ "$invert_phase" = 1 ] ; then
-            echo -e " \033[101mWARNING: Channel two's phase will be inverted\033[0m"
+            echo -e " \033[101mWARNING: Option to invert phase of second audio channel has been selected\033[0m"
         fi
         echo ""
         # write config file
@@ -1018,7 +1018,7 @@ fi
 
 report -d "Summary: ${video_bitdepth} bit ${codecname} ${container_choice} file from ${standard_choice} ${video_input_choice} ${audio_input_choice} Frame MD5s=${framemd5_choice} QC Tools XML=${qctoolsxml_choice} and Technician=${technician}. Inputs recorded to ${dir}/${id}.${extension} Auxiliary Files created in ${logdir}"
 if [ "$invert_phase" = 1 ] ; then
-    echo -e " \033[101mWARNING: Channel two's phase will be inverted\033[0m"
+    echo -e " \033[101mWARNING: Option to invert phase of second audio channel has been selected\033[0m"
 fi
 report -q "Hit enter to start recording"
 read
