@@ -531,7 +531,7 @@ dir.width=400
 logdir.x = 20
 logdir.y = 395
 logdir.type = openbrowser
-logdir.label = Select a directory for auxiliary files.
+logdir.label = Select a directory for auxiliary files (Leave blank to set as same with recording dir).
 logdir.default = ${logdir}
 logdir.filetype = directory
 logdir.width=400
@@ -938,12 +938,7 @@ if [ ! -d "${dir}" ] ; then
 fi
 
 if [ ! -d "${logdir}" ] ; then
-    report -q -n "Enter Auxiliary Files Directory: "
-    read logdir
-    if [ ! -d "$logdir" ] ; then
-        report -w "Error: Not a valid directory"
-        exit
-    fi
+    logdir="${dir}"
 fi
 
 if [[ "${framemd5_choice}" = "Yes" ]] ; then
