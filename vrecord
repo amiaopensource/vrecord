@@ -938,7 +938,17 @@ if [ ! -d "${dir}" ] ; then
 fi
 
 if [ ! -d "${logdir}" ] ; then
-    logdir="${dir}"
+    report -q -n "Enter Directory for Auxiliary Files (If blank will default to recording directory): "
+    read logdir
+    
+    if [ -z "${logdir}" ] ; then
+        logdir="$dir"
+    fi
+    
+    if [ ! -d "$logdir" ] ; then
+        report -w "Error: Not a valid directory"
+        exit
+    fi
 fi
 
 if [[ "${framemd5_choice}" = "Yes" ]] ; then
