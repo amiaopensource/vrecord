@@ -105,7 +105,7 @@ Run passthrough mode by typing:
 ```
 $ vrecord -p
 ```
-If you haven't already set up vrecord it will prompt you to make some selections related to your audio video inputs. Otherwise the vrecord window will open up and start displaying any video signal coming through from the capture device. 
+If you haven't already set up vrecord it will prompt you to make some selections related to your audio and video inputs. Otherwise the vrecord window will open up and start displaying any video signal coming through from the capture device. 
 
 ### Edit Mode ###
 
