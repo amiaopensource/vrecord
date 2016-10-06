@@ -66,7 +66,7 @@ video_codec_options=("Uncompressed Video" "FFV1 version 3" "JPEG2000" "ProRes")
 channel_mapping_options=("2 Stereo Tracks" "1 Stereo Track" "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono" "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono" )
 container_options=("QuickTime" "Matroska" "AVI" "MXF")
 standard_options=("NTSC" "PAL")
-playbackview_options=("Visual" "Visual + Numerical")
+playbackview_options=("Visual" "Visual + Numerical" "Color Matrix")
 framemd5_options=("Yes" "No")
 qctoolsxml_options=("Yes" "No")
 
@@ -135,10 +135,7 @@ set_up_drawtext(){
  TOUT	  %{metadata:lavfi.signalstats.TOUT}
  VREP     %{metadata:lavfi.signalstats.VREP}
 
- cropdetect info
- size    	%{metadata:lavfi.cropdetect.w}x%{metadata:lavfi.cropdetect.h}
- columns    	%{metadata:lavfi.cropdetect.x1}-%{metadata:lavfi.cropdetect.x2}
- rows    	%{metadata:lavfi.cropdetect.y1}-%{metadata:lavfi.cropdetect.y2}
+
 " > /tmp/drawtext2.txt
     echo -e "
 
@@ -501,6 +498,24 @@ drawtext=fontcolor=white:fontsize=52:\
 fontfile=${defaultfont}:textfile=/tmp/drawtext3.txt[f1];\
 [f1][abc1][de1]hstack=inputs=3[out]"
             ;;
+		"Color Matrix")
+		hue=20
+		sat=0.3
+playbackfilter="\
+scale=iw/4:ih/4,\
+split=9[x][hm][hp][sm][sp][hmsm][hmsp][hpsm][hpsp];\
+[hm]hue=h=-${hue}[hm1];\
+[hp]hue=h=${hue}[hp1];\
+[sm]hue=s=1-${sat}[sm1];\
+[sp]hue=s=1+${sat}[sp1];\
+[hmsm]hue=h=-${hue}:s=1-${sat}[hmsm1];\
+[hmsp]hue=h=-${hue}:s=1+${sat}[hmsp1];\
+[hpsm]hue=h=${hue}:s=1-${sat}[hpsm1];\
+[hpsp]hue=h=${hue}:s=1+${sat}[hpsp1];\
+[hpsm1][hp1][hpsp1]hstack=3[top];\
+[sm1][x][sp1]hstack=3[mid];\
+[hmsm1][hm1][hmsp1]hstack=3[bottom];\
+[top][mid][bottom]vstack=3[out]"
         Q) exit 0 ;;
         q) exit 0 ;;
         *)  report -w "Error: Not a valid option, select a valid number or [q] to quit." ; return 1 ;;
@@ -652,6 +667,7 @@ playbackview_choice.default = ${playbackview_choice}
 playbackview_choice.option = ${undeclaredoption}
 playbackview_choice.option = Visual
 playbackview_choice.option = Visual + Numerical
+playbackview_choice.option = Color Matrix
 cb.type=cancelbutton
 #Add option to invert second channel
 invert_phase.x = 410
