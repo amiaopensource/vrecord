@@ -64,7 +64,7 @@ video_input_options=("Composite" "SDI" "Component" "S-Video")
 audio_input_options=("Analog" "SDI Embedded Audio" "Digital Audio (AES/EBU)")
 video_bitdepth_options=("10 bit" "8 bit")
 video_codec_options=("Uncompressed Video" "FFV1 version 3" "JPEG2000" "ProRes")
-channel_mapping_options=("2 Stereo Tracks" "1 Stereo Track" "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono" "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono" )
+channel_mapping_options=("2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, Channels 3 & 4 -> 2nd Track Stereo)" "1 Stereo Track (From Channels 1 & 2)" "1 Stereo Track (From Channels 3 & 4)" "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono" "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono" )
 container_options=("QuickTime" "Matroska" "AVI" "MXF")
 standard_options=("NTSC" "PAL")
 playbackview_options=("Visual" "Visual + Numerical" "Color Matrix")
@@ -287,15 +287,22 @@ lookup_video_codec(){
 
 lookup_audio_mapping(){
     case "${1}" in
-        "2 Stereo Tracks")
+        "2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, Channels 3 & 4 -> 2nd Track Stereo)")
 audiomap="[0:a:0]pan=stereo| c0=c0 | c1="$phase_value"c1[stereo1];[0:a:0]pan=stereo| c0=c2 | c1=c3[stereo2]"
         map1k="-map"
         map1v="[stereo1]"
         map2k="-map"
         map2v="[stereo2]"
         ;;
-        "1 Stereo Track")
+        "1 Stereo Track (From Channels 1 & 2)")
 audiomap="[0:a:0]pan=stereo| c0=c0 | c1="$phase_value"c1[stereo1]"
+        map1k="-map"
+        map1v="[stereo1]"
+        map2k=""
+        map2v=""
+        ;;
+        "1 Stereo Track (From Channels 3 & 4)")
+audiomap="[0:a:0]pan=stereo| c0=c2 | c1="$phase_value"c3[stereo1]"
         map1k="-map"
         map1v="[stereo1]"
         map2k=""
@@ -428,6 +435,7 @@ if [[ "${runtype}" = "audiopassthrough" ]] ; then
 [abc1][de1]hstack[abcde1],\
 [abcde1][xx]overlay=10:10[vo]"
 
+# This filter commented out for now due to lag issues
 #            ;;
 #           "Visual + Numerical")
 #            playbackfilter="\
@@ -601,8 +609,9 @@ audio_mapping_choice.type = radiobutton
 audio_mapping_choice.label = Select Audio Channel Mapping
 audio_mapping_choice.default = ${audio_mapping_choice}
 audio_mapping_choice.option = ${undeclaredoption}
-audio_mapping_choice.option = 2 Stereo Tracks
-audio_mapping_choice.option = 1 Stereo Track
+audio_mapping_choice.option = 2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, Channels 3 & 4 -> 2nd Track Stereo)
+audio_mapping_choice.option = 1 Stereo Track (From Channels 1 & 2)
+audio_mapping_choice.option = 1 Stereo Track (From Channels 3 & 4)
 audio_mapping_choice.option = Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono
 audio_mapping_choice.option = Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono
 # recording file format
