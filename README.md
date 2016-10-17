@@ -107,6 +107,15 @@ $ vrecord -p
 ```
 If you haven't already set up vrecord it will prompt you to make some selections related to your audio and video inputs. Otherwise the vrecord window will open up and start displaying any video signal coming through from the capture device. 
 
+### Audio Passthrough Mode ##
+
+Audio Passthrough mode is the same as Passthrough Mode with the addition of audio bars to monitor levels.  It can be used to check audio track layout and confirm input levels before starting a transfer.  Currently Audio Passthrough Mode does not support the Visual + Numerical view option.
+
+Run audio passthrough mode by typing:
+```
+$ vrecord -a
+```
+
 ### Edit Mode ###
 
 Running vrecord in edit mode opens a GUI window that allows you to change your recording options and then start digitizing a tape. 
@@ -137,7 +146,8 @@ All of options in the vrecord GUI (which appears when running `vrecord -e`) or o
 
 **Select audio channel mapping** — Choose how you want the audio to be captured. Currently vrecord captures audio at 24-bits and can only capture 4 tracks. The options are: 
 * "2 Stereo Tracks" — For capturing videotape formats that have four tracks which are arranged as stereo pairs.
-* "1 Stereo Track" — For capturing videotape formats that have two channels of audio which were recorded as a stereo pair.
+* "1 Stereo Track (From Channels 1 & 2)" — For capturing videotape formats that have two channels of audio which were recorded as a stereo pair.
+* "1 Stereo Track (From Channels 3 & 4)" — Same as above, but creates stereo track from second pair of inputs.
 * "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono" — For capturing videotapes with audio recorded on Channel 1 only. Vrecord will capture the audio from Channel 1 and create a mono track. 
 * "Channel 2 -> 1st Mono, Channel 1 -> 2nd Track Mono" — For capaturing videotapes with with audio recorded on Channel 2 only. Vrecord will take the audio from Channel 2 and place it in a Channel 1 mono track. 
 
