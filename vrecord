@@ -15,6 +15,7 @@ undeclaredoption="Undeclared"
 defaultfont="/Library/Fonts/Andale Mono.ttf"
 SAT_OUTLIER_THRSHLD=14
 AUD_OUTLIER_THRSHLD=10
+BRNG_OUTLIER_THRSHLD=14
 
 usage(){
     echo
@@ -1129,6 +1130,7 @@ bmdcapture -m ${standard} -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p 
         report -d "Vrecord is analyzing your video file. Please be patient."
         SAT_OUTLIERS=$(gzcat ${logdir}/${id}${suffix}.qctools.xml.gz | xml sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>124])"  -n)
         AUD_OUTLIERS=$(gzcat ${logdir}/${id}${suffix}.qctools.xml.gz | xml sel -t -v "count(//tag[@key='lavfi.astats.Overall.Max_level'][@value>=0.999998])"  -n)
+		BRNG_OUTLIERS=$(gzcat ${logdir}/${id}${suffix}.qctools.xml.gz | xml sel -t -v "count(//tag[@key='lavfi.signalstats.BRNG'][@value>=0.03])"  -n)
 fi
 
 if [[ "${qctoolsxml_choice}" = "No" ]] ; then
@@ -1184,6 +1186,9 @@ if [[ "${SAT_OUTLIERS}" -gt "${SAT_OUTLIER_THRSHLD}" ]] ; then
 fi
 if [[ "${AUD_OUTLIERS}" -gt "${AUD_OUTLIER_THRSHLD}" ]] ; then
     cowsay "$(report -w "WARNING: Your video file contains ${AUD_OUTLIERS} frames with clipped audio levels.")"
+fi
+if [[ "${BRNG_OUTLIERS}" -gt "${BRNG_OUTLIER_THRSHLD}" ]] ; then
+    cowsay "$(report -w "WARNING: Your video file contains ${BRNG_OUTLIERS} frames with pixels out of broadcast range")"
 fi
 
 if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
