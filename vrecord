@@ -618,7 +618,7 @@ audio_input_choice.option = SDI Embedded Audio
 audio_input_choice.option = Digital Audio (AES/EBU)
 # audio mapping
 audio_mapping_choice.x = 240
-audio_mapping_choice.y = 130
+audio_mapping_choice.y = 115
 audio_mapping_choice.type = radiobutton
 audio_mapping_choice.label = Select Audio Channel Mapping
 audio_mapping_choice.default = ${audio_mapping_choice}
@@ -1128,9 +1128,9 @@ bmdcapture -m ${standard} -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p 
         "movie=PIPE2QCTOOLS:s=v+a[in0][in1],[in0]signalstats=stat=tout+vrep+brng, cropdetect=reset=1,split[a][b]; 
         [a]field=top[a1];[b]field=bottom[b1],[a1][b1]psnr[out0];[in1]ebur128=metadata=1,astats=metadata=1:reset=1:length=0.4[out1]" -show_frames -show_versions -of xml=x=1:q=1 -noprivate | gzip > "${logdir}/${id}${suffix}.qctools.xml.gz"
         report -d "Vrecord is analyzing your video file. Please be patient."
-        SAT_OUTLIERS=$(gzcat ${logdir}/${id}${suffix}.qctools.xml.gz | xml sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>124])"  -n)
-        AUD_OUTLIERS=$(gzcat ${logdir}/${id}${suffix}.qctools.xml.gz | xml sel -t -v "count(//tag[@key='lavfi.astats.Overall.Max_level'][@value>=0.999998])"  -n)
-		BRNG_OUTLIERS=$(gzcat ${logdir}/${id}${suffix}.qctools.xml.gz | xml sel -t -v "count(//tag[@key='lavfi.signalstats.BRNG'][@value>=0.03])"  -n)
+        SAT_OUTLIERS=$(gzcat "${logdir}/${id}${suffix}".qctools.xml.gz | xml sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>124])"  -n)
+        AUD_OUTLIERS=$(gzcat "${logdir}/${id}${suffix}".qctools.xml.gz | xml sel -t -v "count(//tag[@key='lavfi.astats.Overall.Max_level'][@value>=0.999998])"  -n)
+		BRNG_OUTLIERS=$(gzcat "${logdir}/${id}${suffix}".qctools.xml.gz | xml sel -t -v "count(//tag[@key='lavfi.signalstats.BRNG'][@value>=0.03])"  -n)
 fi
 
 if [[ "${qctoolsxml_choice}" = "No" ]] ; then
@@ -1154,7 +1154,7 @@ _writeingestlog "datetime_end" "$(_get_iso8601)"
 
 #check audio levels
 if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
-audio_peak=$(gzcat ${logdir}/${id}${suffix}.qctools.xml.gz | grep lavfi.astats.Overall.Peak_level | cut -d '"' -f 4 | sort -n | tail -n 1)
+audio_peak=$(gzcat "${logdir}/${id}${suffix}.qctools.xml.gz" | grep lavfi.astats.Overall.Peak_level | cut -d '"' -f 4 | sort -n | tail -n 1)
 _writeingestlog "Peak Volume is (dB)" "${audio_peak}"
 fi
 
@@ -1171,8 +1171,8 @@ fi
 
 #if user chose not to use Frame MD5s, check for frame discontinuties in the FFmpeg file
 if [[ "${framemd5_choice}" = "No" ]] ; then
-frames_encoded=$(cat ${logdir}/${id}_ffmpeg_*.log | grep -w "frames encoded" | awk '{print $10}' | grep -m 1 [0-9])
-frames_decoded=$(cat ${logdir}/${id}_ffmpeg_*.log | grep -w "frames decoded" | awk '{print $10}' | grep -m 1 [0-9])
+frames_encoded=$(cat "${logdir}/${id}"_ffmpeg_*.log | grep -w "frames encoded" | awk '{print $10}' | grep -m 1 [0-9])
+frames_decoded=$(cat "${logdir}/${id}"_ffmpeg_*.log | grep -w "frames decoded" | awk '{print $10}' | grep -m 1 [0-9])
     if [[ ${frames_encoded} -lt $((${frames_decoded}-1)) ]] ; then
         frame_discrepency=$((${frames_decoded}-${frames_encoded}))
         cowsay "$(report -w "WARNING: FFmpeg reported missing frames. The file may have sync issues.")" 
