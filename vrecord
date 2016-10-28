@@ -620,7 +620,7 @@ audio_input_choice.option = SDI Embedded Audio
 audio_input_choice.option = Digital Audio (AES/EBU)
 # audio mapping
 audio_mapping_choice.x = 240
-audio_mapping_choice.y = 130
+audio_mapping_choice.y = 115
 audio_mapping_choice.type = radiobutton
 audio_mapping_choice.label = Select Audio Channel Mapping
 audio_mapping_choice.default = ${audio_mapping_choice}
@@ -1183,8 +1183,8 @@ fi
 
 #if user chose not to use Frame MD5s, check for frame discontinuties in the FFmpeg file
 if [[ "${framemd5_choice}" = "No" ]] ; then
-frames_encoded=$(cat ${logdir}/${id}_ffmpeg_*.log | grep -w "frames encoded" | awk '{print $10}' | grep -m 1 [0-9])
-frames_decoded=$(cat ${logdir}/${id}_ffmpeg_*.log | grep -w "frames decoded" | awk '{print $10}' | grep -m 1 [0-9])
+frames_encoded=$(cat "${logdir}"/"${id}"_ffmpeg_*.log | grep -w "frames encoded" | awk '{print $10}' | grep -m 1 [0-9])
+frames_decoded=$(cat "${logdir}"/"${id}"_ffmpeg_*.log | grep -w "frames decoded" | awk '{print $10}' | grep -m 1 [0-9])
     if [[ ${frames_encoded} -lt $((${frames_decoded}-1)) ]] ; then
         frame_discrepency=$((${frames_decoded}-${frames_encoded}))
         cowsay "$(report -w "WARNING: FFmpeg reported missing frames. The file may have sync issues.")" 
