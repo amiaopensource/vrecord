@@ -333,10 +333,12 @@ lookup_container(){
     case "${1}" in
         "QuickTime")
             extension="mov"
+            middleoptions+=(-movflags write_colr)
             format="mov"
             ;;
         "Matroska")
             extension="mkv"
+            middleoptions+=(-f_strict unofficial)
             format="matroska"
             ;;
         "AVI")
@@ -1102,7 +1104,17 @@ report -d "Close the playback window to stop recording."
 export FFREPORT="file=${logdir}/${id}_%p_%t${ffmpeglogsuffix}"
 
 if [[ "${standard_choice}" = "PAL" ]] ; then
-    recordingfilter="[0:v:0]setfield=tff,setsar=40/27,setdar=4/3[vid1]"   
+    recordingfilter="[0:v:0]setfield=tff,setsar=40/27,setdar=4/3[vid1]"
+    middleoptions+=(-color_primaries bt470bg)
+    middleoptions+=(-color_trc bt709)
+    middleoptions+=(-colorspace bt470bg)
+    middleoptions+=(-color_range mpeg)
+elif [[ "${standard_choice}" = "NTSC" ]] ; then
+    recordingfilter="[0:v:0]setfield=bff,setsar=40/27,setdar=4/3[vid1]"
+    middleoptions+=(-color_primaries smpte170m)
+    middleoptions+=(-color_trc bt709)
+    middleoptions+=(-colorspace smpte170m)
+    middleoptions+=(-color_range mpeg)
 else
     recordingfilter="[0:v:0]setfield=bff,setsar=40/27,setdar=4/3[vid1]"
 fi
