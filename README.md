@@ -1,5 +1,5 @@
 # Vrecord Documentation #
-This documentation is up to date as of vrecord v0.7.10 (Released on 12/10/15)
+This documentation is up to date as of vrecord v0.7.10 (Released on 2015–12–10)
 
 ## Table of Contents ##
 
@@ -10,7 +10,8 @@ This documentation is up to date as of vrecord v0.7.10 (Released on 12/10/15)
   2. [Basic Usage] (https://github.com/amiaopensource/vrecord#basic-usage)
   3. [The vrecord Window] (https://github.com/amiaopensource/vrecord#the-vrecord-window)
   4. [Passthrough Mode] (https://github.com/amiaopensource/vrecord#passthrough-mode)
-  5. [Edit Mode] (https://github.com/amiaopensource/vrecord#edit-mode)
+  5. [Audio Passthrough Mode](https://github.com/amiaopensource/vrecord#audio-passthrough-mode)
+  6. [Edit Mode] (https://github.com/amiaopensource/vrecord#edit-mode)
     1. [Options for Video Capture] (https://github.com/amiaopensource/vrecord#options-for-video-capture)
     2. [A Few Quirks] (https://github.com/amiaopensource/vrecord#a-few-quirks)
       1. [Timing of Recording] (https://github.com/amiaopensource/vrecord/blob/master/README.md#timing-of-recording)
@@ -183,6 +184,8 @@ Click "OK" when you are finished with your selections. Vrecord will save all of 
 Vrecord will then prompt you for a unique ID. The ID that you type in will become a prefix for the filename of all the resulting files in that recording session. After entering your unique ID you will be asked to press enter to start recording. Press enter and start playing your tape. The vrecord window will appear. Do not type any keys or click the mouse inside the window while the vrecord is working. 
 
 After the transfer is finished, vrecord will automatically check to make sure that no frames were missed during the capture. Check the Terminal window for any error messages. If frames were missed you may get the following message: "WARNING: There were pts discontinuities for these frame ranges: ##-##. The file may have sync issues." The message will give the frame numbers that are missing. Check the file immediately at these points and throughout the video to make sure there are no sync issues. The tape may need to be redigitized.
+
+**Invert Second Channel of Audio** — This option allows you to invert the phase of the second channel of audio on ingest.  This option is only for rare cases. Use only if you are positive that the audio channels are 180 degrees out of phase!
 
 #### A Few Quirks ####
 
