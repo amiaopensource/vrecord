@@ -817,6 +817,12 @@ duration_check
         if [ "$invert_phase" = 1 ] ; then
             echo -e " \033[101mWARNING: Option to invert phase of second audio channel has been selected\033[0m"
         fi
+        if [ "${video_codec_choice}" = "FFV1 version 3" -a "${container_choice}" = "MXF" ] ; then
+            echo -e " \033[101mWARNING: Incompatible video codecs and containers have been selected\033[0m"
+        fi
+        if [ "${video_codec_choice}" = "ProRes" -a "${container_choice}" = "MXF" ] ; then
+            echo -e " \033[101mWARNING: Incompatible video codecs and containers have been selected\033[0m"
+        fi
         echo ""
         # write config file
         echo "#$(basename "${0}") config file" > "${config_file}"
