@@ -523,9 +523,9 @@ drawtext=fontcolor=white:fontsize=52:\
 fontfile=${defaultfont}:textfile=/tmp/drawtext3.txt[f1];\
 [f1][abc1][de1]hstack=inputs=3[out]"
             ;;
-		"Color Matrix")
-		hue=20
-		sat=0.3
+      "Color Matrix")
+      hue=20
+      sat=0.3
 playbackfilter="\
 scale=iw/4:ih/4,\
 split=9[x][hm][hp][sm][sp][hmsm][hmsp][hpsm][hpsp];\
@@ -541,7 +541,7 @@ split=9[x][hm][hp][sm][sp][hmsm][hmsp][hpsm][hpsp];\
 [sm1][x][sp1]hstack=3[mid];\
 [hmsm1][hm1][hmsp1]hstack=3[bottom];\
 [top][mid][bottom]vstack=3[out]"
-	           ;;
+           ;;
         Q) exit 0 ;;
         q) exit 0 ;;
         *)  report -w "Error: Not a valid option, select a valid number or [q] to quit." ; return 1 ;;
@@ -1138,11 +1138,11 @@ bmdcapture -m ${standard} -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p 
         "${extraoutputs[@]}" \
         -c:v copy -c:a copy -syncpoints none -f_strict experimental -f nut -y PIPE2QCTOOLS | ffprobe -loglevel error -f lavfi \
         "movie=PIPE2QCTOOLS:s=v+a[in0][in1],[in0]signalstats=stat=tout+vrep+brng, cropdetect=reset=1,split[a][b]; 
-        [a]field=top[a1];[b]field=bottom[b1],[a1][b1]psnr[out0];[in1]ebur128=metadata=1,astats=metadata=1:reset=1:length=0.4[out1]" -show_frames -show_versions -of xml=x=1:q=1 -noprivate | gzip > "${logdir}/${id}${suffix}.qctools.xml.gz"
+        [a]field=top[a1];[b]field=bottom[b1],[a1][b1]psnr[out0];[in1]ebur128=metadata=1,astats=metadata=1:reset=1:length=0.4[out1]" -show_frames -show_versions -of xml=x=1:q=1 -noprivate | gzip > "${logdir}/${id}${suffix}.${extension}.qctools.xml.gz"
         report -d "Vrecord is analyzing your video file. Please be patient."
-        SAT_OUTLIERS=$(gzcat "${logdir}/${id}${suffix}".qctools.xml.gz | xml sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>124])"  -n)
-        AUD_OUTLIERS=$(gzcat "${logdir}/${id}${suffix}".qctools.xml.gz | xml sel -t -v "count(//tag[@key='lavfi.astats.Overall.Max_level'][@value>=0.999998])"  -n)
-		BRNG_OUTLIERS=$(gzcat "${logdir}/${id}${suffix}".qctools.xml.gz | xml sel -t -v "count(//tag[@key='lavfi.signalstats.BRNG'][@value>=0.03])"  -n)
+        SAT_OUTLIERS=$(gzcat ${logdir}/${id}${suffix}.${extension}.qctools.xml.gz | xml sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>124])"  -n)
+        AUD_OUTLIERS=$(gzcat ${logdir}/${id}${suffix}.${extension}.qctools.xml.gz | xml sel -t -v "count(//tag[@key='lavfi.astats.Overall.Max_level'][@value>=0.999998])"  -n)
+        BRNG_OUTLIERS=$(gzcat ${logdir}/${id}${suffix}.${extension}.qctools.xml.gz | xml sel -t -v "count(//tag[@key='lavfi.signalstats.BRNG'][@value>=0.03])"  -n)
 fi
 
 if [[ "${qctoolsxml_choice}" = "No" ]] ; then
@@ -1166,7 +1166,7 @@ _writeingestlog "datetime_end" "$(_get_iso8601)"
 
 #check audio levels
 if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
-audio_peak=$(gzcat "${logdir}/${id}${suffix}.qctools.xml.gz" | grep lavfi.astats.Overall.Peak_level | cut -d '"' -f 4 | sort -n | tail -n 1)
+audio_peak=$(gzcat "${logdir}/${id}${suffix}.${extension}.qctools.xml.gz" | grep lavfi.astats.Overall.Peak_level | cut -d '"' -f 4 | sort -n | tail -n 1)
 _writeingestlog "Peak Volume is (dB)" "${audio_peak}"
 fi
 
