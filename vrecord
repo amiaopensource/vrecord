@@ -875,7 +875,7 @@ duration_check
         report -d "Editing of preferences was canceled by the user."
     fi
     runtype="record"
-    report -nd "Press [q] to quit, [p] to enter passthrough mode or any other key to proceed."
+    report -nd "Press [q] to quit, [p] to enter passthrough mode or any other key to proceed: "
     read aftereditresponse
     if [[ "$aftereditresponse" = "q" ]] ; then
         report -d "Bye then"
