@@ -40,7 +40,7 @@ usage(){
 
 # command-line options to set mediaid and original variables
 OPTIND=1
-while getopts "herpax" opt ; do
+while getopts ":herpax" opt ; do
     case "${opt}" in
         h) usage ;;
         e) runtype="edit" ;;
@@ -49,7 +49,6 @@ while getopts "herpax" opt ; do
         a) runtype="audiopassthrough" ;;
         x) runtype="reset" ;;
         *) report -w "bad option -$OPTARG" ; usage ;;
-        :) report -w "Option -$OPTARG requires an argument" ; exit 1 ;;
     esac
 done
 
