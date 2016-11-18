@@ -169,29 +169,29 @@ get_standard_values(){
 }
 
 report(){
-        local RED="$(tput setaf 1)"   # Red      - For Warnings
-        local GREEN="$(tput setaf 2)" # Green    - For Declarations
-        local BLUE="$(tput setaf 4)"  # Blue     - For Questions
-        local NC="$(tput sgr0)"       # No Color
-        local color=""
-        local startmessage=""
-        local endmessage=""
-        local echoopt=""
-        local log_message=""
-        OPTIND=1
-        while getopts ":qdwstn" opt ; do
-            case "${opt}" in
-                q) color="${BLUE}" ;;                         # question mode, use color blue
-                d) color="${GREEN}" ;;                        # declaration mode, use color green
-                w) color="${RED}" ; log_message="Y" ;;        # warning mode, use color red
-                s) startmessage+=([$(basename "${0}")] ) ;;   # prepend scriptname to the message
-                t) startmessage+=($(_get_iso8601) '- ' ) ;;   # prepend timestamp to the message
-                n) echoopt="-n" ;;                            # to avoid line breaks after echo
-            esac
-        done
-        shift $(( ${OPTIND} - 1 ))
-        message="${1}"
-        echo $echoopt "${color}${startmessage[@]}${message}${NC}"
+    local RED="$(tput setaf 1)"   # Red      - For Warnings
+    local GREEN="$(tput setaf 2)" # Green    - For Declarations
+    local BLUE="$(tput setaf 4)"  # Blue     - For Questions
+    local NC="$(tput sgr0)"       # No Color
+    local color=""
+    local startmessage=""
+    local endmessage=""
+    local echoopt=""
+    local log_message=""
+    OPTIND=1
+    while getopts ":qdwstn" opt ; do
+        case "${opt}" in
+            q) color="${BLUE}" ;;                         # question mode, use color blue
+            d) color="${GREEN}" ;;                        # declaration mode, use color green
+            w) color="${RED}" ; log_message="Y" ;;        # warning mode, use color red
+            s) startmessage+=([$(basename "${0}")] ) ;;   # prepend scriptname to the message
+            t) startmessage+=($(_get_iso8601) '- ' ) ;;   # prepend timestamp to the message
+            n) echoopt="-n" ;;                            # to avoid line breaks after echo
+        esac
+    done
+    shift $(( ${OPTIND} - 1 ))
+    message="${1}"
+    echo $echoopt "${color}${startmessage[@]}${message}${NC}"
 }
 
 _get_iso8601(){
@@ -829,50 +829,47 @@ duration_check
         # write config file
         {
 	    echo "#$(basename "${0}") config file"
-            echo  "${config_comment}"
+            echo "${config_comment}"
             echo "${video_input_choice_comment}"
             echo "video_input_choice=\"${video_input_choice}\""
             echo
-            echo  "${audio_input_choice_comment}"
+            echo "${audio_input_choice_comment}"
             echo "audio_input_choice=\"${audio_input_choice}\""
             echo
-            echo  "${standard_choice_comment}"
+            echo "${standard_choice_comment}"
             echo "standard_choice=\"${standard_choice}\""
             echo
-            echo  "${playbackview_choice_comment}"
+            echo "${playbackview_choice_comment}"
             echo "playbackview_choice=\"${playbackview_choice}\""
             echo
-            echo  "${framemd5_choice_comment}"
-            echo  "framemd5_choice=\"${framemd5_choice}\""
+            echo "${framemd5_choice_comment}"
+            echo "framemd5_choice=\"${framemd5_choice}\""
             echo
-            echo  "qctoolsxml_choice=\"${qctoolsxml_choice}\""
+            echo "qctoolsxml_choice=\"${qctoolsxml_choice}\""
             echo
-            echo  "${video_bit_depth_choice_comment}"
+            echo "${video_bit_depth_choice_comment}"
             echo "video_bit_depth_choice=\"${video_bit_depth_choice}\""
             echo
-            echo  "${video_codec_choice_comment}"
+            echo "${video_codec_choice_comment}"
             echo "video_codec_choice=\"${video_codec_choice}\""
             echo
-            echo  "${audio_mapping_choice_comment}"
+            echo "${audio_mapping_choice_comment}"
             echo "audio_mapping_choice=\"${audio_mapping_choice}\""
             echo
-            echo  "${dir_comment}"
+            echo "${dir_comment}"
             echo "dir=\"${dir}\""
             echo
             echo "logdir=\"${logdir}\""
             echo
             echo "invert_phase=\"${invert_phase}\""
-            echo  "${container_choice_comment}"
+            echo "${container_choice_comment}"
             echo "container_choice=\"${container_choice}\""
             echo
-            echo  "${duration_comment}"
+            echo "${duration_comment}"
             echo "duration=\"${duration}\""
-	} > "${config_file}"
-        . "${config_file}"
-	{
             echo "${technician_comment}"
             echo "technician=\"${technician}\""
-	} >> "${config_file}"
+	} > "${config_file}"
         . "${config_file}"
     else
         report -d "Editing of preferences was canceled by the user."
@@ -929,8 +926,7 @@ if [[ "${runtype}" = "audiopassthrough" ]] ; then
     echo "ESC quit" > ~/.config/mpv/input.conf
     video_bitdepth=10
     bmdcapture -m ${standard} -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p "${video_bitdepth}" -F nut -f pipe:1 | \
-        mpv - --title="mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" -lavfi-complex "${playbackfilter}"
-	
+        mpv - --title="mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" -lavfi-complex "${playbackfilter}"	
     exit 0
 fi
 
@@ -990,12 +986,10 @@ fi
 if [ ! -d "${logdir}" ] ; then
     report -q -n "Enter Directory for Auxiliary Files (If blank will default to recording directory): "
     read logdir
-    
     if [ -z "${logdir}" ] ; then
         logdir="$dir"
     fi
-    
-    if [ ! -d "$logdir" ] ; then
+    if [ ! -d "${logdir}" ] ; then
         report -w "Error: Not a valid directory"
         exit
     fi
@@ -1125,7 +1119,7 @@ else
 fi
 
 if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
-# mkfifo needs to be conditional and maybe deal with deleting a preexisting pipe
+    # mkfifo needs to be conditional and maybe deal with deleting a preexisting pipe
     mkfifo PIPE2QCTOOLS
     bmdcapture -m ${standard} -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p "${video_bitdepth}" -F nut -f pipe:1 2> "${logdir}/${id}${bmdcapturelogsuffix}" | \
         tee >(ffplay -i - -v info \
