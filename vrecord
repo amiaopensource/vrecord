@@ -879,7 +879,7 @@ duration_check
         report -d "Bye then"
         exit
     elif [[ "$aftereditresponse" = "p" ]] ; then
-	runtype="passthrough"
+        runtype="passthrough"
     fi
 fi
 
