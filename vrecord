@@ -57,7 +57,7 @@ if [[ -f "${config_file}" ]] ; then
 elif [[ "${runtype}" = "record" || ${runtype} = "edit" ]] ; then
     echo -e "No configuration file, restarting in edit mode."
     touch "${config_file}"
-    $(basename "${0}") -e
+    exec $(basename "${0}") -e
 fi
 
 video_input_options=("Composite" "SDI" "Component" "S-Video")
