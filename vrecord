@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+
+version="2016-11-19"
 config_file="$HOME/.$(basename "${0}").conf"
 
 inputoptions=""
@@ -177,7 +179,7 @@ report(){
     local echoopt=""
     local log_message=""
     OPTIND=1
-    while getopts ":qdwstn" opt ; do
+    while getopts "qdwstn" opt ; do
         case "${opt}" in
             q) color="${BLUE}" ;;                         # question mode, use color blue
             d) color="${GREEN}" ;;                        # declaration mode, use color green
