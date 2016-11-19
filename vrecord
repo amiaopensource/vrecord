@@ -174,7 +174,6 @@ report(){
     local NC="$(tput sgr0)"       # No Color
     local color=""
     local startmessage=""
-    local endmessage=""
     local echoopt=""
     local log_message=""
     OPTIND=1
