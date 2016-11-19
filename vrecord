@@ -62,16 +62,16 @@ elif [[ "${runtype}" = "record" || ${runtype} = "edit" ]] ; then
     exec $(basename "${0}") -e
 fi
 
-video_input_options=("Composite" "SDI" "Component" "S-Video")
-audio_input_options=("Analog" "SDI Embedded Audio" "Digital Audio (AES/EBU)")
-video_bitdepth_options=("10 bit" "8 bit")
-video_codec_options=("Uncompressed Video" "FFV1 version 3" "JPEG2000" "ProRes")
-channel_mapping_options=("2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, Channels 3 & 4 -> 2nd Track Stereo)" "1 Stereo Track (From Channels 1 & 2)" "1 Stereo Track (From Channels 3 & 4)" "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono" "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono" )
-container_options=("QuickTime" "Matroska" "AVI" "MXF")
-standard_options=("NTSC" "PAL")
-playbackview_options=("Broadcast Range Visual" "Full Range Visual" "Visual + Numerical" "Color Matrix")
-framemd5_options=("Yes" "No")
-qctoolsxml_options=("Yes" "No")
+video_input_options=("Composite" "SDI" "Component" "S-Video" "quit")
+audio_input_options=("Analog" "SDI Embedded Audio" "Digital Audio (AES/EBU)" "quit")
+video_bitdepth_options=("10 bit" "8 bit" "quit")
+video_codec_options=("Uncompressed Video" "FFV1 version 3" "JPEG2000" "ProRes" "quit")
+channel_mapping_options=("2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, Channels 3 & 4 -> 2nd Track Stereo)" "1 Stereo Track (From Channels 1 & 2)" "1 Stereo Track (From Channels 3 & 4)" "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono" "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono" "quit")
+container_options=("QuickTime" "Matroska" "AVI" "MXF" "quit")
+standard_options=("NTSC" "PAL" "quit")
+playbackview_options=("Broadcast Range Visual" "Full Range Visual" "Visual + Numerical" "Color Matrix" "quit")
+framemd5_options=("Yes" "No" "quit")
+qctoolsxml_options=("Yes" "No" "quit")
 
 
 set_up_drawtext(){
@@ -230,8 +230,7 @@ lookup_video_input(){
         "SDI")          video_input=4 ;;
         "Component")    video_input=2 ;;
         "S-Video")      video_input=6 ;;
-        Q) exit 0 ;;
-        q) exit 0 ;;
+        "quit") report -d "Bye then" ; exit 0 ;;
         *) report -w "Error: Not a valid option, select a valid number or [q] to quit." ; return 1 ;;
     esac
 }
@@ -241,8 +240,7 @@ lookup_audio_input(){
         "Analog")                   audio_input=1 ;;
         "SDI Embedded Audio")       audio_input=2 ;;
         "Digital Audio (AES/EBU)")  audio_input=3 ;;
-        Q) exit 0 ;;
-        q) exit 0 ;;
+        "quit") report -d "Bye then" ; exit 0 ;;
         *) report -w "Error: Not a valid option, select a valid number or [q] to quit." ; return 1 ;;
     esac
 }
@@ -251,8 +249,7 @@ lookup_video_bitdepth(){
     case "${1}" in
         "10 bit")   video_bitdepth=10 ;;
         "8 bit")    video_bitdepth=8 ;;
-        Q) exit ;;
-        q) exit ;;
+        "quit") report -d "Bye then" ; exit 0 ;;
         *) report -w "Error: Not a valid option, select a valid number or [q] to quit." ; return 1 ;;
     esac
 }
@@ -267,7 +264,7 @@ lookup_video_codec(){
                 codecname="Uncompressed 8-bit 4:2:2"
                 middleoptions+=(-c:v rawvideo -pix_fmt uyvy422 -tag:v 2vuy)
             fi
-	    ;;
+            ;;
         "FFV1 version 3")
             codecname="FFV1 version 3"
             middleoptions+=(-c:v ffv1 -level 3 -g 1 -slices 16 -slicecrc 1)
@@ -283,8 +280,7 @@ lookup_video_codec(){
             middleoptions+=(-c:v prores_ks)
             suffix="_prores"
             ;;
-        Q) exit ;;
-        q) exit ;;
+        "quit") report -d "Bye then" ; exit 0 ;;
         *) report -w "Error: Not a valid option, select a valid number or [q] to quit." ; return 1 ;;
     esac
 }
@@ -327,8 +323,7 @@ lookup_audio_mapping(){
             map2k="-map"
             map2v="[mono2]"
             ;;
-        Q) exit ;;
-        q) exit ;;
+        "quit") report -d "Bye then" ; exit 0 ;;
         *) report -w "Error: Not a valid option, select a valid number or [q] to quit." ; return 1 ;;
     esac
 }
@@ -353,8 +348,7 @@ lookup_container(){
             extension="mxf"
             format="mxf"
             ;;
-        Q) exit 0 ;;
-        q) exit 0 ;;
+        "quit") report -d "Bye then" ; exit 0 ;;
         *) report -w "Error: Not a valid option, select a valid number or [q] to quit." ; return 1 ;;
     esac
 }
@@ -367,8 +361,7 @@ lookup_standard(){
         "PAL")
             standard="${PAL_value}"
             ;;
-        Q) exit 0 ;;
-        q) exit 0 ;;
+        "quit") report -d "Bye then" ; exit 0 ;;
         *) report -w "Error: Not a valid option, select a valid number or [q] to quit." ; return 1 ;;
     esac
 }
@@ -379,8 +372,7 @@ lookup_framemd5(){
             ;;
         "No")
             ;;
-        Q) exit 0 ;;
-        q) exit 0 ;;
+        "quit") report -d "Bye then" ; exit 0 ;;
         *) report -w "Error: Not a valid option, select a valid number or [q] to quit." ; return 1 ;;
     esac
 }
@@ -391,8 +383,7 @@ lookup_qctoolsxml(){
             ;;
         "No")
             ;;
-        Q) exit 0 ;;
-        q) exit 0 ;;
+        "quit") report -d "Bye then" ; exit 0 ;;
         *) report -w "Error: Not a valid option, select a valid number or [q] to quit." ; return 1 ;;
     esac
 }
@@ -419,7 +410,6 @@ drawbox=w=9:h=9:t=1:x=192-3:y=512-354-5:c=sienna@0.8,\
 drawbox=w=9:h=9:t=1:x=224-3:y=512-304-5:c=sienna@0.8,\
 drawgrid=w=32:h=32:t=1:c=white@0.1,\
 drawgrid=w=256:h=256:t=1:c=white@0.2"
-
 
 if [[ "${runtype}" = "audiopassthrough" ]] ; then
 
@@ -654,7 +644,7 @@ standard_choice.default = ${standard_choice}
 standard_choice.option = ${undeclaredoption}
 standard_choice.option = NTSC
 standard_choice.option = PAL
-#frame md5 
+# frame md5 
 framemd5_choice.x = 660
 framemd5_choice.y = 230
 framemd5_choice.type = radiobutton
@@ -663,7 +653,7 @@ framemd5_choice.default = ${framemd5_choice}
 framemd5_choice.option = ${undeclaredoption}
 framemd5_choice.option = Yes
 framemd5_choice.option = No
-#qctools xml 
+# qctools xml 
 qctoolsxml_choice.x = 660
 qctoolsxml_choice.y = 317
 qctoolsxml_choice.type = radiobutton
@@ -682,14 +672,14 @@ duration.option = 23
 duration.option = 33
 duration.option = 63
 duration.option = 93
-#technician name
+# technician name
 technician.x = 350
 technician.y = 55
 technician.type = textbox
 technician.height = 30
 technician.label = Enter the name of the person digitizing this tape.
 # Add a cancel button with default label
-#playbackview choice
+# playbackview choice
 playbackview_choice.x = 20
 playbackview_choice.y = 3
 playbackview_choice.type = popup
@@ -701,7 +691,7 @@ playbackview_choice.option = Full Range Visual
 playbackview_choice.option = Visual + Numerical
 playbackview_choice.option = Color Matrix
 cb.type=cancelbutton
-#Add option to invert second channel
+# Add option to invert second channel
 invert_phase.x = 410
 invert_phase.y = 0
 invert_phase.type = checkbox
@@ -869,7 +859,7 @@ duration_check
             echo "duration=\"${duration}\""
             echo "${technician_comment}"
             echo "technician=\"${technician}\""
-	} > "${config_file}"
+        } > "${config_file}"
         . "${config_file}"
     else
         report -d "Editing of preferences was canceled by the user."
@@ -1007,7 +997,7 @@ if [ -z "${duration}" ] ; then
     read duration
 fi
 
-#check validity of duration value        
+# check validity of duration value
 duration_check
 
 if [ -n "${duration}" ] ; then
@@ -1071,7 +1061,7 @@ fi
 report -q "Hit enter to start recording"
 read
 
-#create log of vrecord decisions
+# create log of vrecord decisions
 INGESTLOG="${logdir}/${id}_capture_options.log"
 
 touch "${INGESTLOG}"
@@ -1138,10 +1128,10 @@ if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
             -c:v copy -c:a copy -syncpoints none -f_strict experimental -f nut -y PIPE2QCTOOLS | ffprobe -loglevel error -f lavfi \
             "movie=PIPE2QCTOOLS:s=v+a[in0][in1],[in0]signalstats=stat=tout+vrep+brng, cropdetect=reset=1,split[a][b]; 
             [a]field=top[a1];[b]field=bottom[b1],[a1][b1]psnr[out0];[in1]ebur128=metadata=1,astats=metadata=1:reset=1:length=0.4[out1]" -show_frames -show_versions -of xml=x=1:q=1 -noprivate | gzip > "${logdir}/${id}${suffix}.${extension}.qctools.xml.gz"
-        report -d "Vrecord is analyzing your video file. Please be patient."
-        SAT_OUTLIERS=$(gzcat ${logdir}/${id}${suffix}.${extension}.qctools.xml.gz | xml sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>124])"  -n)
-        AUD_OUTLIERS=$(gzcat ${logdir}/${id}${suffix}.${extension}.qctools.xml.gz | xml sel -t -v "count(//tag[@key='lavfi.astats.Overall.Max_level'][@value>=0.999998])"  -n)
-        BRNG_OUTLIERS=$(gzcat ${logdir}/${id}${suffix}.${extension}.qctools.xml.gz | xml sel -t -v "count(//tag[@key='lavfi.signalstats.BRNG'][@value>=0.03])"  -n)
+    report -d "Vrecord is analyzing your video file. Please be patient."
+    SAT_OUTLIERS=$(gzcat ${logdir}/${id}${suffix}.${extension}.qctools.xml.gz | xml sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>124])"  -n)
+    AUD_OUTLIERS=$(gzcat ${logdir}/${id}${suffix}.${extension}.qctools.xml.gz | xml sel -t -v "count(//tag[@key='lavfi.astats.Overall.Max_level'][@value>=0.999998])"  -n)
+    BRNG_OUTLIERS=$(gzcat ${logdir}/${id}${suffix}.${extension}.qctools.xml.gz | xml sel -t -v "count(//tag[@key='lavfi.signalstats.BRNG'][@value>=0.03])"  -n)
 fi
 
 if [[ "${qctoolsxml_choice}" = "No" ]] ; then
@@ -1163,13 +1153,13 @@ fi
 
 _writeingestlog "datetime_end" "$(_get_iso8601)"
 
-#check audio levels
+# check audio levels
 if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
     audio_peak=$(gzcat "${logdir}/${id}${suffix}.${extension}.qctools.xml.gz" | grep lavfi.astats.Overall.Peak_level | cut -d '"' -f 4 | sort -n | tail -n 1)
     _writeingestlog "Peak Volume is (dB)" "${audio_peak}"
 fi
 
-#check for discontinuities in the Frame MD5s
+# check for discontinuities in the Frame MD5s
 if [[ "${framemd5_choice}" = "Yes" ]] ; then
     pts_discontinuity=$(cat "${framemd5name}" | grep -v "^#" | cut -d, -f3 | sed 's/ //g' | grep -v "^0$" | awk '$1!=p+1{printf p+1"-"$1-1" "}{p=$1}')
     if [[ "${pts_discontinuity}" = "" ]] ; then
@@ -1180,7 +1170,7 @@ if [[ "${framemd5_choice}" = "Yes" ]] ; then
     fi
 fi
 
-#if user chose not to use Frame MD5s, check for frame discontinuties in the FFmpeg file
+# if user chose not to use Frame MD5s, check for frame discontinuties in the FFmpeg file
 if [[ "${framemd5_choice}" = "No" ]] ; then
     frames_encoded=$(cat "${logdir}/${id}"_ffmpeg_*.log | grep -w "frames encoded" | awk '{print $10}' | grep -m 1 [0-9])
     frames_decoded=$(cat "${logdir}/${id}"_ffmpeg_*.log | grep -w "frames decoded" | awk '{print $10}' | grep -m 1 [0-9])
