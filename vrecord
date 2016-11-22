@@ -1128,7 +1128,11 @@ if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
             "movie=PIPE2QCTOOLS:s=v+a[in0][in1],[in0]signalstats=stat=tout+vrep+brng, cropdetect=reset=1,split[a][b]; 
             [a]field=top[a1];[b]field=bottom[b1],[a1][b1]psnr[out0];[in1]ebur128=metadata=1,astats=metadata=1:reset=1:length=0.4[out1]" -show_frames -show_versions -of xml=x=1:q=1 -noprivate | gzip > "${logdir}/${id}${suffix}.${extension}.qctools.xml.gz"
     report -d "Vrecord is analyzing your video file. Please be patient."
-    SAT_OUTLIERS=$(gzcat ${logdir}/${id}${suffix}.${extension}.qctools.xml.gz | xml sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>124])"  -n)
+    if [ "${video_bitdepth}" = "10" ] ; then
+        SAT_OUTLIERS=$(gzcat ${logdir}/${id}${suffix}.${extension}.qctools.xml.gz | xml sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>496])"  -n)
+    elif [ "${video_bitdepth}" = "8" ] ; then
+        SAT_OUTLIERS=$(gzcat ${logdir}/${id}${suffix}.${extension}.qctools.xml.gz | xml sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>124])"  -n)
+    fi
     AUD_OUTLIERS=$(gzcat ${logdir}/${id}${suffix}.${extension}.qctools.xml.gz | xml sel -t -v "count(//tag[@key='lavfi.astats.Overall.Max_level'][@value>=0.999998])"  -n)
     BRNG_OUTLIERS=$(gzcat ${logdir}/${id}${suffix}.${extension}.qctools.xml.gz | xml sel -t -v "count(//tag[@key='lavfi.signalstats.BRNG'][@value>=0.03])"  -n)
 fi
@@ -1182,7 +1186,7 @@ if [[ "${framemd5_choice}" = "No" ]] ; then
     fi
 fi
 if [[ "${SAT_OUTLIERS}" -gt "${SAT_OUTLIER_THRSHLD}" ]] ; then
-    cowsay "$(report -w "WARNING: Your video file contains ${SAT_OUTLIERS} frames with saturation levels above 124. Your deck may require cleaning.")"
+    cowsay "$(report -w "WARNING: Your video file contains ${SAT_OUTLIERS} frames with illegal saturation values. Your deck may require cleaning.")"
 fi
 if [[ "${AUD_OUTLIERS}" -gt "${AUD_OUTLIER_THRSHLD}" ]] ; then
     cowsay "$(report -w "WARNING: Your video file contains ${AUD_OUTLIERS} frames with clipped audio levels.")"
