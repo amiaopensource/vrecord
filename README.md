@@ -88,9 +88,9 @@ For those who want the simplest possible explanation on how to use vrecord:
 
 ### The vrecord Window ###
 
-![Alt text](Resources/vrecord_window visual.jpg "Vrecord in Visual Mode")
+![Alt text](Resources/vrecord_broadcast_range_visual_2016-11-22.jpg "Vrecord in Broadcast Range Visual Mode")
 
-Shown above is the layout of the vrecord window in "Visual" mode. Vrecord also includes a "Visual + Numerical" mode, which is discussed in the [Options for Video Capture] (https://github.com/amiaopensource/vrecord#options-for-video-capture) section below.
+Shown above is the layout of the vrecord window in "Broadcast Range Visual" mode. Vrecord also includes a "Visual + Numerical" mode, which is discussed in the [Options for Video Capture] (https://github.com/amiaopensource/vrecord#options-for-video-capture) section below.
 
 1. **Video feed** — Displays the entire 720 x 486 video signal coming through. The image will appear a bit more stretched than it does on a television monitor. 
 2. **Video feed with broadcast-safe indicator** — Displays a feed of an underscanned version of the video signal. Pixels whose luminance or chrominance is outside of broadcast range are colored yellow. Due to space constraints in the vrecord window this feed will appear slightly squeezed.  
@@ -110,7 +110,7 @@ If you haven't already set up vrecord it will prompt you to make some selections
 
 ### Audio Passthrough Mode ##
 
-Audio Passthrough mode is the same as Passthrough Mode with the addition of audio bars to monitor levels.  It can be used to check audio track layout and confirm input levels before starting a transfer.  Currently Audio Passthrough Mode does not support the Visual + Numerical view option.
+Audio Passthrough mode is the same as Passthrough Mode with the addition of audio bars to monitor levels. It can be used to check audio track layout and confirm input levels before starting a transfer. Currently Audio Passthrough Mode does not support the Visual + Numerical view option.
 
 Run audio passthrough mode by typing:
 ```
@@ -154,11 +154,13 @@ All of options in the vrecord GUI (which appears when running `vrecord -e`) or o
 
 **Select standard** — Select the television standard of the tape you are digitizing. Currently vrecord only supports NTSC and PAL.
 
-**Visual mode** — Visual mode displays the two video feeds, the waveform monitor, and the vectorscope in the vrecord window.
+**Broadcast Range Visual mode** — Broadcast Range Visual mode displays the video feed, the video feed with pixels out of broadcast range highlighted, the waveform monitor, and the vectorscope in the vrecord window.
+
+**Full Range Visual mode** - Full Range Visual mode displays the video feed, the video feed with pixels out of full range highlighted, the waveform monitor, and the vectorscope in the vrecord window.
 
 **Visual + Numerical mode** — Visual and Numerical mode displays your favorite video feeds and scopes as well as numerical values for the characteristics of the video signal in the left sidebar. 
 
-![Alt text](Resources/vrecord_visual_numerical.jpg "Vrecord in Visual + Numerical Mode")
+![Alt text](Resources/vrecord_visual_numerical_2016-11-22.jpg "Vrecord in Visual + Numerical Mode")
 
 The numerical values are as follows:
 
@@ -171,6 +173,10 @@ The numerical values are as follows:
 * VREP — The amount of vertical line repititions in the video. The VREP reading can be useful for detecting video artifacts, dropout, and especially head clogs.
 * BRNG — Percentage of pixels that are in broadcast range. This may be helpful for detecting problems with the video signal such as dropout or if the signal has not been calibrated properly. If BRNG is 0.1 or greater, you probably have an issue.
 
+**Color Matrix mode** - Color Matrix mode displays the video feed as seen through a matrix with hue and saturation differences to aid in calibrating hue and chroma. If the preferred image is not seen in the center square of the matrix, hue and chroma levels may need to be adjusted.
+
+![Alt text] (Resources/vrecord_color_matrix_2016-11-22.jpg "Vrecord in Color Matrix Mode")
+
 **Create QC Tools XML** — While capturing the video signal, vrecord will also create an XML file that contains a record of the characteristics of the video signal (such as luminance, color saturation, audio levels, etc.). It will then compress the XML file using [gzip](https://www.gnu.org/software/gzip/). Choosing to create a QC Tools XML is highly recommended. This file can be quickly imported into QC Tools for further analysis of the video. In addition, if you choose this option, vrecord can analyze the video signal for potential errors. Currently vrecord only tests the saturation levels of the video, but more tests are coming soon!   
 
 **Frame MD5s** — You can choose to create an MD5 hash value (AKA a checksum) for each frame of video captured. A seperate .md5 file with all the hash values will be created along with the video file. Generally choosing to create frame-level MD5s will not slow down or hinder the capture of your video. To read more about the value of frame-level MD5s see this article: http://dericed.com/papers/reconsidering-the-checksum-for-audiovisual-preservation/ 
@@ -179,13 +185,14 @@ The numerical values are as follows:
 
 **Enter the name of the person digitizing this tape** — This field is optional. You can enter the name of the technician digitizing the tape. The name will be written to the capture options log produced at the end of the transfer.
 
+**Invert Second Channel of Audio** — This option allows you to invert the phase of the second channel of audio on ingest.  This option is only for rare cases. Use only if you are positive that the audio channels are 180 degrees out of phase!
+
 Click "OK" when you are finished with your selections. Vrecord will save all of your selections to a cofiguration file. If any selections are "Undeclared" vrecord will prompt you in the terminal window to make a choice. 
 
 Vrecord will then prompt you for a unique ID. The ID that you type in will become a prefix for the filename of all the resulting files in that recording session. After entering your unique ID you will be asked to press enter to start recording. Press enter and start playing your tape. The vrecord window will appear. Do not type any keys or click the mouse inside the window while the vrecord is working. 
 
 After the transfer is finished, vrecord will automatically check to make sure that no frames were missed during the capture. Check the Terminal window for any error messages. If frames were missed you may get the following message: "WARNING: There were pts discontinuities for these frame ranges: ##-##. The file may have sync issues." The message will give the frame numbers that are missing. Check the file immediately at these points and throughout the video to make sure there are no sync issues. The tape may need to be redigitized.
 
-**Invert Second Channel of Audio** — This option allows you to invert the phase of the second channel of audio on ingest.  This option is only for rare cases. Use only if you are positive that the audio channels are 180 degrees out of phase!
 
 #### A Few Quirks ####
 
