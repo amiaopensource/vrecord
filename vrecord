@@ -1096,15 +1096,21 @@ if [[ "${standard_choice}" = "PAL" ]] ; then
     middleoptions+=(-color_primaries bt470bg)
     middleoptions+=(-color_trc bt709)
     middleoptions+=(-colorspace bt470bg)
-    middleoptions+=(-color_range mpeg)
 elif [[ "${standard_choice}" = "NTSC" ]] ; then
     recordingfilter="[0:v:0]setfield=bff,setsar=40/27,setdar=4/3[vid1]"
     middleoptions+=(-color_primaries smpte170m)
     middleoptions+=(-color_trc bt709)
     middleoptions+=(-colorspace smpte170m)
-    middleoptions+=(-color_range mpeg)
 else
     recordingfilter="[0:v:0]setfield=bff,setsar=40/27,setdar=4/3[vid1]"
+fi
+
+if [[ "${playbackview_choice}" = "Broadcast Range Visual" ]] ; then
+    middleoptions+=(-color_range mpeg)
+elif [[ "${playbackview_choice}" = "Full Range Visual" ]] ; then
+    middleoptions+=(-color_range jpeg)
+else
+    middleoptions+=(-color_range mpeg)
 fi
 
 if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
