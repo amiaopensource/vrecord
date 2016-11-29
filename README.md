@@ -1,5 +1,5 @@
 # Vrecord Documentation #
-This documentation is up to date as of vrecord v0.7.10 (Released on 2015–12–10)
+This documentation is up to date as of vrecord v0.7.24 (Released on 2016–10–29)
 
 ## Table of Contents ##
 
@@ -30,7 +30,7 @@ Currently vrecord only supports Blackmagic Design capture cards with the Blackma
 
 ## Installing vrecord ##
 
-If you use Mac OS X, you can easily install vrecord using a package manager called Homebrew. To install Homebrew, follow the instructions here: http://brew.sh/
+If you use macOS, you can easily install vrecord using a package manager called Homebrew. To install Homebrew, follow the instructions here: http://brew.sh/
 
 To install vrecord, run the following commands:
 
@@ -57,7 +57,7 @@ Thus far installing vrecord on Linux has not been successful.
 
 ### Setting up vrecord for the First Time ###
 
-In Mac OS X, open System Preferences and click on the icon for Blackmagic Design. If you do not see this icon in System Preferences you may not have installed the Blackmagic driver. 
+In macOS, open System Preferences and click on the icon for Blackmagic Design. If you do not see this icon in System Preferences you may not have installed the Blackmagic driver. 
 
 Open up the Blackmagic Design preferences and click on the "Settings" tab. Select your input and output from the dropdown menu depending on what cables you have connected to the capture device. 
 
