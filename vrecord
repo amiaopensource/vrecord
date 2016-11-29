@@ -790,11 +790,11 @@ pashua_run() {
     fi
 } # pashua_run()
 
+shift $(( ${OPTIND} - 1 ))
+
 if [[ "${runtype}" = "GUI" ]] ; then
     _master_gui
 fi
-
-shift $(( ${OPTIND} - 1 ))
 
 if [[ "${runtype}" = "reset" ]] ; then
     report -q -n "Reseting the configuration will clear ${config_file}. Please enter [Y] to confirm: "
