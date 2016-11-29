@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
 config_file="$HOME/.$(basename "${0}").conf"
-
+version=$(ls /usr/local/Cellar/vrecord/ | sort | tail -n 1)
+logo_path="/usr/local/Cellar/vrecord/"$version"/vrecord_logo.png"
 inputoptions=""
 middleoptions=""
 suffix=""
@@ -41,7 +42,7 @@ usage(){
 
 # command-line options to set mediaid and original variables
 OPTIND=1
-while getopts ":herpax" opt ; do
+while getopts ":herpaxg" opt ; do
     case "${opt}" in
         h) usage ;;
         e) runtype="edit" ;;
@@ -49,6 +50,7 @@ while getopts ":herpax" opt ; do
         p) runtype="passthrough" ;;
         a) runtype="audiopassthrough" ;;
         x) runtype="reset" ;;
+        g) runtype="GUI" ;;
         *) report -w "bad option -$OPTARG" ; usage ;;
     esac
 done
@@ -60,6 +62,44 @@ elif [[ "${runtype}" = "record" || ${runtype} = "edit" ]] ; then
     touch "${config_file}"
     exec $(basename "${0}") -e
 fi
+
+_master_gui(){
+gui_conf="
+# Set transparency: 0 is transparent, 1 is opaque
+*.transparency=0.95
+# Set window title
+*.title = Welcome to Vrecord!
+# logo
+img.type = image
+img.path = "$logo_path"
+img.x = 75
+img.y = 200
+# intro text
+intro.width = 300
+intro.type = text
+intro.text = Please select the mode you would like to run Vrecord in
+#button
+runtype.type = radiobutton
+runtype.label = Make selection and press ok
+runtype.option = record
+runtype.option = passthrough
+runtype.option = audiopassthrough
+runtype.option = edit preferences
+cb.type = cancelbutton
+cb.label = Cancel
+"
+
+pashua_configfile=`/usr/bin/mktemp /tmp/pashua_XXXXXXXXX`
+echo "$gui_conf" > $pashua_configfile
+pashua_run
+if [ "$runtype" = "edit preferences" ] ; then
+    runtype="edit"
+fi
+if [ "$runtype" = "GUI" ] ; then
+    echo "Exiting VRecord. Goodbye!" && exit 0
+fi
+rm $pashua_configfile
+}
 
 video_input_options=("Composite" "SDI" "Component" "S-Video" "quit")
 audio_input_options=("Analog" "SDI Embedded Audio" "Digital Audio (AES/EBU)" "quit")
@@ -749,6 +789,10 @@ pashua_run() {
         done
     fi
 } # pashua_run()
+
+if [[ "${runtype}" = "GUI" ]] ; then
+    _master_gui
+fi
 
 shift $(( ${OPTIND} - 1 ))
 
