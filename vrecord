@@ -92,10 +92,10 @@ cb.label = Cancel
 pashua_configfile=`/usr/bin/mktemp /tmp/pashua_XXXXXXXXX`
 echo "$gui_conf" > $pashua_configfile
 pashua_run
-if [[ "$runtype" = "edit preferences" ]] ; then
+if [[ "${runtype}" = "edit preferences" ]] ; then
     runtype="edit"
 fi
-if [[ "$runtype" = "GUI" ]] ; then
+if [[ "${runtype}" = "GUI" ]] ; then
     echo "Exiting VRecord. Goodbye!" && exit 0
 fi
 rm $pashua_configfile
