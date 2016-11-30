@@ -537,7 +537,7 @@ split=5[a][b][c][d][e];\
           ;;
       "Visual + Numerical")
 playbackfilter="\
-split=6[a][b][c][d][e][f];\
+split=7[a][b][c][d][e][f][g];\
 [b]field=top[b1];\
 [c]field=bottom[c1];\
 [b1]${WAVEFORM_FILTER}[b2];\
@@ -554,7 +554,11 @@ drawtext=fontcolor=white:fontsize=17:\
 fontfile=${defaultfont}:textfile=/tmp/drawtext2.txt,\
 drawtext=fontcolor=white:fontsize=52:\
 fontfile=${defaultfont}:textfile=/tmp/drawtext3.txt[f1];\
-[f1][abc1][de1]hstack=inputs=3[out]"
+[f1][abc1][de1]hstack=inputs=3[abcdef1];\
+[g]scale=iw+512+180:82,geq=lum=60:cb=128:cr=128,drawtext=fontcolor=white:fontsize=22:\
+fontfile=${defaultfont}:textfile=/tmp/bmdcapture.log:\
+reload=1:y=82-th[g1];\
+[abcdef1][g1]vstack[out]"
             ;;
       "Color Matrix")
       hue=20
@@ -1154,7 +1158,7 @@ fi
 if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
     # mkfifo needs to be conditional and maybe deal with deleting a preexisting pipe
     mkfifo PIPE2QCTOOLS
-    bmdcapture -m ${standard} -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p "${video_bitdepth}" -F nut -f pipe:1 2> "${logdir}/${id}${bmdcapturelogsuffix}" | \
+    bmdcapture -m ${standard} -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p "${video_bitdepth}" -F nut -f pipe:1 2> >(tee "${logdir}/${id}${bmdcapturelogsuffix}" /tmp/bmdcapture.log >/dev/null) | \
         tee >(ffplay -i - -v info \
             -hide_banner -stats -autoexit \
              -window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" -vf "${playbackfilter}") | \
@@ -1182,7 +1186,7 @@ if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
 fi
 
 if [[ "${qctoolsxml_choice}" = "No" ]] ; then
-    bmdcapture -m ${standard} -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p "${video_bitdepth}" -F nut -f pipe:1 2> "${logdir}/${id}${bmdcapturelogsuffix}" | \
+    bmdcapture -m ${standard} -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p "${video_bitdepth}" -F nut -f pipe:1 2> >(tee "${logdir}/${id}${bmdcapturelogsuffix}" /tmp/bmdcapture.log >/dev/null) | \
         tee >(ffplay -i - -v info \
             -hide_banner -stats -autoexit \
             -window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" -vf "${playbackfilter}") | \
