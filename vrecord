@@ -24,7 +24,7 @@ usage(){
     echo "$(basename ${0}) ${version}"
     echo "$(basename "${0}") will record a file via the Blackmagic SDK and bmdtools. It is an interactive script and will create 8 or 10-bit video files."
     echo
-    echo "Dependencies: ffmpeg, ffplay and bmdcapture"
+    echo "Dependencies: bmdcapture, cowsay, ffmpeg, ffplay, mpv and xmlstarlet"
     echo
     echo "Usage: $(basename $0) [ -h ]"
     echo "  -h  display this help menu"
