@@ -197,8 +197,18 @@ Vrecord will then prompt you for a unique ID. The ID that you type in will becom
 
 After the transfer is finished, vrecord will automatically check to make sure that no frames were missed during the capture. Check the Terminal window for any error messages. If frames were missed you may get the following message: "WARNING: There were pts discontinuities for these frame ranges: ##-##. The file may have sync issues." The message will give the frame numbers that are missing. Check the file immediately at these points and throughout the video to make sure there are no sync issues. The tape may need to be redigitized.
 
+### GUI Mode ###
 
-#### A Few Quirks ####
+Running vrecord in GUI mode opens a window that allows you to access any of vrecord's other modes (Record, Passthrough, Audio Passthrough, and Edit) via a friendly GUI. 
+
+Run GUI mode by typing:
+```
+vrecord -g
+```
+After selecting your desired option and clicking "OK", vrecord will run in the selected mode. 
+
+
+### A Few Quirks ###
 
 ##### Timing of Recording #####
 When you start recording there may be several seconds of delay before the vrecord window actually appears. But don't worry, once you've pressed enter, vrecord is already capturing the signal and encoding it into a file. 
