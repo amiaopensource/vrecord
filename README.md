@@ -1,5 +1,5 @@
 # Vrecord Documentation #
-This documentation is up to date as of vrecord v0.7.24 (Released on 2016–10–29)
+This documentation is up to date as of vrecord v0.7.25 (Released on 2016–12–01)
 
 
 ## License ###
