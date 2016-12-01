@@ -207,6 +207,8 @@ vrecord -g
 ```
 After selecting your desired option and clicking "OK", vrecord will run in the selected mode. 
 
+![Alt text] (Resources/vrecord_gui_mode_2016-12-01.jpg "Vrecord in GUI Mode")
+
 
 ### A Few Quirks ###
 
