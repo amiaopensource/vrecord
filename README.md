@@ -16,8 +16,7 @@ This documentation is up to date as of vrecord v0.7.24 (Released on 2016–10–
     2. [A Few Quirks] (https://github.com/amiaopensource/vrecord#a-few-quirks)
       1. [Timing of Recording] (https://github.com/amiaopensource/vrecord/blob/master/README.md#timing-of-recording)
       2. [FFmpeg Error Message] (https://github.com/amiaopensource/vrecord/blob/master/README.md#ffmpeg-error-message)
-      3. [BMD Capture Update] (https://github.com/amiaopensource/vrecord/blob/master/README.md#bmdcapture-update)
-  6. [Clearing the Configuration File] (https://github.com/amiaopensource/vrecord#clearing-the-configuration-file)
+  7. [Clearing the Configuration File] (https://github.com/amiaopensource/vrecord#clearing-the-configuration-file)
 4. [Help and Issues] (https://github.com/amiaopensource/vrecord#help-and-issues)
 
 ## Summary ##
