@@ -1,6 +1,11 @@
 # Vrecord Documentation #
 This documentation is up to date as of vrecord v0.7.24 (Released on 2016–10–29)
 
+
+## License ###
+
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a><br />Vrecord is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
+
 ## Table of Contents ##
 
 1. [Summary] (https://github.com/amiaopensource/vrecord#summary)
