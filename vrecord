@@ -21,22 +21,24 @@ BRNG_OUTLIER_THRSHLD=14
 
 usage(){
     echo
-    echo "$(basename ${0})" "$version"
+    echo "$(basename ${0}) ${version}"
     echo "$(basename "${0}") will record a file via the Blackmagic SDK and bmdtools. It is an interactive script and will create 8 or 10-bit video files."
-    echo "Dependencies: ${dependencies[@]}"
-    echo "Usage: $(basename $0) [ -h ]"
-    echo "  -h ( display this help menu )"
-    echo "  -e ( edit the configuration file before recording )"
-    echo "  -r ( enable record mode [default] )"
-    echo "  -p ( enable passthrough mode where the video signal coming into the computer can be monitored, but not written to a file. Useful for testing equipment and setting up a tape to bars. )"
-    echo "  -a ( enable audio passthrough mode. Identical to passthrough except for the addition of audio bars. Note: Will eventually lag and crash if left on too long)"
-    echo "  -x ( reset the configuration, this will clear the default configuration file at ${config_file} and create a new one)"
+    echo
+    echo "Dependencies: ffmpeg, ffplay and bmdcapture"
+    echo
+    echo "Usage: $(basename ${0}) [ -h ]"
+    echo "  -h  display this help menu"
+    echo "  -e  edit the configuration file before recording"
+    echo "  -r  enable record mode [default]"
+    echo "  -p  enable passthrough mode where the video signal coming into the computer can be monitored, but not written to a file. Useful for testing equipment and setting up a tape to bars."
+    echo "  -a  enable audio passthrough mode. Identical to passthrough except for the addition of audio bars. Note: Will eventually lag and crash if left on too long."
+    echo "  -x  reset the configuration, this will clear the default configuration file at ${config_file} and create a new one."
     echo
     echo "Installation help:"
-    echo "To install (on a Mac with Homebrew package manager installed) run these commands:"
-    echo "$ brew update"
-    echo "$ brew tap amiaopensource/amiaos"
-    echo "$ brew install vrecord"
+    echo "To install (on a Mac with Homebrew package manager installed) run these three commands:"
+    echo "brew update"
+    echo "brew tap amiaopensource/amiaos"
+    echo "brew install vrecord"
     exit
 }
 
