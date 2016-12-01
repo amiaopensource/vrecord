@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 config_file="$HOME/.$(basename "${0}").conf"
-version=$(ls /usr/local/Cellar/vrecord/ | sort | tail -n 1)
+version=$(ls /usr/local/Cellar/vrecord/ | sort -n | tail -n 1)
 logo_path="/usr/local/Cellar/vrecord/"$version"/vrecord_logo.png"
 inputoptions=""
 middleoptions=""
@@ -21,7 +21,7 @@ BRNG_OUTLIER_THRSHLD=14
 
 usage(){
     echo
-    echo "$(basename ${0})"
+    echo "$(basename ${0})" "$version"
     echo "$(basename "${0}") will record a file via the Blackmagic SDK and bmdtools. It is an interactive script and will create 8 or 10-bit video files."
     echo "Dependencies: ${dependencies[@]}"
     echo "Usage: $(basename $0) [ -h ]"
