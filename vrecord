@@ -21,14 +21,14 @@ BRNG_OUTLIER_THRSHLD=14
 
 usage(){
     echo
-    echo "$(basename ${0}) ${version}"
+    echo "$(basename "${0}") ${version}"
     echo
     echo "$(basename "${0}") will record a file via the Blackmagic SDK and bmdtools. It is an"
     echo "interactive script and will create 8 or 10-bit video files."
     echo
     echo "Dependencies: bmdcapture, cowsay, ffmpeg, ffplay, mpv and xmlstarlet"
     echo
-    echo "Usage: $(basename $0) [-h|-e|-r|-p|-a|-x]"
+    echo "Usage: $(basename "${0}") [-h|-e|-r|-p|-a|-x]"
     echo "  -h  display this help menu"
     echo "  -e  edit the configuration file before recording"
     echo "  -r  enable record mode [default]"
