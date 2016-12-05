@@ -9,7 +9,7 @@
 There are several steps to digitizing a Betacam tape. This procedure assumes you already have vrecord and a Blackmagic capture card installed. 
 
 1. Route the video signal from the Betacam deck to the Blackmagic capture card for the computer that you plan to use.
-2. Start by testing the signal to make sure that everything is routed properly. Play the tape in the deck. Run `$ vecord -p` and watch the vrecord window to make sure the video signal from the tape is coming through. If it's not coming through, there may be some issues with your settings or how the signal is routed. See the "Troubleshooting" section below.  
+2. Start by testing the signal to make sure that everything is routed properly. Play the tape in the deck. Run `vecord -p` and watch the vrecord window to make sure the video signal from the tape is coming through. If it's not coming through, there may be some issues with your settings or how the signal is routed. See the "Troubleshooting" section below.  
 3. If color bars exist on the tape, set the tape to the bars. Otherwise, you will have to adjust the levels by eye as well as using the vectorscope and waveform monitor. 
 
 ### How to Set Up the Equipment to Color Bars on a Tape ###
@@ -62,7 +62,7 @@ Also note whether audio is coming in on both channels or just one channel. This 
 
 ### Digitizing the Tape ###
 
-Run `$ vrecord -e` and check the window that pops up to make sure your settings are correct. We use the following settings for digitizing Betacam tapes at CUNY-TV: 
+Run `vrecord -e` and check the window that pops up to make sure your settings are correct. We use the following settings for digitizing Betacam tapes at CUNY-TV: 
 
 **Video input** — SDI 
 
@@ -70,7 +70,7 @@ Run `$ vrecord -e` and check the window that pops up to make sure your settings 
 
 **Bit depth** — 10 bit
 
-**File format** — Quicktime 
+**File format** — QuickTime 
 
 **Codec for video** — FFV1 version 3
 
@@ -93,7 +93,7 @@ CUNY-TV uses the following settings for U-matic tapes:
 
 **Bit depth** — 10 bit
 
-**File format** — Quicktime 
+**File format** — QuickTime 
 
 **Codec for video** — FFV1 version 3
 
@@ -115,15 +115,15 @@ Next, check to make sure vrecord produced the correct files. These are:
 3. FFmpeg log (filename_ffmpeg_date_time.log)
 4. FFplay log (filename_ffplay_date_time.log)
 5. Frame MD5 file (filename.framemd5) if you chose to record frame MD5s, which you should do
-6. An capture options log (filename_capture_options.log)
+6. A capture options log (filename_capture_options.log)
 7. A QC Tools XML file, if you chose to create it (filename.qctools.xml.gz)
 
 Scroll through the video file to make sure it is complete; in other words, you've captured the entire tape. If all these files exist and the video file looks complete you can move on to further QC.
 
 ## Troubleshooting ##
 
-**I ran `$ vrecord -p` and no video is showing up in the vrecord window!**
-Answer: Check to make sure all of your cables are routed properly. Also check Mac OS System Preferences to make sure that the Black Magic capture device is set up properly. If you are using SDI for your input on vrecord, the output of the Black Magic should be set to SDI.
+**I ran `vrecord -p` and no video is showing up in the vrecord window!**
+Answer: Check to make sure all of your cables are routed properly. Also check macOS System Preferences to make sure that the Black Magic capture device is set up properly. If you are using SDI for your input on vrecord, the output of the Blackmagic should be set to SDI.
 
 **My tape finished early, how do I stop vrecord?**
 Answer: Simply close the vrecord window and the program will automatically stop. You should then examine your video file to make sure it's complete.
