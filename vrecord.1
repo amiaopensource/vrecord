@@ -1,0 +1,38 @@
+.TH Vrecord 1 "https://github.com/amiaopensource/vrecord" "" "An Open-Source Video Capture Tool for Archivists"
+.SH Vrecord
+Vrecord is open-source software for capturing a video signal and turning it into a digital file. Its purpose is to make videotape digitization or transfer easier. Vrecord can capture analog and digital signals through a variety of inputs and can create digital video files in a variety of formats and codecs. Vrecord has been designed with needs of audiovisual archivists in mind.
+.PP
+Currently vrecord only supports Blackmagic Design capture cards with the Blackmagic driver installed.
+.SH Synopsis
+.B [-h] [-e] [-r] [-p] [-a] [-x] [-g]
+.SH Modes
+.B Help [-h]
+Displays basic usage information.
+.PP
+.B Record Mode [-r]
+Enables recording of a signal. This is the default mode.
+.PP
+.B Passthrough Mode [-p]
+Passthrough mode means that the vrecord window will appear with video feeds and scopes, but the incoming video signal will not be recorded to a file. Passthrough mode is best used for tasks like testing equipment or setting up a tape to bars before actually recording. When you are finished using passthrough mode simply close the vrecord window.
+.PP
+.B Audio Passthrough Mode [-a]
+Audio Passthrough mode is the same as Passthrough Mode with the addition of audio bars to monitor levels. It can be used to check audio track layout and confirm input levels before starting a transfer. Currently Audio Passthrough Mode does not support the Visual + Numerical view option.
+.PP
+.B Edit Mode [-e]
+Running vrecord in edit mode opens a GUI window that allows you to change your recording options and then start digitizing a tape.
+.PP
+.B GUI Mode [-g]
+Running vrecord in GUI mode opens a window that allows you to access any of vrecord's other modes (Record, Passthrough, Audio Passthrough, and Edit) via a friendly GUI. Useful if calling Vrecord via an executable file.
+.PP
+.B Clear Configuration [-x]
+Use if you would like to clear all options set in the configuration file.
+.PP
+.SH Known Quirks
+.B Timing of Recording
+When you start recording there may be several seconds of delay before the vrecord window actually appears. But don't worry, once you've pressed enter, vrecord is already capturing the signal and encoding it into a file.
+.PP
+If you are watching the videotape output on a separate monitor and the video feeds on vrecord appear to be slightly behind the monitor, don't panic; all of your video has still been captured.
+.PP
+.B FFmpeg Error Message
+At the end of recording you may see an FFmpeg warning about invalid data.  It is safe to ignore this as it has no effect on your digitized file.
+
