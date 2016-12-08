@@ -2,7 +2,7 @@
 
 config_file="$HOME/.$(basename "${0}").conf"
 version=$(ls /usr/local/Cellar/vrecord/ | sort -n | tail -n 1)
-logo_path="/usr/local/Cellar/vrecord/"$version"/vrecord_logo.png"
+logo_path="/usr/local/Cellar/vrecord/$version"
 inputoptions=""
 middleoptions=""
 suffix=""
@@ -79,33 +79,54 @@ gui_conf="
 # Set window title
 *.title = Welcome to Vrecord!
 # logo
-img.type = image
-img.path = "$logo_path"
-img.x = 75
-img.y = 200
-# intro text
-intro.width = 300
-intro.type = text
-intro.text = Please select the mode you would like to run Vrecord in
-#button
-runtype.type = radiobutton
-runtype.label = Make selection and press ok
-runtype.option = record
-runtype.option = passthrough
-runtype.option = audiopassthrough
-runtype.option = edit preferences
-cb.type = cancelbutton
-cb.label = Cancel
+vrecord_logo.type = image
+vrecord_logo.path = "${logo_path}"/vrecord_logo.png
+vrecord_logo.x = 0
+vrecord_logo.y = 75
+#Record
+rec_button.type = button
+rec_button.label = Record
+rec_button.x = 15
+rec_button.y = 35
+#Passthrough
+pass_button.type = button
+pass_button.label = Passthrough
+pass_button.x = 170
+pass_button.y = 35
+#Audio Check
+audio_button.type = button
+audio_button.label = Audio Check
+audio_button.x = 335
+audio_button.y = 35
+#Edit Settings
+edit_button.type = button
+edit_button.label = Edit Settings
+edit_button.x = 485
+edit_button.y = 35
+#Help
+help_button.type = button
+help_button.label = Help
+help_button.x = 655
+help_button.y = 35
+db.type = defaultbutton
+db.label = Exit
 "
 
 pashua_configfile=`/usr/bin/mktemp /tmp/pashua_XXXXXXXXX`
 echo "$gui_conf" > $pashua_configfile
 pashua_run
-if [[ "${runtype}" = "edit preferences" ]] ; then
+if [[ "${rec_button}" = 1 ]] ; then
+    runtype="record"
+elif [[ "${pass_button}" = 1 ]] ; then
+    runtype="passthrough"
+elif [[ "${audio_button}" = 1 ]] ; then
+    runtype="audiopassthrough"
+elif [[ "${edit_button}" = 1 ]] ; then
     runtype="edit"
-fi
-if [[ "${runtype}" = "GUI" ]] ; then
-    echo "Exiting VRecord. Goodbye!" && exit 0
+elif [[ "${help_button}" = 1 ]] ; then
+    echo -n -e "\033]0;PRESS Q TO EXIT\007" && man vrecord && echo -n -e "\033]0;\007" && exit
+elif [[ "${runtype}" = "GUI" ]] ; then
+    echo "Exiting Vrecord. Goodbye!" && exit 0
 fi
 rm $pashua_configfile
 }
