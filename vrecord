@@ -78,8 +78,6 @@ gui_conf="
 *.transparency=0.95
 # Set window title
 *.title = Welcome to Vrecord!
-*.x = 900
-*.y = 750
 # logo
 vrecord_logo.type = image
 vrecord_logo.path = "${logo_path}"/vrecord_logo.png
