@@ -124,11 +124,10 @@ elif [[ "${audio_button}" = 1 ]] ; then
 elif [[ "${edit_button}" = 1 ]] ; then
     runtype="edit"
 elif [[ "${help_button}" = 1 ]] ; then
-    echo -n -e "\033]0;PRESS Q TO EXIT\007" && exec man vrecord
+    echo -n -e "\033]0;PRESS Q TO EXIT\007" && man vrecord && echo -n -e "\033]0;\007" && exit
 elif [[ "${runtype}" = "GUI" ]] ; then
     echo "Exiting Vrecord. Goodbye!" && exit 0
 fi
-
 rm $pashua_configfile
 }
 
