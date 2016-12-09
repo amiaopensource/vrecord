@@ -205,9 +205,9 @@ Run GUI mode by typing:
 ```
 vrecord -g
 ```
-After selecting your desired option and clicking "OK", vrecord will run in the selected mode. 
+Click the buttons to run Vrecord in your chosen mode.  The documentation button brings you to this website!
 
-![Alt text] (Resources/vrecord_gui_mode_2016-12-01.jpg "Vrecord in GUI Mode")
+![Alt text] (Resources/vrecord_gui_mode.png "Vrecord in GUI Mode")
 
 
 ### A Few Quirks ###
