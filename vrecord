@@ -838,7 +838,7 @@ fi
 if [[ "${runtype}" = "reset" ]] ; then
     report -q -n "Reseting the configuration will clear ${config_file}. Please enter [Y] to confirm: "
     read reset_response
-    if [[ "${reset_response}" = "Y" || "${reset_response}" = "y" ]] ; then
+    if [[ "${reset_response}" = [Yy] ]] ; then
         report -d "Clearing ${config_file}."
         echo -n "" > "${config_file}"
         runtype="edit"
