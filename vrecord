@@ -101,12 +101,17 @@ audio_button.y = 35
 #Edit Settings
 edit_button.type = button
 edit_button.label = Edit Settings
-edit_button.x = 485
+edit_button.x = 495
 edit_button.y = 35
+#Documentation
+documentation_button.type = button
+documentation_button.label = Documentation
+documentation_button.x = 800
+documentation_button.y = 35
 #Help
 help_button.type = button
 help_button.label = Help
-help_button.x = 655
+help_button.x = 675
 help_button.y = 35
 db.type = defaultbutton
 db.label = Exit
@@ -124,11 +129,16 @@ elif [[ "${audio_button}" = 1 ]] ; then
 elif [[ "${edit_button}" = 1 ]] ; then
     runtype="edit"
 elif [[ "${help_button}" = 1 ]] ; then
-    echo -n -e "\033]0;PRESS Q TO EXIT\007" && man vrecord && echo -n -e "\033]0;\007" && exit
+    echo -n -e "\033]0;PRESS Q TO EXIT\007" && man vrecord && echo -n -e "\033]0;\007" && _master_gui
+elif [[ "${documentation_button}" = 1 ]] ; then
+    open https://github.com/amiaopensource/vrecord#vrecord-documentation && _master_gui
 elif [[ "${runtype}" = "GUI" ]] ; then
     echo "Exiting Vrecord. Goodbye!" && exit 0
 fi
-rm $pashua_configfile
+
+if [ -f "${pashua_configfile}" ] ; then
+    rm "${pashua_configfile}"
+fi
 }
 
 video_input_options=("Composite" "SDI" "Component" "S-Video" "quit")
@@ -825,7 +835,6 @@ shift $(( ${OPTIND} - 1 ))
 if [[ "${runtype}" = "GUI" ]] ; then
     _master_gui
 fi
-
 if [[ "${runtype}" = "reset" ]] ; then
     report -q -n "Reseting the configuration will clear ${config_file}. Please enter [Y] to confirm: "
     read reset_response
@@ -938,6 +947,7 @@ duration_check
         report -d "Editing of preferences was canceled by the user."
     fi
     runtype="record"
+    open /Applications/Utilities/Terminal.app
     report -nd "Press [q] to quit, [p] to enter passthrough mode or any other key to proceed: "
     read aftereditresponse
     if [[ "$aftereditresponse" = "q" ]] ; then
@@ -947,7 +957,7 @@ duration_check
         runtype="passthrough"
     fi
 fi
-
+open /Applications/Utilities/Terminal.app
 if [ "$invert_phase" = 1 ] ; then
     phase_value="-1*"
 fi
