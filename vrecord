@@ -615,8 +615,7 @@ split=9[x][hm][hp][sm][sp][hmsm][hmsp][hpsm][hpsp];\
 [hmsm1][hm1][hmsp1]hstack=3[bottom];\
 [top][mid][bottom]vstack=3[out]"
            ;;
-        Q) exit 0 ;;
-        q) exit 0 ;;
+        "quit") report -d "Bye then" ; exit 0 ;;
         *) report -w "Error: Not a valid option, select a valid number or [q] to quit." ; return 1 ;;
     esac
 }
