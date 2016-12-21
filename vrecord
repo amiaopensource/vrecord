@@ -2,7 +2,7 @@
 
 config_file="$HOME/.$(basename "${0}").conf"
 version=$(ls /usr/local/Cellar/vrecord/ | sort -n | tail -n 1)
-logo_path="/usr/local/Cellar/vrecord/$version"
+logo_path="/usr/local/Cellar/vrecord/${version}"
 inputoptions=""
 middleoptions=""
 suffix=""
@@ -20,32 +20,34 @@ AUD_OUTLIER_THRSHLD=10
 BRNG_OUTLIER_THRSHLD=14
 
 usage(){
-    echo
-    echo "$(basename "${0}") ${version}"
-    echo
-    echo "$(basename "${0}") will record a file via the Blackmagic SDK and bmdtools. It is an"
-    echo "interactive script and will create 8 or 10-bit video files."
-    echo
-    echo "Dependencies: bmdcapture, cowsay, ffmpeg, ffplay, mpv and xmlstarlet"
-    echo
-    echo "Usage: $(basename "${0}") [-h|-e|-r|-p|-a|-x]"
-    echo "  -h  display this help menu"
-    echo "  -e  edit the configuration file before recording"
-    echo "  -r  enable record mode [default]"
-    echo "  -p  enable passthrough mode where the video signal coming into the"
-    echo "      computer can be monitored, but not written to a file. Useful for"
-    echo "      testing equipment and setting up a tape to bars."
-    echo "  -a  enable audio passthrough mode. Identical to passthrough except for"
-    echo "      the addition of audio bars. Note: Will eventually lag and crash if"
-    echo "      left on too long."
-    echo "  -x  reset the configuration, this will clear the default configuration"
-    echo "      file at ${config_file} and create a new one."
-    echo
-    echo "To install (on macOS with Homebrew package manager installed) run these"
-    echo "three commands:"
-    echo "brew update"
-    echo "brew tap amiaopensource/amiaos"
-    echo "brew install vrecord"
+    cat <<EOF
+
+$(basename "${0}") ${version}
+
+$(basename "${0}") will record a file via the Blackmagic SDK and bmdtools. It is an
+interactive script and will create 8 or 10-bit video files.
+
+Dependencies: bmdcapture, cowsay, ffmpeg, ffplay, mpv and xmlstarlet
+
+Usage: $(basename "${0}") [ -h | -e | -r | -p | -a | -x ]
+  -h  display this help menu
+  -e  edit the configuration file before recording
+  -r  enable record mode [default]
+  -p  enable passthrough mode where the video signal coming into the
+      computer can be monitored, but not written to a file. Useful for
+      testing equipment and setting up a tape to bars.
+  -a  enable audio passthrough mode. Identical to passthrough except for
+      the addition of audio bars. Note: Will eventually lag and crash if
+      left on too long.
+  -x  reset the configuration, this will clear the default configuration
+      file at ${config_file} and create a new one.
+
+To install (on macOS with Homebrew package manager installed) run these
+three commands:
+brew update
+brew tap amiaopensource/amiaos
+brew install vrecord
+EOF
     exit
 }
 
@@ -67,7 +69,7 @@ done
 if [[ -f "${config_file}" ]] ; then
     . "${config_file}"
 elif [[ "${runtype}" = "record" || ${runtype} = "edit" ]] ; then
-    echo -e "No configuration file, restarting in edit mode."
+    echo "No configuration file, restarting in edit mode."
     touch "${config_file}"
     exec $(basename "${0}") -e
 fi
@@ -117,7 +119,7 @@ db.type = defaultbutton
 db.label = Exit
 "
 
-pashua_configfile=`/usr/bin/mktemp /tmp/pashua_XXXXXXXXX`
+pashua_configfile=$(/usr/bin/mktemp /tmp/pashua_XXXXXXXXX)
 echo "$gui_conf" > $pashua_configfile
 pashua_run
 if [[ "${rec_button}" = 1 ]] ; then
@@ -310,7 +312,7 @@ lookup_video_input(){
         "Component")    video_input=2 ;;
         "S-Video")      video_input=6 ;;
         "quit") report -d "Bye then" ; exit 0 ;;
-        *) report -w "Error: Not a valid option, select a valid number or [q] to quit." ; return 1 ;;
+        *) report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
     esac
 }
 
@@ -320,7 +322,7 @@ lookup_audio_input(){
         "SDI Embedded Audio")       audio_input=2 ;;
         "Digital Audio (AES/EBU)")  audio_input=3 ;;
         "quit") report -d "Bye then" ; exit 0 ;;
-        *) report -w "Error: Not a valid option, select a valid number or [q] to quit." ; return 1 ;;
+        *) report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
     esac
 }
 
@@ -329,7 +331,7 @@ lookup_video_bitdepth(){
         "10 bit")   video_bitdepth=10 ;;
         "8 bit")    video_bitdepth=8 ;;
         "quit") report -d "Bye then" ; exit 0 ;;
-        *) report -w "Error: Not a valid option, select a valid number or [q] to quit." ; return 1 ;;
+        *) report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
     esac
 }
 
@@ -360,7 +362,7 @@ lookup_video_codec(){
             suffix="_prores"
             ;;
         "quit") report -d "Bye then" ; exit 0 ;;
-        *) report -w "Error: Not a valid option, select a valid number or [q] to quit." ; return 1 ;;
+        *) report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
     esac
 }
 
@@ -403,7 +405,7 @@ lookup_audio_mapping(){
             map2v="[mono2]"
             ;;
         "quit") report -d "Bye then" ; exit 0 ;;
-        *) report -w "Error: Not a valid option, select a valid number or [q] to quit." ; return 1 ;;
+        *) report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
     esac
 }
 
@@ -428,7 +430,7 @@ lookup_container(){
             format="mxf"
             ;;
         "quit") report -d "Bye then" ; exit 0 ;;
-        *) report -w "Error: Not a valid option, select a valid number or [q] to quit." ; return 1 ;;
+        *) report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
     esac
 }
 
@@ -441,7 +443,7 @@ lookup_standard(){
             standard="${PAL_value}"
             ;;
         "quit") report -d "Bye then" ; exit 0 ;;
-        *) report -w "Error: Not a valid option, select a valid number or [q] to quit." ; return 1 ;;
+        *) report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
     esac
 }
 
@@ -452,7 +454,7 @@ lookup_framemd5(){
         "No")
             ;;
         "quit") report -d "Bye then" ; exit 0 ;;
-        *) report -w "Error: Not a valid option, select a valid number or [q] to quit." ; return 1 ;;
+        *) report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
     esac
 }
 
@@ -463,7 +465,7 @@ lookup_qctoolsxml(){
         "No")
             ;;
         "quit") report -d "Bye then" ; exit 0 ;;
-        *) report -w "Error: Not a valid option, select a valid number or [q] to quit." ; return 1 ;;
+        *) report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
     esac
 }
 
@@ -1036,7 +1038,7 @@ fi
 if [[ "${qctoolsxml_choice}" != "${undeclaredoption}" ]] ; then
     echo ""
 else
-    report -q "Create QC Tools XML?"
+    report -q "Create QCTools XML?"
     PS3="Select an option: "
     select qctoolsxml_choice in "${qctoolsxml_options[@]}" ; do
         lookup_qctoolsxml "${qctoolsxml_choice}"
@@ -1251,8 +1253,8 @@ if [[ "${framemd5_choice}" = "Yes" ]] ; then
     if [[ "${pts_discontinuity}" = "" ]] ; then
         _writeingestlog "pts_discontinuity" "none"
     else
-    _writeingestlog "pts_discontinuity" "${pts_discontinuity}"
-    cowsay "$(report -w "WARNING: There were pts discontinuities for these frame ranges: ${pts_discontinuity}. The file may have sync issues.")"
+        _writeingestlog "pts_discontinuity" "${pts_discontinuity}"
+        cowsay "$(report -w "WARNING: There were pts discontinuities for these frame ranges: ${pts_discontinuity}. The file may have sync issues.")"
     fi
 fi
 
