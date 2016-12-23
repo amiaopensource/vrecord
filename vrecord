@@ -541,9 +541,8 @@ if [[ "${runtype}" = "audiopassthrough" ]] ; then
 #[f1][abcde1]hstack[abcdef1],\
 #[abcdef1][xx]overlay=200:10[vo]"
 #            ;;
-#        Q) exit 0 ;;
-#        q) exit 0 ;;
-#        *)  report -w "Error: Not a valid option, select a valid number or [q] to quit." ; return 1 ;;
+#        "quit") report -d "Bye then" ; exit 0 ;;
+#        *) report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
 #    esac
 #}
 
@@ -625,7 +624,7 @@ fi
 # defines the GUI dialog
 conf="
 # Set transparency: 0 is transparent, 1 is opaque
-*.transparency=0.90
+*.transparency=0.95
 # Set window title
 *.title = vrecord configuration
 # intro text
