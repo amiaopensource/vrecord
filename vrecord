@@ -40,7 +40,7 @@ Usage: $(basename "${0}") [ -h | -e | -r | -p | -a | -x ]
       the addition of audio bars. Note: Will eventually lag and crash if
       left on too long.
   -x  reset the configuration, this will clear the default configuration
-      file at '${config_file' and create a new one.
+      file at '${config_file}' and create a new one.
 EOF
 }
 
