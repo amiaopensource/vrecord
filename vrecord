@@ -19,7 +19,7 @@ SAT_OUTLIER_THRSHLD=14
 AUD_OUTLIER_THRSHLD=10
 BRNG_OUTLIER_THRSHLD=14
 
-usage(){
+_usage(){
     cat <<EOF
 
 $(basename "${0}") ${version}
@@ -55,7 +55,7 @@ _get_iso8601(){
     date +%FT%T
 }
 
-report(){
+_report(){
     local RED="$(tput setaf 1)"   # Red      - For Warnings
     local GREEN="$(tput setaf 2)" # Green    - For Declarations
     local BLUE="$(tput setaf 4)"  # Blue     - For Questions
@@ -84,14 +84,14 @@ report(){
 OPTIND=1
 while getopts ":herpaxg" opt ; do
     case "${opt}" in
-        h) usage ;;
+        h) _usage ;;
         e) runtype="edit" ;;
         r) runtype="record" ;;
         p) runtype="passthrough" ;;
         a) runtype="audiopassthrough" ;;
         x) runtype="reset" ;;
         g) runtype="GUI" ;;
-        *) report -w "bad option -$OPTARG" ; usage ;;
+        *) _report -w "bad option -$OPTARG" ; _usage ;;
     esac
 done
 
@@ -301,7 +301,7 @@ _writeingestlog(){
         # need to add yaml style escaping
         echo "${KEY}: ${VALUE}" >> "${INGESTLOG}"
     else
-        report -wt "The _writeingestlog function was called, but the ingestlog file (${INGESTLOG}) is not declared."
+        _report -wt "The _writeingestlog function was called, but the ingestlog file (${INGESTLOG}) is not declared."
     fi
 }
 
@@ -311,8 +311,8 @@ lookup_video_input(){
         "SDI")          video_input=4 ;;
         "Component")    video_input=2 ;;
         "S-Video")      video_input=6 ;;
-        "quit") report -d "Bye then" ; exit 0 ;;
-        *) report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
+        "quit") _report -d "Bye then" ; exit 0 ;;
+        *) _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
     esac
 }
 
@@ -321,8 +321,8 @@ lookup_audio_input(){
         "Analog")                   audio_input=1 ;;
         "SDI Embedded Audio")       audio_input=2 ;;
         "Digital Audio (AES/EBU)")  audio_input=3 ;;
-        "quit") report -d "Bye then" ; exit 0 ;;
-        *) report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
+        "quit") _report -d "Bye then" ; exit 0 ;;
+        *) _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
     esac
 }
 
@@ -330,8 +330,8 @@ lookup_video_bitdepth(){
     case "${1}" in
         "10 bit")   video_bitdepth=10 ;;
         "8 bit")    video_bitdepth=8 ;;
-        "quit") report -d "Bye then" ; exit 0 ;;
-        *) report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
+        "quit") _report -d "Bye then" ; exit 0 ;;
+        *) _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
     esac
 }
 
@@ -361,8 +361,8 @@ lookup_video_codec(){
             middleoptions+=(-c:v prores_ks)
             suffix="_prores"
             ;;
-        "quit") report -d "Bye then" ; exit 0 ;;
-        *) report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
+        "quit") _report -d "Bye then" ; exit 0 ;;
+        *) _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
     esac
 }
 
@@ -404,8 +404,8 @@ lookup_audio_mapping(){
             map2k="-map"
             map2v="[mono2]"
             ;;
-        "quit") report -d "Bye then" ; exit 0 ;;
-        *) report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
+        "quit") _report -d "Bye then" ; exit 0 ;;
+        *) _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
     esac
 }
 
@@ -429,8 +429,8 @@ lookup_container(){
             extension="mxf"
             format="mxf"
             ;;
-        "quit") report -d "Bye then" ; exit 0 ;;
-        *) report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
+        "quit") _report -d "Bye then" ; exit 0 ;;
+        *) _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
     esac
 }
 
@@ -442,8 +442,8 @@ lookup_standard(){
         "PAL")
             standard="${PAL_value}"
             ;;
-        "quit") report -d "Bye then" ; exit 0 ;;
-        *) report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
+        "quit") _report -d "Bye then" ; exit 0 ;;
+        *) _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
     esac
 }
 
@@ -453,8 +453,8 @@ lookup_framemd5(){
             ;;
         "No")
             ;;
-        "quit") report -d "Bye then" ; exit 0 ;;
-        *) report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
+        "quit") _report -d "Bye then" ; exit 0 ;;
+        *) _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
     esac
 }
 
@@ -464,8 +464,8 @@ lookup_qctoolsxml(){
             ;;
         "No")
             ;;
-        "quit") report -d "Bye then" ; exit 0 ;;
-        *) report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
+        "quit") _report -d "Bye then" ; exit 0 ;;
+        *) _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
     esac
 }
 
@@ -541,8 +541,8 @@ if [[ "${runtype}" = "audiopassthrough" ]] ; then
 #[f1][abcde1]hstack[abcdef1],\
 #[abcdef1][xx]overlay=200:10[vo]"
 #            ;;
-#        "quit") report -d "Bye then" ; exit 0 ;;
-#        *) report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
+#        "quit") _report -d "Bye then" ; exit 0 ;;
+#        *) _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
 #    esac
 #}
 
@@ -616,8 +616,8 @@ split=9[x][hm][hp][sm][sp][hmsm][hmsp][hpsm][hpsp];\
 [hmsm1][hm1][hmsp1]hstack=3[bottom];\
 [top][mid][bottom]vstack=3[out]"
            ;;
-        "quit") report -d "Bye then" ; exit 0 ;;
-        *) report -w "Error: Not a valid option, select a valid number or [q] to quit." ; return 1 ;;
+        "quit") _report -d "Bye then" ; exit 0 ;;
+        *) _report -w "Error: Not a valid option, select a valid number or [q] to quit." ; return 1 ;;
     esac
 }
 fi
@@ -836,14 +836,14 @@ if [[ "${runtype}" = "GUI" ]] ; then
     _master_gui
 fi
 if [[ "${runtype}" = "reset" ]] ; then
-    report -q -n "Reseting the configuration will clear ${config_file}. Please enter [Y] to confirm: "
+    _report -q -n "Reseting the configuration will clear ${config_file}. Please enter [Y] to confirm: "
     read reset_response
     if [[ "${reset_response}" = [Yy] ]] ; then
-        report -d "Clearing ${config_file}."
+        _report -d "Clearing ${config_file}."
         echo -n "" > "${config_file}"
         runtype="edit"
     else
-        report -d "Reset aborted. Exiting."
+        _report -d "Reset aborted. Exiting."
         exit 0
     fi
 fi
@@ -944,14 +944,14 @@ duration_check
         } > "${config_file}"
         . "${config_file}"
     else
-        report -d "Editing of preferences was canceled by the user."
+        _report -d "Editing of preferences was canceled by the user."
     fi
     runtype="record"
     open /Applications/Utilities/Terminal.app
-    report -nd "Press [q] to quit, [p] to enter passthrough mode or any other key to proceed: "
+    _report -nd "Press [q] to quit, [p] to enter passthrough mode or any other key to proceed: "
     read aftereditresponse
     if [[ "$aftereditresponse" = "q" ]] ; then
-        report -d "Bye then"
+        _report -d "Bye then"
         exit
     elif [[ "$aftereditresponse" = "p" ]] ; then
         runtype="passthrough"
@@ -965,7 +965,7 @@ fi
 if [[ "${video_input_choice}" && "${video_input_choice}" != "${undeclaredoption}" ]] ; then
     lookup_video_input "${video_input_choice}"
 else
-    report -q "Which VIDEO input are you using?"
+    _report -q "Which VIDEO input are you using?"
     PS3="Select a video input: "
     select video_input_choice in "${video_input_options[@]}" ; do
         lookup_video_input "${video_input_choice}"
@@ -976,7 +976,7 @@ fi
 if [[ "${audio_input_choice}" && "${audio_input_choice}" != "${undeclaredoption}" ]] ; then
     lookup_audio_input "${audio_input_choice}"
 else
-    report -q "Which AUDIO input are you using?"
+    _report -q "Which AUDIO input are you using?"
     PS3="Select an audio input: "
     select audio_input_choice in "${audio_input_options[@]}" ; do
         lookup_audio_input "${audio_input_choice}"
@@ -987,7 +987,7 @@ fi
 if [[ "${standard_choice}" && "${standard_choice}" != "${undeclaredoption}" ]] ; then
     lookup_standard "${standard_choice}"
 else
-    report -q "Which television standard?"
+    _report -q "Which television standard?"
     PS3="Select a television standard "
     select standard_choice in "${standard_options[@]}" ; do
         lookup_standard "${standard_choice}"
@@ -1006,7 +1006,7 @@ fi
 if [[ "${playbackview_choice}" && "${playbackview_choice}" != "${undeclaredoption}" ]] ; then
     lookup_playbackview "${playbackview_choice}"
 else
-    report -q "Which playback view?"
+    _report -q "Which playback view?"
     PS3="Select a playback view: "
     select playbackview_choice in "${playbackview_options[@]}" ; do
         lookup_playbackview "${playbackview_choice}"
@@ -1026,7 +1026,7 @@ fi
 if [[ "${framemd5_choice}" != "${undeclaredoption}" ]] ; then
     echo ""
 else
-    report -q "Create frame-level MD5 checksums?"
+    _report -q "Create frame-level MD5 checksums?"
     PS3="Select an option: "
     select framemd5_choice in "${framemd5_options[@]}" ; do
         lookup_framemd5 "${framemd5_choice}"
@@ -1037,7 +1037,7 @@ fi
 if [[ "${qctoolsxml_choice}" != "${undeclaredoption}" ]] ; then
     echo ""
 else
-    report -q "Create QCTools XML?"
+    _report -q "Create QCTools XML?"
     PS3="Select an option: "
     select qctoolsxml_choice in "${qctoolsxml_options[@]}" ; do
         lookup_qctoolsxml "${qctoolsxml_choice}"
@@ -1045,25 +1045,25 @@ else
     done
 fi
 
-report -q -n "Enter Identifier: "
+_report -q -n "Enter Identifier: "
 read id
 if [ ! -d "${dir}" ] ; then
-    report -q -n "Enter Directory: "
+    _report -q -n "Enter Directory: "
     read dir
     if [ ! -d "$dir" ] ; then
-        report -w "Error: Not a valid directory"
+        _report -w "Error: Not a valid directory"
         exit
     fi
 fi
 
 if [ ! -d "${logdir}" ] ; then
-    report -q -n "Enter Directory for Auxiliary Files (If blank will default to recording directory): "
+    _report -q -n "Enter Directory for Auxiliary Files (If blank will default to recording directory): "
     read logdir
     if [ -z "${logdir}" ] ; then
         logdir="$dir"
     fi
     if [ ! -d "${logdir}" ] ; then
-        report -w "Error: Not a valid directory"
+        _report -w "Error: Not a valid directory"
         exit
     fi
 fi
@@ -1076,7 +1076,7 @@ else
 fi
 
 if [ -z "${duration}" ] ; then
-    report -q -n "Set recording time (in minutes), leave blank for unlimited recording time: "
+    _report -q -n "Set recording time (in minutes), leave blank for unlimited recording time: "
     read duration
 fi
 
@@ -1089,14 +1089,14 @@ if [ -n "${duration}" ] ; then
 fi
 
 if [ -z "${technician}" ] ; then
-    report -q -n "Enter the name of the person digitizing the tape or leave blank. "
+    _report -q -n "Enter the name of the person digitizing the tape or leave blank. "
     read technician
 fi
 
 if [[ "$video_bit_depth_choice" && "$video_bit_depth_choice" != "${undeclaredoption}" ]] ; then
     lookup_video_bitdepth "$video_bit_depth_choice"
 else
-    report -q "Which VIDEO bit depth?"
+    _report -q "Which VIDEO bit depth?"
     PS3="Select a video bit depth: "
     select video_bit_depth_choice in "${video_bitdepth_options[@]}" ; do
         lookup_video_bitdepth "$video_bit_depth_choice"
@@ -1107,7 +1107,7 @@ fi
 if [[ "${container_choice}" && "${container_choice}" != "${undeclaredoption}" ]] ; then
     lookup_container "${container_choice}"
 else
-    report -q "Which audiovisual container format?"
+    _report -q "Which audiovisual container format?"
     PS3="Select a container format: "
     select container_choice in "${container_options[@]}" ; do
         lookup_container "${container_choice}"
@@ -1118,7 +1118,7 @@ fi
 if [[ "${video_codec_choice}" && "${video_codec_choice}" != "${undeclaredoption}" ]] ; then
     lookup_video_codec "${video_codec_choice}"
 else
-    report -q "Which VIDEO codec?"
+    _report -q "Which VIDEO codec?"
     PS3="Select a video codec: "
     select video_codec_choice in "${video_codec_options[@]}" ; do
         lookup_video_codec "${video_codec_choice}"
@@ -1129,7 +1129,7 @@ fi
 if [[ "${audio_mapping_choice}" && "${audio_mapping_choice}" != "${undeclaredoption}" ]] ; then
     lookup_audio_mapping "${audio_mapping_choice}"
 else
-    report -q "Which AUDIO mapping?"
+    _report -q "Which AUDIO mapping?"
     PS3="Select an audio mapping: "
     select audio_mapping_choice in "${channel_mapping_options[@]}" ; do
         lookup_audio_mapping "${audio_mapping_choice}"
@@ -1137,11 +1137,11 @@ else
     done
 fi
 
-report -d "Summary: ${video_bitdepth} bit ${codecname} ${container_choice} file from ${standard_choice} ${video_input_choice} ${audio_input_choice} Frame MD5s=${framemd5_choice} QC Tools XML=${qctoolsxml_choice} and Technician=${technician}. Inputs recorded to ${dir}/${id}.${extension} Auxiliary Files created in ${logdir}"
+_report -d "Summary: ${video_bitdepth} bit ${codecname} ${container_choice} file from ${standard_choice} ${video_input_choice} ${audio_input_choice} Frame MD5s=${framemd5_choice} QC Tools XML=${qctoolsxml_choice} and Technician=${technician}. Inputs recorded to ${dir}/${id}.${extension} Auxiliary Files created in ${logdir}"
 if [ "$invert_phase" = 1 ] ; then
     echo -e " \033[101mWARNING: Option to invert phase of second audio channel has been selected\033[0m"
 fi
-report -q "Hit enter to start recording"
+_report -q "Hit enter to start recording"
 read
 
 # create log of vrecord decisions
@@ -1172,7 +1172,7 @@ if [ "$invert_phase" = 1 ] ; then
     _writeingestlog "invert_phase" "Yes"
 fi
 
-report -d "Close the playback window to stop recording."
+_report -d "Close the playback window to stop recording."
 export FFREPORT="file=${logdir}/${id}_%p_%t${ffmpeglogsuffix}"
 
 if [[ "${standard_choice}" = "PAL" ]] ; then
@@ -1211,7 +1211,7 @@ if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
             -c:v copy -c:a copy -syncpoints none -f_strict experimental -f nut -y PIPE2QCTOOLS | ffprobe -loglevel error -f lavfi \
             "movie=PIPE2QCTOOLS:s=v+a[in0][in1],[in0]signalstats=stat=tout+vrep+brng, cropdetect=reset=1,split[a][b]; 
             [a]field=top[a1];[b]field=bottom[b1],[a1][b1]psnr[out0];[in1]ebur128=metadata=1,astats=metadata=1:reset=1:length=0.4[out1]" -show_frames -show_versions -of xml=x=1:q=1 -noprivate | gzip > "${logdir}/${id}${suffix}.${extension}.qctools.xml.gz"
-    report -d "Vrecord is analyzing your video file. Please be patient."
+    _report -d "Vrecord is analyzing your video file. Please be patient."
     if [ "${video_bitdepth}" = "10" ] ; then
         SAT_OUTLIERS=$(gzcat ${logdir}/${id}${suffix}.${extension}.qctools.xml.gz | xml sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>496])"  -n)
     elif [ "${video_bitdepth}" = "8" ] ; then
@@ -1253,7 +1253,7 @@ if [[ "${framemd5_choice}" = "Yes" ]] ; then
         _writeingestlog "pts_discontinuity" "none"
     else
         _writeingestlog "pts_discontinuity" "${pts_discontinuity}"
-        cowsay "$(report -w "WARNING: There were pts discontinuities for these frame ranges: ${pts_discontinuity}. The file may have sync issues.")"
+        cowsay "$(_report -w "WARNING: There were pts discontinuities for these frame ranges: ${pts_discontinuity}. The file may have sync issues.")"
     fi
 fi
 
@@ -1263,22 +1263,22 @@ if [[ "${framemd5_choice}" = "No" ]] ; then
     frames_decoded=$(cat "${logdir}/${id}"_ffmpeg_*.log | grep -w "frames decoded" | awk '{print $10}' | grep -m 1 [0-9])
     if [[ ${frames_encoded} -lt $((${frames_decoded}-1)) ]] ; then
         frame_discrepency=$((${frames_decoded}-${frames_encoded}))
-        cowsay "$(report -w "WARNING: FFmpeg reported missing frames. The file may have sync issues.")" 
+        cowsay "$(_report -w "WARNING: FFmpeg reported missing frames. The file may have sync issues.")" 
         _writeingestlog "ffmpeg_missing_frames" "${frame_discrepency}"
     else
         _writeingestlog "ffmpeg_missing_frames" "None"
     fi
 fi
 if [[ "${SAT_OUTLIERS}" -gt "${SAT_OUTLIER_THRSHLD}" ]] ; then
-    cowsay "$(report -w "WARNING: Your video file contains ${SAT_OUTLIERS} frames with illegal saturation values. Your deck may require cleaning.")"
+    cowsay "$(_report -w "WARNING: Your video file contains ${SAT_OUTLIERS} frames with illegal saturation values. Your deck may require cleaning.")"
 fi
 if [[ "${AUD_OUTLIERS}" -gt "${AUD_OUTLIER_THRSHLD}" ]] ; then
-    cowsay "$(report -w "WARNING: Your video file contains ${AUD_OUTLIERS} frames with clipped audio levels.")"
+    cowsay "$(_report -w "WARNING: Your video file contains ${AUD_OUTLIERS} frames with clipped audio levels.")"
 fi
 if [[ "${BRNG_OUTLIERS}" -gt "${BRNG_OUTLIER_THRSHLD}" ]] ; then
-    cowsay "$(report -w "WARNING: Your video file contains ${BRNG_OUTLIERS} frames with pixels out of broadcast range")"
+    cowsay "$(_report -w "WARNING: Your video file contains ${BRNG_OUTLIERS} frames with pixels out of broadcast range")"
 fi
 
 if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
-    report -d "Analysis is complete."
+    _report -d "Analysis is complete."
 fi
