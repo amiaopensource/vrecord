@@ -40,9 +40,8 @@ Usage: $(basename "${0}") [ -h | -e | -r | -p | -a | -x ]
       the addition of audio bars. Note: Will eventually lag and crash if
       left on too long.
   -x  reset the configuration, this will clear the default configuration
-      file at ${config_file} and create a new one.
+      file at '${config_file' and create a new one.
 EOF
-    exit
 }
 
 _get_iso8601(){
@@ -78,14 +77,14 @@ _report(){
 OPTIND=1
 while getopts ":herpaxg" opt ; do
     case "${opt}" in
-        h) _usage ;;
+        h) _usage ; exit 0 ;;
         e) runtype="edit" ;;
         r) runtype="record" ;;
         p) runtype="passthrough" ;;
         a) runtype="audiopassthrough" ;;
         x) runtype="reset" ;;
         g) runtype="GUI" ;;
-        *) _report -w "bad option -$OPTARG" ; _usage ;;
+        *) _report -w "Error: bad option -$OPTARG" ; _usage ; exit 1 ;;
     esac
 done
 
