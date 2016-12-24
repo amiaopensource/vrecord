@@ -41,12 +41,6 @@ Usage: $(basename "${0}") [ -h | -e | -r | -p | -a | -x ]
       left on too long.
   -x  reset the configuration, this will clear the default configuration
       file at ${config_file} and create a new one.
-
-To install (on macOS with Homebrew package manager installed) run these
-three commands:
-brew update
-brew tap amiaopensource/amiaos
-brew install vrecord
 EOF
     exit
 }
