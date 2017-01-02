@@ -29,8 +29,8 @@ interactive script and will create 8 or 10-bit video files.
 
 Dependencies: bmdcapture, cowsay, ffmpeg, ffplay, mpv and xmlstarlet
 
-Usage: $(basename "${0}") [ -h | -e | -r | -p | -a | -x ]
-  -h  display this help menu
+Usage: $(basename "${0}") [ -g | -e | -r | -p | -a | -x | -h ]
+  -g  use the GUI
   -e  edit the configuration file before recording
   -r  enable record mode [default]
   -p  enable passthrough mode where the video signal coming into the
@@ -41,6 +41,7 @@ Usage: $(basename "${0}") [ -h | -e | -r | -p | -a | -x ]
       left on too long.
   -x  reset the configuration, this will clear the default configuration
       file at '${config_file}' and create a new one.
+  -h  display this help menu
 EOF
 }
 
