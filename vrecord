@@ -553,7 +553,10 @@ split=5[a][b][c][d][e];\
 [c1]${WAVEFORM_FILTER}[c2];\
 [a][b2][c2]vstack=inputs=3,format=yuv422p[abc1];\
 [d]${VECTORSCOPE_FILTER}[d1];\
-[e]signalstats=out=brng,scale=512:ih[e1];\
+[e]format=yuv444p,\
+geq=lum=if(lte(lum(X\,Y)\,1)+gte(lum(X\,Y)\,254)\,104\,if(lte(lum(X\,Y)\,16)+gte(lum(X\,Y)\,235)\,255\,lum(X\,Y))):\
+cb=if(lte(lum(X\,Y)\,1)+gte(lum(X\,Y)\,254)\,151\,if(lte(lum(X\,Y)\,16)+gte(lum(X\,Y)\,235)\,0\,cb(X\,Y))):\
+cr=if(lte(lum(X\,Y)\,1)+gte(lum(X\,Y)\,254)\,235\,if(lte(lum(X\,Y)\,16)+gte(lum(X\,Y)\,235)\,148\,cr(X\,Y))),scale=512:ih[e1];\
 [e1][d1]vstack[de1];\
 [abc1][de1]hstack[out]"
             ;;
