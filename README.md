@@ -244,6 +244,10 @@ If you are stuck and want to see vrecord's help menu run:
 ```
 vrecord -h
 ```
+or check the man page:
+```
+man vrecord
+```
 
 If you want to see a more detailed description about how to digitize analog videotape see our document on [analog digitization](Resources/analog_digitization.md).
 
