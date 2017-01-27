@@ -6,7 +6,7 @@
 
 ## Needed Hardware ##
 
-The hardware needed is:
+The needed hardware is:
 
 - a computer running a recent macOS or Linux
 - a Blackmagic card from:
@@ -16,4 +16,4 @@ The hardware needed is:
   - [Intensity Pro 4K](https://www.blackmagicdesign.com/products/intensitypro4k)
   - [Intensity](https://www.blackmagicdesign.com/products/intensity)
 
-- the necessary cables for connectind the video desk to the card and to the computer
+- the necessary [cables](https://github.com/amiaopensource/cable-bible) for connectind the video desk to the card and to the computer
