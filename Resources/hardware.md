@@ -6,8 +6,6 @@
 
 ## Needed Hardware ##
 
-The needed hardware is:
-
 - a computer running a recent macOS or Linux
 - a Blackmagic card from:
 
