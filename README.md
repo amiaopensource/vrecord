@@ -251,6 +251,8 @@ man vrecord
 
 If you want to see a more detailed description about how to digitize analog videotape see our document on [analog digitization](Resources/analog_digitization.md).
 
+A short information about the [needed hardware](Resources/hardware.md) is provided as well.
+
 We want vrecord to be a helpful tool for audiovisual archivists and others. If you experience any problems with vrecord you can open a new issue with our Github [issue tracker](https://github.com/amiaopensource/vrecord/issues). Try to see if you can replicate the issue yourself first and describe in detail what factors led to it. Please let us know if you were able to succesfully replicate the issue. 
 
 Feel free to contribute to our github project by creating a fork and sending pull requests.
