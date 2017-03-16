@@ -1,30 +1,30 @@
-# Vrecord Documentation #
+# Vrecord Documentation
 This documentation is up to date as of vrecord v0.7.25 (Released on 2016–12–01)
 
 
-## License ###
+## License
 
-<a rel="license" href="https://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a><br />Vrecord is licensed under a <a rel="license" href="https://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
+<a rel="license" href="https://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png"></a><br>Vrecord is licensed under a <a rel="license" href="https://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
 
-## Table of Contents ##
+## Table of Contents
 
-1. [Summary] (https://github.com/amiaopensource/vrecord#summary)
-2. [Installing vrecord] (https://github.com/amiaopensource/vrecord#installing-vrecord)
-3. [Using vrecord] (https://github.com/amiaopensource/vrecord#using-vrecord)
-  1. [Setting up vrecord for the First Time] (https://github.com/amiaopensource/vrecord#setting-up-vrecord-for-the-first-time)
-  2. [Basic Usage] (https://github.com/amiaopensource/vrecord#basic-usage)
-  3. [The vrecord Window] (https://github.com/amiaopensource/vrecord#the-vrecord-window)
-  4. [Passthrough Mode] (https://github.com/amiaopensource/vrecord#passthrough-mode)
+1. [Summary](https://github.com/amiaopensource/vrecord#summary)
+2. [Installing vrecord](https://github.com/amiaopensource/vrecord#installing-vrecord)
+3. [Using vrecord](https://github.com/amiaopensource/vrecord#using-vrecord)
+  1. [Setting up vrecord for the First Time](https://github.com/amiaopensource/vrecord#setting-up-vrecord-for-the-first-time)
+  2. [Basic Usage](https://github.com/amiaopensource/vrecord#basic-usage)
+  3. [The vrecord Window](https://github.com/amiaopensource/vrecord#the-vrecord-window)
+  4. [Passthrough Mode](https://github.com/amiaopensource/vrecord#passthrough-mode)
   5. [Audio Passthrough Mode](https://github.com/amiaopensource/vrecord#audio-passthrough-mode)
-  6. [Edit Mode] (https://github.com/amiaopensource/vrecord#edit-mode)
-    1. [Options for Video Capture] (https://github.com/amiaopensource/vrecord#options-for-video-capture)
-    2. [A Few Quirks] (https://github.com/amiaopensource/vrecord#a-few-quirks)
-      1. [Timing of Recording] (https://github.com/amiaopensource/vrecord/blob/master/README.md#timing-of-recording)
-      2. [FFmpeg Error Message] (https://github.com/amiaopensource/vrecord/blob/master/README.md#ffmpeg-error-message)
-  7. [Clearing the Configuration File] (https://github.com/amiaopensource/vrecord#clearing-the-configuration-file)
-4. [Help and Issues] (https://github.com/amiaopensource/vrecord#help-and-issues)
+  6. [Edit Mode](https://github.com/amiaopensource/vrecord#edit-mode)
+    1. [Options for Video Capture](https://github.com/amiaopensource/vrecord#options-for-video-capture)
+    2. [A Few Quirks](https://github.com/amiaopensource/vrecord#a-few-quirks)
+      1. [Timing of Recording](https://github.com/amiaopensource/vrecord/blob/master/README.md#timing-of-recording)
+      2. [FFmpeg Error Message](https://github.com/amiaopensource/vrecord/blob/master/README.md#ffmpeg-error-message)
+  7. [Clearing the Configuration File](https://github.com/amiaopensource/vrecord#clearing-the-configuration-file)
+4. [Help and Issues](https://github.com/amiaopensource/vrecord#help-and-issues)
 
-## Summary ##
+## Summary
 
 Vrecord is open-source software for capturing a video signal and turning it into a digital file. Its purpose is to make videotape digitization or transfer easier. Vrecord can capture analog and digital signals through a variety of inputs and can create digital video files in a variety of formats and codecs. Vrecord has been designed with needs of audiovisual archivists in mind. 
 
@@ -32,7 +32,7 @@ Vrecord uses [ffmpeg](http://ffmpeg.org), [ffplay](http://ffmpeg.org/ffplay.html
 
 Currently vrecord only supports Blackmagic Design capture cards with the Blackmagic driver installed. 
 
-## Installing vrecord ##
+## Installing vrecord
 
 If you use macOS, you can easily install vrecord using a package manager called Homebrew. To install Homebrew, follow the instructions here: http://brew.sh/
 
@@ -57,9 +57,9 @@ Alternatively you can run:
 
 Thus far installing vrecord on Linux has not been successful.
 
-## Using vrecord ##
+## Using vrecord
 
-### Setting up vrecord for the First Time ###
+### Setting up vrecord for the First Time
 
 In macOS, open System Preferences and click on the icon for Blackmagic Design. If you do not see this icon in System Preferences you may not have installed the Blackmagic driver. 
 
@@ -72,7 +72,7 @@ vrecord
 The first time you use vrecord you will be asked to make some initial choices about how you want to capture. Any decisions you make will be saved in a cofiguration file. But don't worry, you will be able to alter these decisions later. 
 Vrecord will ask you for video and audio inputs. These should agree with your settings for the Blackmagic capture device. Vrecord's other settings can be tailored to your liking. See the section on [Options for Video Capture] (https://github.com/amiaopensource/vrecord#options-for-video-capture) below which explains all of the settings in detail.
 
-### Basic Usage ###
+### Basic Usage
 
 For those who want the simplest possible explanation on how to use vrecord:
 
@@ -90,7 +90,7 @@ For those who want the simplest possible explanation on how to use vrecord:
 12. Check to make sure that your video and metadata files were successfully created. 
 13. Repeat steps 1–12 as needed.
 
-### The vrecord Window ###
+### The vrecord Window
 
 ![Alt text](Resources/vrecord_broadcast_range_visual_2016-11-22.jpg "Vrecord in Broadcast Range Visual Mode")
 
@@ -102,7 +102,7 @@ Shown above is the layout of the vrecord window in "Broadcast Range Visual" mode
 4. **Vectorscope** — Displays chrominance values for the signal. The boxes represent the values for yellow, red, magenta, blue, cyan, and green. The boxes furthest from the center represent the broadcast limits for those colors. 
 
 
-### Passthrough Mode ###
+### Passthrough Mode
 
 Passthrough mode means that the vrecord window will appear with video feeds and scopes, but the incoming video signal will not be recorded to a file. Passthrough mode is best used for tasks like testing equipment or setting up a tape to bars before actually recording. When you are finished using passthrough mode simply close the vrecord window.
 
@@ -112,7 +112,7 @@ vrecord -p
 ```
 If you haven't already set up vrecord it will prompt you to make some selections related to your audio and video inputs. Otherwise the vrecord window will open up and start displaying any video signal coming through from the capture device. 
 
-### Audio Passthrough Mode ##
+### Audio Passthrough Mode
 
 Audio Passthrough mode is the same as Passthrough Mode with the addition of audio bars to monitor levels. It can be used to check audio track layout and confirm input levels before starting a transfer. Currently Audio Passthrough Mode does not support the Visual + Numerical view option.
 
@@ -121,7 +121,7 @@ Run audio passthrough mode by typing:
 vrecord -a
 ```
 
-### Edit Mode ###
+### Edit Mode
 
 Running vrecord in edit mode opens a GUI window that allows you to change your recording options and then start digitizing a tape. 
 
@@ -133,7 +133,7 @@ After selecting all of your options and clicking "OK" the you will be prompted t
 
 By default vrecord will create a video file, a bmdcapture log, a framemd5 file (which creates an MD5 hash value [AKA a checksum] for every frame of video), an ffmpeg log, an ffplay log, and a capture options log (which records the options that you selected in the GUI like codec and video bit depth). Vrecord can also create a [QC Tools](https://github.com/bavc/qctools) XML file, which records the characteristics of the video signal. This file can be imported into QC Tools for further analysis. 
 
-#### Options for Video Capture ####
+#### Options for Video Capture
 
 All of options in the vrecord GUI (which appears when running `vrecord -e`) or otherwise in text prompts are explained below. If you want to feel like a college freshman you can choose "Undeclared" for any of the options below. You will be prompted later to make a choice before the software actually starts recording:
 
@@ -197,7 +197,7 @@ Vrecord will then prompt you for a unique ID. The ID that you type in will becom
 
 After the transfer is finished, vrecord will automatically check to make sure that no frames were missed during the capture. Check the Terminal window for any error messages. If frames were missed you may get the following message: "WARNING: There were pts discontinuities for these frame ranges: ##-##. The file may have sync issues." The message will give the frame numbers that are missing. Check the file immediately at these points and throughout the video to make sure there are no sync issues. The tape may need to be redigitized.
 
-### GUI Mode ###
+### GUI Mode
 
 Running vrecord in GUI mode opens a window that allows you to access any of vrecord's other modes (Record, Passthrough, Audio Passthrough, and Edit) via a friendly GUI. 
 
@@ -210,14 +210,14 @@ Click the buttons to run Vrecord in your chosen mode. The documentation button b
 ![Alt text] (Resources/vrecord_gui_mode.png "Vrecord in GUI Mode")
 
 
-### A Few Quirks ###
+### A Few Quirks
 
-##### Timing of Recording #####
+##### Timing of Recording
 When you start recording there may be several seconds of delay before the vrecord window actually appears. But don't worry, once you've pressed enter, vrecord is already capturing the signal and encoding it into a file. 
 
 If you are watching the videotape output on a separate monitor and the video feeds on vrecord appear to be slightly behind the monitor, don't panic; all of your video has still been captured. 
 
-##### FFmpeg Error Message ####
+##### FFmpeg Error Message
 
 At the end of your capture you may see a warning in the Terminal that looks similar to this:
 
@@ -229,7 +229,7 @@ Error while decoding stream #0:0: Invalid data found when processing input
 
 You can safely ignore this warning, it's just FFmpeg complaining that it didn't receive a full frame of video when vrecord stopped. 
 
-### Clearing the Configuration File ###
+### Clearing the Configuration File
 
 By default vrecord saves the choices you made the last time you used the program in a configuration file so that these options are selected the next time you use vrecord. If you would like to clear this configuration file and create a new one type:
 
@@ -238,7 +238,7 @@ vrecord -x
 ```
 Vrecord will then prompt you to make selections for video capture and proceed to start recording a new tape. If you want to interrupt vrecord hold down control + c. 
 
-## Help and Issues ##
+## Help and Issues
 
 If you are stuck and want to see vrecord's help menu run:
 ```
