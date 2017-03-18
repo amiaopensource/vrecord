@@ -207,7 +207,7 @@ vrecord -g
 ```
 Click the buttons to run Vrecord in your chosen mode. The documentation button brings you to this website!
 
-![Alt text] (Resources/vrecord_gui_mode.png "Vrecord in GUI Mode")
+![Alt text](Resources/vrecord_gui_mode.png "Vrecord in GUI Mode")
 
 
 ### A Few Quirks
