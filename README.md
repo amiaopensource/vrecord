@@ -70,7 +70,7 @@ Once your capture device is set up you can start vrecord by simply opening up a 
 vrecord 
 ```
 The first time you use vrecord you will be asked to make some initial choices about how you want to capture. Any decisions you make will be saved in a cofiguration file. But don't worry, you will be able to alter these decisions later. 
-Vrecord will ask you for video and audio inputs. These should agree with your settings for the Blackmagic capture device. Vrecord's other settings can be tailored to your liking. See the section on [Options for Video Capture] (https://github.com/amiaopensource/vrecord#options-for-video-capture) below which explains all of the settings in detail.
+Vrecord will ask you for video and audio inputs. These should agree with your settings for the Blackmagic capture device. Vrecord's other settings can be tailored to your liking. See the section on [Options for Video Capture](https://github.com/amiaopensource/vrecord#options-for-video-capture) below which explains all of the settings in detail.
 
 ### Basic Usage
 
@@ -94,7 +94,7 @@ For those who want the simplest possible explanation on how to use vrecord:
 
 ![Alt text](Resources/vrecord_broadcast_range_visual_2016-11-22.jpg "Vrecord in Broadcast Range Visual Mode")
 
-Shown above is the layout of the vrecord window in "Broadcast Range Visual" mode. Vrecord also includes a "Visual + Numerical" mode, which is discussed in the [Options for Video Capture] (https://github.com/amiaopensource/vrecord#options-for-video-capture) section below.
+Shown above is the layout of the vrecord window in "Broadcast Range Visual" mode. Vrecord also includes a "Visual + Numerical" mode, which is discussed in the [Options for Video Capture](https://github.com/amiaopensource/vrecord#options-for-video-capture) section below.
 
 1. **Video feed** — Displays the entire 720 x 486 video signal coming through. The image will appear a bit more stretched than it does on a television monitor. 
 2. **Video feed with broadcast-safe indicator** — Displays a feed of an underscanned version of the video signal. Pixels whose luminance or chrominance is outside of broadcast range are colored yellow. Due to space constraints in the vrecord window this feed will appear slightly squeezed.  
@@ -179,7 +179,7 @@ The numerical values are as follows:
 
 **Color Matrix mode** - Color Matrix mode displays the video feed as seen through a matrix with hue and saturation differences to aid in calibrating hue and chroma. If the preferred image is not seen in the center square of the matrix, hue and chroma levels may need to be adjusted.
 
-![Alt text] (Resources/vrecord_color_matrix_2016-11-22.jpg "Vrecord in Color Matrix Mode")
+![Alt text](Resources/vrecord_color_matrix_2016-11-22.jpg "Vrecord in Color Matrix Mode")
 
 **Create QC Tools XML** — While capturing the video signal, vrecord will also create an XML file that contains a record of the characteristics of the video signal (such as luminance, color saturation, audio levels, etc.). It will then compress the XML file using [gzip](https://www.gnu.org/software/gzip/). Choosing to create a QC Tools XML is highly recommended. This file can be quickly imported into QC Tools for further analysis of the video. In addition, if you choose this option, vrecord can analyze the video signal for potential errors. Currently vrecord only tests the saturation levels of the video, but more tests are coming soon!   
 
