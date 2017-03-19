@@ -8,7 +8,7 @@
   - [Intensity Pro 4K](https://www.blackmagicdesign.com/products/intensitypro4k)
   - [Intensity](https://www.blackmagicdesign.com/products/intensity)
 
-- the necessary [cables](https://github.com/amiaopensource/cable-bible) for connecting the video desk to the card and to the computer
+- the necessary [cables](https://amiaopensource.github.io/cable-bible/) for connecting the video desk to the card and to the computer
 
 ## License ###
 
