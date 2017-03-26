@@ -1,6 +1,6 @@
 # Vrecord Documentation
-This documentation is up to date as of vrecord v0.7.25 (Released on 2016–12–01)
 
+This documentation is up to date as of vrecord v0.7.25 (Released on 2016–12–01)
 
 ## License
 
@@ -9,20 +9,21 @@ This documentation is up to date as of vrecord v0.7.25 (Released on 2016–12–
 ## Table of Contents
 
 1. [Summary](https://github.com/amiaopensource/vrecord#summary)
-2. [Installing vrecord](https://github.com/amiaopensource/vrecord#installing-vrecord)
-3. [Using vrecord](https://github.com/amiaopensource/vrecord#using-vrecord)
-  1. [Setting up vrecord for the First Time](https://github.com/amiaopensource/vrecord#setting-up-vrecord-for-the-first-time)
-  2. [Basic Usage](https://github.com/amiaopensource/vrecord#basic-usage)
-  3. [The vrecord Window](https://github.com/amiaopensource/vrecord#the-vrecord-window)
-  4. [Passthrough Mode](https://github.com/amiaopensource/vrecord#passthrough-mode)
-  5. [Audio Passthrough Mode](https://github.com/amiaopensource/vrecord#audio-passthrough-mode)
-  6. [Edit Mode](https://github.com/amiaopensource/vrecord#edit-mode)
-    1. [Options for Video Capture](https://github.com/amiaopensource/vrecord#options-for-video-capture)
-    2. [A Few Quirks](https://github.com/amiaopensource/vrecord#a-few-quirks)
-      1. [Timing of Recording](https://github.com/amiaopensource/vrecord/blob/master/README.md#timing-of-recording)
-      2. [FFmpeg Error Message](https://github.com/amiaopensource/vrecord/blob/master/README.md#ffmpeg-error-message)
-  7. [Clearing the Configuration File](https://github.com/amiaopensource/vrecord#clearing-the-configuration-file)
-4. [Help and Issues](https://github.com/amiaopensource/vrecord#help-and-issues)
+1. [Installing vrecord](https://github.com/amiaopensource/vrecord#installing-vrecord)
+1. [Using vrecord](https://github.com/amiaopensource/vrecord#using-vrecord)
+   1. [Setting up vrecord for the First Time](https://github.com/amiaopensource/vrecord#setting-up-vrecord-for-the-first-time)
+   1. [Basic Usage](https://github.com/amiaopensource/vrecord#basic-usage)
+   1. [The vrecord Window](https://github.com/amiaopensource/vrecord#the-vrecord-window)
+   1. [Passthrough Mode](https://github.com/amiaopensource/vrecord#passthrough-mode)
+   1. [Audio Passthrough Mode](https://github.com/amiaopensource/vrecord#audio-passthrough-mode)
+   1. [Edit Mode](https://github.com/amiaopensource/vrecord#edit-mode)
+      1. [Options for Video Capture](https://github.com/amiaopensource/vrecord#options-for-video-capture)
+      1. [A Few Quirks](https://github.com/amiaopensource/vrecord#a-few-quirks)
+         1. [Timing of Recording](https://github.com/amiaopensource/vrecord/blob/master/README.md#timing-of-recording)
+         1. [FFmpeg Error Message](https://github.com/amiaopensource/vrecord/blob/master/README.md#ffmpeg-error-message)
+   1. [Ending a capture](https://github.com/amiaopensource/vrecord/blob/master/README.md#ending-a-capture)
+   1. [Clearing the Configuration File](https://github.com/amiaopensource/vrecord#clearing-the-configuration-file)
+1. [Help and Issues](https://github.com/amiaopensource/vrecord#help-and-issues)
 
 ## Summary
 
@@ -38,22 +39,21 @@ If you use macOS, you can easily install vrecord using a package manager called 
 
 To install vrecord, run the following commands:
 
-`brew tap amiaopensource/amiaos` {taps the homebrew recipes of the amiaopensource account}
+`brew tap amiaopensource/amiaos` (taps the homebrew recipes of the amiaopensource account)
 
-`brew install vrecord` {installs vrecord and the other programs that it requires}
-
+`brew install vrecord` (installs vrecord and the other programs that it requires)
 
 Once vrecord has been successfully installed, you can update it to the latest release by first running:
 
-`brew update` {updates all of your Homebrew recipes to the latest versions}
+`brew update` (updates all of your Homebrew recipes to the latest versions)
 
 Then running:
 
-`brew upgrade vrecord` {downloads the latest release of vrecord and the latest releases of any other packages it depends on}
+`brew upgrade vrecord` (downloads the latest release of vrecord and the latest releases of any other packages it depends on)
 
 Alternatively you can run:
 
-`brew upgrade` {this command will upgrade all of the programs you've installed through Homebrew}
+`brew upgrade` (this command will upgrade all of the programs you've installed through Homebrew)
 
 Thus far installing vrecord on Linux has not been successful.
 
@@ -77,18 +77,18 @@ Vrecord will ask you for video and audio inputs. These should agree with your se
 For those who want the simplest possible explanation on how to use vrecord:
 
 1. Run `vrecord -p`.
-2. Choose the appropriate options when prompted.
-3. Play your tape in the connected VTR and set up to color bars and audio on the tape (if possible).
-4. Close the vrecord window to end passthrough mode.
-5. Now run `vrecord -e` and make sure all options are correct in vrecord's GUI window.
-6. Type in a unique identifier for your video file when prompted.
-7. Press "enter" to start recording.
-8. Let 'er rip! Play your tape!
-9. Let vrecord do its thing. Don't type any keys while the vrecord window is open, do not click the mouse inside the vrecord window, and do not start another instance of vrecord on the same computer. In fact it's best not to open or use any other programs on the computer that is capturing. Overtaxing the computer could cause errors in the capture. 
-10. If you are finished recording and the vrecord window hasn't already closed, close the window.
-11. Check the Terminal window for any error messages. Hopefully you don't see any cows.  
-12. Check to make sure that your video and metadata files were successfully created. 
-13. Repeat steps 1–12 as needed.
+1. Choose the appropriate options when prompted.
+1. Play your tape in the connected VTR and set up to color bars and audio on the tape (if possible).
+1. Close the vrecord window to end passthrough mode.
+1. Now run `vrecord -e` and make sure all options are correct in vrecord's GUI window.
+1. Type in a unique identifier for your video file when prompted.
+1. Press "enter" to start recording.
+1. Let 'er rip! Play your tape!
+1. Let vrecord do its thing. Don't type any keys while the vrecord window is open, do not click the mouse inside the vrecord window, and do not start another instance of vrecord on the same computer. In fact it's best not to open or use any other programs on the computer that is capturing. Overtaxing the computer could cause errors in the capture. 
+1. If you are finished recording and the vrecord window hasn't already closed, close the window.
+1. Check the Terminal window for any error messages. Hopefully you don't see any cows.  
+1. Check to make sure that your video and metadata files were successfully created. 
+1. Repeat steps 1–12 as needed.
 
 ### The vrecord Window
 
@@ -209,6 +209,9 @@ Click the buttons to run Vrecord in your chosen mode. The documentation button b
 
 ![Alt text](Resources/vrecord_gui_mode.png "Vrecord in GUI Mode")
 
+### Ending a Capture
+
+If you are finished recording and the vrecord window hasn't already closed, close the window.
 
 ### A Few Quirks
 
