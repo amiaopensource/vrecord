@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
+# vrecord
+# Open-source software for capturing a video signal and turning it into a digital file.
+
 config_file="$HOME/.$(basename "${0}").conf"
-version=$(ls /usr/local/Cellar/vrecord/ | sort -n | tail -n 1)
 logo_path="/usr/local/Cellar/vrecord/${version}"
 inputoptions=""
 middleoptions=""
@@ -18,6 +20,12 @@ defaultfont="/Library/Fonts/Andale Mono.ttf"
 SAT_OUTLIER_THRSHLD=14
 AUD_OUTLIER_THRSHLD=10
 BRNG_OUTLIER_THRSHLD=14
+
+if [[ $(dirname $(which "${0}")) = "/usr/local/bin" || $(dirname $(which "${0}")) = "${HOME}/.linuxbrew/bin" ]] ; then
+    version=$(TMP=$(brew info vrecord | grep -Eo "/vrecord/.* \(") ; echo ${TMP:9:(${#TMP}-11)})
+else
+    version=""
+fi
 
 _usage(){
     cat <<EOF
@@ -177,7 +185,6 @@ playbackview_options=("Broadcast Range Visual" "Full Range Visual" "Visual + Num
 framemd5_options=("Yes" "No" "quit")
 qctoolsxml_options=("Yes" "No" "quit")
 
-
 set_up_drawtext(){
     echo -e "%{pts:hms}
 
@@ -281,8 +288,8 @@ duration_check(){
         if [[ $duration =~ ^$real_regexp$ ]] ; then
             is_number=yes
         else
-            echo "Illegal value for recording time. Input must only be numbers."
-            exit
+            _report -w "Illegal value for recording time. Input must only be numbers."
+            exit 1
         fi
     fi
 }
@@ -301,31 +308,31 @@ _writeingestlog(){
 
 lookup_video_input(){
     case "${1}" in
-        "Composite")    video_input=1 ;;
-        "SDI")          video_input=4 ;;
-        "Component")    video_input=2 ;;
-        "S-Video")      video_input=6 ;;
-        "quit") _report -d "Bye then" ; exit 0 ;;
-        *) _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
+        "Composite") video_input=1 ;;
+        "SDI")       video_input=4 ;;
+        "Component") video_input=2 ;;
+        "S-Video")   video_input=6 ;;
+        "quit")      _report -d "Bye then" ; exit 0 ;;
+        *)           _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
     esac
 }
 
 lookup_audio_input(){
     case "${1}" in
-        "Analog")                   audio_input=1 ;;
-        "SDI Embedded Audio")       audio_input=2 ;;
-        "Digital Audio (AES/EBU)")  audio_input=3 ;;
-        "quit") _report -d "Bye then" ; exit 0 ;;
-        *) _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
+        "Analog")                  audio_input=1 ;;
+        "SDI Embedded Audio")      audio_input=2 ;;
+        "Digital Audio (AES/EBU)") audio_input=3 ;;
+        "quit")                    _report -d "Bye then" ; exit 0 ;;
+        *)                         _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
     esac
 }
 
 lookup_video_bitdepth(){
     case "${1}" in
-        "10 bit")   video_bitdepth=10 ;;
-        "8 bit")    video_bitdepth=8 ;;
-        "quit") _report -d "Bye then" ; exit 0 ;;
-        *) _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
+        "10 bit") video_bitdepth=10 ;;
+        "8 bit")  video_bitdepth=8 ;;
+        "quit")   _report -d "Bye then" ; exit 0 ;;
+        *)        _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
     esac
 }
 
@@ -473,7 +480,7 @@ set_up_drawtext
 
 WAVEFORM_FILTER="\
 format=yuv422p,\
-waveform=intensity=0.1:mode=column:mirror=1:c=1:f=lowpass:e=instant:graticule=green:flags=numbers+dots"\
+waveform=intensity=0.1:mode=column:mirror=1:c=1:f=lowpass:e=instant:graticule=green:flags=numbers+dots"
 
 VECTORSCOPE_FILTER="\
 format=yuv422p,\
@@ -946,7 +953,7 @@ duration_check
     read aftereditresponse
     if [[ "$aftereditresponse" = "q" ]] ; then
         _report -d "Bye then"
-        exit
+        exit 0
     elif [[ "$aftereditresponse" = "p" ]] ; then
         runtype="passthrough"
     fi
@@ -1046,7 +1053,7 @@ if [ ! -d "${dir}" ] ; then
     read dir
     if [ ! -d "$dir" ] ; then
         _report -w "Error: Not a valid directory"
-        exit
+        exit 1
     fi
 fi
 
@@ -1058,7 +1065,7 @@ if [ ! -d "${logdir}" ] ; then
     fi
     if [ ! -d "${logdir}" ] ; then
         _report -w "Error: Not a valid directory"
-        exit
+        exit 1
     fi
 fi
 
