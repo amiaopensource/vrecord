@@ -1105,9 +1105,7 @@ else
     recordingfilter="[0:v:0]setfield=bff,setsar=40/27,setdar=4/3[vid1]"
 fi
 
-if [[ "${playbackview_choice}" = "Broadcast Range Visual" ]] ; then
-    middleoptions+=(-color_range mpeg)
-elif [[ "${playbackview_choice}" = "Full Range Visual" ]] ; then
+if [[ "${playbackview_choice}" = "Full Range Visual" ]] ; then
     middleoptions+=(-color_range jpeg)
 else
     middleoptions+=(-color_range mpeg)
