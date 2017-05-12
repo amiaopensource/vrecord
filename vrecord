@@ -21,7 +21,7 @@ SAT_OUTLIER_THRSHLD=14
 AUD_OUTLIER_THRSHLD=10
 BRNG_OUTLIER_THRSHLD=14
 
-if [[ $(dirname $(which "${0}")) = "/usr/local/bin" || $(dirname $(which "${0}")) = "${HOME}/.linuxbrew/bin" ]] ; then
+if [[ $(dirname $(which "${0}")) = "/usr/local/bin" ]] ; then
     version=$(TMP=$(brew info vrecord | grep -Eo "/vrecord/.* \(") ; echo ${TMP:9:(${#TMP}-11)})
 else
     version=""
