@@ -4,6 +4,11 @@
 # Open-source software for capturing a video signal and turning it into a digital file.
 
 config_file="$HOME/.$(basename "${0}").conf"
+if [[ $(dirname $(which "${0}")) = "/usr/local/bin" ]] ; then
+    version=$(TMP=$(brew info vrecord | grep -Eo "/vrecord/.* \(") ; echo ${TMP:9:(${#TMP}-11)})
+else
+    version=""
+fi
 logo_path="/usr/local/Cellar/vrecord/${version}"
 inputoptions=""
 middleoptions=""
@@ -20,12 +25,6 @@ defaultfont="/Library/Fonts/Andale Mono.ttf"
 SAT_OUTLIER_THRSHLD=14
 AUD_OUTLIER_THRSHLD=10
 BRNG_OUTLIER_THRSHLD=14
-
-if [[ $(dirname $(which "${0}")) = "/usr/local/bin" ]] ; then
-    version=$(TMP=$(brew info vrecord | grep -Eo "/vrecord/.* \(") ; echo ${TMP:9:(${#TMP}-11)})
-else
-    version=""
-fi
 
 _usage(){
     cat <<EOF
@@ -80,7 +79,7 @@ _report(){
     done
     shift $(( ${OPTIND} - 1 ))
     message="${1}"
-    echo $echoopt "${color}${startmessage[@]}${message}${NC}"
+    echo ${echoopt} "${color}${startmessage[@]}${message}${NC}"
 }
 
 # command-line options to set mediaid and original variables
@@ -288,7 +287,7 @@ real_regexp="[+-]?([0-9]+|[0-9]+\.[0-9]*|\.[0-9]+)"
 
 duration_check(){
     if [ -n "${duration}" ] ; then
-        if [[ $duration =~ ^$real_regexp$ ]] ; then
+        if [[ "${duration}" =~ ^${real_regexp}$ ]] ; then
             is_number=yes
         else
             _report -w "Illegal value for recording time. Input must only be numbers."
@@ -876,8 +875,8 @@ if [[ "${runtype}" = "edit" ]] ; then
     pashua_run
     rm $pashua_configfile
     if [[ "$cb" = 0 ]] ; then
-# check validity of duration value        
-duration_check
+        # check validity of duration value        
+        duration_check
         # report back options
         echo "Variables set:"
         echo "  dir = ${dir}"
@@ -894,13 +893,13 @@ duration_check
         echo "  duration = ${duration}"
         echo "  playbackview_choice = ${playbackview_choice}"
         echo "  technician = ${technician}"
-        if [ "$invert_phase" = 1 ] ; then
+        if [[ "$invert_phase" = 1 ]] ; then
             echo -e " \033[101mWARNING: Option to invert phase of second audio channel has been selected\033[0m"
         fi
-        if [ "${video_codec_choice}" = "FFV1 version 3" -a "${container_choice}" = "MXF" ] ; then
+        if [[ "${video_codec_choice}" = "FFV1 version 3" -a "${container_choice}" = "MXF" ]] ; then
             echo -e " \033[101mWARNING: Incompatible video codecs and containers have been selected\033[0m"
         fi
-        if [ "${video_codec_choice}" = "ProRes" -a "${container_choice}" = "MXF" ] ; then
+        if [[ "${video_codec_choice}" = "ProRes" -a "${container_choice}" = "MXF" ]] ; then
             echo -e " \033[101mWARNING: Incompatible video codecs and containers have been selected\033[0m"
         fi
         echo ""
@@ -964,7 +963,7 @@ duration_check
     fi
 fi
 open /Applications/Utilities/Terminal.app
-if [ "$invert_phase" = 1 ] ; then
+if [[ "$invert_phase" = 1 ]] ; then
     phase_value="-1*"
 fi
 
@@ -994,7 +993,7 @@ if [[ "${standard_choice}" && "${standard_choice}" != "${undeclaredoption}" ]] ;
     lookup_standard "${standard_choice}"
 else
     _report -q "Which television standard?"
-    PS3="Select a television standard "
+    PS3="Select a television standard: "
     select standard_choice in "${standard_options[@]}" ; do
         lookup_standard "${standard_choice}"
         [ "${?}" -eq 0 ] && break
@@ -1056,7 +1055,7 @@ read id
 if [ ! -d "${dir}" ] ; then
     _report -q -n "Enter Directory: "
     read dir
-    if [ ! -d "$dir" ] ; then
+    if [ ! -d "${dir}" ] ; then
         _report -w "Error: Not a valid directory"
         exit 1
     fi
@@ -1066,7 +1065,7 @@ if [ ! -d "${logdir}" ] ; then
     _report -q -n "Enter Directory for Auxiliary Files (If blank will default to recording directory): "
     read logdir
     if [ -z "${logdir}" ] ; then
-        logdir="$dir"
+        logdir="${dir}"
     fi
     if [ ! -d "${logdir}" ] ; then
         _report -w "Error: Not a valid directory"
@@ -1095,12 +1094,12 @@ if [ -n "${duration}" ] ; then
 fi
 
 if [ -z "${technician}" ] ; then
-    _report -q -n "Enter the name of the person digitizing the tape or leave blank. "
+    _report -q -n "Enter the name of the person digitizing the tape or leave blank: "
     read technician
 fi
 
-if [[ "$video_bit_depth_choice" && "$video_bit_depth_choice" != "${undeclaredoption}" ]] ; then
-    lookup_video_bitdepth "$video_bit_depth_choice"
+if [[ "${video_bit_depth_choice}" && "${video_bit_depth_choice}" != "${undeclaredoption}" ]] ; then
+    lookup_video_bitdepth "${video_bit_depth_choice}"
 else
     _report -q "Which VIDEO bit depth?"
     PS3="Select a video bit depth: "
@@ -1144,7 +1143,7 @@ else
 fi
 
 _report -d "Summary: ${video_bitdepth} bit ${codecname} ${container_choice} file from ${standard_choice} ${video_input_choice} ${audio_input_choice} Frame MD5s=${framemd5_choice} QC Tools XML=${qctoolsxml_choice} and Technician=${technician}. Inputs recorded to ${dir}/${id}.${extension} Auxiliary Files created in ${logdir}"
-if [ "$invert_phase" = 1 ] ; then
+if [[ "$invert_phase" = 1 ]] ; then
     echo -e " \033[101mWARNING: Option to invert phase of second audio channel has been selected\033[0m"
 fi
 _report -q "Hit enter to start recording"
@@ -1174,7 +1173,7 @@ if [[ ${technician} = "" ]] ; then
 else
     _writeingestlog "technician" "${technician}"
 fi
-if [ "$invert_phase" = 1 ] ; then
+if [[ "$invert_phase" = 1 ]] ; then
     _writeingestlog "invert_phase" "Yes"
 fi
 
@@ -1218,9 +1217,9 @@ if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
             "movie=PIPE2QCTOOLS:s=v+a[in0][in1],[in0]signalstats=stat=tout+vrep+brng, cropdetect=reset=1,split[a][b]; 
             [a]field=top[a1];[b]field=bottom[b1],[a1][b1]psnr[out0];[in1]ebur128=metadata=1,astats=metadata=1:reset=1:length=0.4[out1]" -show_frames -show_versions -of xml=x=1:q=1 -noprivate | gzip > "${logdir}/${id}${suffix}.${extension}.qctools.xml.gz"
     _report -d "Vrecord is analyzing your video file. Please be patient."
-    if [ "${video_bitdepth}" = "10" ] ; then
+    if [[ "${video_bitdepth}" = "10" ]] ; then
         SAT_OUTLIERS=$(gzcat ${logdir}/${id}${suffix}.${extension}.qctools.xml.gz | xml sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>496])"  -n)
-    elif [ "${video_bitdepth}" = "8" ] ; then
+    elif [[ "${video_bitdepth}" = "8" ]] ; then
         SAT_OUTLIERS=$(gzcat ${logdir}/${id}${suffix}.${extension}.qctools.xml.gz | xml sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>124])"  -n)
     fi
     AUD_OUTLIERS=$(gzcat ${logdir}/${id}${suffix}.${extension}.qctools.xml.gz | xml sel -t -v "count(//tag[@key='lavfi.astats.Overall.Max_level'][@value>=0.999998])"  -n)
