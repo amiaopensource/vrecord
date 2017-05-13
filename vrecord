@@ -29,7 +29,6 @@ fi
 
 _usage(){
     cat <<EOF
-
 $(basename "${0}") ${version}
 
 $(basename "${0}") will record a file via the Blackmagic SDK and bmdtools. It is an
@@ -50,6 +49,8 @@ Usage: $(basename "${0}") [ -g | -e | -r | -p | -a | -x | -h ]
   -x  reset the configuration, this will clear the default configuration
       file at '${config_file}' and create a new one.
   -h  display this help menu
+
+See also the man page: man $(basename "${0}")
 EOF
 }
 
