@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
+# vrecord
+# Open-source software for capturing a video signal and turning it into a digital file.
+
 config_file="$HOME/.$(basename "${0}").conf"
-version=$(ls /usr/local/Cellar/vrecord/ | sort -n | tail -n 1)
 logo_path="/usr/local/Cellar/vrecord/${version}"
 inputoptions=""
 middleoptions=""
@@ -18,6 +20,12 @@ defaultfont="/Library/Fonts/Andale Mono.ttf"
 SAT_OUTLIER_THRSHLD=14
 AUD_OUTLIER_THRSHLD=10
 BRNG_OUTLIER_THRSHLD=14
+
+if [[ $(dirname $(which "${0}")) = "/usr/local/bin" ]] ; then
+    version=$(TMP=$(brew info vrecord | grep -Eo "/vrecord/.* \(") ; echo ${TMP:9:(${#TMP}-11)})
+else
+    version=""
+fi
 
 _usage(){
     cat <<EOF
@@ -98,7 +106,7 @@ elif [[ "${runtype}" = "record" || ${runtype} = "edit" ]] ; then
 fi
 
 _master_gui(){
-gui_conf="
+    gui_conf="
 # Set transparency: 0 is transparent, 1 is opaque
 *.transparency=0.95
 # Set window title
@@ -108,32 +116,32 @@ vrecord_logo.type = image
 vrecord_logo.path = "${logo_path}"/vrecord_logo.png
 vrecord_logo.x = 0
 vrecord_logo.y = 75
-#Record
+# Record
 rec_button.type = button
 rec_button.label = Record
 rec_button.x = 15
 rec_button.y = 35
-#Passthrough
+# Passthrough
 pass_button.type = button
 pass_button.label = Passthrough
 pass_button.x = 170
 pass_button.y = 35
-#Audio Check
+# Audio Check
 audio_button.type = button
 audio_button.label = Audio Check
 audio_button.x = 335
 audio_button.y = 35
-#Edit Settings
+# Edit Settings
 edit_button.type = button
 edit_button.label = Edit Settings
 edit_button.x = 495
 edit_button.y = 35
-#Documentation
+# Documentation
 documentation_button.type = button
 documentation_button.label = Documentation
 documentation_button.x = 800
 documentation_button.y = 35
-#Help
+# Help
 help_button.type = button
 help_button.label = Help
 help_button.x = 675
@@ -142,28 +150,28 @@ db.type = defaultbutton
 db.label = Exit
 "
 
-pashua_configfile=$(/usr/bin/mktemp /tmp/pashua_XXXXXXXXX)
-echo "$gui_conf" > $pashua_configfile
-pashua_run
-if [[ "${rec_button}" = 1 ]] ; then
-    runtype="record"
-elif [[ "${pass_button}" = 1 ]] ; then
-    runtype="passthrough"
-elif [[ "${audio_button}" = 1 ]] ; then
-    runtype="audiopassthrough"
-elif [[ "${edit_button}" = 1 ]] ; then
-    runtype="edit"
-elif [[ "${help_button}" = 1 ]] ; then
-    echo -n -e "\033]0;PRESS Q TO EXIT\007" && man vrecord && echo -n -e "\033]0;\007" && _master_gui
-elif [[ "${documentation_button}" = 1 ]] ; then
-    open https://github.com/amiaopensource/vrecord#vrecord-documentation && _master_gui
-elif [[ "${runtype}" = "GUI" ]] ; then
-    echo "Exiting Vrecord. Goodbye!" && exit 0
-fi
+    pashua_configfile=$(/usr/bin/mktemp /tmp/pashua_XXXXXXXXX)
+    echo "$gui_conf" > $pashua_configfile
+    pashua_run
+    if [[ "${rec_button}" = 1 ]] ; then
+        runtype="record"
+    elif [[ "${pass_button}" = 1 ]] ; then
+        runtype="passthrough"
+    elif [[ "${audio_button}" = 1 ]] ; then
+        runtype="audiopassthrough"
+    elif [[ "${edit_button}" = 1 ]] ; then
+        runtype="edit"
+    elif [[ "${help_button}" = 1 ]] ; then
+        echo -n -e "\033]0;PRESS Q TO EXIT\007" && man vrecord && echo -n -e "\033]0;\007" && _master_gui
+    elif [[ "${documentation_button}" = 1 ]] ; then
+        open https://github.com/amiaopensource/vrecord#vrecord-documentation && _master_gui
+    elif [[ "${runtype}" = "GUI" ]] ; then
+        echo "Exiting Vrecord. Goodbye!" && exit 0
+    fi
 
-if [ -f "${pashua_configfile}" ] ; then
-    rm "${pashua_configfile}"
-fi
+    if [ -f "${pashua_configfile}" ] ; then
+        rm "${pashua_configfile}"
+    fi
 }
 
 video_input_options=("Composite" "SDI" "Component" "S-Video" "quit")
@@ -176,7 +184,6 @@ standard_options=("NTSC" "PAL" "quit")
 playbackview_options=("Broadcast Range Visual" "Full Range Visual" "Visual + Numerical" "Color Matrix" "quit")
 framemd5_options=("Yes" "No" "quit")
 qctoolsxml_options=("Yes" "No" "quit")
-
 
 set_up_drawtext(){
     echo -e "%{pts:hms}
@@ -267,13 +274,15 @@ BRNG
 " > /tmp/drawtext3.txt
 }
 
-#grabs information from the bmdcapture help menu, which gives us information about the card being used. We can add to this function in the future to allow the user to choose different video configurations.
+# Grabs information from the bmdcapture help menu, which gives us information
+# about the card being used. We can add to this function in the future to allow
+# the user to choose different video configurations.
 get_standard_values(){
     PAL_value="$(bmdcapture -h 2>&1 | grep "PAL" | cut -d: -f 1 | sed 's/ //g')"
     NTSC_value="$(bmdcapture -h 2>&1 | grep "NTSC   " | cut -d: -f 1 | sed 's/ //g')"
 }
 
-#Sets up function to verify validitiy of duration settings
+# Sets up function to verify validitiy of duration settings
 real_regexp="[+-]?([0-9]+|[0-9]+\.[0-9]*|\.[0-9]+)"
 
 duration_check(){
@@ -281,13 +290,13 @@ duration_check(){
         if [[ $duration =~ ^$real_regexp$ ]] ; then
             is_number=yes
         else
-            echo "Illegal value for recording time. Input must only be numbers."
-            exit
+            _report -w "Illegal value for recording time. Input must only be numbers."
+            exit 1
         fi
     fi
 }
 
-#This function creates a capture log of decisions made in vrecord
+# This function creates a capture log of decisions made in vrecord
 _writeingestlog(){
     if [ "${INGESTLOG}" ] ; then
         KEY="${1}"
@@ -301,31 +310,31 @@ _writeingestlog(){
 
 lookup_video_input(){
     case "${1}" in
-        "Composite")    video_input=1 ;;
-        "SDI")          video_input=4 ;;
-        "Component")    video_input=2 ;;
-        "S-Video")      video_input=6 ;;
-        "quit") _report -d "Bye then" ; exit 0 ;;
-        *) _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
+        "Composite") video_input=1 ;;
+        "SDI")       video_input=4 ;;
+        "Component") video_input=2 ;;
+        "S-Video")   video_input=6 ;;
+        "quit")      _report -d "Bye then" ; exit 0 ;;
+        *)           _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
     esac
 }
 
 lookup_audio_input(){
     case "${1}" in
-        "Analog")                   audio_input=1 ;;
-        "SDI Embedded Audio")       audio_input=2 ;;
-        "Digital Audio (AES/EBU)")  audio_input=3 ;;
-        "quit") _report -d "Bye then" ; exit 0 ;;
-        *) _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
+        "Analog")                  audio_input=1 ;;
+        "SDI Embedded Audio")      audio_input=2 ;;
+        "Digital Audio (AES/EBU)") audio_input=3 ;;
+        "quit")                    _report -d "Bye then" ; exit 0 ;;
+        *)                         _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
     esac
 }
 
 lookup_video_bitdepth(){
     case "${1}" in
-        "10 bit")   video_bitdepth=10 ;;
-        "8 bit")    video_bitdepth=8 ;;
-        "quit") _report -d "Bye then" ; exit 0 ;;
-        *) _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
+        "10 bit") video_bitdepth=10 ;;
+        "8 bit")  video_bitdepth=8 ;;
+        "quit")   _report -d "Bye then" ; exit 0 ;;
+        *)        _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
     esac
 }
 
@@ -359,7 +368,6 @@ lookup_video_codec(){
         *) _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
     esac
 }
-
 
 lookup_audio_mapping(){
     case "${1}" in
@@ -463,17 +471,17 @@ lookup_qctoolsxml(){
     esac
 }
 
-#get the correct values for NTSC and PAL video depending on the capture card
+# get the correct values for NTSC and PAL video depending on the capture card
 get_standard_values
 
 # set up drawtext.txt files in case needed.
 set_up_drawtext
 
-#select playback views
+# select playback views
 
 WAVEFORM_FILTER="\
 format=yuv422p,\
-waveform=intensity=0.1:mode=column:mirror=1:c=1:f=lowpass:e=instant:graticule=green:flags=numbers+dots"\
+waveform=intensity=0.1:mode=column:mirror=1:c=1:f=lowpass:e=instant:graticule=green:flags=numbers+dots"
 
 VECTORSCOPE_FILTER="\
 format=yuv422p,\
@@ -846,7 +854,7 @@ if [[ "${runtype}" = "reset" ]] ; then
     fi
 fi
 if [[ "${runtype}" = "edit" ]] ; then
-    #comments must be commented (start with #)
+    # comments must be commented (start with #)
     config_comment="# Set each value to empty quotes (like \"\") to prompt during run, or set to a provided option."
     video_input_choice_comment="# Set video_input_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${video_input_options[@]}")"
     audio_input_choice_comment="#Set audio_input_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${audio_input_options[@]}")"
@@ -867,8 +875,7 @@ if [[ "${runtype}" = "edit" ]] ; then
     pashua_run
     rm $pashua_configfile
     if [[ "$cb" = 0 ]] ; then
-        # report back options
-#check validity of duration value        
+# check validity of duration value        
 duration_check
         # report back options
         echo "Variables set:"
@@ -950,7 +957,7 @@ duration_check
     read aftereditresponse
     if [[ "$aftereditresponse" = "q" ]] ; then
         _report -d "Bye then"
-        exit
+        exit 0
     elif [[ "$aftereditresponse" = "p" ]] ; then
         runtype="passthrough"
     fi
@@ -1050,7 +1057,7 @@ if [ ! -d "${dir}" ] ; then
     read dir
     if [ ! -d "$dir" ] ; then
         _report -w "Error: Not a valid directory"
-        exit
+        exit 1
     fi
 fi
 
@@ -1062,7 +1069,7 @@ if [ ! -d "${logdir}" ] ; then
     fi
     if [ ! -d "${logdir}" ] ; then
         _report -w "Error: Not a valid directory"
-        exit
+        exit 1
     fi
 fi
 
