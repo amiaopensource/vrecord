@@ -1,29 +1,28 @@
 # Vrecord Documentation
 
-This documentation is up to date as of vrecord v0.7.28 (released on 2017–04–09).
-
-## License
-
-<a rel="license" href="https://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png"></a><br>Vrecord is licensed under a <a rel="license" href="https://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
+This documentation is up to date as of vrecord v2017-06-05.
 
 ## Table of Contents
 
-1. [Summary](https://github.com/amiaopensource/vrecord#summary)
-1. [Installing vrecord](https://github.com/amiaopensource/vrecord#installing-vrecord)
-1. [Using vrecord](https://github.com/amiaopensource/vrecord#using-vrecord)
-   1. [Setting up vrecord for the First Time](https://github.com/amiaopensource/vrecord#setting-up-vrecord-for-the-first-time)
-   1. [Basic Usage](https://github.com/amiaopensource/vrecord#basic-usage)
-   1. [The vrecord Window](https://github.com/amiaopensource/vrecord#the-vrecord-window)
-   1. [Passthrough Mode](https://github.com/amiaopensource/vrecord#passthrough-mode)
-   1. [Audio Passthrough Mode](https://github.com/amiaopensource/vrecord#audio-passthrough-mode)
-   1. [Edit Mode](https://github.com/amiaopensource/vrecord#edit-mode)
-      1. [Options for Video Capture](https://github.com/amiaopensource/vrecord#options-for-video-capture)
-      1. [A Few Quirks](https://github.com/amiaopensource/vrecord#a-few-quirks)
-         1. [Timing of Recording](https://github.com/amiaopensource/vrecord/blob/master/README.md#timing-of-recording)
-         1. [FFmpeg Error Message](https://github.com/amiaopensource/vrecord/blob/master/README.md#ffmpeg-error-message)
-   1. [Ending a capture](https://github.com/amiaopensource/vrecord/blob/master/README.md#ending-a-capture)
-   1. [Clearing the Configuration File](https://github.com/amiaopensource/vrecord#clearing-the-configuration-file)
-1. [Help and Issues](https://github.com/amiaopensource/vrecord#help-and-issues)
+1. [Summary](#summary)
+1. [Installing vrecord](#installing-vrecord)
+1. [Using vrecord](#using-vrecord)
+   1. [Setting up vrecord for the First Time](#setting-up-vrecord-for-the-first-time)
+   1. [Basic Usage](#basic-usage)
+   1. [The vrecord Window](#the-vrecord-window)
+   1. [Passthrough Mode](#passthrough-mode)
+   1. [Audio Passthrough Mode](#audio-passthrough-mode)
+   1. [Edit Mode](#edit-mode)
+      1. [Options for Video Capture](#options-for-video-capture)
+      1. [A Few Quirks](#a-few-quirks)
+         1. [Timing of Recording](#timing-of-recording)
+         1. [FFmpeg Error Message](#ffmpeg-error-message)
+   1. [Ending a capture](#ending-a-capture)
+   1. [Clearing the Configuration File](#clearing-the-configuration-file)
+1. [Help and Issues](#help-and-issues)
+1. [License](#license)
+
+---
 
 ## Summary
 
@@ -263,3 +262,7 @@ Feel free to contribute to our github project by creating a fork and sending pul
 Enjoy!
 
 The vrecord Team
+
+## License
+
+<a rel="license" href="https://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png"></a><br>Vrecord is licensed under a <a rel="license" href="https://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
