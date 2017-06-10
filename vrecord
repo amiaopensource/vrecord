@@ -1000,6 +1000,11 @@ else
     done
 fi
 
+if ps ax | grep -v grep | grep 'bmdcapture' > /dev/null ; then
+    _report -w "bmdcapture is busy. You should close the terminal tab in order to proceed with a new capture."
+    exit 1
+fi
+
 if [[ "${runtype}" = "audiopassthrough" ]] ; then
     echo "ESC quit" > ~/.config/mpv/input.conf
     video_bitdepth=10
