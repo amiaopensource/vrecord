@@ -1001,7 +1001,7 @@ else
 fi
 
 if ps ax | grep -v grep | grep 'bmdcapture' > /dev/null ; then
-    _report -w "bmdcapture is busy. You should close the terminal tab in order to proceed with a new capture."
+    _report -w "bmdcapture is already busy."
     exit 1
 fi
 
