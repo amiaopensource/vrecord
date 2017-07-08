@@ -1,6 +1,6 @@
 # Vrecord Documentation
 
-This documentation is up to date as of vrecord v2017-06-05.
+This documentation is up to date as of vrecord version 2017-06-15.
 
 ## Table of Contents
 
@@ -100,7 +100,6 @@ Shown above is the layout of the vrecord window in "Broadcast Range Visual" mode
 3. **Waveform monitor** — Displays luminance values for each field of the signal separately. The bottom of the red bar in each window represents the upper limit for a broadcast safe white level. The top of the blue bar represents the broacast safe limit for a black level. 
 4. **Vectorscope** — Displays chrominance values for the signal. The boxes represent the values for yellow, red, magenta, blue, cyan, and green. The boxes furthest from the center represent the broadcast limits for those colors. 
 
-
 ### Passthrough Mode
 
 Passthrough mode means that the vrecord window will appear with video feeds and scopes, but the incoming video signal will not be recorded to a file. Passthrough mode is best used for tasks like testing equipment or setting up a tape to bars before actually recording. When you are finished using passthrough mode simply close the vrecord window.
@@ -130,7 +129,7 @@ vrecord -e
 ```
 After selecting all of your options and clicking "OK" the you will be prompted to enter a unique ID for the file. After the ID is entered, the incoming video signal will be recorded to a file with some associated metadata files. When you are done recording, close the vrecord window. If you've set a time limit for capture the vrecord window should automatically close when the time limit has been reached.
 
-By default vrecord will create a video file, a bmdcapture log, a framemd5 file (which creates an MD5 hash value [AKA a checksum] for every frame of video), an ffmpeg log, an ffplay log, and a capture options log (which records the options that you selected in the GUI like codec and video bit depth). Vrecord can also create a [QC Tools](https://github.com/bavc/qctools) XML file, which records the characteristics of the video signal. This file can be imported into QC Tools for further analysis. 
+By default vrecord will create a video file, a bmdcapture log, a framemd5 file (which creates an MD5 hash value [AKA a checksum] for every frame of video), an ffmpeg log, an ffplay log, and a capture options log (which records the options that you selected in the GUI like codec and video bit depth). Vrecord can also create a [QCTools](https://github.com/bavc/qctools) XML file, which records the characteristics of the video signal. This file can be imported into QCTools for further analysis. 
 
 #### Options for Video Capture
 
@@ -180,7 +179,9 @@ The numerical values are as follows:
 
 ![Alt text](Resources/vrecord_color_matrix_2016-11-22.jpg "Vrecord in Color Matrix Mode")
 
-**Create QC Tools XML** — While capturing the video signal, vrecord will also create an XML file that contains a record of the characteristics of the video signal (such as luminance, color saturation, audio levels, etc.). It will then compress the XML file using [gzip](https://www.gnu.org/software/gzip/). Choosing to create a QC Tools XML is highly recommended. This file can be quickly imported into QC Tools for further analysis of the video. In addition, if you choose this option, vrecord can analyze the video signal for potential errors. Currently vrecord only tests the saturation levels of the video, but more tests are coming soon!   
+**Bit Planes mode** — Bit Planes mode allows to display the video according to the bit position of each plane.
+
+**Create QCTools XML** — While capturing the video signal, vrecord will also create an XML file that contains a record of the characteristics of the video signal (such as luminance, color saturation, audio levels, etc.). It will then compress the XML file using [gzip](https://www.gnu.org/software/gzip/). Choosing to create a QCTools XML is highly recommended. This file can be quickly imported into QCTools for further analysis of the video. In addition, if you choose this option, vrecord can analyze the video signal for potential errors. Currently vrecord only tests the saturation levels of the video, but more tests are coming soon!   
 
 **Frame MD5s** — You can choose to create an MD5 hash value (AKA a checksum) for each frame of video captured. A separate .md5 file with all the hash values will be created along with the video file. Generally choosing to create frame-level MD5s will not slow down or hinder the capture of your video. To read more about the value of frame-level MD5s see this article: http://dericed.com/papers/reconsidering-the-checksum-for-audiovisual-preservation/ 
 
