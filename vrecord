@@ -3,11 +3,9 @@
 # vrecord
 # Open-source software for capturing a video signal and turning it into a digital file.
 
-if ffmpeg -version 2>&1 | grep "Library not loaded" >/dev/null; then
-    echo "Please wait while reinstalling 'FFmpeg'..."
-    brew reinstall ffmpeg \
-        && echo "OK: 'FFmpeg' reinstalled." \
-        || { echo "Error: 'FFmpeg' not installed correctly. Exiting." ; exit 1 ; }
+if ffmpeg -version 2>&1 | grep "Library not loaded" >/dev/null ; then
+    echo "Please reinstal 'FFmpeg'. Exiting."
+    exit 1
 fi
 
 config_file="$HOME/.$(basename "${0}").conf"
