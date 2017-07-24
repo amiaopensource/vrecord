@@ -1,6 +1,6 @@
 # Vrecord Documentation
 
-This documentation is up to date as of vrecord version 2017-06-15.
+This documentation is up to date as of vrecord version 2017-07-15.
 
 ## Table of Contents
 
@@ -34,27 +34,39 @@ Currently vrecord only supports Blackmagic Design capture cards with the Blackma
 
 ## Installing vrecord
 
-If you use macOS, you can easily install vrecord using a package manager called Homebrew. To install Homebrew, follow the instructions here: http://brew.sh/
+If you use macOS, you can easily install vrecord using a package manager called Homebrew. To install Homebrew, follow [these instructions](https://brew.sh/).
 
-To install vrecord, run the following commands:
+To install vrecord, run the following two commands:
+```
+brew tap amiaopensource/amiaos
+brew install vrecord
+```
+(The first taps the homebrew recipes of the amiaopensource account; the second installs vrecord and the other programs that it requires.)
 
-`brew tap amiaopensource/amiaos` (taps the homebrew recipes of the amiaopensource account)
-
-`brew install vrecord` (installs vrecord and the other programs that it requires)
+Alternatively, you can run the following command:
+```
+brew install amiaopensource/amiaos/vrecord
+```
 
 Once vrecord has been successfully installed, you can update it to the latest release by first running:
-
-`brew update` (updates all of your Homebrew recipes to the latest versions)
+```
+brew update
+```
+(This updates all of your Homebrew recipes to the latest versions.)
 
 Then running:
+```
+brew upgrade vrecord
+```
+(This downloads the latest release of vrecord and the latest releases of any other packages it depends on.)
 
-`brew upgrade vrecord` (downloads the latest release of vrecord and the latest releases of any other packages it depends on)
+Alternatively, you can run:
+```
+brew upgrade
+```
+(This command will upgrade all of the programs you've installed through Homebrew.)
 
-Alternatively you can run:
-
-`brew upgrade` (this command will upgrade all of the programs you've installed through Homebrew)
-
-Thus far installing vrecord on Linux has not been successful.
+Thus far installing vrecord on Linux using Linuxbrew has not been successful.
 
 ## Using vrecord
 
@@ -68,7 +80,7 @@ Once your capture device is set up you can start vrecord by simply opening up a 
 ```
 vrecord 
 ```
-The first time you use vrecord you will be asked to make some initial choices about how you want to capture. Any decisions you make will be saved in a cofiguration file. But don't worry, you will be able to alter these decisions later. 
+The first time you use vrecord you will be asked to make some initial choices about how you want to capture. Any decisions you make will be saved in a configuration file. But don't worry, you will be able to alter these decisions later. 
 Vrecord will ask you for video and audio inputs. These should agree with your settings for the Blackmagic capture device. Vrecord's other settings can be tailored to your liking. See the section on [Options for Video Capture](https://github.com/amiaopensource/vrecord#options-for-video-capture) below which explains all of the settings in detail.
 
 ### Basic Usage
@@ -96,9 +108,9 @@ For those who want the simplest possible explanation on how to use vrecord:
 Shown above is the layout of the vrecord window in "Broadcast Range Visual" mode. Vrecord also includes a "Visual + Numerical" mode, which is discussed in the [Options for Video Capture](https://github.com/amiaopensource/vrecord#options-for-video-capture) section below.
 
 1. **Video feed** — Displays the entire 720 x 486 video signal coming through. The image will appear a bit more stretched than it does on a television monitor. 
-2. **Video feed with broadcast-safe indicator** — Displays a feed of an underscanned version of the video signal. Pixels whose luminance or chrominance is outside of broadcast range are colored yellow. Due to space constraints in the vrecord window this feed will appear slightly squeezed.  
-3. **Waveform monitor** — Displays luminance values for each field of the signal separately. The bottom of the red bar in each window represents the upper limit for a broadcast safe white level. The top of the blue bar represents the broacast safe limit for a black level. 
-4. **Vectorscope** — Displays chrominance values for the signal. The boxes represent the values for yellow, red, magenta, blue, cyan, and green. The boxes furthest from the center represent the broadcast limits for those colors. 
+1. **Video feed with broadcast-safe indicator** — Displays a feed of an underscanned version of the video signal. Pixels whose luminance or chrominance is outside of broadcast range are colored yellow. Due to space constraints in the vrecord window this feed will appear slightly squeezed.  
+1. **Waveform monitor** — Displays luminance values for each field of the signal separately. The bottom of the red bar in each window represents the upper limit for a broadcast safe white level. The top of the blue bar represents the broacast safe limit for a black level. 
+1. **Vectorscope** — Displays chrominance values for the signal. The boxes represent the values for yellow, red, magenta, blue, cyan, and green. The boxes furthest from the center represent the broadcast limits for those colors. 
 
 ### Passthrough Mode
 
@@ -152,7 +164,7 @@ All of options in the vrecord GUI (which appears when running `vrecord -e`) or o
 * "1 Stereo Track (From Channels 1 & 2)" — For capturing videotape formats that have two channels of audio which were recorded as a stereo pair.
 * "1 Stereo Track (From Channels 3 & 4)" — Same as above, but creates stereo track from second pair of inputs.
 * "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono" — For capturing videotapes with audio recorded on Channel 1 only. Vrecord will capture the audio from Channel 1 and create a mono track. 
-* "Channel 2 -> 1st Mono, Channel 1 -> 2nd Track Mono" — For capaturing videotapes with with audio recorded on Channel 2 only. Vrecord will take the audio from Channel 2 and place it in a Channel 1 mono track. 
+* "Channel 2 -> 1st Mono, Channel 1 -> 2nd Track Mono" — For capturing videotapes with with audio recorded on Channel 2 only. Vrecord will take the audio from Channel 2 and place it in a Channel 1 mono track. 
 
 **Select standard** — Select the television standard of the tape you are digitizing. Currently vrecord only supports NTSC and PAL.
 
@@ -172,10 +184,10 @@ The numerical values are as follows:
 * SAT — Low, high, and average saturation values (sometimes called chroma) of the video signal.
 * HUE — Low, high, and average hue values of the video signal.
 * TOUT — The percentage of pixels that are temporal outliers. Temporal Outliers are pixels which have different values from the pixels above or below them. This is useful for detecting noise in the video signal or other artifacts. However, the number will also increase with fast motion, camera movement, or cuts to different shots.  
-* VREP — The amount of vertical line repititions in the video. The VREP reading can be useful for detecting video artifacts, dropout, and especially head clogs.
+* VREP — The amount of vertical line repetitions in the video. The VREP reading can be useful for detecting video artifacts, dropout, and especially head clogs.
 * BRNG — Percentage of pixels that are in broadcast range. This may be helpful for detecting problems with the video signal such as dropout or if the signal has not been calibrated properly. If BRNG is 0.1 or greater, you probably have an issue.
 
-**Color Matrix mode** - Color Matrix mode displays the video feed as seen through a matrix with hue and saturation differences to aid in calibrating hue and chroma. If the preferred image is not seen in the center square of the matrix, hue and chroma levels may need to be adjusted.
+**Color Matrix mode** — Color Matrix mode displays the video feed as seen through a matrix with hue and saturation differences to aid in calibrating hue and chroma. If the preferred image is not seen in the center square of the matrix, hue and chroma levels may need to be adjusted.
 
 ![Alt text](Resources/vrecord_color_matrix_2016-11-22.jpg "Vrecord in Color Matrix Mode")
 
@@ -191,7 +203,7 @@ The numerical values are as follows:
 
 **Invert Second Channel of Audio** — This option allows you to invert the phase of the second channel of audio on ingest.  This option is only for rare cases. Use only if you are positive that the audio channels are 180 degrees out of phase!
 
-Click "OK" when you are finished with your selections. Vrecord will save all of your selections to a cofiguration file. If any selections are "Undeclared" vrecord will prompt you in the terminal window to make a choice. 
+Click "OK" when you are finished with your selections. Vrecord will save all of your selections to a configuration file. If any selections are "Undeclared" vrecord will prompt you in the terminal window to make a choice. 
 
 Vrecord will then prompt you for a unique ID. The ID that you type in will become a prefix for the filename of all the resulting files in that recording session. After entering your unique ID you will be asked to press enter to start recording. Press enter and start playing your tape. The vrecord window will appear. Do not type any keys or click the mouse inside the window while the vrecord is working. 
 
@@ -256,9 +268,9 @@ If you want to see a more detailed description about how to digitize analog vide
 
 A short information about the [needed hardware](Resources/hardware.md) is provided as well.
 
-We want vrecord to be a helpful tool for audiovisual archivists and others. If you experience any problems with vrecord you can open a new issue with our Github [issue tracker](https://github.com/amiaopensource/vrecord/issues). Try to see if you can replicate the issue yourself first and describe in detail what factors led to it. Please let us know if you were able to succesfully replicate the issue. 
+We want vrecord to be a helpful tool for audiovisual archivists and others. If you experience any problems with vrecord you can open a new issue with our GitHub [issue tracker](https://github.com/amiaopensource/vrecord/issues). Try to see if you can replicate the issue yourself first and describe in detail what factors led to it. Please let us know if you were able to successfully replicate the issue. 
 
-Feel free to contribute to our github project by creating a fork and sending pull requests.
+Feel free to contribute to our GitHub project by creating a fork and sending pull requests.
 
 Enjoy!
 
