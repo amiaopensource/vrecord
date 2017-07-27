@@ -18,9 +18,9 @@ First, play the tape with the color bars. Now take a look at your waveform monit
 
 **Using the Waveform Monitor**
 
-The waveform monitor is generally used to measure the luminance (brightness) levels of the signal. SMPTE color bars should look like this on a waveform monitor, similiar to a staircase:
+The waveform monitor is generally used to measure the luminance (brightness) levels of the signal. SMPTE color bars should look like this on a waveform monitor, similar to a staircase:
 
-![alt text](http://www.experimentaltvcenter.org/sites/default/files/history/images/preservationcom/waveform2.jpg "Color Bars in Waveoform Monitor")
+![alt text](http://www.experimentaltvcenter.org/sites/default/files/history/images/preservationcom/waveform2.jpg "Color Bars in Waveform Monitor")
 
 The color bars in the picture above are set up properly. Start by setting up the black level in the waveform monitor. The black level could also be called "Set up" or "Black" depending on your model of the time base corrector (TBC) or processing amplifier (proc amp). Adjust this dial until the second lowest line in the color bars (the black level), which runs along the bottom of the staircase is set to 7.5 IRE on the waveform monitor. This is usually represented by a dashed line near the bottom of the monitor. The black line should intersect the dashed 7.5 IRE line.
 
@@ -40,15 +40,15 @@ Start by adjusting the hue or phase. There should be one line that is on the lef
 Now adjust the chroma which could also be labelled "color." If the dots are past their targets, reduce the chroma. If the dots are closer to the center than the target, increase the chroma. **Try to get all of the points as close to the middle of the crosshairs as possible.** Sometimes it is not possible to get all of the colors exactly inside of their respective crosshairs. If so, try to line up the yellow point with its target as closely as possible and let the other colors fall where they may.   
 
 4. You may have to rewind and replay the tape several times in order to set up the bars properly especially if the bars are onscreen for a short time. Be aware that sometimes the color bar signal can shift on a tape. Check for excessive jumping of the levels on the vectorscope or waveform monitor. Try to find the most consistent bars and line them up as best you can.
-5. Be aware that the bars on a tape may not accurately represent the actual levels of the content. After you have successfully set up the bars fast forward and play some of the content. Make sure that large areas of the image are not falling outside of the broadcast range. You can see this in the vrecord window by seeing how much of the image on the right is yellow. If a signficant portion of the image is yellow, the bars may not incorrect. You may need to ignore the bars and adjust the tape to the content. See the section below on setting up a tape without color bars.  
+5. Be aware that the bars on a tape may not accurately represent the actual levels of the content. After you have successfully set up the bars fast forward and play some of the content. Make sure that large areas of the image are not falling outside of the broadcast range. You can see this in the vrecord window by seeing how much of the image on the right is yellow. If a significant portion of the image is yellow, the bars may not incorrect. You may need to ignore the bars and adjust the tape to the content. See the section below on setting up a tape without color bars.  
 
 ### Setting up the Tape Without Color Bars ###
 
-Sometimes tapes you are digitizing do not include clolor bars at the beginning. If this is the case, and you have a test tape with color bars onhand, first set up your time base corrector (TBC) or processing amplifier (proc amp) to the color bars on a test tape. If you do not have a test tape, move on to the next step. 
+Sometimes tapes you are digitizing do not include color bars at the beginning. If this is the case, and you have a test tape with color bars on hand, first set up your time base corrector (TBC) or processing amplifier (proc amp) to the color bars on a test tape. If you do not have a test tape, move on to the next step. 
 
 Fast forward to some of the content, ideally a shot that has both pure white and black in it. Check the waveform monitor to make sure that both the white and black levels are within "broadcast range" (pure black in the image should be just above 7.5 IRE and pure white should be just below 100 IRE). 
 
-If you can find a close up shot of person use this in combination with the vectorscope to try to set up hue and chroma. First, make sure that the chroma is within broadcast range. In other words, the lines in the vectorscope should not be going past the color target boxes. If they are, reduce the chroma. In general, the color of all human skintones should fall on the line between the red and yellow target boxes (about 10:30–11 o'clock) on the vectorscope. Some people call this the "skin tone line." Adjust the hue until the levels in the vectorscope are centered around this line.     
+If you can find a close up shot of person use this in combination with the vectorscope to try to set up hue and chroma. First, make sure that the chroma is within broadcast range. In other words, the lines in the vectorscope should not be going past the color target boxes. If they are, reduce the chroma. In general, the color of all human skin tones should fall on the line between the red and yellow target boxes (about 10:30–11 o'clock) on the vectorscope. Some people call this the "skin tone line." Adjust the hue until the levels in the vectorscope are centered around this line.     
 
 You may want to fast forward to a few sections of the content to make sure that the adjustments you made are good for the entire tape. Sometimes shots and segments may be inconsistent. Sometimes you will need to compromise on the levels; one shot may need to be slightly out of broadcast range so that another shot is ok. 
 
@@ -97,7 +97,7 @@ CUNY-TV uses the following settings for U-matic tapes:
 
 **Codec for video** — FFV1 version 3
 
-**Audio channel mapping** — 1 stereo track is generally used unless audio is only coming in throuh one channel. If so, you will have to use the Channel 1 or Channel 2 mono options.
+**Audio channel mapping** — 1 stereo track is generally used unless audio is only coming in through one channel. If so, you will have to use the Channel 1 or Channel 2 mono options.
 
 **Standard** — NTSC
 
