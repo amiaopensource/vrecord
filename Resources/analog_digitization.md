@@ -112,7 +112,7 @@ Next, check to make sure vrecord produced the correct files. These are:
 1. FFplay log (filename_ffplay_date_time.log)
 1. Frame MD5 file (filename.framemd5) if you chose to record frame MD5s, which you should do
 1. A capture options log (filename_capture_options.log)
-1. A QC Tools XML file, if you chose to create it (filename.qctools.xml.gz)
+1. A QCTools XML file, if you chose to create it (filename.qctools.xml.gz)
 
 Scroll through the video file to make sure it is complete; in other words, you've captured the entire tape. If all these files exist and the video file looks complete you can move on to further QC.
 
