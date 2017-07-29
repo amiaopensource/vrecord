@@ -118,11 +118,13 @@ Scroll through the video file to make sure it is complete; in other words, you'v
 
 ## Troubleshooting
 
-**I ran `vrecord -p` and no video is showing up in the vrecord window!**
-Answer: Check to make sure all of your cables are routed properly. Also check macOS System Preferences to make sure that the Black Magic capture device is set up properly. If you are using SDI for your input on vrecord, the output of the Blackmagic should be set to SDI.
+**Q: I ran `vrecord -p` and no video is showing up in the vrecord window!**
 
-**My tape finished early, how do I stop vrecord?**
-Answer: Simply close the vrecord window and the program will automatically stop. You should then examine your video file to make sure it's complete.
+A: Check to make sure all of your cables are routed properly. Also check macOS System Preferences to make sure that the Black Magic capture device is set up properly. If you are using SDI for your input on vrecord, the output of the Blackmagic should be set to SDI.
+
+**Q: My tape finished early, how do I stop vrecord?**
+
+A: Simply close the vrecord window and the program will automatically stop. You should then examine your video file to make sure it's complete.
 
 ## License
 
