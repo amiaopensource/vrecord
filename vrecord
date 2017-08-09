@@ -1206,7 +1206,7 @@ _report -d "Close the playback window to stop recording."
 export FFREPORT="file=${logdir}/${id}_%p_%t${ffmpeglogsuffix}"
 
 if [[ "${standard_choice}" = "PAL" ]] ; then
-    recordingfilter="[0:v:0]setfield=tff,setsar=40/27,setdar=4/3[vid1]"
+    recordingfilter="[0:v:0]setfield=tff,setsar=16/15,setdar=4/3[vid1]"
     middleoptions+=(-color_primaries bt470bg)
     middleoptions+=(-color_trc bt709)
     middleoptions+=(-colorspace bt470bg)
