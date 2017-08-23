@@ -1,6 +1,6 @@
 # Needed Hardware
 
-- a computer running a recent macOS or Linux
+- a computer running a recent macOS
 - a Blackmagic card from:
 
   - [UltraStudio](https://www.blackmagicdesign.com/products/ultrastudiothunderbolt)
