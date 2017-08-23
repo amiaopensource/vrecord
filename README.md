@@ -30,7 +30,7 @@ Vrecord is open-source software for capturing a video signal and turning it into
 
 Vrecord uses [ffmpeg](http://ffmpeg.org), [ffplay](http://ffmpeg.org/ffplay.html), and [bmdcapture](https://github.com/lu-zero/bmdtools) to do its dirty work.
 
-Currently vrecord only supports Blackmagic Design capture cards with the Blackmagic driver installed. 
+Currently vrecord only supports Blackmagic Design [capture cards](Resources/hardware.md) with the Blackmagic driver installed. 
 
 ## Installing vrecord
 
