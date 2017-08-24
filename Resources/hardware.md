@@ -8,7 +8,7 @@
   - [Intensity Pro 4K](https://www.blackmagicdesign.com/products/intensitypro4k)
   - [Intensity](https://www.blackmagicdesign.com/products/intensity)
   
-  Please note that the Analog to SDI Mini Converter does not work well, because the signal is clipped at broadcast levels.
+  Please note that the Mini Converters don’t work well, because the signal is clipped at broadcast levels.
 
 - the necessary [cables](https://amiaopensource.github.io/cable-bible/) for connecting the video desk to the card and to the computer
 
