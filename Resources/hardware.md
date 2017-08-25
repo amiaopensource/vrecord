@@ -4,7 +4,7 @@
 - a Blackmagic card from:
 
   - [UltraStudio](https://www.blackmagicdesign.com/products/ultrastudiothunderbolt)
-  - [DeckLink](https://www.blackmagicdesign.com/products/decklink)
+  - [DeckLink](https://www.blackmagicdesign.com/products/decklink), except for the DeckLink Duo 2 model
   - [Intensity Pro 4K](https://www.blackmagicdesign.com/products/intensitypro4k)
   - [Intensity](https://www.blackmagicdesign.com/products/intensity)
   
