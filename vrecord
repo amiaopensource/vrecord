@@ -194,36 +194,36 @@ set_up_drawtext(){
     echo -e "%{pts:hms}
 
   Y
- Low  %{metadata:lavfi.signalstats.YLOW}	
- Avg  %{metadata:lavfi.signalstats.YAVG}	
- High %{metadata:lavfi.signalstats.YHIGH}	
+ Low  %{metadata:lavfi.signalstats.YLOW}
+ Avg  %{metadata:lavfi.signalstats.YAVG}
+ High %{metadata:lavfi.signalstats.YHIGH}
  Diff %{metadata:lavfi.signalstats.YDIF}
 
   U
- Low  %{metadata:lavfi.signalstats.ULOW}	
- Avg  %{metadata:lavfi.signalstats.UAVG}	
- High %{metadata:lavfi.signalstats.UHIGH}	
+ Low  %{metadata:lavfi.signalstats.ULOW}
+ Avg  %{metadata:lavfi.signalstats.UAVG}
+ High %{metadata:lavfi.signalstats.UHIGH}
  Diff %{metadata:lavfi.signalstats.UDIF}
 
   V
- Low  %{metadata:lavfi.signalstats.VLOW}	
- Avg  %{metadata:lavfi.signalstats.VAVG}	
- High %{metadata:lavfi.signalstats.VHIGH}	
+ Low  %{metadata:lavfi.signalstats.VLOW}
+ Avg  %{metadata:lavfi.signalstats.VAVG}
+ High %{metadata:lavfi.signalstats.VHIGH}
  Diff %{metadata:lavfi.signalstats.VDIF}
 
   SAT
- Low  %{metadata:lavfi.signalstats.SATLOW}	
- Avg  %{metadata:lavfi.signalstats.SATAVG}	
- High %{metadata:lavfi.signalstats.SATHIGH}	
+ Low  %{metadata:lavfi.signalstats.SATLOW}
+ Avg  %{metadata:lavfi.signalstats.SATAVG}
+ High %{metadata:lavfi.signalstats.SATHIGH}
  " > /tmp/drawtext.txt
 
     echo -e "
- 
- 
- 
- 
- 
- 
+
+
+
+
+
+
 
 
 
@@ -579,7 +579,7 @@ split=5[a][b][c][d][e];\
 [c1]${WAVEFORM_FILTER}[c2];\
 [a][b2][c2]vstack=inputs=3,format=yuv422p[abc1];\
 [d]${VECTORSCOPE_FILTER}[d1];\
-[e]format=yuv444p,lutyuv=y=if(eq(val\,maxval)\,minval\,if(eq(val\,minval)\,maxval\,val)):u=val:v=val,scale=512:ih[e1];\
+[e]format=yuv444p,lutyuv=y=if(eq(val\,254)\,1\,if(eq(val\,1)\,254\,val)):u=val:v=val,scale=512:ih[e1];\
 [e1][d1]vstack[de1];\
 [abc1][de1]hstack[out]"
           ;;
@@ -748,7 +748,7 @@ standard_choice.default = ${standard_choice}
 standard_choice.option = ${undeclaredoption}
 standard_choice.option = NTSC
 standard_choice.option = PAL
-# frame md5 
+# frame md5
 framemd5_choice.x = 660
 framemd5_choice.y = 230
 framemd5_choice.type = radiobutton
@@ -757,7 +757,7 @@ framemd5_choice.default = ${framemd5_choice}
 framemd5_choice.option = ${undeclaredoption}
 framemd5_choice.option = Yes
 framemd5_choice.option = No
-# qctools xml 
+# qctools xml
 qctoolsxml_choice.x = 660
 qctoolsxml_choice.y = 317
 qctoolsxml_choice.type = radiobutton
@@ -895,7 +895,7 @@ if [[ "${runtype}" = "edit" ]] ; then
     pashua_run
     rm $pashua_configfile
     if [[ "$cb" = 0 ]] ; then
-        # check validity of duration value        
+        # check validity of duration value
         duration_check
         # report back options
         echo "Variables set:"
@@ -1029,7 +1029,7 @@ if [[ "${runtype}" = "audiopassthrough" ]] ; then
     echo "ESC quit" > ~/.config/mpv/input.conf
     video_bitdepth=10
     bmdcapture -m ${standard} -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p "${video_bitdepth}" -F nut -f pipe:1 2> /tmp/bmdcapture.log | \
-        mpv - --title="mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" -lavfi-complex "${playbackfilter}"	
+        mpv - --title="mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" -lavfi-complex "${playbackfilter}"
     exit 0
 fi
 
@@ -1243,7 +1243,7 @@ if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
             "${dir}/${id}${suffix}.${extension}" \
             "${extraoutputs[@]}" \
             -c:v copy -c:a copy -syncpoints none -f_strict experimental -f nut -y PIPE2QCTOOLS | ffprobe -loglevel error -f lavfi \
-            "movie=PIPE2QCTOOLS:s=v+a[in0][in1],[in0]signalstats=stat=tout+vrep+brng, cropdetect=reset=1,split[a][b]; 
+            "movie=PIPE2QCTOOLS:s=v+a[in0][in1],[in0]signalstats=stat=tout+vrep+brng, cropdetect=reset=1,split[a][b];
             [a]field=top[a1];[b]field=bottom[b1],[a1][b1]psnr[out0];[in1]ebur128=metadata=1,astats=metadata=1:reset=1:length=0.4[out1]" -show_frames -show_versions -of xml=x=1:q=1 -noprivate | gzip > "${logdir}/${id}${suffix}.${extension}.qctools.xml.gz"
     _report -d "Vrecord is analyzing your video file. Please be patient."
     if [[ "${video_bitdepth}" = "10" ]] ; then
@@ -1297,7 +1297,7 @@ if [[ "${framemd5_choice}" = "No" ]] ; then
     frames_decoded=$(cat "${logdir}/${id}"_ffmpeg_*.log | grep -w "frames decoded" | awk '{print $10}' | grep -m 1 [0-9])
     if [[ ${frames_encoded} -lt $((${frames_decoded}-1)) ]] ; then
         frame_discrepency=$((${frames_decoded}-${frames_encoded}))
-        cowsay "$(_report -w "WARNING: FFmpeg reported missing frames. The file may have sync issues.")" 
+        cowsay "$(_report -w "WARNING: FFmpeg reported missing frames. The file may have sync issues.")"
         _writeingestlog "ffmpeg_missing_frames" "${frame_discrepency}"
     else
         _writeingestlog "ffmpeg_missing_frames" "None"
