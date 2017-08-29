@@ -579,7 +579,7 @@ split=5[a][b][c][d][e];\
 [c1]${WAVEFORM_FILTER}[c2];\
 [a][b2][c2]vstack=inputs=3,format=yuv422p[abc1];\
 [d]${VECTORSCOPE_FILTER}[d1];\
-[e]format=yuv444p,lutyuv=y=if(eq(val\,maxval)\,minval\,if(eq(val\,minval)\,maxval\,val)):u=val:v=val,scale=512:ih[e1];\
+[e]format=yuv444p,lutyuv=y=if(eq(val\,254)\,1\,if(eq(val\,1)\,254\,val)):u=val:v=val,scale=512:ih[e1];\
 [e1][d1]vstack[de1];\
 [abc1][de1]hstack[out]"
           ;;
