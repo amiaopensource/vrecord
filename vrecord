@@ -499,62 +499,6 @@ drawbox=w=9:h=9:t=1:x=224-3:y=512-304-5:c=sienna@0.8,\
 drawgrid=w=32:h=32:t=1:c=white@0.1,\
 drawgrid=w=256:h=256:t=1:c=white@0.2"
 
-if [[ "${runtype}" = "audiopassthrough" ]] ; then
-
-#lookup_playbackview(){
-#    case "${1}" in
-#        "Visual")
-        playbackfilter="\
-[aid1]asplit=2[z][ao],\
-[z]channelsplit=channel_layout=quad[s1][s2][s3][s4];[s1][s2][s3][s4]amerge=inputs=4,aformat=channel_layouts=quad[zz],\
-[zz]showvolume=t=0:h=17:w=200[xx],\
-[vid1]split=5[a][b][c][d][e],\
-[b]field=top[b1],\
-[c]field=bottom[c1],\
-[b1]${WAVEFORM_FILTER}[b2],\
-[c1]${WAVEFORM_FILTER}[c2],\
-[a][b2][c2]vstack=inputs=3,format=yuv422p[abc1],\
-[d]${VECTORSCOPE_FILTER}[d1],\
-[e]signalstats=out=brng,scale=512:ih[e1],\
-[e1][d1]vstack[de1],\
-[abc1][de1]hstack[abcde1],\
-[abcde1][xx]overlay=10:10[vo]"
-
-# This filter commented out for now due to lag issues
-#            ;;
-#           "Visual + Numerical")
-#            playbackfilter="\
-#[aid1]asplit=2[z][ao],\
-#[z]channelsplit=channel_layout=quad[s1][s2][s3][s4];[s1][s2][s3][s4]amerge=inputs=4,aformat=channel_layouts=quad[zz],\
-#[zz]showvolume=t=0:h=17:w=200[xx],\
-#[vid1]split=6[a][b][c][d][e][f],\
-#[b]field=top[b1],\
-#[c]field=bottom[c1],\
-#[b1]${WAVEFORM_FILTER}[b2],\
-#[c1]${WAVEFORM_FILTER}[c2],\
-#[a][b2][c2]vstack=inputs=3,format=yuv422p[abc1],\
-#[d]${VECTORSCOPE_FILTER}[d1],\
-#[e]signalstats=out=brng,scale=512:ih[e1],\
-#[e1][d1]vstack[de1],\
-#[abc1][de1]hstack[abcde1],\
-#[f]signalstats=stat=brng+vrep+tout,geq=lum=60:cb=128:cr=128,\
-#scale=180:ih+512,setsar=1/1,\
-#drawtext=fontcolor=white:fontsize=22:\
-#fontfile=${defaultfont}:textfile=/tmp/drawtext.txt,\
-#drawtext=fontcolor=white:fontsize=17:\
-#fontfile=${defaultfont}:textfile=/tmp/drawtext2.txt,\
-#drawtext=fontcolor=white:fontsize=52:\
-#fontfile=${defaultfont}:textfile=/tmp/drawtext3.txt[f1],\
-#[f1][abcde1]hstack[abcdef1],\
-#[abcdef1][xx]overlay=200:10[vo]"
-#            ;;
-#        "quit") _report -d "Bye then" ; exit 0 ;;
-#        *) _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
-#    esac
-#}
-
-else
-
 lookup_playbackview(){
     case "${1}" in
         "Broadcast Range Visual")
@@ -645,7 +589,6 @@ split=9[x][hm][hp][sm][sp][hmsm][hmsp][hpsm][hpsp];\
         *) _report -w "Error: Not a valid option, select a valid number or [q] to quit." ; return 1 ;;
     esac
 }
-fi
 # defines the GUI dialog
 conf="
 # Set transparency: 0 is transparent, 1 is opaque
@@ -1026,6 +969,21 @@ if ps ax | grep -v grep | grep 'bmdcapture' > /dev/null ; then
 fi
 
 if [[ "${runtype}" = "audiopassthrough" ]] ; then
+    playbackfilter="\
+    [aid1]asplit=2[z][ao],\
+    [z]channelsplit=channel_layout=quad[s1][s2][s3][s4];[s1][s2][s3][s4]amerge=inputs=4,aformat=channel_layouts=quad[zz],\
+    [zz]showvolume=t=0:h=17:w=200[xx],\
+    [vid1]split=5[a][b][c][d][e],\
+    [b]field=top[b1],\
+    [c]field=bottom[c1],\
+    [b1]${WAVEFORM_FILTER}[b2],\
+    [c1]${WAVEFORM_FILTER}[c2],\
+    [a][b2][c2]vstack=inputs=3,format=yuv422p[abc1],\
+    [d]${VECTORSCOPE_FILTER}[d1],\
+    [e]signalstats=out=brng,scale=512:ih[e1],\
+    [e1][d1]vstack[de1],\
+    [abc1][de1]hstack[abcde1],\
+    [abcde1][xx]overlay=10:10[vo]"
     echo "ESC quit" > ~/.config/mpv/input.conf
     video_bitdepth=10
     bmdcapture -m ${standard} -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p "${video_bitdepth}" -F nut -f pipe:1 2> /tmp/bmdcapture.log | \
