@@ -170,7 +170,7 @@ All of options in the vrecord GUI (which appears when running `vrecord -e`) or o
 
 **Broadcast Range Visual mode** — Broadcast Range Visual mode displays the video feed, the video feed with pixels out of broadcast range highlighted, the waveform monitor, and the vectorscope in the vrecord window.
 
-**Full Range Visual mode** - Full Range Visual mode displays the video feed, the video feed with pixels out of full range highlighted, the waveform monitor, and the vectorscope in the vrecord window.
+**Full Range Visual mode** - Full Range Visual mode displays the video feed, the video feed with pixels at full range extremes highlighted, the waveform monitor, and the vectorscope in the vrecord window.
 
 **Visual + Numerical mode** — Visual and Numerical mode displays your favorite video feeds and scopes as well as numerical values for the characteristics of the video signal in the left sidebar. 
 
