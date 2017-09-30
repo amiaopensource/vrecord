@@ -366,7 +366,7 @@ lookup_video_codec(){
             ;;
         "ProRes")
             codecname="Apple ProRes 422"
-            middleoptions+=(-c:v prores_ks)
+            middleoptions+=(-c:v prores_ks -flags +ilme+ildct)
             suffix="_prores"
             ;;
         "quit") _report -d "Bye then" ; exit 0 ;;
