@@ -974,6 +974,16 @@ else
     done
 fi
 
+GRAB_DECKLINK=(bmdcapture)
+GRAB_DECKLINK+=(-m ${standard})
+GRAB_DECKLINK+=(-V "${video_input}")
+GRAB_DECKLINK+=(-A "${audio_input}")
+GRAB_DECKLINK+=(-p "${video_bitdepth}")
+GRAB_DECKLINK+=(-c 8)
+GRAB_DECKLINK+=(-s 32)
+GRAB_DECKLINK+=(-F nut)
+GRAB_DECKLINK+=(-f pipe:1)
+
 if ps ax | grep -v grep | grep 'bmdcapture' > /dev/null ; then
     _report -w "bmdcapture is already busy."
     exit 1
@@ -996,8 +1006,7 @@ if [[ "${runtype}" = "audiopassthrough" ]] ; then
     [abc1][de1]hstack[abcde1],\
     [abcde1][xx]overlay=10:10[vo]"
     echo "ESC quit" > ~/.config/mpv/input.conf
-    video_bitdepth=10
-    bmdcapture -m ${standard} -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p "${video_bitdepth}" -F nut -f pipe:1 2> /tmp/bmdcapture.log | \
+    "${GRAB_DECKLINK[@]}" 2> /tmp/bmdcapture.log | \
         mpv - --title="mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" -lavfi-complex "${playbackfilter}"	
     exit 0
 fi
@@ -1014,8 +1023,7 @@ else
 fi
 
 if [[ "${runtype}" = "passthrough" ]] ; then
-    video_bitdepth=10
-    bmdcapture -m ${standard} -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p "${video_bitdepth}" -F nut -f pipe:1 2> /tmp/bmdcapture.log | \
+    "${GRAB_DECKLINK[@]}" 2> /tmp/bmdcapture.log | \
         ffplay -v info -hide_banner -stats -i - \
         -window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" \
         -vf "${playbackfilter}"
@@ -1186,7 +1194,7 @@ fi
 if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
     # mkfifo needs to be conditional and maybe deal with deleting a preexisting pipe
     mkfifo PIPE2QCTOOLS
-    bmdcapture -m ${standard} -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p "${video_bitdepth}" -F nut -f pipe:1 2> >(tee "${logdir}/${id}${bmdcapturelogsuffix}" /tmp/bmdcapture.log >/dev/null) | \
+    "${GRAB_DECKLINK[@]}" 2> >(tee "${logdir}/${id}${bmdcapturelogsuffix}" /tmp/bmdcapture.log >/dev/null) | \
         tee >(ffplay -i - -v info \
             -hide_banner -stats -autoexit \
              -window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" -vf "${playbackfilter}") | \
@@ -1214,7 +1222,7 @@ if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
 fi
 
 if [[ "${qctoolsxml_choice}" = "No" ]] ; then
-    bmdcapture -m ${standard} -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p "${video_bitdepth}" -F nut -f pipe:1 2> >(tee "${logdir}/${id}${bmdcapturelogsuffix}" /tmp/bmdcapture.log >/dev/null) | \
+    "${GRAB_DECKLINK[@]}" 2> >(tee "${logdir}/${id}${bmdcapturelogsuffix}" /tmp/bmdcapture.log >/dev/null) | \
         tee >(ffplay -i - -v info \
             -hide_banner -stats -autoexit \
             -window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" -vf "${playbackfilter}") | \
