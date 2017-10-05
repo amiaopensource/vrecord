@@ -963,6 +963,17 @@ else
     done
 fi
 
+if [[ "${video_bit_depth_choice}" && "${video_bit_depth_choice}" != "${undeclaredoption}" ]] ; then
+    lookup_video_bitdepth "${video_bit_depth_choice}"
+else
+    _report -q "Which VIDEO bit depth?"
+    PS3="Select a video bit depth: "
+    select video_bit_depth_choice in "${video_bitdepth_options[@]}" ; do
+        lookup_video_bitdepth "$video_bit_depth_choice"
+        [ "${?}" -eq 0 ] && break
+    done
+fi
+
 if ps ax | grep -v grep | grep 'bmdcapture' > /dev/null ; then
     _report -w "bmdcapture is already busy."
     exit 1
@@ -1079,17 +1090,6 @@ fi
 if [ -z "${technician}" ] ; then
     _report -q -n "Enter the name of the person digitizing the tape or leave blank: "
     read technician
-fi
-
-if [[ "${video_bit_depth_choice}" && "${video_bit_depth_choice}" != "${undeclaredoption}" ]] ; then
-    lookup_video_bitdepth "${video_bit_depth_choice}"
-else
-    _report -q "Which VIDEO bit depth?"
-    PS3="Select a video bit depth: "
-    select video_bit_depth_choice in "${video_bitdepth_options[@]}" ; do
-        lookup_video_bitdepth "$video_bit_depth_choice"
-        [ "${?}" -eq 0 ] && break
-    done
 fi
 
 if [[ "${container_choice}" && "${container_choice}" != "${undeclaredoption}" ]] ; then
