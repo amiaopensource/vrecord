@@ -867,49 +867,49 @@ if [[ "${runtype}" = "edit" ]] ; then
         fi
         echo ""
         # write config file
-        {
-	    echo "#$(basename "${0}") config file"
-            echo "${config_comment}"
-            echo "${video_input_choice_comment}"
-            echo "video_input_choice=\"${video_input_choice}\""
-            echo
-            echo "${audio_input_choice_comment}"
-            echo "audio_input_choice=\"${audio_input_choice}\""
-            echo
-            echo "${standard_choice_comment}"
-            echo "standard_choice=\"${standard_choice}\""
-            echo
-            echo "${playbackview_choice_comment}"
-            echo "playbackview_choice=\"${playbackview_choice}\""
-            echo
-            echo "${framemd5_choice_comment}"
-            echo "framemd5_choice=\"${framemd5_choice}\""
-            echo
-            echo "qctoolsxml_choice=\"${qctoolsxml_choice}\""
-            echo
-            echo "${video_bit_depth_choice_comment}"
-            echo "video_bit_depth_choice=\"${video_bit_depth_choice}\""
-            echo
-            echo "${video_codec_choice_comment}"
-            echo "video_codec_choice=\"${video_codec_choice}\""
-            echo
-            echo "${audio_mapping_choice_comment}"
-            echo "audio_mapping_choice=\"${audio_mapping_choice}\""
-            echo
-            echo "${dir_comment}"
-            echo "dir=\"${dir}\""
-            echo
-            echo "logdir=\"${logdir}\""
-            echo
-            echo "invert_phase=\"${invert_phase}\""
-            echo "${container_choice_comment}"
-            echo "container_choice=\"${container_choice}\""
-            echo
-            echo "${duration_comment}"
-            echo "duration=\"${duration}\""
-            echo "${technician_comment}"
-            echo "technician=\"${technician}\""
-        } > "${config_file}"
+        cat > "${config_file}" << EOF
+#$(basename "${0}") config file
+${config_comment}
+${video_input_choice_comment}
+video_input_choice="${video_input_choice}"
+
+${audio_input_choice_comment}
+audio_input_choice="${audio_input_choice}"
+
+${standard_choice_comment}
+standard_choice="${standard_choice}"
+
+${playbackview_choice_comment}
+playbackview_choice="${playbackview_choice}"
+
+${framemd5_choice_comment}
+framemd5_choice="${framemd5_choice}"
+
+qctoolsxml_choice="${qctoolsxml_choice}"
+
+${video_bit_depth_choice_comment}
+video_bit_depth_choice="${video_bit_depth_choice}"
+
+${video_codec_choice_comment}
+video_codec_choice="${video_codec_choice}"
+
+${audio_mapping_choice_comment}
+audio_mapping_choice="${audio_mapping_choice}"
+
+${dir_comment}
+dir="${dir}"
+
+logdir="${logdir}"
+
+invert_phase="${invert_phase}"
+${container_choice_comment}
+container_choice="${container_choice}"
+
+${duration_comment}
+duration="${duration}"
+${technician_comment}
+technician="${technician}"
+EOF
         . "${config_file}"
     else
         _report -d "Editing of preferences was canceled by the user."
