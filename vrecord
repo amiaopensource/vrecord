@@ -867,49 +867,49 @@ if [[ "${runtype}" = "edit" ]] ; then
         fi
         echo ""
         # write config file
-        {
-	    echo "#$(basename "${0}") config file"
-            echo "${config_comment}"
-            echo "${video_input_choice_comment}"
-            echo "video_input_choice=\"${video_input_choice}\""
-            echo
-            echo "${audio_input_choice_comment}"
-            echo "audio_input_choice=\"${audio_input_choice}\""
-            echo
-            echo "${standard_choice_comment}"
-            echo "standard_choice=\"${standard_choice}\""
-            echo
-            echo "${playbackview_choice_comment}"
-            echo "playbackview_choice=\"${playbackview_choice}\""
-            echo
-            echo "${framemd5_choice_comment}"
-            echo "framemd5_choice=\"${framemd5_choice}\""
-            echo
-            echo "qctoolsxml_choice=\"${qctoolsxml_choice}\""
-            echo
-            echo "${video_bit_depth_choice_comment}"
-            echo "video_bit_depth_choice=\"${video_bit_depth_choice}\""
-            echo
-            echo "${video_codec_choice_comment}"
-            echo "video_codec_choice=\"${video_codec_choice}\""
-            echo
-            echo "${audio_mapping_choice_comment}"
-            echo "audio_mapping_choice=\"${audio_mapping_choice}\""
-            echo
-            echo "${dir_comment}"
-            echo "dir=\"${dir}\""
-            echo
-            echo "logdir=\"${logdir}\""
-            echo
-            echo "invert_phase=\"${invert_phase}\""
-            echo "${container_choice_comment}"
-            echo "container_choice=\"${container_choice}\""
-            echo
-            echo "${duration_comment}"
-            echo "duration=\"${duration}\""
-            echo "${technician_comment}"
-            echo "technician=\"${technician}\""
-        } > "${config_file}"
+        cat > "${config_file}" << EOF
+#$(basename "${0}") config file
+${config_comment}
+${video_input_choice_comment}
+video_input_choice="${video_input_choice}"
+
+${audio_input_choice_comment}
+audio_input_choice="${audio_input_choice}"
+
+${standard_choice_comment}
+standard_choice="${standard_choice}"
+
+${playbackview_choice_comment}
+playbackview_choice="${playbackview_choice}"
+
+${framemd5_choice_comment}
+framemd5_choice="${framemd5_choice}"
+
+qctoolsxml_choice="${qctoolsxml_choice}"
+
+${video_bit_depth_choice_comment}
+video_bit_depth_choice="${video_bit_depth_choice}"
+
+${video_codec_choice_comment}
+video_codec_choice="${video_codec_choice}"
+
+${audio_mapping_choice_comment}
+audio_mapping_choice="${audio_mapping_choice}"
+
+${dir_comment}
+dir="${dir}"
+
+logdir="${logdir}"
+
+invert_phase="${invert_phase}"
+${container_choice_comment}
+container_choice="${container_choice}"
+
+${duration_comment}
+duration="${duration}"
+${technician_comment}
+technician="${technician}"
+EOF
         . "${config_file}"
     else
         _report -d "Editing of preferences was canceled by the user."
@@ -963,6 +963,27 @@ else
     done
 fi
 
+if [[ "${video_bit_depth_choice}" && "${video_bit_depth_choice}" != "${undeclaredoption}" ]] ; then
+    lookup_video_bitdepth "${video_bit_depth_choice}"
+else
+    _report -q "Which VIDEO bit depth?"
+    PS3="Select a video bit depth: "
+    select video_bit_depth_choice in "${video_bitdepth_options[@]}" ; do
+        lookup_video_bitdepth "$video_bit_depth_choice"
+        [ "${?}" -eq 0 ] && break
+    done
+fi
+
+GRAB_DECKLINK=(bmdcapture)
+GRAB_DECKLINK+=(-m ${standard})
+GRAB_DECKLINK+=(-V "${video_input}")
+GRAB_DECKLINK+=(-A "${audio_input}")
+GRAB_DECKLINK+=(-p "${video_bitdepth}")
+GRAB_DECKLINK+=(-c 8)
+GRAB_DECKLINK+=(-s 32)
+GRAB_DECKLINK+=(-F nut)
+GRAB_DECKLINK+=(-f pipe:1)
+
 if ps ax | grep -v grep | grep 'bmdcapture' > /dev/null ; then
     _report -w "bmdcapture is already busy."
     exit 1
@@ -985,8 +1006,7 @@ if [[ "${runtype}" = "audiopassthrough" ]] ; then
     [abc1][de1]hstack[abcde1],\
     [abcde1][xx]overlay=10:10[vo]"
     echo "ESC quit" > ~/.config/mpv/input.conf
-    video_bitdepth=10
-    bmdcapture -m ${standard} -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p "${video_bitdepth}" -F nut -f pipe:1 2> /tmp/bmdcapture.log | \
+    "${GRAB_DECKLINK[@]}" 2> /tmp/bmdcapture.log | \
         mpv - --title="mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" -lavfi-complex "${playbackfilter}"	
     exit 0
 fi
@@ -1003,8 +1023,7 @@ else
 fi
 
 if [[ "${runtype}" = "passthrough" ]] ; then
-    video_bitdepth=10
-    bmdcapture -m ${standard} -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p "${video_bitdepth}" -F nut -f pipe:1 2> /tmp/bmdcapture.log | \
+    "${GRAB_DECKLINK[@]}" 2> /tmp/bmdcapture.log | \
         ffplay -v info -hide_banner -stats -i - \
         -window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" \
         -vf "${playbackfilter}"
@@ -1079,17 +1098,6 @@ fi
 if [ -z "${technician}" ] ; then
     _report -q -n "Enter the name of the person digitizing the tape or leave blank: "
     read technician
-fi
-
-if [[ "${video_bit_depth_choice}" && "${video_bit_depth_choice}" != "${undeclaredoption}" ]] ; then
-    lookup_video_bitdepth "${video_bit_depth_choice}"
-else
-    _report -q "Which VIDEO bit depth?"
-    PS3="Select a video bit depth: "
-    select video_bit_depth_choice in "${video_bitdepth_options[@]}" ; do
-        lookup_video_bitdepth "$video_bit_depth_choice"
-        [ "${?}" -eq 0 ] && break
-    done
 fi
 
 if [[ "${container_choice}" && "${container_choice}" != "${undeclaredoption}" ]] ; then
@@ -1186,7 +1194,7 @@ fi
 if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
     # mkfifo needs to be conditional and maybe deal with deleting a preexisting pipe
     mkfifo PIPE2QCTOOLS
-    bmdcapture -m ${standard} -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p "${video_bitdepth}" -F nut -f pipe:1 2> >(tee "${logdir}/${id}${bmdcapturelogsuffix}" /tmp/bmdcapture.log >/dev/null) | \
+    "${GRAB_DECKLINK[@]}" 2> >(tee "${logdir}/${id}${bmdcapturelogsuffix}" /tmp/bmdcapture.log >/dev/null) | \
         tee >(ffplay -i - -v info \
             -hide_banner -stats -autoexit \
              -window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" -vf "${playbackfilter}") | \
@@ -1214,7 +1222,7 @@ if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
 fi
 
 if [[ "${qctoolsxml_choice}" = "No" ]] ; then
-    bmdcapture -m ${standard} -V "${video_input}" -A "${audio_input}" -c 8 -s 32 -p "${video_bitdepth}" -F nut -f pipe:1 2> >(tee "${logdir}/${id}${bmdcapturelogsuffix}" /tmp/bmdcapture.log >/dev/null) | \
+    "${GRAB_DECKLINK[@]}" 2> >(tee "${logdir}/${id}${bmdcapturelogsuffix}" /tmp/bmdcapture.log >/dev/null) | \
         tee >(ffplay -i - -v info \
             -hide_banner -stats -autoexit \
             -window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" -vf "${playbackfilter}") | \
