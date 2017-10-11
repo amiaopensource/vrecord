@@ -1219,9 +1219,7 @@ if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
     fi
     AUD_OUTLIERS=$(gzcat "${logdir}/${id}${suffix}.${extension}.qctools.xml.gz" | xml sel -t -v "count(//tag[@key='lavfi.astats.Overall.Max_level'][@value>=0.999998])" -n)
     BRNG_OUTLIERS=$(gzcat "${logdir}/${id}${suffix}.${extension}.qctools.xml.gz" | xml sel -t -v "count(//tag[@key='lavfi.signalstats.BRNG'][@value>=0.03])" -n)
-fi
-
-if [[ "${qctoolsxml_choice}" = "No" ]] ; then
+else
     "${GRAB_DECKLINK[@]}" 2> >(tee "${logdir}/${id}${bmdcapturelogsuffix}" /tmp/bmdcapture.log >/dev/null) | \
         tee >(ffplay -i - -v info \
             -hide_banner -stats -autoexit \
