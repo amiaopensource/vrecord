@@ -1156,6 +1156,7 @@ _writeingestlog "television_standard" "${standard_choice}"
 _writeingestlog "video_input" "${video_input_choice}"
 _writeingestlog "audio_input" "${audio_input_choice}"
 _writeingestlog "framemd5_choice" "${framemd5_choice}"
+_writeingestlog "audio_mapping_choice" "${audio_mapping_choice}"
 _writeingestlog "qctoolsxml_choice" "${qctoolsxml_choice}"
 _writeingestlog "file_path" "${dir}/${id}.${extension}"
 
