@@ -9,7 +9,7 @@ if ffmpeg -version 2>&1 | grep "Library not loaded" >/dev/null ; then
 fi
 
 config_file="$HOME/.$(basename "${0}").conf"
-if [[ $(dirname $(which "${0}")) = "/usr/local/bin" ]] ; then
+if [[ $(dirname "$(which "${0}")") = "/usr/local/bin" ]] ; then
     version=$(TMP=$(brew info vrecord | grep -Eo "/vrecord/.* \(") ; echo ${TMP:9:(${#TMP}-11)})
 else
     version=""
@@ -76,7 +76,7 @@ _report(){
         case "${opt}" in
             q) color="${BLUE}" ;;                         # question mode, use color blue
             d) color="${GREEN}" ;;                        # declaration mode, use color green
-            w) color="${RED}" ; log_message="Y" ;;        # warning mode, use color red
+            w) color="${RED}" ;;                          # warning mode, use color red
             s) startmessage+=([$(basename "${0}")] ) ;;   # prepend scriptname to the message
             t) startmessage+=($(_get_iso8601) '- ' ) ;;   # prepend timestamp to the message
             n) echoopt="-n" ;;                            # to avoid line breaks after echo
@@ -107,7 +107,7 @@ if [[ -f "${config_file}" ]] ; then
 elif [[ "${runtype}" = "record" || ${runtype} = "edit" ]] ; then
     echo "No configuration file, restarting in edit mode."
     touch "${config_file}"
-    exec $(basename "${0}") -e
+    exec "$(basename "${0}")" -e
 fi
 
 _master_gui(){
@@ -156,7 +156,7 @@ db.label = Exit
 "
 
     pashua_configfile=$(/usr/bin/mktemp /tmp/pashua_XXXXXXXXX)
-    echo "$gui_conf" > $pashua_configfile
+    echo "$gui_conf" > "$pashua_configfile"
     pashua_run
     if [[ "${rec_button}" = 1 ]] ; then
         runtype="record"
@@ -287,17 +287,12 @@ get_standard_values(){
     NTSC_value="$(bmdcapture -h 2>&1 | grep "NTSC   " | cut -d: -f 1 | sed 's/ //g')"
 }
 
-# Sets up function to verify validitiy of duration settings
-real_regexp="[+-]?([0-9]+|[0-9]+\.[0-9]*|\.[0-9]+)"
-
 duration_check(){
-    if [ -n "${duration}" ] ; then
-        if [[ "${duration}" =~ ^${real_regexp}$ ]] ; then
-            is_number=yes
-        else
-            _report -w "Illegal value for recording time. Input must only be numbers."
-            exit 1
-        fi
+    # Sets up function to verify validitiy of duration settings 
+    real_regexp="^$|[0-9]+|[0-9]+\.[0-9]*|\.[0-9]+"
+    if ! [[ "${duration}" =~ ^${real_regexp}$ ]] ; then
+        _report -w "Illegal value for recording time. Input must only be numbers."
+        exit 1
     fi
 }
 
@@ -803,8 +798,7 @@ shift $(( ${OPTIND} - 1 ))
 
 if [[ "${runtype}" = "GUI" ]] ; then
     _master_gui
-fi
-if [[ "${runtype}" = "reset" ]] ; then
+elif [[ "${runtype}" = "reset" ]] ; then
     _report -q -n "Reseting the configuration will clear ${config_file}. Please enter [Y] to confirm: "
     read reset_response
     if [[ "${reset_response}" = [Yy] ]] ; then
@@ -815,8 +809,7 @@ if [[ "${runtype}" = "reset" ]] ; then
         _report -d "Reset aborted. Exiting."
         exit 0
     fi
-fi
-if [[ "${runtype}" = "edit" ]] ; then
+elif [[ "${runtype}" = "edit" ]] ; then
     # comments must be commented (start with #)
     config_comment="# Set each value to empty quotes (like \"\") to prompt during run, or set to a provided option."
     video_input_choice_comment="# Set video_input_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${video_input_options[@]}")"
