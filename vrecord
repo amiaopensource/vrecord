@@ -288,7 +288,6 @@ get_standard_values(){
 }
 
 # Sets up function to verify validitiy of duration settings
-real_regexp="[+-]?([0-9]+|[0-9]+\.[0-9]*|\.[0-9]+)"
 
 duration_check(){
     if [ -n "${duration}" ] ; then
@@ -298,6 +297,7 @@ duration_check(){
             _report -w "Illegal value for recording time. Input must only be numbers."
             exit 1
         fi
+    real_regexp="^$|[0-9]+|[0-9]+\.[0-9]*|\.[0-9]+"
     fi
 }
 
