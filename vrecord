@@ -9,7 +9,7 @@ if ffmpeg -version 2>&1 | grep "Library not loaded" >/dev/null ; then
 fi
 
 config_file="$HOME/.$(basename "${0}").conf"
-if [[ $(dirname $(which "${0}")) = "/usr/local/bin" ]] ; then
+if [[ $(dirname "$(which "${0}")") = "/usr/local/bin" ]] ; then
     version=$(TMP=$(brew info vrecord | grep -Eo "/vrecord/.* \(") ; echo ${TMP:9:(${#TMP}-11)})
 else
     version=""
@@ -107,7 +107,7 @@ if [[ -f "${config_file}" ]] ; then
 elif [[ "${runtype}" = "record" || ${runtype} = "edit" ]] ; then
     echo "No configuration file, restarting in edit mode."
     touch "${config_file}"
-    exec $(basename "${0}") -e
+    exec "$(basename "${0}")" -e
 fi
 
 _master_gui(){
@@ -156,7 +156,7 @@ db.label = Exit
 "
 
     pashua_configfile=$(/usr/bin/mktemp /tmp/pashua_XXXXXXXXX)
-    echo "$gui_conf" > $pashua_configfile
+    echo "$gui_conf" > "$pashua_configfile"
     pashua_run
     if [[ "${rec_button}" = 1 ]] ; then
         runtype="record"
