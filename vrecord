@@ -76,7 +76,7 @@ _report(){
         case "${opt}" in
             q) color="${BLUE}" ;;                         # question mode, use color blue
             d) color="${GREEN}" ;;                        # declaration mode, use color green
-            w) color="${RED}" ; log_message="Y" ;;        # warning mode, use color red
+            w) color="${RED}" ;;                          # warning mode, use color red
             s) startmessage+=([$(basename "${0}")] ) ;;   # prepend scriptname to the message
             t) startmessage+=($(_get_iso8601) '- ' ) ;;   # prepend timestamp to the message
             n) echoopt="-n" ;;                            # to avoid line breaks after echo
