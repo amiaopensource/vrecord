@@ -287,17 +287,12 @@ get_standard_values(){
     NTSC_value="$(bmdcapture -h 2>&1 | grep "NTSC   " | cut -d: -f 1 | sed 's/ //g')"
 }
 
-# Sets up function to verify validitiy of duration settings
-
 duration_check(){
-    if [ -n "${duration}" ] ; then
-        if [[ "${duration}" =~ ^${real_regexp}$ ]] ; then
-            is_number=yes
-        else
-            _report -w "Illegal value for recording time. Input must only be numbers."
-            exit 1
-        fi
+    # Sets up function to verify validitiy of duration settings 
     real_regexp="^$|[0-9]+|[0-9]+\.[0-9]*|\.[0-9]+"
+    if ! [[ "${duration}" =~ ^${real_regexp}$ ]] ; then
+        _report -w "Illegal value for recording time. Input must only be numbers."
+        exit 1
     fi
 }
 
