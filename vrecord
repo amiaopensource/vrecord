@@ -38,7 +38,7 @@ $(basename "${0}") ${version}
 $(basename "${0}") will record a file via the Blackmagic SDK and bmdtools. It is an
 interactive script and will create 8 or 10-bit video files.
 
-Dependencies: bmdcapture, cowsay, ffmpeg, ffplay, mpv and xmlstarlet
+Dependencies: bmdcapture, cowsay, ffmpeg, ffplay, mpv, qcli, and xmlstarlet
 
 Usage: $(basename "${0}") [ -g | -e | -r | -p | -a | -x | -h ]
   -g  use the GUI
@@ -1186,8 +1186,12 @@ else
 fi
 
 if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
+    if [[ ! "$(which qcli)" ]] ; then
+        _report -w "Please install qcli to use the qctools reporting option."
+        _report -w "Such as \`brew install qcli\`."
+        exit 1
+    fi
     # mkfifo needs to be conditional and maybe deal with deleting a preexisting pipe
-    mkfifo PIPE2QCTOOLS
     "${GRAB_DECKLINK[@]}" 2> >(tee "${logdir}/${id}${bmdcapturelogsuffix}" /tmp/bmdcapture.log >/dev/null) | \
         tee >(ffplay -i - -v info \
             -hide_banner -stats -autoexit \
@@ -1202,9 +1206,7 @@ if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
             -f "${format}" \
             "${dir}/${id}${suffix}.${extension}" \
             "${extraoutputs[@]}" \
-            -c:v copy -c:a copy -syncpoints none -f_strict experimental -f nut -y PIPE2QCTOOLS | ffprobe -loglevel error -f lavfi \
-            "movie=PIPE2QCTOOLS:s=v+a[in0][in1],[in0]signalstats=stat=tout+vrep+brng, cropdetect=reset=1,split[a][b]; 
-            [a]field=top[a1];[b]field=bottom[b1],[a1][b1]psnr[out0];[in1]ebur128=metadata=1,astats=metadata=1:reset=1:length=0.4[out1]" -show_frames -show_versions -of xml=x=1:q=1 -noprivate | gzip > "${logdir}/${id}${suffix}.${extension}.qctools.xml.gz"
+            -c:v copy -c:a copy -syncpoints none -f_strict experimental -f nut - | qcli -i - -o "${logdir}/${id}${suffix}.${extension}.qctools.xml.gz"
     _report -d "Vrecord is analyzing your video file. Please be patient."
     if [[ "${video_bitdepth}" = "10" ]] ; then
         SAT_OUTLIERS=$(gzcat "${logdir}/${id}${suffix}.${extension}.qctools.xml.gz" | xml sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>496])" -n)
