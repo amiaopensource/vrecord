@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<policy type="and" name="Check validity of makelossless files">
-    <description>This policy tests lossless FFV1 Matroska and Quicktime files made using vrecord and checks their validity</description>
+<policy type="and" name="Check validity of FFV1 Matroska and Quicktime files">
+    <description>This policy tests FFV1 Matroska and Quicktime files made using vrecord and checks their validity</description>
     <policy type="or" name="Is the container Matroska or Quicktime?">
         <policy type="and" name="Is it good Matroska?">
             <policy type="and" name="Is it new Matroska with an UUID?">
