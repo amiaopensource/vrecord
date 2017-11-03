@@ -49,7 +49,7 @@
             <rule name="Is the color space YUV?" value="ColorSpace" tracktype="Video" operator="=">YUV</rule>
             <rule name="Is the chroma subsampling 4:2:2?" value="ChromaSubsampling" tracktype="Video" operator="=">4:2:2</rule>
             <rule name="Is the video interlaced?" value="ScanType" tracktype="Video" operator="=">Interlaced</rule>
-            <rule name="Is the comression mode lossless?" value="Compression_Mode" tracktype="Video" operator="=">Lossless</rule>
+            <rule name="Is the compression mode lossless?" value="Compression_Mode" tracktype="Video" operator="=">Lossless</rule>
             <rule name="Is max slice count at least 4?" value="extra/MaxSlicesCount" tracktype="Video" operator="&gt;=">4</rule>
             <rule name="Is error detection type per slice?" value="extra/ErrorDetectionType" tracktype="Video" operator="=">Per slice</rule>
             <rule name="Is the video stream first?" value="StreamOrder" tracktype="Video" operator="=">0</rule>
