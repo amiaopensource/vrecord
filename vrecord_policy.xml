@@ -82,7 +82,7 @@
         <rule name="Is the audio stream on track 2?" value="StreamOrder" tracktype="Audio" operator="=">1</rule>
         <rule name="Is the audio PCM?" value="Format" tracktype="Audio" operator="=">PCM</rule>
         <rule name="Is the bit Depth 24?" value="BitDepth" tracktype="Audio" operator="=">24</rule>
-        <rule name="Is the sample rate 48khz?" value="SamplingRate" tracktype="Audio" operator="=">48000</rule>
+        <rule name="Is the sample rate 48kHz?" value="SamplingRate" tracktype="Audio" operator="=">48000</rule>
         <policy type="or" name="1 or 2 channels of audio?">
             <rule name="1 channel of audio?" value="Channels" tracktype="Audio" operator="=">1</rule>
             <rule name="2 channels of audio?" value="Channels" tracktype="Audio" operator="=">2</rule>
