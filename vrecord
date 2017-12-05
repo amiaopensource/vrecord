@@ -283,8 +283,8 @@ BRNG
 # about the card being used. We can add to this function in the future to allow
 # the user to choose different video configurations.
 get_standard_values(){
-    PAL_value="$(bmdcapture -h 2>&1 | grep "PAL" | cut -d: -f 1 | sed 's/ //g')"
-    NTSC_value="$(bmdcapture -h 2>&1 | grep "NTSC   " | cut -d: -f 1 | sed 's/ //g')"
+    PAL_value="$(bmdcapture -h 2>&1 | grep "PAL.*25" | cut -d: -f 1 | sed 's/ //g' | head -n 1)"
+    NTSC_value="$(bmdcapture -h 2>&1 | grep "NTSC.*29.97" | cut -d: -f 1 | sed 's/ //g' | head -n 1)"
 }
 
 duration_check(){
