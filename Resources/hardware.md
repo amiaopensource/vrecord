@@ -1,6 +1,6 @@
 # Needed Hardware
 
-- a computer running a recent macOS
+- a computer running a recent macOS (vrecord 2017-10-17 has been tested on macOS 10.10, 10.11, 10.12 and 10.13)
 - a Blackmagic card from:
 
   - [UltraStudio](https://www.blackmagicdesign.com/products/ultrastudiothunderbolt)
