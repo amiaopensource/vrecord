@@ -1191,7 +1191,6 @@ if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
         _report -w "Such as \`brew install qcli\`."
         exit 1
     fi
-    QCTOOLS_PRE=(-map 0 -c copy -f nut -)
     QCTOOLS_POST=(qcli -i - -o "${logdir}/${id}${suffix}.${extension}.qctools.xml.gz")
 else
     QCTOOLS_POST=(cat)
@@ -1201,16 +1200,16 @@ fi
     -v info -hide_banner -nostats "${inputoptions[@]}" "${GRAB_DECKLINK[@]}" \
     -metadata:s:v:0 encoder="${codecname}" "${middleoptions[@]}" -c:a pcm_s24le \
     -filter_complex "\
-        [0:v:0]split[record0][play0];\
-        [record0]${recordingfilter}[record1];\
-        [play0]${playbackfilter},format=yuv420p[play1];\
+        [0:v:0]${recordingfilter};\
         ${audiomap}" \
     $(if [ -n "$map1k" ] ; then echo ${map1k} ; fi) $(if [ -n "$map1v" ] ; then echo ${map1v} ; fi) \
     $(if [ -n "$map2k" ] ; then echo ${map2k} ; fi) $(if [ -n "$map2v" ] ; then echo ${map2v} ; fi) \
-    -map "[record1]" -f "${format}" "${dir}/${id}${suffix}.${extension}" \
-    -map "[play1]" -window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" \
-    -f sdl sdl_dummy_output \
-    "${extraoutputs[@]}" "${QCTOOLS_PRE[@]}" | \
+    -f "${format}" "${dir}/${id}${suffix}.${extension}" \
+    "${extraoutputs[@]}" -map 0 -c copy -f nut - | \
+    tee >("${FFPLAY_DECKLINK[@]}" \
+        -v info -hide_banner -stats -autoexit -i - \
+        -window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" \
+        -vf "${playbackfilter}") | \
     "${QCTOOLS_POST[@]}"
 
 if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
