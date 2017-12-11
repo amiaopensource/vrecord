@@ -15,15 +15,15 @@ else
     version=""
 fi
 logo_path="/usr/local/Cellar/vrecord/${version}"
-inputoptions=""
-middleoptions=""
-suffix=""
-duration=""
-technician=""
+unset inputoptions
+unset middleoptions
+unset suffix
+unset duration
+unset technician
 runtype="record"
 bmdcapturelogsuffix="_bmdcapture.log"
 ffmpeglogsuffix=".log"
-pashuainstall=""
+unset pashuainstall
 unset extraoutputs
 undeclaredoption="Undeclared"
 defaultfont="/Library/Fonts/Andale Mono.ttf"
