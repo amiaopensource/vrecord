@@ -1115,6 +1115,12 @@ else
     done
 fi
 
+if [ -f "${dir}/${id}${suffix}.${extension}" ] ; then
+    _report -w "A file called ${dir}/${id}.${extension} already exists."
+    _report -w "Exiting to avoid overwriting that file."
+    exit
+fi
+
 if [[ "${audio_mapping_choice}" && "${audio_mapping_choice}" != "${undeclaredoption}" ]] ; then
     lookup_audio_mapping "${audio_mapping_choice}"
 else
