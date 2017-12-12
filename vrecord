@@ -1132,7 +1132,7 @@ else
     done
 fi
 
-_report -d "Summary: ${pixel_format} bit ${codecname} ${container_choice} file from ${standard_choice} ${video_input_choice} ${audio_input_choice} Frame MD5s=${framemd5_choice} QCTools XML=${qctoolsxml_choice} and Technician=${technician}. Inputs recorded to ${dir}/${id}.${extension} Auxiliary Files created in ${logdir}"
+_report -d "Summary: ${pixel_format} bit ${codecname} ${container_choice} file from ${standard_choice} ${video_input_choice} ${audio_input_choice} Frame MD5s=${framemd5_choice} QCTools XML=${qctoolsxml_choice} and Technician=${technician}. Inputs recorded to ${dir}/${id}${suffix}.${extension} Auxiliary Files created in ${logdir}"
 if [[ "$invert_phase" = 1 ]] ; then
     echo -e " \033[101mWARNING: Option to invert phase of second audio channel has been selected\033[0m"
 fi
