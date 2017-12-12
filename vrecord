@@ -798,11 +798,10 @@ shift $(( ${OPTIND} - 1 ))
 
 if [[ "${runtype}" = "GUI" ]] ; then
     _master_gui
-fi
-if [[ "${runtype}" = "reset" ]] ; then
+elif [[ "${runtype}" = "reset" ]] ; then
     _report -q -n "Reseting the configuration will clear ${config_file}. Please enter [Y] to confirm: "
     read reset_response
-    if [[ "${reset_response}" = "[Y]" ]] ; then
+    if [[ "${reset_response}" = [Yy] ]] ; then
         _report -d "Clearing ${config_file}."
         echo -n "" > "${config_file}"
         runtype="edit"
@@ -810,8 +809,7 @@ if [[ "${runtype}" = "reset" ]] ; then
         _report -d "Reset aborted. Exiting."
         exit 0
     fi
-fi
-if [[ "${runtype}" = "edit" ]] ; then
+elif [[ "${runtype}" = "edit" ]] ; then
     # comments must be commented (start with #)
     config_comment="# Set each value to empty quotes (like \"\") to prompt during run, or set to a provided option."
     video_input_choice_comment="# Set video_input_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${video_input_options[@]}")"
