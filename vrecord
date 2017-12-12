@@ -810,8 +810,8 @@ if [[ "${runtype}" = "reset" ]] ; then
         _report -d "Reset aborted. Exiting."
         exit 0
     fi
-fi
-if [[ "${runtype}" = "edit" ]] ; then
+
+elif [[ "${runtype}" = "edit" ]] ; then
     # comments must be commented (start with #)
     config_comment="# Set each value to empty quotes (like \"\") to prompt during run, or set to a provided option."
     video_input_choice_comment="# Set video_input_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${video_input_options[@]}")"
