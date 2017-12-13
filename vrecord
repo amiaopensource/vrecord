@@ -810,7 +810,6 @@ if [[ "${runtype}" = "reset" ]] ; then
         _report -d "Reset aborted. Exiting."
         exit 0
     fi
-
 elif [[ "${runtype}" = "edit" ]] ; then
     # comments must be commented (start with #)
     config_comment="# Set each value to empty quotes (like \"\") to prompt during run, or set to a provided option."
