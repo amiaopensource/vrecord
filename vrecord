@@ -798,7 +798,8 @@ shift $(( ${OPTIND} - 1 ))
 
 if [[ "${runtype}" = "GUI" ]] ; then
     _master_gui
-elif [[ "${runtype}" = "reset" ]] ; then
+fi
+if [[ "${runtype}" = "reset" ]] ; then
     _report -q -n "Reseting the configuration will clear ${config_file}. Please enter [Y] to confirm: "
     read reset_response
     if [[ "${reset_response}" = [Yy] ]] ; then
