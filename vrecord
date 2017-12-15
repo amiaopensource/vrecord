@@ -3,11 +3,6 @@
 # vrecord
 # Open-source software for capturing a video signal and turning it into a digital file.
 
-if ffmpeg -version 2>&1 | grep "Library not loaded" >/dev/null ; then
-    echo "Please reinstall 'FFmpeg'. Exiting."
-    exit 1
-fi
-
 config_file="$HOME/.$(basename "${0}").conf"
 if [[ $(dirname "$(which "${0}")") = "/usr/local/bin" ]] ; then
     version=$(TMP=$(brew info vrecord | grep -Eo "/vrecord/.* \(") ; echo ${TMP:9:(${#TMP}-11)})
@@ -15,30 +10,37 @@ else
     version=""
 fi
 logo_path="/usr/local/Cellar/vrecord/${version}"
-inputoptions=""
-middleoptions=""
-suffix=""
-duration=""
-technician=""
+unset inputoptions
+unset middleoptions
+unset suffix
+unset duration
+unset technician
 runtype="record"
-bmdcapturelogsuffix="_bmdcapture.log"
+capturelogsuffix="_ffmpeg_decklink_input.log"
 ffmpeglogsuffix=".log"
-pashuainstall=""
+unset pashuainstall
 unset extraoutputs
 undeclaredoption="Undeclared"
 defaultfont="/Library/Fonts/Andale Mono.ttf"
 SAT_OUTLIER_THRSHLD=14
 AUD_OUTLIER_THRSHLD=10
 BRNG_OUTLIER_THRSHLD=14
+FFMPEG_DECKLINK=($(brew --prefix ffmpegdecklink)/bin/ffmpeg-dl)
+FFPLAY_DECKLINK=($(brew --prefix ffmpegdecklink)/bin/ffplay-dl)
+
+if [[ "$("${FFMPEG_DECKLINK[@]}" -version 2>&1 | grep "Library not loaded" >/dev/null)" || ! -f "${FFMPEG_DECKLINK}" || ! -f "$FFPLAY_DECKLINK" ]] ; then
+    echo "Please reinstall 'ffmpeg-dl'. \`brew install amiaopensource/amiaos/ffmpegdecklink --with-sdl2 --with-freetype\` Exiting."
+    exit 1
+fi
 
 _usage(){
     cat <<EOF
 $(basename "${0}") ${version}
 
-$(basename "${0}") will record a file via the Blackmagic SDK and bmdtools. It is an
+$(basename "${0}") will record a file via the Blackmagic SDK and ffmpeg. It is an
 interactive script and will create 8 or 10-bit video files.
 
-Dependencies: bmdcapture, cowsay, ffmpeg, ffplay, mpv, qcli, and xmlstarlet
+Dependencies: cowsay, amiaopensource/amiaos/ffmpegdecklink --with-sdl2 --with-freetype, mpv, qcli, and xmlstarlet
 
 Usage: $(basename "${0}") [ -g | -e | -r | -p | -a | -x | -h ]
   -g  use the GUI
@@ -85,6 +87,18 @@ _report(){
     shift $(( ${OPTIND} - 1 ))
     message="${1}"
     echo ${echoopt} "${color}${startmessage[@]}${message}${NC}"
+}
+
+_get_decklink_inputs(){
+    DECKLINK_INPUTS=$("${FFMPEG_DECKLINK[@]}" -f decklink -list_devices 1 -i dummy 2>&1 | grep "^\[decklink" | grep "'" | cut -d "'" -f 2)
+    if [[ -z "${DECKLINK_INPUTS}" ]] ; then
+        _report -w "No decklink inputs were found. Running \`${FFMPEG_DECKLINK} -hide_banner -f decklink -list_devices 1 -i dummy\` results in:"
+        "${FFMPEG_DECKLINK[@]}" -hide_banner -f decklink -list_devices 1 -i dummy
+        _report -w "Please check connections and try again."
+        exit 1
+    else
+        FIRST_DECKLINK_INPUT="$(echo "${DECKLINK_INPUTS}" | head -n 1 )"
+    fi
 }
 
 # command-line options to set mediaid and original variables
@@ -279,14 +293,6 @@ BRNG
 " > /tmp/drawtext3.txt
 }
 
-# Grabs information from the bmdcapture help menu, which gives us information
-# about the card being used. We can add to this function in the future to allow
-# the user to choose different video configurations.
-get_standard_values(){
-    PAL_value="$(bmdcapture -h 2>&1 | grep "PAL.*25" | cut -d: -f 1 | sed 's/ //g' | head -n 1)"
-    NTSC_value="$(bmdcapture -h 2>&1 | grep "NTSC.*29.97" | cut -d: -f 1 | sed 's/ //g' | head -n 1)"
-}
-
 duration_check(){
     # Sets up function to verify validitiy of duration settings 
     real_regexp="^$|[0-9]+|[0-9]+\.[0-9]*|\.[0-9]+"
@@ -310,10 +316,10 @@ _writeingestlog(){
 
 lookup_video_input(){
     case "${1}" in
-        "Composite") video_input=1 ;;
-        "SDI")       video_input=4 ;;
-        "Component") video_input=2 ;;
-        "S-Video")   video_input=6 ;;
+        "Composite") video_input="composite" ;;
+        "SDI")       video_input="sdi" ;;
+        "Component") video_input="component" ;;
+        "S-Video")   video_input="s_video" ;;
         "quit")      _report -d "Bye then" ; exit 0 ;;
         *)           _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
     esac
@@ -321,18 +327,18 @@ lookup_video_input(){
 
 lookup_audio_input(){
     case "${1}" in
-        "Analog")                  audio_input=1 ;;
-        "SDI Embedded Audio")      audio_input=2 ;;
-        "Digital Audio (AES/EBU)") audio_input=3 ;;
+        "Analog")                  audio_input="analog" ;;
+        "SDI Embedded Audio")      audio_input="embedded" ;;
+        "Digital Audio (AES/EBU)") audio_input="aes_ebu" ;;
         "quit")                    _report -d "Bye then" ; exit 0 ;;
         *)                         _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
     esac
 }
 
-lookup_video_bitdepth(){
+lookup_pixel_format(){
     case "${1}" in
-        "10 bit") video_bitdepth=10 ;;
-        "8 bit")  video_bitdepth=8 ;;
+        "10 bit") pixel_format="yuv422p10" ;;
+        "8 bit")  pixel_format="uyvy422" ;;
         "quit")   _report -d "Bye then" ; exit 0 ;;
         *)        _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
     esac
@@ -341,10 +347,10 @@ lookup_video_bitdepth(){
 lookup_video_codec(){
     case "${1}" in
         "Uncompressed Video")
-            if [ "${video_bitdepth}" = "10" ] ; then
+            if [ "${pixel_format}" = "yuv422p10" ] ; then
                 codecname="Uncompressed 10-bit 4:2:2"
                 middleoptions+=(-c:v v210)
-            elif [ "${video_bitdepth}" = "8" ] ; then
+            elif [ "${pixel_format}" = "uyvy422" ] ; then
                 codecname="Uncompressed 8-bit 4:2:2"
                 middleoptions+=(-c:v rawvideo -pix_fmt uyvy422 -tag:v 2vuy)
             fi
@@ -439,10 +445,10 @@ lookup_container(){
 lookup_standard(){
     case "${1}" in
         "NTSC")
-            standard="${NTSC_value}"
+            standard="ntsc"
             ;;
         "PAL")
-            standard="${PAL_value}"
+            standard="pal "
             ;;
         "quit") _report -d "Bye then" ; exit 0 ;;
         *) _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
@@ -470,9 +476,6 @@ lookup_qctoolsxml(){
         *) _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
     esac
 }
-
-# get the correct values for NTSC and PAL video depending on the capture card
-get_standard_values
 
 # set up drawtext.txt files in case needed.
 set_up_drawtext
@@ -507,7 +510,7 @@ split=5[a][b][c][d][e];\
 [d]${VECTORSCOPE_FILTER}[d1];\
 [e]signalstats=out=brng,scale=512:ih[e1];\
 [e1][d1]vstack[de1];\
-[abc1][de1]hstack[out]"
+[abc1][de1]hstack"
             ;;
         "Full Range Visual")
 playbackfilter="\
@@ -520,7 +523,7 @@ split=5[a][b][c][d][e];\
 [d]${VECTORSCOPE_FILTER}[d1];\
 [e]format=yuv444p,lutyuv=y=if(gte(val\,254)\,1\,if(lte(val\,1)\,254\,val)):u=val:v=val,scale=512:ih[e1];\
 [e1][d1]vstack[de1];\
-[abc1][de1]hstack[out]"
+[abc1][de1]hstack"
           ;;
       "Visual + Numerical")
 playbackfilter="\
@@ -543,9 +546,9 @@ drawtext=fontcolor=white:fontsize=52:\
 fontfile=${defaultfont}:textfile=/tmp/drawtext3.txt[f1];\
 [f1][abc1][de1]hstack=inputs=3[abcdef1];\
 [g]scale=iw+512+180:82,format=yuv422p,geq=lum=60:cb=128:cr=128,drawtext=fontcolor=white:fontsize=22:\
-fontfile=${defaultfont}:textfile=/tmp/bmdcapture.log:\
+fontfile=${defaultfont}:textfile=/tmp/vrecord_input.log:\
 reload=1:y=82-th[g1];\
-[abcdef1][g1]vstack[out]"
+[abcdef1][g1]vstack"
             ;;
       "Color Matrix")
       hue=20
@@ -564,7 +567,7 @@ split=9[x][hm][hp][sm][sp][hmsm][hmsp][hpsm][hpsp];\
 [hpsm1][hp1][hpsp1]hstack=3[top];\
 [sm1][x][sp1]hstack=3[mid];\
 [hmsm1][hm1][hmsp1]hstack=3[bottom];\
-[top][mid][bottom]vstack=3[out]"
+[top][mid][bottom]vstack=3"
            ;;
       "Bit Planes")
         playbackfilter="\
@@ -958,30 +961,28 @@ else
 fi
 
 if [[ "${video_bit_depth_choice}" && "${video_bit_depth_choice}" != "${undeclaredoption}" ]] ; then
-    lookup_video_bitdepth "${video_bit_depth_choice}"
+    lookup_pixel_format "${video_bit_depth_choice}"
 else
     _report -q "Which VIDEO bit depth?"
     PS3="Select a video bit depth: "
     select video_bit_depth_choice in "${video_bitdepth_options[@]}" ; do
-        lookup_video_bitdepth "$video_bit_depth_choice"
+        lookup_pixel_format "$video_bit_depth_choice"
         [ "${?}" -eq 0 ] && break
     done
 fi
 
-GRAB_DECKLINK=(bmdcapture)
-GRAB_DECKLINK+=(-m ${standard})
-GRAB_DECKLINK+=(-V "${video_input}")
-GRAB_DECKLINK+=(-A "${audio_input}")
-GRAB_DECKLINK+=(-p "${video_bitdepth}")
-GRAB_DECKLINK+=(-c 8)
-GRAB_DECKLINK+=(-s 32)
-GRAB_DECKLINK+=(-F nut)
-GRAB_DECKLINK+=(-f pipe:1)
-
-if ps ax | grep -v grep | grep 'bmdcapture' > /dev/null ; then
-    _report -w "bmdcapture is already busy."
-    exit 1
-fi
+_get_decklink_inputs
+GRAB_DECKLINK=(-f decklink)
+GRAB_DECKLINK+=(-draw_bars 0)
+GRAB_DECKLINK+=(-audio_input "${audio_input}")
+GRAB_DECKLINK+=(-video_input "${video_input}")
+GRAB_DECKLINK+=(-format_code "${standard}")
+GRAB_DECKLINK+=(-channels 8)
+GRAB_DECKLINK+=(-raw_format "${pixel_format}")
+GRAB_DECKLINK+=(-i "${FIRST_DECKLINK_INPUT}")
+PIPE_DECKLINK=(-c copy)
+PIPE_DECKLINK+=(-f nut)
+PIPE_DECKLINK+=(-)
 
 if [[ "${runtype}" = "audiopassthrough" ]] ; then
     playbackfilter="\
@@ -1000,7 +1001,7 @@ if [[ "${runtype}" = "audiopassthrough" ]] ; then
     [abc1][de1]hstack[abcde1],\
     [abcde1][xx]overlay=10:10[vo]"
     echo "ESC quit" > ~/.config/mpv/input.conf
-    "${GRAB_DECKLINK[@]}" 2> /tmp/bmdcapture.log | \
+    "${FFMPEG_DECKLINK[@]}" "${GRAB_DECKLINK[@]}" 2> /tmp/vrecord_input.log | \
         mpv - --title="mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" -lavfi-complex "${playbackfilter}"	
     exit 0
 fi
@@ -1017,8 +1018,7 @@ else
 fi
 
 if [[ "${runtype}" = "passthrough" ]] ; then
-    "${GRAB_DECKLINK[@]}" 2> /tmp/bmdcapture.log | \
-        ffplay -v info -hide_banner -stats -i - \
+    "${FFPLAY_DECKLINK}" -v info -nostats "${GRAB_DECKLINK[@]}" 2> /tmp/vrecord_input.log \
         -window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" \
         -vf "${playbackfilter}"
     exit 0
@@ -1116,6 +1116,12 @@ else
     done
 fi
 
+if [ -f "${dir}/${id}${suffix}.${extension}" ] ; then
+    _report -w "A file called ${dir}/${id}.${extension} already exists."
+    _report -w "Exiting to avoid overwriting that file."
+    exit
+fi
+
 if [[ "${audio_mapping_choice}" && "${audio_mapping_choice}" != "${undeclaredoption}" ]] ; then
     lookup_audio_mapping "${audio_mapping_choice}"
 else
@@ -1127,7 +1133,7 @@ else
     done
 fi
 
-_report -d "Summary: ${video_bitdepth} bit ${codecname} ${container_choice} file from ${standard_choice} ${video_input_choice} ${audio_input_choice} Frame MD5s=${framemd5_choice} QCTools XML=${qctoolsxml_choice} and Technician=${technician}. Inputs recorded to ${dir}/${id}.${extension} Auxiliary Files created in ${logdir}"
+_report -d "Summary: ${pixel_format} bit ${codecname} ${container_choice} file from ${standard_choice} ${video_input_choice} ${audio_input_choice} Frame MD5s=${framemd5_choice} QCTools XML=${qctoolsxml_choice} and Technician=${technician}. Inputs recorded to ${dir}/${id}${suffix}.${extension} Auxiliary Files created in ${logdir}"
 if [[ "$invert_phase" = 1 ]] ; then
     echo -e " \033[101mWARNING: Option to invert phase of second audio channel has been selected\033[0m"
 fi
@@ -1143,7 +1149,7 @@ _writeingestlog "computer_name" "$(uname -n)"
 _writeingestlog "user_name" "$(whoami)"
 _writeingestlog "operating_system_version" "$(uname -v)"
 _writeingestlog "datetime_start" "$(_get_iso8601)"
-_writeingestlog "video_bit_depth" "${video_bitdepth}"
+_writeingestlog "video_bit_depth" "${pixel_format}"
 _writeingestlog "codec_name" "${codecname}"
 _writeingestlog "container" "${container_choice}"
 _writeingestlog "television_standard" "${standard_choice}"
@@ -1167,17 +1173,17 @@ _report -d "Close the playback window to stop recording."
 export FFREPORT="file=${logdir}/${id}_%p_%t${ffmpeglogsuffix}"
 
 if [[ "${standard_choice}" = "PAL" ]] ; then
-    recordingfilter="[0:v:0]setfield=tff,setsar=16/15,setdar=4/3[vid1]"
+    recordingfilter="setfield=tff,setsar=16/15,setdar=4/3"
     middleoptions+=(-color_primaries bt470bg)
     middleoptions+=(-color_trc bt709)
     middleoptions+=(-colorspace bt470bg)
 elif [[ "${standard_choice}" = "NTSC" ]] ; then
-    recordingfilter="[0:v:0]setfield=bff,setsar=40/27,setdar=4/3[vid1]"
+    recordingfilter="setfield=bff,setsar=40/27,setdar=4/3"
     middleoptions+=(-color_primaries smpte170m)
     middleoptions+=(-color_trc bt709)
     middleoptions+=(-colorspace smpte170m)
 else
-    recordingfilter="[0:v:0]setfield=bff,setsar=40/27,setdar=4/3[vid1]"
+    recordingfilter="setfield=bff,setsar=40/27,setdar=4/3"
 fi
 
 if [[ "${playbackview_choice}" = "Full Range Visual" ]] ; then
@@ -1192,45 +1198,36 @@ if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
         _report -w "Such as \`brew install qcli\`."
         exit 1
     fi
-    # mkfifo needs to be conditional and maybe deal with deleting a preexisting pipe
-    "${GRAB_DECKLINK[@]}" 2> >(tee "${logdir}/${id}${bmdcapturelogsuffix}" /tmp/bmdcapture.log >/dev/null) | \
-        tee >(ffplay -i - -v info \
-            -hide_banner -stats -autoexit \
-             -window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" -vf "${playbackfilter}") | \
-        ffmpeg -v info -hide_banner -stats ${inputoptions[@]} -i - ${middleoptions[@]} \
-            -metadata:s:v:0 encoder="${codecname}" \
-            -c:a pcm_s24le \
-            -filter_complex "${recordingfilter};${audiomap}" \
-            -map "[vid1]" \
-            $(if [ -n "$map1k" ] ; then echo ${map1k} ; fi) $(if [ -n "$map1v" ] ; then echo ${map1v} ; fi) \
-            $(if [ -n "$map2k" ] ; then echo ${map2k} ; fi) $(if [ -n "$map2v" ] ; then echo ${map2v} ; fi) \
-            -f "${format}" \
-            "${dir}/${id}${suffix}.${extension}" \
-            "${extraoutputs[@]}" \
-            -c:v copy -c:a copy -syncpoints none -f_strict experimental -f nut - | qcli -i - -o "${logdir}/${id}${suffix}.${extension}.qctools.xml.gz"
+    QCTOOLS_POST=(qcli -i - -o "${logdir}/${id}${suffix}.${extension}.qctools.xml.gz")
+else
+    QCTOOLS_POST=(cat)
+fi
+    "${FFMPEG_DECKLINK[@]}" \
+    2> >(tee "${logdir}/${id}${capturelogsuffix}" /tmp/vrecord_input.log >/dev/null) \
+    -v info -nostdin -hide_banner -nostats "${inputoptions[@]}" "${GRAB_DECKLINK[@]}" \
+    -metadata:s:v:0 encoder="${codecname}" "${middleoptions[@]}" -c:a pcm_s24le \
+    -filter_complex "\
+        [0:v:0]${recordingfilter};\
+        ${audiomap}" \
+    $(if [ -n "$map1k" ] ; then echo ${map1k} ; fi) $(if [ -n "$map1v" ] ; then echo ${map1v} ; fi) \
+    $(if [ -n "$map2k" ] ; then echo ${map2k} ; fi) $(if [ -n "$map2v" ] ; then echo ${map2v} ; fi) \
+    -f "${format}" "${dir}/${id}${suffix}.${extension}" \
+    "${extraoutputs[@]}" -map 0 -c copy -f nut - | \
+    tee >("${FFPLAY_DECKLINK[@]}" \
+        -v info -hide_banner -stats -autoexit -i - \
+        -window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" \
+        -vf "${playbackfilter}") | \
+    "${QCTOOLS_POST[@]}"
+
+if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
     _report -d "Vrecord is analyzing your video file. Please be patient."
-    if [[ "${video_bitdepth}" = "10" ]] ; then
+    if [[ "${pixel_format}" = "10" ]] ; then
         SAT_OUTLIERS=$(gzcat "${logdir}/${id}${suffix}.${extension}.qctools.xml.gz" | xml sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>496])" -n)
-    elif [[ "${video_bitdepth}" = "8" ]] ; then
+    elif [[ "${pixel_format}" = "8" ]] ; then
         SAT_OUTLIERS=$(gzcat "${logdir}/${id}${suffix}.${extension}.qctools.xml.gz" | xml sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>124])" -n)
     fi
     AUD_OUTLIERS=$(gzcat "${logdir}/${id}${suffix}.${extension}.qctools.xml.gz" | xml sel -t -v "count(//tag[@key='lavfi.astats.Overall.Max_level'][@value>=0.999998])" -n)
     BRNG_OUTLIERS=$(gzcat "${logdir}/${id}${suffix}.${extension}.qctools.xml.gz" | xml sel -t -v "count(//tag[@key='lavfi.signalstats.BRNG'][@value>=0.03])" -n)
-else
-    "${GRAB_DECKLINK[@]}" 2> >(tee "${logdir}/${id}${bmdcapturelogsuffix}" /tmp/bmdcapture.log >/dev/null) | \
-        tee >(ffplay -i - -v info \
-            -hide_banner -stats -autoexit \
-            -window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" -vf "${playbackfilter}") | \
-        ffmpeg -v info -hide_banner -stats ${inputoptions[@]} -i - ${middleoptions[@]} \
-            -metadata:s:v:0 encoder="${codecname}" \
-            -c:a pcm_s24le \
-            -filter_complex "${recordingfilter};${audiomap}" \
-            -map "[vid1]" \
-            $(if [ -n "$map1k" ] ; then echo ${map1k} ; fi) $(if [ -n "$map1v" ] ; then echo ${map1v} ; fi) \
-            $(if [ -n "$map2k" ] ; then echo ${map2k} ; fi) $(if [ -n "$map2v" ] ; then echo ${map2v} ; fi) \
-            -f "${format}" \
-            "${dir}/${id}${suffix}.${extension}" \
-            "${extraoutputs[@]}"
 fi
 
 _writeingestlog "datetime_end" "$(_get_iso8601)"
