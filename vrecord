@@ -296,10 +296,15 @@ BRNG
 
 duration_check(){
     # Sets up function to verify validitiy of duration settings 
-    real_regexp="^$|[0-9]+|[0-9]+\.[0-9]*|\.[0-9]+"
-    if ! [[ "${duration}" =~ ^${real_regexp}$ ]] ; then
-        _report -w "Illegal value for recording time. Input must only be numbers."
-        exit 1
+    if [[ -n "$duration" ]] ; then
+        if ! [[ "${duration}" =~ ^$|^[0-9]+$|^[0-9]+\.[0-9]*$|^\.[0-9]+$ ]] ; then
+            _report -w "Illegal value for recording time. Input must only be numbers."
+            exit 1
+        fi
+        if [[ 1 -eq "$(echo "$duration == 0" | bc)" ]] ; then
+            _report -w "A recording duration of zero is invalid."
+            exit 1
+        fi
     fi
 }
 
