@@ -4,10 +4,9 @@
 # Open-source software for capturing a video signal and turning it into a digital file.
 
 config_file="$HOME/.$(basename "${0}").conf"
+unset version
 if [[ $(dirname "$(which "${0}")") = "/usr/local/bin" ]] ; then
     version=$(TMP=$(brew info vrecord | grep -Eo "/vrecord/.* \(") ; echo ${TMP:9:(${#TMP}-11)})
-else
-    version=""
 fi
 logo_path="/usr/local/Cellar/vrecord/${version}"
 unset inputoptions
