@@ -28,7 +28,7 @@ This documentation is up to date as of vrecord version 2017-10-17.
 
 Vrecord is open-source software for capturing a video signal and turning it into a digital file. Its purpose is to make videotape digitization or transfer easier. Vrecord can capture analog and digital signals through a variety of inputs and can create digital video files in a variety of formats and codecs. Vrecord has been designed with needs of audiovisual archivists in mind. 
 
-Vrecord uses [ffmpeg](http://ffmpeg.org), [ffplay](http://ffmpeg.org/ffplay.html), [mpv](https://mpv.io/) and [bmdcapture](https://github.com/lu-zero/bmdtools) to do its dirty work.
+Vrecord uses [ffmpeg](https://ffmpeg.org), [ffplay](https://ffmpeg.org/ffplay.html), [mpv](https://mpv.io/) and [bmdcapture](https://github.com/lu-zero/bmdtools) to do its dirty work.
 
 Currently vrecord only supports Blackmagic Design [capture cards](Resources/hardware.md) with the Blackmagic driver installed. 
 
@@ -36,7 +36,7 @@ Currently vrecord only supports Blackmagic Design [capture cards](Resources/hard
 
 If you use macOS, you can easily install vrecord using a package manager called Homebrew. To install Homebrew, follow [these instructions](https://brew.sh/).
 
-To install vrecord, run the following two commands:
+To install vrecord, run the following two commands in a [Terminal window](https://en.wikipedia.org/wiki/Terminal_%28OS_X%29):
 ```
 brew tap amiaopensource/amiaos
 brew install vrecord
@@ -193,7 +193,7 @@ The numerical values are as follows:
 
 **Bit Planes mode** — Bit Planes mode allows to display the video according to the bit position of each plane.
 
-**Create QCTools XML** — While capturing the video signal, vrecord will also create an XML file that contains a record of the characteristics of the video signal (such as luminance, color saturation, audio levels, etc.). It will then compress the XML file using [gzip](https://www.gnu.org/software/gzip/). Choosing to create a QCTools XML is highly recommended. This file can be quickly imported into QCTools for further analysis of the video. In addition, if you choose this option, vrecord can analyze the video signal for potential errors. Currently vrecord only tests the saturation levels of the video, but more tests are coming soon!   
+**Create QCTools XML** — While capturing the video signal, vrecord will also create an XML file that contains a record of the characteristics of the video signal (such as luminance, color saturation, audio levels, etc.). It will then compress the XML file using [gzip](https://www.gnu.org/software/gzip/). Choosing to create a QCTools XML is highly recommended. This file can be quickly imported into QCTools for further analysis of the video. In addition, if you choose this option, vrecord can analyze the video signal for potential errors. Currently vrecord only tests the saturation levels of the video.
 
 **Frame MD5s** — You can choose to create an MD5 hash value (AKA a checksum) for each frame of video captured. A separate .md5 file with all the hash values will be created along with the video file. Generally choosing to create frame-level MD5s will not slow down or hinder the capture of your video. To read more about the value of frame-level MD5s see this article: http://dericed.com/papers/reconsidering-the-checksum-for-audiovisual-preservation/ 
 
