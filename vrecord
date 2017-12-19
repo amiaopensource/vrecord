@@ -67,10 +67,10 @@ _get_iso8601(){
 }
 
 _report(){
-    local RED="$(tput setaf 1)"   # Red      - For Warnings
-    local GREEN="$(tput setaf 2)" # Green    - For Declarations
-    local BLUE="$(tput setaf 4)"  # Blue     - For Questions
-    local NC="$(tput sgr0)"       # No Color
+    local RED="$(tput setaf 1)"    # Red      - For Warnings
+    local GREEN="$(tput setaf 2)"  # Green    - For Declarations
+    local BLUE="$(tput setaf 4)"   # Blue     - For Questions
+    local NC="$(tput sgr0)"        # No Color
     local color=""
     local startmessage=""
     local echoopt=""
@@ -78,12 +78,12 @@ _report(){
     OPTIND=1
     while getopts "qdwstn" opt ; do
         case "${opt}" in
-            q) color="${BLUE}" ;;                         # question mode, use color blue
-            d) color="${GREEN}" ;;                        # declaration mode, use color green
-            w) color="${RED}" ;;                          # warning mode, use color red
-            s) startmessage+=([$(basename "${0}")] ) ;;   # prepend scriptname to the message
-            t) startmessage+=($(_get_iso8601) '- ' ) ;;   # prepend timestamp to the message
-            n) echoopt="-n" ;;                            # to avoid line breaks after echo
+            q) color="${BLUE}" ;;                        # question mode, use color blue
+            d) color="${GREEN}" ;;                       # declaration mode, use color green
+            w) color="${RED}" ;;                         # warning mode, use color red
+            s) startmessage+=([$(basename "${0}")] ) ;;  # prepend scriptname to the message
+            t) startmessage+=($(_get_iso8601) '- ' ) ;;  # prepend timestamp to the message
+            n) echoopt="-n" ;;                           # to avoid line breaks after echo
         esac
     done
     shift $(( ${OPTIND} - 1 ))
@@ -103,7 +103,7 @@ _get_decklink_inputs(){
     fi
 }
 
-# command-line options to set mediaid and original variables
+# command-line options to set media id and original variables
 OPTIND=1
 while getopts ":herpaxg" opt ; do
     case "${opt}" in
@@ -210,27 +210,27 @@ set_up_drawtext(){
     echo -e "%{pts:hms}
 
   Y
- Low  %{metadata:lavfi.signalstats.YLOW}	
- Avg  %{metadata:lavfi.signalstats.YAVG}	
- High %{metadata:lavfi.signalstats.YHIGH}	
+ Low  %{metadata:lavfi.signalstats.YLOW}
+ Avg  %{metadata:lavfi.signalstats.YAVG}
+ High %{metadata:lavfi.signalstats.YHIGH}
  Diff %{metadata:lavfi.signalstats.YDIF}
 
   U
- Low  %{metadata:lavfi.signalstats.ULOW}	
- Avg  %{metadata:lavfi.signalstats.UAVG}	
- High %{metadata:lavfi.signalstats.UHIGH}	
+ Low  %{metadata:lavfi.signalstats.ULOW}
+ Avg  %{metadata:lavfi.signalstats.UAVG}
+ High %{metadata:lavfi.signalstats.UHIGH}
  Diff %{metadata:lavfi.signalstats.UDIF}
 
   V
- Low  %{metadata:lavfi.signalstats.VLOW}	
- Avg  %{metadata:lavfi.signalstats.VAVG}	
- High %{metadata:lavfi.signalstats.VHIGH}	
+ Low  %{metadata:lavfi.signalstats.VLOW}
+ Avg  %{metadata:lavfi.signalstats.VAVG}
+ High %{metadata:lavfi.signalstats.VHIGH}
  Diff %{metadata:lavfi.signalstats.VDIF}
 
   SAT
- Low  %{metadata:lavfi.signalstats.SATLOW}	
- Avg  %{metadata:lavfi.signalstats.SATAVG}	
- High %{metadata:lavfi.signalstats.SATHIGH}	
+ Low  %{metadata:lavfi.signalstats.SATLOW}
+ Avg  %{metadata:lavfi.signalstats.SATAVG}
+ High %{metadata:lavfi.signalstats.SATHIGH}
  " > /tmp/drawtext.txt
 
     echo -e "
@@ -267,7 +267,7 @@ set_up_drawtext(){
 
  HUE(med) %{metadata:lavfi.signalstats.HUEMED}
  HUE(avg) %{metadata:lavfi.signalstats.HUEAVG}
- TOUT	  %{metadata:lavfi.signalstats.TOUT}
+ TOUT     %{metadata:lavfi.signalstats.TOUT}
  VREP     %{metadata:lavfi.signalstats.VREP}
 
 
@@ -296,13 +296,13 @@ BRNG
 }
 
 duration_check(){
-    # Sets up function to verify validitiy of duration settings 
-    if [[ -n "$duration" ]] ; then
+    # Sets up function to verify validitiy of duration settings
+    if [[ -n "${duration}" ]] ; then
         if ! [[ "${duration}" =~ ^$|^[0-9]+$|^[0-9]+\.[0-9]*$|^\.[0-9]+$ ]] ; then
             _report -w "Illegal value for recording time. Input must only be numbers."
             exit 1
         fi
-        if [[ 1 -eq "$(echo "$duration == 0" | bc)" ]] ; then
+        if [[ 1 -eq "$(echo "${duration} == 0" | bc)" ]] ; then
             _report -w "A recording duration of zero is invalid."
             exit 1
         fi
@@ -484,7 +484,7 @@ lookup_qctoolsxml(){
     esac
 }
 
-# set up drawtext.txt files in case needed.
+# set up drawtext.txt files in case needed
 set_up_drawtext
 
 # select playback views
@@ -778,7 +778,7 @@ pashua_run() {
     done
     if [ ! "$pashuapath" ] ; then
         echo "Error: Pashua is used to edit vrecord options but is not found."
-        if [[ "${pashuainstall}" = "" ]] ; then
+        if [[ -z "${pashuainstall}" ]] ; then
             echo "Attempting to run: brew cask install pashua"
             if [[ "${pashuainstall}" != "Y" ]] ; then
                 brew cask install pashua
@@ -789,9 +789,8 @@ pashua_run() {
             fi
         fi
     else
-        encoding=""
         # Get result
-        result=`"$pashuapath" $encoding $pashua_configfile | sed 's/ /;;;/g'`
+        result=$("${pashuapath}" ${pashua_configfile} | sed 's/ /;;;/g')
 
         # Parse result
         for line in $result ; do
@@ -838,10 +837,10 @@ elif [[ "${runtype}" = "edit" ]] ; then
     technician_comment="#Enter the name of the person digitizing this tape."
 
     pashua_configfile=$(/usr/bin/mktemp /tmp/pashua_XXXXXXXXX)
-    echo "$conf" > $pashua_configfile
+    echo "${conf}" > $pashua_configfile
     pashua_run
     rm $pashua_configfile
-    if [[ "$cb" = 0 ]] ; then
+    if [[ "${cb}" = 0 ]] ; then
         # check validity of duration value
         duration_check
         # report back options
@@ -860,7 +859,7 @@ elif [[ "${runtype}" = "edit" ]] ; then
         echo "  duration = ${duration}"
         echo "  playbackview_choice = ${playbackview_choice}"
         echo "  technician = ${technician}"
-        if [[ "$invert_phase" = 1 ]] ; then
+        if [[ "${invert_phase}" = 1 ]] ; then
             echo -e " \033[101mWARNING: Option to invert phase of second audio channel has been selected\033[0m"
         fi
         if [ "${video_codec_choice}" = "FFV1 version 3" -a "${container_choice}" = "MXF" ] ; then
@@ -922,15 +921,15 @@ EOF
     open /Applications/Utilities/Terminal.app
     _report -nd "Press [q] to quit, [p] to enter passthrough mode or any other key to proceed: "
     read aftereditresponse
-    if [[ "$aftereditresponse" = "q" ]] ; then
+    if [[ "${aftereditresponse}" = "q" ]] ; then
         _report -d "Bye then"
         exit 0
-    elif [[ "$aftereditresponse" = "p" ]] ; then
+    elif [[ "${aftereditresponse}" = "p" ]] ; then
         runtype="passthrough"
     fi
 fi
 open /Applications/Utilities/Terminal.app
-if [[ "$invert_phase" = 1 ]] ; then
+if [[ "${invert_phase}" = 1 ]] ; then
     phase_value="-1*"
 fi
 
@@ -973,7 +972,7 @@ else
     _report -q "Which VIDEO bit depth?"
     PS3="Select a video bit depth: "
     select video_bit_depth_choice in "${video_bitdepth_options[@]}" ; do
-        lookup_pixel_format "$video_bit_depth_choice"
+        lookup_pixel_format "${video_bit_depth_choice}"
         [ "${?}" -eq 0 ] && break
     done
 fi
@@ -1009,7 +1008,7 @@ if [[ "${runtype}" = "audiopassthrough" ]] ; then
     [abcde1][xx]overlay=10:10[vo]"
     echo "ESC quit" > ~/.config/mpv/input.conf
     "${FFMPEG_DECKLINK[@]}" "${GRAB_DECKLINK[@]}" 2> /tmp/vrecord_input.log | \
-        mpv - --title="mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" -lavfi-complex "${playbackfilter}"	
+        mpv - --title="mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" -lavfi-complex "${playbackfilter}"
     exit 0
 fi
 
@@ -1167,12 +1166,12 @@ _writeingestlog "audio_mapping_choice" "${audio_mapping_choice}"
 _writeingestlog "qctoolsxml_choice" "${qctoolsxml_choice}"
 _writeingestlog "file_path" "${dir}/${id}.${extension}"
 
-if [[ ${technician} = "" ]] ; then
+if [[ -z ${technician} ]] ; then
     _writeingestlog "technician" "N/A"
 else
     _writeingestlog "technician" "${technician}"
 fi
-if [[ "$invert_phase" = 1 ]] ; then
+if [[ "${invert_phase}" = 1 ]] ; then
     _writeingestlog "invert_phase" "Yes"
 fi
 
@@ -1248,7 +1247,7 @@ fi
 # check for discontinuities in the Frame MD5s
 if [[ "${framemd5_choice}" = "Yes" ]] ; then
     pts_discontinuity=$(cat "${framemd5name}" | grep -v "^#" | cut -d, -f3 | sed 's/ //g' | grep -v "^0$" | awk '$1!=p+1{printf p+1"-"$1-1" "}{p=$1}')
-    if [[ "${pts_discontinuity}" = "" ]] ; then
+    if [[ -z "${pts_discontinuity}" ]] ; then
         _writeingestlog "pts_discontinuity" "none"
     else
         _writeingestlog "pts_discontinuity" "${pts_discontinuity}"
@@ -1275,7 +1274,7 @@ if [[ "${AUD_OUTLIERS}" -gt "${AUD_OUTLIER_THRSHLD}" ]] ; then
     cowsay "$(_report -w "WARNING: Your video file contains ${AUD_OUTLIERS} frames with clipped audio levels.")"
 fi
 if [[ "${BRNG_OUTLIERS}" -gt "${BRNG_OUTLIER_THRSHLD}" ]] ; then
-    cowsay "$(_report -w "WARNING: Your video file contains ${BRNG_OUTLIERS} frames with pixels out of broadcast range")"
+    cowsay "$(_report -w "WARNING: Your video file contains ${BRNG_OUTLIERS} frames with pixels out of broadcast range.")"
 fi
 
 if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
