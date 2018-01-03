@@ -1208,7 +1208,8 @@ if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
 else
     QCTOOLS_POST=(cat)
 fi
-    "${FFMPEG_DECKLINK[@]}" \
+
+"${FFMPEG_DECKLINK[@]}" \
     2> >(tee "${logdir}/${id}${capturelogsuffix}" /tmp/vrecord_input.log >/dev/null) \
     -v info -nostdin -hide_banner -nostats "${inputoptions[@]}" "${GRAB_DECKLINK[@]}" \
     -metadata:s:v:0 encoder="${codecname}" "${middleoptions[@]}" -c:a pcm_s24le \
