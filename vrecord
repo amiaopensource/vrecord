@@ -1205,8 +1205,8 @@ if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
         exit 1
     fi
     QCTOOLS_POST=(qcli -i - -o "${logdir}/${id}${suffix}.${extension}.qctools.xml.gz")
-#else
-#    QCTOOLS_POST=(cat)
+else
+    QCTOOLS_POST=":"
 fi
     "${FFMPEG_DECKLINK[@]}" \
     2> >(tee "${logdir}/${id}${capturelogsuffix}" /tmp/vrecord_input.log >/dev/null) \
