@@ -1224,7 +1224,7 @@ fi
         -v info -hide_banner -stats -autoexit -i - \
         -window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" \
         -vf "${playbackfilter}") | \
-    "${QCTOOLS_POST[@]}"
+        "${QCTOOLS_POST[@]}"
 
 if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
     _report -d "Vrecord is analyzing your video file. Please be patient."
