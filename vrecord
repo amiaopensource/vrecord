@@ -54,8 +54,8 @@ Usage: $(basename "${0}") [ -g | -e | -r | -p | -a | -x | -h ]
   -a  enable audio passthrough mode. Identical to passthrough except for
       the addition of audio bars. Note: Will eventually lag and crash if
       left on too long.
-  -x  reset the configuration, this will clear the default configuration
-      file at '${config_file}' and create a new one.
+  -x  reset the configuration: this will replace the default configuration
+      file at '${config_file}' with an empty one.
   -h  display this help menu
 
 See also the man page: man $(basename "${0}")
