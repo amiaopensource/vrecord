@@ -6,7 +6,7 @@
 config_file="$HOME/.$(basename "${0}").conf"
 unset version
 if [[ $(dirname "$(which "${0}")") = "/usr/local/bin" ]] ; then
-    version=$(TMP=$(brew info vrecord | grep -Eo "/vrecord/.* \(") ; echo ${TMP:9:(${#TMP}-11)})
+    version=$(TMP=$(brew info vrecord | grep ".*\*" | grep -Eo "/vrecord/.* \(") ; echo ${TMP:9:(${#TMP}-11)})
 fi
 logo_path="/usr/local/Cellar/vrecord/${version}"
 unset inputoptions
