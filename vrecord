@@ -1007,7 +1007,7 @@ if [[ "${runtype}" = "audiopassthrough" ]] ; then
     [abc1][de1]hstack[abcde1],\
     [abcde1][xx]overlay=10:10[vo]"
     echo "ESC quit" > ~/.config/mpv/input.conf
-    "${FFMPEG_DECKLINK[@]}" "${GRAB_DECKLINK[@]}" 2> /tmp/vrecord_input.log | \
+    "${FFMPEG_DECKLINK[@]}" -v info -nostdin -hide_banner -nostats "${inputoptions[@]}" "${GRAB_DECKLINK[@]}" -map 0 -c copy -f nut - 2> /tmp/vrecord_input.log | \
         mpv - --title="mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" -lavfi-complex "${playbackfilter}"
     exit 0
 fi
