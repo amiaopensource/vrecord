@@ -1204,27 +1204,41 @@ if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
         _report -w "Such as \`brew install qcli\`."
         exit 1
     fi
-    QCTOOLS_POST=(qcli -i - -o "${logdir}/${id}${suffix}.${extension}.qctools.xml.gz")
+    "${FFMPEG_DECKLINK[@]}" \
+        2> >(tee "${logdir}/${id}${capturelogsuffix}" /tmp/vrecord_input.log >/dev/null) \
+        -v info -nostdin -hide_banner -nostats "${inputoptions[@]}" "${GRAB_DECKLINK[@]}" \
+        -metadata:s:v:0 encoder="${codecname}" "${middleoptions[@]}" -c:a pcm_s24le \
+        -filter_complex "\
+            [0:v:0]${recordingfilter};\
+            ${audiomap}" \
+        $(if [ -n "$map1k" ] ; then echo ${map1k} ; fi) $(if [ -n "$map1v" ] ; then echo ${map1v} ; fi) \
+        $(if [ -n "$map2k" ] ; then echo ${map2k} ; fi) $(if [ -n "$map2v" ] ; then echo ${map2v} ; fi) \
+        -f "${format}" "${dir}/${id}${suffix}.${extension}" \
+        "${extraoutputs[@]}" -map 0 -c copy -f nut - | \
+        tee >("${FFPLAY_DECKLINK[@]}" \
+            -v info -hide_banner -stats -autoexit -i - \
+            -window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" \
+            -vf "${playbackfilter}") | \
+            qcli -i - -o "${logdir}/${id}${suffix}.${extension}.qctools.xml.gz"
 else
-    QCTOOLS_POST=(cat)
+    "${FFMPEG_DECKLINK[@]}" \
+        2> >(tee "${logdir}/${id}${capturelogsuffix}" /tmp/vrecord_input.log >/dev/null) \
+        -v info -nostdin -hide_banner -nostats "${inputoptions[@]}" "${GRAB_DECKLINK[@]}" \
+        -metadata:s:v:0 encoder="${codecname}" "${middleoptions[@]}" -c:a pcm_s24le \
+        -filter_complex "\
+            [0:v:0]${recordingfilter};\
+            ${audiomap}" \
+        $(if [ -n "$map1k" ] ; then echo ${map1k} ; fi) $(if [ -n "$map1v" ] ; then echo ${map1v} ; fi) \
+        $(if [ -n "$map2k" ] ; then echo ${map2k} ; fi) $(if [ -n "$map2v" ] ; then echo ${map2v} ; fi) \
+        -f "${format}" "${dir}/${id}${suffix}.${extension}" \
+        "${extraoutputs[@]}" -map 0 -c copy -f nut - | \
+        "${FFPLAY_DECKLINK[@]}" \
+            -v info -hide_banner -stats -autoexit -i - \
+            -window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" \
+            -vf "${playbackfilter}"
 fi
 
-"${FFMPEG_DECKLINK[@]}" \
-    2> >(tee "${logdir}/${id}${capturelogsuffix}" /tmp/vrecord_input.log >/dev/null) \
-    -v info -nostdin -hide_banner -nostats "${inputoptions[@]}" "${GRAB_DECKLINK[@]}" \
-    -metadata:s:v:0 encoder="${codecname}" "${middleoptions[@]}" -c:a pcm_s24le \
-    -filter_complex "\
-        [0:v:0]${recordingfilter};\
-        ${audiomap}" \
-    $(if [ -n "$map1k" ] ; then echo ${map1k} ; fi) $(if [ -n "$map1v" ] ; then echo ${map1v} ; fi) \
-    $(if [ -n "$map2k" ] ; then echo ${map2k} ; fi) $(if [ -n "$map2v" ] ; then echo ${map2v} ; fi) \
-    -f "${format}" "${dir}/${id}${suffix}.${extension}" \
-    "${extraoutputs[@]}" -map 0 -c copy -f nut - | \
-    tee >("${FFPLAY_DECKLINK[@]}" \
-        -v info -hide_banner -stats -autoexit -i - \
-        -window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" \
-        -vf "${playbackfilter}") | \
-        "${QCTOOLS_POST[@]}"
+
 
 if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
     _report -d "Vrecord is analyzing your video file. Please be patient."
