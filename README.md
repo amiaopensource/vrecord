@@ -1,6 +1,6 @@
 # Vrecord Documentation
 
-This documentation is up to date as of vrecord version 2017-10-17.
+This documentation is up to date as of vrecord version 2018-01-####.
 
 ## Table of Contents
 
@@ -28,7 +28,7 @@ This documentation is up to date as of vrecord version 2017-10-17.
 
 Vrecord is open-source software for capturing a video signal and turning it into a digital file. Its purpose is to make videotape digitization or transfer easier. Vrecord can capture analog and digital signals through a variety of inputs and can create digital video files in a variety of formats and codecs. Vrecord has been designed with needs of audiovisual archivists in mind. 
 
-Vrecord uses [ffmpeg](https://ffmpeg.org), [ffplay](https://ffmpeg.org/ffplay.html), [mpv](https://mpv.io/) and [bmdcapture](https://github.com/lu-zero/bmdtools) to do its dirty work.
+Vrecord uses AMIA Open Source’s [ffmpegdecklink](https://github.com/amiaopensource/homebrew-amiaos/blob/master/ffmpegdecklink.rb) and [mpv](https://mpv.io/) to do its dirty work. Other dependencies are cowsay, qcli and xmlstarlet.
 
 Currently vrecord only supports Blackmagic Design [capture cards](Resources/hardware.md) with the Blackmagic driver installed. 
 
