@@ -1242,9 +1242,9 @@ fi
 
 if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
     _report -d "Vrecord is analyzing your video file. Please be patient."
-    if [[ "${pixel_format}" = "10" ]] ; then
+    if [[ "${pixel_format}" = "yuv422p10" ]] ; then
         SAT_OUTLIERS=$(gzcat "${logdir}/${id}${suffix}.${extension}.qctools.xml.gz" | xml sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>496])" -n)
-    elif [[ "${pixel_format}" = "8" ]] ; then
+    elif [[ "${pixel_format}" = "uyvy422" ]] ; then
         SAT_OUTLIERS=$(gzcat "${logdir}/${id}${suffix}.${extension}.qctools.xml.gz" | xml sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>124])" -n)
     fi
     AUD_OUTLIERS=$(gzcat "${logdir}/${id}${suffix}.${extension}.qctools.xml.gz" | xml sel -t -v "count(//tag[@key='lavfi.astats.Overall.Max_level'][@value>=0.999998])" -n)
