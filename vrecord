@@ -464,7 +464,7 @@ lookup_standard(){
 
 yes_or_no(){
     case "${1}" in
-        "Yes")|"No") ;;
+        "Yes"|"No") ;;
         "quit") _report -d "Bye then" ; exit 0 ;;
         *) _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
     esac
