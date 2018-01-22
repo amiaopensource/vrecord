@@ -1238,8 +1238,6 @@ elif [[ "${media_player_choice}" = "mpv" ]] ; then
         fi
 fi
 
-
-
 if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
     if [[ ! "$(which qcli)" ]] ; then
         _report -w "Please install qcli to use the qctools reporting option."
@@ -1249,21 +1247,20 @@ if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
     QCXML="${logdir}/${id}${suffix}.${extension}.qctools.xml.gz"
     _report -d "Vrecord is analyzing your video file. Please be patient."
     if [[ "${pixel_format}" = "yuv422p10" ]] ; then
-        SAT_OUTLIERS=$(gzcat "${logdir}/${id}${suffix}.${extension}.qctools.xml.gz" | xml sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>496])" -n)
+        SAT_OUTLIERS=$(gzcat "${QCXML}" | xml sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>496])" -n)
     elif [[ "${pixel_format}" = "uyvy422" ]] ; then
-        SAT_OUTLIERS=$(gzcat "${logdir}/${id}${suffix}.${extension}.qctools.xml.gz" | xml sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>124])" -n)
+        SAT_OUTLIERS=$(gzcat "${QCXML}" | xml sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>124])" -n)
     fi
-    AUD_OUTLIERS=$(gzcat "${logdir}/${id}${suffix}.${extension}.qctools.xml.gz" | xml sel -t -v "count(//tag[@key='lavfi.astats.Overall.Max_level'][@value>=0.999998])" -n)
-    BRNG_OUTLIERS=$(gzcat "${logdir}/${id}${suffix}.${extension}.qctools.xml.gz" | xml sel -t -v "count(//tag[@key='lavfi.signalstats.BRNG'][@value>=0.03])" -n)
+    AUD_OUTLIERS=$(gzcat "${QCXML}" | xml sel -t -v "count(//tag[@key='lavfi.astats.Overall.Max_level'][@value>=0.999998])" -n)
+    BRNG_OUTLIERS=$(gzcat "${QCXML}" | xml sel -t -v "count(//tag[@key='lavfi.signalstats.BRNG'][@value>=0.03])" -n)
+    audio_peak=$(gzcat "${QCXML}" | grep lavfi.astats.Overall.Peak_level | cut -d '"' -f 4 | sort -n | tail -n 1)
+    _writeingestlog "Peak Volume is (dB)" "${audio_peak}"
+    if [[ ! -s "${XML}" ]] ; then
+        _report -w "qctools XML ${QCXML} is empty or does not exist!"
+    fi
 fi
 
 _writeingestlog "datetime_end" "$(_get_iso8601)"
-
-# check audio levels
-if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
-    audio_peak=$(gzcat "${logdir}/${id}${suffix}.${extension}.qctools.xml.gz" | grep lavfi.astats.Overall.Peak_level | cut -d '"' -f 4 | sort -n | tail -n 1)
-    _writeingestlog "Peak Volume is (dB)" "${audio_peak}"
-fi
 
 # check for discontinuities in the Frame MD5s
 if [[ "${framemd5_choice}" = "Yes" ]] ; then
