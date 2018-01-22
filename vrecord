@@ -462,23 +462,9 @@ lookup_standard(){
     esac
 }
 
-lookup_framemd5(){
+yes_or_no(){
     case "${1}" in
-        "Yes")
-            ;;
-        "No")
-            ;;
-        "quit") _report -d "Bye then" ; exit 0 ;;
-        *) _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
-    esac
-}
-
-lookup_qctoolsxml(){
-    case "${1}" in
-        "Yes")
-            ;;
-        "No")
-            ;;
+        "Yes"|"No") ;;
         "quit") _report -d "Bye then" ; exit 0 ;;
         *) _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
     esac
@@ -1036,7 +1022,7 @@ else
     _report -q "Create frame-level MD5 checksums?"
     PS3="Select an option: "
     select framemd5_choice in "${framemd5_options[@]}" ; do
-        lookup_framemd5 "${framemd5_choice}"
+        yes_or_no "${framemd5_choice}"
         [ "${?}" -eq 0 ] && break
     done
 fi
@@ -1047,7 +1033,7 @@ else
     _report -q "Create QCTools XML?"
     PS3="Select an option: "
     select qctoolsxml_choice in "${qctoolsxml_options[@]}" ; do
-        lookup_qctoolsxml "${qctoolsxml_choice}"
+        yes_or_no "${qctoolsxml_choice}"
         [ "${?}" -eq 0 ] && break
     done
 fi
