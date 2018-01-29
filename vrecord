@@ -1022,7 +1022,7 @@ if [[ "${runtype}" = "passthrough" ]] ; then
     elif [[ "${media_player_choice}" = "mpv" ]] ; then
         "${FFMPEG_DECKLINK}" -v info -nostats "${GRAB_DECKLINK[@]}" 2> /tmp/vrecord_input.log \
         -map 0 -c copy -f nut - | \
-        mpv -v --scripts-append ./mpvs.lua -
+        mpv 2>/dev/null --scripts-append ./mpvs.lua -
     fi
     exit 0
 fi
@@ -1231,10 +1231,10 @@ elif [[ "${media_player_choice}" = "mpv" ]] ; then
         -f "${format}" "${dir}/${id}${suffix}.${extension}" \
         "${extraoutputs[@]}" -map 0 -c copy -f nut - | \
         if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
-            tee >(mpv --scripts-append ./mpvs.lua -) | \
+            tee >(mpv 2>/dev/null --scripts-append ./mpvs.lua -) | \
                 qcli -i - -o "${logdir}/${id}${suffix}.${extension}.qctools.xml.gz"
         else
-            mpv -v --scripts-append ./mpvs.lua -
+            mpv 2>/dev/null --scripts-append ./mpvs.lua -
         fi
 fi
 
