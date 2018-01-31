@@ -4,7 +4,7 @@
 - a Blackmagic card from:
 
   - [UltraStudio](https://www.blackmagicdesign.com/products/ultrastudiothunderbolt)
-  - [DeckLink](https://www.blackmagicdesign.com/products/decklink), except for the DeckLink 4K Extreme card
+  - [DeckLink](https://www.blackmagicdesign.com/products/decklink), except for the DeckLink 4K Extreme card (see https://github.com/amiaopensource/vrecord/issues/209#issuecomment-360862657)
   - [Intensity Pro 4K](https://www.blackmagicdesign.com/products/intensitypro4k)
   - [Intensity](https://www.blackmagicdesign.com/products/intensity)
   
