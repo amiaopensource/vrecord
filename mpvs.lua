@@ -36,7 +36,7 @@ local scopes = {
   {keys = {'o'}, desc = {'overlaid oscilloscope'}},
   {keys = {'h'}, desc = {'histogram parade'}},
   {keys = {'H'}, desc = {'overlaid histogram'}},
-  {keys = {'d'}, desc = {'toggle display filter'}}, -- too wide in some settings, adds color to waveform parade - overlay YUV, parade YUV, overlay Y
+  {keys = {'d'}, desc = {'toggle display filter'}},
   {keys = {'w'}, desc = {'toggle waveform filter'}},
   {keys = {'g'}, desc = {'toggle graticule'}},
   {keys = {'p'}, desc = {'toggle peak envelope'}},
@@ -146,17 +146,17 @@ local function getBind(key, index)
       intensity = math.max(intensity, 0)
     elseif key[1] == 'g' then
       graticule = not graticule
-    elseif key[1] == 'G' then
+    elseif key[1] == 'p' then
       envelope = envelope + 1;
       if envelope == 4 then
         envelope = 0
       end
-    elseif key[1] == 'F' then
+    elseif key[1] == 'w' then
       filter = filter + 1;
       if filter == 6 then
         filter = 0
       end
-    elseif key[1] == 'D' then
+    elseif key[1] == 'd' then
       display = display + 1;
       if display == 3 then
         display = 0
@@ -237,19 +237,19 @@ local function getBind(key, index)
       ass_osd("intensity: " .. intensity, duration);
     elseif key[1] == 'g' then
       mp.command(get_cmd(filters[last_key].filter))
-    elseif key[1] == 'G' then
+    elseif key[1] == 'p' then
       mp.command(get_cmd(filters[last_key].filter))
       ass_osd("envelope: " .. env, duration);
-    elseif key[1] == 'F' and last_key == 11 then
+    elseif key[1] == 'w' and last_key == 11 then
       mp.command(get_cmd(filters[last_key].filter))
       ass_osd("filter: " .. filW, duration);
-    elseif key[1] == 'F' and last_key == 13 then
+    elseif key[1] == 'w' and last_key == 13 then
       mp.command(get_cmd(filters[last_key].filter))
       ass_osd("filter: " .. filV, duration);
-    elseif key[1] == 'F' then
+    elseif key[1] == 'w' then
       mp.command(get_cmd(filters[last_key].filter))
       ass_osd("filter: " .. filV .. " " .. filW, duration);
-    elseif key[1] == 'D' then
+    elseif key[1] == 'd' then
       mp.command(get_cmd(filters[last_key].filter))
       ass_osd("display: " .. disp .. " " .. comment, duration);
     else
