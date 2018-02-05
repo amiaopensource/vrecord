@@ -1246,6 +1246,7 @@ if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
     fi
     QCXML="${logdir}/${id}${suffix}.${extension}.qctools.xml.gz"
     _report -d "Vrecord is analyzing your video file. Please be patient."
+    if [[ -s "${QCXML}" ]] ; then
     if [[ "${pixel_format}" = "yuv422p10" ]] ; then
         SAT_OUTLIERS=$(gzcat "${QCXML}" | xml sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>496])" -n)
     elif [[ "${pixel_format}" = "uyvy422" ]] ; then
@@ -1255,7 +1256,7 @@ if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
     BRNG_OUTLIERS=$(gzcat "${QCXML}" | xml sel -t -v "count(//tag[@key='lavfi.signalstats.BRNG'][@value>=0.03])" -n)
     audio_peak=$(gzcat "${QCXML}" | grep lavfi.astats.Overall.Peak_level | cut -d '"' -f 4 | sort -n | tail -n 1)
     _writeingestlog "Peak Volume is (dB)" "${audio_peak}"
-    if [[ ! -s "${XML}" ]] ; then
+    else
         _report -w "qctools XML ${QCXML} is empty or does not exist!"
     fi
 fi
