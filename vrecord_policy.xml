@@ -22,15 +22,15 @@
                     <rule name="Are the matrix coefficients BT.470 System B, BT.470 System G?" value="matrix_coefficients" tracktype="Video" operator="=">BT.470 System B, BT.470 System G</rule>
                 </policy>
             </policy>
-            <policy type="and" name="Is it good Quicktime?">
-                <rule name="Is the file extension mov?" value="FileExtension" tracktype="General" operator="=">mov</rule>
-                <rule name="Is the format MPEG-4?" value="Format" tracktype="General" operator="=">MPEG-4</rule>
-                <rule name="Is the format profile QuickTime" value="Format_Profile" tracktype="General" operator="=">QuickTime</rule>
-                <rule name="Is the FFV1 Codec ID FFV1?" value="CodecID" tracktype="Video" operator="=">FFV1</rule>
-                <rule name="Is the PCM Codec ID in24?" value="CodecID" tracktype="Audio" operator="=">in24</rule>
-                <rule name="Is the endianness Little?" value="Format_Settings_Endianness" tracktype="Audio" operator="=">Little</rule>
-                <rule name="Is the signedness signed?" value="Format_Settings_Sign" tracktype="Audio" operator="=">Signed</rule>
-            </policy>
+        </policy>
+        <policy type="and" name="Is it good Quicktime?">
+            <rule name="Is the file extension mov?" value="FileExtension" tracktype="General" operator="=">mov</rule>
+            <rule name="Is the format MPEG-4?" value="Format" tracktype="General" operator="=">MPEG-4</rule>
+            <rule name="Is the format profile QuickTime?" value="Format_Profile" tracktype="General" operator="=">QuickTime</rule>
+            <rule name="Is the FFV1 Codec ID FFV1?" value="CodecID" tracktype="Video" operator="=">FFV1</rule>
+            <rule name="Is the PCM Codec ID in24?" value="CodecID" tracktype="Audio" operator="=">in24</rule>
+            <rule name="Is the endianness Little?" value="Format_Settings_Endianness" tracktype="Audio" operator="=">Little</rule>
+            <rule name="Is the signedness signed?" value="Format_Settings_Sign" tracktype="Audio" operator="=">Signed</rule>
             <policy type="or" name="Is it NTSC SD or PAL SD?">
                 <policy type="and" name="Is it NTSC?">
                     <rule name="NTSC FrameRate 29.970?" value="FrameRate" tracktype="Video" operator="=">29.970</rule>
@@ -41,42 +41,44 @@
                     <rule name="Are the matrix coefficients BT.601?" value="matrix_coefficients" tracktype="Video" operator="=">BT.601</rule>
                 </policy>
             </policy>
-            <rule name="Is the video format FFV1?" value="Format" tracktype="Video" operator="=">FFV1</rule>
-            <rule name="FFV1 is version 3.4 or later?" value="Format_Version" tracktype="Video" operator="&gt;=">3.4</rule>
-            <rule name="FFV1 is encoded in GOP size of 1?" value="Format_Settings_GOP" tracktype="Video" operator="=">N=1</rule>
-            <rule name="Is the display aspect ratio 1.333?" value="DisplayAspectRatio" tracktype="Video" operator="=">1.333</rule>
-            <rule name="Is the frame rate mode constant?" value="FrameRate_Mode" tracktype="Video" operator="=">CFR</rule>
-            <rule name="Is the color space YUV?" value="ColorSpace" tracktype="Video" operator="=">YUV</rule>
-            <rule name="Is the chroma subsampling 4:2:2?" value="ChromaSubsampling" tracktype="Video" operator="=">4:2:2</rule>
-            <rule name="Is the video interlaced?" value="ScanType" tracktype="Video" operator="=">Interlaced</rule>
-            <rule name="Is the compression mode lossless?" value="Compression_Mode" tracktype="Video" operator="=">Lossless</rule>
-            <rule name="Is max slice count at least 4?" value="extra/MaxSlicesCount" tracktype="Video" operator="&gt;=">4</rule>
-            <rule name="Is error detection type per slice?" value="extra/ErrorDetectionType" tracktype="Video" operator="=">Per slice</rule>
-            <rule name="Is the video stream first?" value="StreamOrder" tracktype="Video" operator="=">0</rule>
-            <rule name="Is the colour description present?" value="colour_description_present" tracktype="Video" operator="=">Yes</rule>
-            <rule name="Are the transfer characteristics BT.709?" value="transfer_characteristics" tracktype="Video" operator="=">BT.709</rule>
-            <policy type="or" name="Is the bit depth 8 or 10?">
-                <rule name="Is the bit depth 8?" value="BitDepth" tracktype="Video" operator="=">8</rule>
-                <rule name="Is the bit depth 10?" value="BitDepth" tracktype="Video" operator="=">10</rule>
+        </policy>
+        <rule name="Is the video format FFV1?" value="Format" tracktype="Video" operator="=">FFV1</rule>
+        <rule name="FFV1 is version 3.4 or later?" value="Format_Version" tracktype="Video" operator="&gt;=">3.4</rule>
+        <rule name="FFV1 is encoded in GOP size of 1?" value="Format_Settings_GOP" tracktype="Video" operator="=">N=1</rule>
+        <rule name="Is the display aspect ratio 1.333?" value="DisplayAspectRatio" tracktype="Video" operator="=">1.333</rule>
+        <rule name="Is the frame rate mode constant?" value="FrameRate_Mode" tracktype="Video" operator="=">CFR</rule>
+        <rule name="Is the color space YUV?" value="ColorSpace" tracktype="Video" operator="=">YUV</rule>
+        <rule name="Is the chroma subsampling 4:2:2?" value="ChromaSubsampling" tracktype="Video" operator="=">4:2:2</rule>
+        <rule name="Is the video interlaced?" value="ScanType" tracktype="Video" operator="=">Interlaced</rule>
+        <rule name="Is the compression mode lossless?" value="Compression_Mode" tracktype="Video" operator="=">Lossless</rule>
+        <rule name="Is max slice count at least 4?" value="extra/MaxSlicesCount" tracktype="Video" operator="&gt;=">4</rule>
+        <rule name="Is error detection type per slice?" value="extra/ErrorDetectionType" tracktype="Video" operator="=">Per slice</rule>
+        <rule name="Is the video stream first?" value="StreamOrder" tracktype="Video" operator="=">0</rule>
+        <rule name="Is the colour description present?" value="colour_description_present" tracktype="Video" operator="=">Yes</rule>
+        <rule name="Are the transfer characteristics BT.709?" value="transfer_characteristics" tracktype="Video" operator="=">BT.709</rule>
+        <policy type="or" name="Is the bit depth 8 or 10?">
+            <rule name="Is the bit depth 8?" value="BitDepth" tracktype="Video" operator="=">8</rule>
+            <rule name="Is the bit depth 10?" value="BitDepth" tracktype="Video" operator="=">10</rule>
+        </policy>
+        <policy type="or" name="Is it NTSC SD or PAL SD?">
+            <policy type="and" name="Is it NTSC?">
+                <rule name="NTSC height 486?" value="Height" tracktype="Video" operator="=">486</rule>
+                <rule name="NTSC width 720?" value="Width" tracktype="Video" operator="=">720</rule>
+                <rule name="NTSC FrameRate 29.970?" value="FrameRate" tracktype="Video" operator="=">29.970</rule>
+                <rule name="NTSC BitRate Mode CBR?" value="BitRate_Mode" tracktype="Video" ooperator="=">CBR</rule>
+                <rule name="NTSC pixel aspect ratio 0.900?" value="PixelAspectRatio" tracktype="Video" operator="=">0.900</rule>
+                <rule name="NTSC scan order bottom field first?" value="ScanOrder" tracktype="Video" operator="=">BFF</rule>
+                <rule name="NTSC colour primaries BT.601 NTSC?" value="colour_primaries" tracktype="Video" operator="=">BT.601 NTSC</rule>
+                <rule name="Are the matrix coefficients BT.601?" value="matrix_coefficients" tracktype="Video" operator="=">BT.601</rule>
             </policy>
-            <policy type="or" name="Is it NTSC SD or PAL SD?">
-                <policy type="and" name="Is it NTSC?">
-                    <rule name="NTSC height 486?" value="Height" tracktype="Video" operator="=">486</rule>
-                    <rule name="NTSC Width 720?" value="Width" tracktype="Video" operator="=">720</rule>
-                    <rule name="NTSC FrameRate 29.970?" value="FrameRate" tracktype="Video" operator="=">29.970</rule>
-                    <rule name="NTSC pixel aspect ratio 0.900?" value="PixelAspectRatio" tracktype="Video" operator="=">0.900</rule>
-                    <rule name="NTSC scan order bottom field first?" value="ScanOrder" tracktype="Video" operator="=">BFF</rule>
-                    <rule name="NTSC colour primaries BT.601 NTSC?" value="colour_primaries" tracktype="Video" operator="=">BT.601 NTSC</rule>
-                    <rule name="Are the matrix coefficients BT.601?" value="matrix_coefficients" tracktype="Video" operator="=">BT.601</rule>
-                </policy>
-                <policy type="and" name="Is it PAL?">
-                    <rule name="PAL height 576?" value="Height" tracktype="Video" operator="=">576</rule>
-                    <rule name="PAL Width 720?" value="Width" tracktype="Video" operator="=">720</rule>
-                    <rule name="PAL FrameRate 25.000?" value="FrameRate" tracktype="Video" operator="=">25.000</rule>
-                    <rule name="PAL pixel aspect ratio 1.067?" value="PixelAspectRatio" tracktype="Video" operator="=">1.067</rule>
-                    <rule name="PAL scan order top field first?" value="ScanOrder" tracktype="Video" operator="=">TFF</rule>
-                    <rule name="PAL colour primaries BT.601 PAL?" value="colour_primaries" tracktype="Video" operator="=">BT.601 PAL</rule>
-                </policy>
+            <policy type="and" name="Is it PAL?">
+                <rule name="PAL height 576?" value="Height" tracktype="Video" operator="=">576</rule>
+                <rule name="PAL Width 720?" value="Width" tracktype="Video" operator="=">720</rule>
+                <rule name="PAL FrameRate 25.000?" value="FrameRate" tracktype="Video" operator="=">25.000</rule>
+                <rule name="PAL BitRate Mode VBR?" value="BitRate_Mode" tracktype="Video" operator="=">VBR</rule>
+                <rule name="PAL pixel aspect ratio 1.067?" value="PixelAspectRatio" tracktype="Video" operator="=">1.067</rule>
+                <rule name="PAL scan order top field first?" value="ScanOrder" tracktype="Video" operator="=">TFF</rule>
+                <rule name="PAL colour primaries BT.601 PAL?" value="colour_primaries" tracktype="Video" operator="=">BT.601 PAL</rule>
             </policy>
         </policy>
         <rule name="Is the audio stream on track 2?" value="StreamOrder" tracktype="Audio" operator="=">1</rule>
