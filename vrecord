@@ -21,7 +21,6 @@ unset pashuainstall
 unset extraoutputs
 undeclaredoption="Undeclared"
 defaultfont="/Library/Fonts/Andale Mono.ttf"
-media_player_choice="ffplay"
 SAT_OUTLIER_THRSHLD=14
 AUD_OUTLIER_THRSHLD=10
 BRNG_OUTLIER_THRSHLD=14
@@ -1015,14 +1014,14 @@ else
 fi
 
 if [[ "${runtype}" = "passthrough" ]] ; then
-    if [[ "${media_player_choice}" = "ffplay" ]] ; then
-        "${FFPLAY_DECKLINK}" -v info -nostats "${GRAB_DECKLINK[@]}" 2> /tmp/vrecord_input.log \
-        -window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" \
-        -vf "${playbackfilter}"
-    elif [[ "${media_player_choice}" = "mpv" ]] ; then
+    if [[ "${media_player_choice}" = "mpv" ]] ; then
         "${FFMPEG_DECKLINK}" -v info -nostats "${GRAB_DECKLINK[@]}" 2> /tmp/vrecord_input.log \
         -map 0 -c copy -f nut - | \
         mpv 2>/dev/null --scripts-append ./mpvs.lua -
+    else
+        "${FFPLAY_DECKLINK}" -v info -nostats "${GRAB_DECKLINK[@]}" 2> /tmp/vrecord_input.log \
+        -window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" \
+        -vf "${playbackfilter}"
     fi
     exit 0
 fi
@@ -1194,7 +1193,25 @@ else
     middleoptions+=(-color_range mpeg)
 fi
 
-if [[ "${media_player_choice}" = "ffplay" ]] ; then
+if [[ "${media_player_choice}" = "mpv" ]] ; then
+    "${FFMPEG_DECKLINK[@]}" \
+        2> >(tee "${logdir}/${id}${capturelogsuffix}" /tmp/vrecord_input.log >/dev/null) \
+        -v info -nostdin -hide_banner -nostats "${inputoptions[@]}" "${GRAB_DECKLINK[@]}" \
+        -metadata:s:v:0 encoder="${codecname}" "${middleoptions[@]}" -c:a pcm_s24le \
+        -filter_complex "\
+            [0:v:0]${recordingfilter};\
+            ${audiomap}" \
+        $(if [ -n "$map1k" ] ; then echo ${map1k} ; fi) $(if [ -n "$map1v" ] ; then echo ${map1v} ; fi) \
+        $(if [ -n "$map2k" ] ; then echo ${map2k} ; fi) $(if [ -n "$map2v" ] ; then echo ${map2v} ; fi) \
+        -f "${format}" "${dir}/${id}${suffix}.${extension}" \
+        "${extraoutputs[@]}" -map 0 -c copy -f nut - | \
+        if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
+            tee >(mpv 2>/dev/null --scripts-append ./mpvs.lua -) | \
+                qcli -i - -o "${logdir}/${id}${suffix}.${extension}.qctools.xml.gz"
+        else
+            mpv 2>/dev/null --scripts-append ./mpvs.lua -
+        fi
+else
     "${FFMPEG_DECKLINK[@]}" \
         2> >(tee "${logdir}/${id}${capturelogsuffix}" /tmp/vrecord_input.log >/dev/null) \
         -v info -nostdin -hide_banner -nostats "${inputoptions[@]}" "${GRAB_DECKLINK[@]}" \
@@ -1217,24 +1234,6 @@ if [[ "${media_player_choice}" = "ffplay" ]] ; then
                 -v info -hide_banner -stats -autoexit -i - \
                 -window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" \
                 -vf "${playbackfilter}"
-        fi
-elif [[ "${media_player_choice}" = "mpv" ]] ; then
-    "${FFMPEG_DECKLINK[@]}" \
-        2> >(tee "${logdir}/${id}${capturelogsuffix}" /tmp/vrecord_input.log >/dev/null) \
-        -v info -nostdin -hide_banner -nostats "${inputoptions[@]}" "${GRAB_DECKLINK[@]}" \
-        -metadata:s:v:0 encoder="${codecname}" "${middleoptions[@]}" -c:a pcm_s24le \
-        -filter_complex "\
-            [0:v:0]${recordingfilter};\
-            ${audiomap}" \
-        $(if [ -n "$map1k" ] ; then echo ${map1k} ; fi) $(if [ -n "$map1v" ] ; then echo ${map1v} ; fi) \
-        $(if [ -n "$map2k" ] ; then echo ${map2k} ; fi) $(if [ -n "$map2v" ] ; then echo ${map2v} ; fi) \
-        -f "${format}" "${dir}/${id}${suffix}.${extension}" \
-        "${extraoutputs[@]}" -map 0 -c copy -f nut - | \
-        if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
-            tee >(mpv 2>/dev/null --scripts-append ./mpvs.lua -) | \
-                qcli -i - -o "${logdir}/${id}${suffix}.${extension}.qctools.xml.gz"
-        else
-            mpv 2>/dev/null --scripts-append ./mpvs.lua -
         fi
 fi
 
