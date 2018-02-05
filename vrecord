@@ -1073,11 +1073,6 @@ else
     extraoutputs+=( )
 fi
 
-if [ -z "${duration}" ] ; then
-    _report -q -n "Set recording time (in minutes), leave blank for unlimited recording time: "
-    read duration
-fi
-
 # check validity of duration value
 duration_check
 
