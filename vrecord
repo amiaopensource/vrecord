@@ -203,7 +203,7 @@ video_codec_options=("Uncompressed Video" "FFV1 version 3" "JPEG2000" "ProRes" "
 channel_mapping_options=("2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, Channels 3 & 4 -> 2nd Track Stereo)" "1 Stereo Track (From Channels 1 & 2)" "1 Stereo Track (From Channels 3 & 4)" "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono" "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono" "quit")
 container_options=("QuickTime" "Matroska" "AVI" "MXF" "quit")
 standard_options=("NTSC" "PAL" "quit")
-playbackview_options=("Switch between views" "Broadcast Range Visual" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes" "quit")
+playbackview_options=("Quality Control View (mpv)" "Broadcast Range Visual" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes" "quit")
 framemd5_options=("Yes" "No" "quit")
 qctoolsxml_options=("Yes" "No" "quit")
 
@@ -493,7 +493,7 @@ drawgrid=w=256:h=256:t=1:c=white@0.2"
 
 lookup_playbackview(){
     case "${1}" in
-        "Switch between views")
+        "Quality Control View (mpv)")
 media_player_choice="mpv"
             ;;
         "Broadcast Range Visual")
@@ -728,7 +728,7 @@ playbackview_choice.type = popup
 playbackview_choice.label = Select View
 playbackview_choice.default = ${playbackview_choice}
 playbackview_choice.option = ${undeclaredoption}
-playbackview_choice.option = Switch between views
+playbackview_choice.option = Quality Control View (mpv)
 playbackview_choice.option = Broadcast Range Visual
 playbackview_choice.option = Full Range Visual
 playbackview_choice.option = Visual + Numerical
