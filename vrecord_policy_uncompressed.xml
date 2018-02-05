@@ -50,8 +50,8 @@
                 <rule name="Is the pixel aspect ratio 0.900?" value="PixelAspectRatio" tracktype="Video" operator="=">0.900</rule>
                 <rule name="Is the scan order bottom field first?" value="ScanOrder" tracktype="Video" operator="=">BFF</rule>
                 <rule name="Are the colour primaries BT.601 NTSC?" value="colour_primaries" tracktype="Video" operator="=">BT.601 NTSC</rule>
-                </policy>
-                <policy type="and" name="Is it PAL?">
+            </policy>
+            <policy type="and" name="Is it PAL?">
                 <rule name="Is the standard PAL?" value="Standard" tracktype="Video" operator="=">PAL</rule>
                 <rule name="Is the height 576?" value="Height" tracktype="Video" operator="=">576</rule>
                 <rule name="Is the width 720?" value="Width" tracktype="Video" operator="=">720</rule>
