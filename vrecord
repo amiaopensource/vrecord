@@ -1207,11 +1207,11 @@ if [[ "${media_player_choice}" = "ffplay" ]] ; then
         -f "${format}" "${dir}/${id}${suffix}.${extension}" \
         "${extraoutputs[@]}" -map 0 -c copy -f nut - | \
         if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
-        tee >("${FFPLAY_DECKLINK[@]}" \
-            -v info -hide_banner -stats -autoexit -i - \
-            -window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" \
-            -vf "${playbackfilter}") | \
-            qcli -i - -o "${logdir}/${id}${suffix}.${extension}.qctools.xml.gz"
+            tee >("${FFPLAY_DECKLINK[@]}" \
+                -v info -hide_banner -stats -autoexit -i - \
+                -window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" \
+                -vf "${playbackfilter}") | \
+                qcli -i - -o "${logdir}/${id}${suffix}.${extension}.qctools.xml.gz"
         else
             "${FFPLAY_DECKLINK[@]}" \
                 -v info -hide_banner -stats -autoexit -i - \
@@ -1247,11 +1247,11 @@ if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
     QCXML="${logdir}/${id}${suffix}.${extension}.qctools.xml.gz"
     _report -d "Vrecord is analyzing your video file. Please be patient."
     if [[ -s "${QCXML}" ]] ; then
-    if [[ "${pixel_format}" = "yuv422p10" ]] ; then
-        SAT_OUTLIERS=$(gzcat "${QCXML}" | xml sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>496])" -n)
-    elif [[ "${pixel_format}" = "uyvy422" ]] ; then
-        SAT_OUTLIERS=$(gzcat "${QCXML}" | xml sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>124])" -n)
-    fi
+        if [[ "${pixel_format}" = "yuv422p10" ]] ; then
+            SAT_OUTLIERS=$(gzcat "${QCXML}" | xml sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>496])" -n)
+        elif [[ "${pixel_format}" = "uyvy422" ]] ; then
+            SAT_OUTLIERS=$(gzcat "${QCXML}" | xml sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>124])" -n)
+        fi
     AUD_OUTLIERS=$(gzcat "${QCXML}" | xml sel -t -v "count(//tag[@key='lavfi.astats.Overall.Max_level'][@value>=0.999998])" -n)
     BRNG_OUTLIERS=$(gzcat "${QCXML}" | xml sel -t -v "count(//tag[@key='lavfi.signalstats.BRNG'][@value>=0.03])" -n)
     audio_peak=$(gzcat "${QCXML}" | grep lavfi.astats.Overall.Peak_level | cut -d '"' -f 4 | sort -n | tail -n 1)
