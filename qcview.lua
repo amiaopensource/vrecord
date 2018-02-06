@@ -12,7 +12,6 @@ Default config:
 local mp_msg = require 'mp.msg'
 local start_keys_enabled = true  -- if true then choose the keys wisely
 local key_toggle_bindings = 'ctrl+s'  -- enable/disable scopes key bindings
-local key_toggle_scopes = 'ctrl+S'  -- enable/disable scopes
 local intensity = 0.1
 local graticule = true
 local envelope = 0
@@ -63,8 +62,6 @@ end
 
 -- these two vars are used globally
 local bindings_enabled = start_keys_enabled
-local scopes_enabled = true  -- but vf is not touched before the scopes are modified
-
 
 -- ------ OSD handling -------
 local function ass(x)
@@ -86,7 +83,7 @@ end
 
 local function cnorm() return color('ffffff') end  -- white
 local function cdis()  return color('909090') end  -- grey
-local function ceq()   return iff(scopes_enabled, color('ffff90'), cdis()) end  -- yellow-ish
+local function ceq()   return color('ffff90') end  -- yellow-ish
 local function ckeys() return iff(bindings_enabled, color('90FF90'), cdis()) end  -- green-ish
 
 local DUR_DEFAULT = 1.5 -- seconds
@@ -110,8 +107,6 @@ end
 
 -- some visual messing about
 local function updateOSD()
-  local msg1 = fsize(50) .. 'Video Scopes: ' .. ceq() .. iff(scopes_enabled, 'On', 'Off')
-            .. ' [' .. key_toggle_scopes .. ']' .. cnorm()
   local msg2 = fsize(50)
             .. 'Key-bindings: ' .. ckeys() .. iff(bindings_enabled, 'On', 'Off')
             .. ' [' .. key_toggle_bindings .. ']' .. cnorm()
@@ -126,17 +121,15 @@ local function updateOSD()
     msg3 = msg3 .. info
   end
 
-  local msg = msg3 .. '\n' .. msg2 .. '\n' .. msg1
+  local msg = msg3 .. '\n' .. msg2
 
-  local duration = iff(start_keys_enabled, iff(bindings_enabled and scopes_enabled, 5, nil)
-                                         , iff(bindings_enabled, 0, nil))
+  local duration = iff(start_keys_enabled, iff(bindings_enabled, 5, nil))
   ass_osd(msg, duration);
 end
 
 
 local function getBind(key, index)
   return function()  -- onKey
-    if not scopes_enabled then return end
 
     if key[1] == 'i' then
       intensity = intensity + 0.01;
@@ -277,14 +270,5 @@ local function toggle_bindings(explicit, no_osd)
   if not no_osd then updateOSD() end
 end
 
-local function toggle_scopes()
-  scopes_enabled = not scopes_enabled
-  if not scopes_enabled then
-    mp.command('no-osd vf clr ""')
-  end
-  updateOSD()
-end
-
-mp.add_forced_key_binding(key_toggle_scopes, toggle_scopes)
 mp.add_forced_key_binding(key_toggle_bindings, toggle_bindings)
 if bindings_enabled then toggle_bindings(true, true) end
