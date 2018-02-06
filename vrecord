@@ -984,6 +984,8 @@ PIPE_DECKLINK=(-c copy)
 PIPE_DECKLINK+=(-f nut)
 PIPE_DECKLINK+=(-)
 
+WINDOW_NAME="mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'"
+
 if [[ "${runtype}" = "audiopassthrough" ]] ; then
     playbackfilter="\
     [aid1]asplit=2[z][ao],\
@@ -1002,7 +1004,7 @@ if [[ "${runtype}" = "audiopassthrough" ]] ; then
     [abcde1][xx]overlay=10:10[vo]"
     echo "ESC quit" > ~/.config/mpv/input.conf
     "${FFMPEG_DECKLINK[@]}" -v info -nostdin -hide_banner -nostats "${inputoptions[@]}" "${GRAB_DECKLINK[@]}" -map 0 -c copy -f nut - 2> /tmp/vrecord_input.log | \
-        mpv - --title="mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" -lavfi-complex "${playbackfilter}"
+        mpv - --title="$WINDOW_NAME" -lavfi-complex "${playbackfilter}"
     exit 0
 fi
 
@@ -1021,10 +1023,10 @@ if [[ "${runtype}" = "passthrough" ]] ; then
     if [[ "${media_player_choice}" = "mpv" ]] ; then
         "${FFMPEG_DECKLINK}" -v info -nostats "${GRAB_DECKLINK[@]}" 2> /tmp/vrecord_input.log \
         -map 0 -c copy -f nut - | \
-        mpv "${MPVOPTS[@]}" -
+        mpv "${MPVOPTS[@]}" --title="$WINDOW_NAME" -
     else
         "${FFPLAY_DECKLINK}" -v info -nostats "${GRAB_DECKLINK[@]}" 2> /tmp/vrecord_input.log \
-        -window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" \
+        -window_title "$WINDOW_NAME" \
         -vf "${playbackfilter}"
     fi
     exit 0
@@ -1215,10 +1217,10 @@ if [[ "${media_player_choice}" = "mpv" ]] ; then
         -f "${format}" "${dir}/${id}${suffix}.${extension}" \
         "${extraoutputs[@]}" -map 0 -c copy -f nut - | \
         if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
-            tee >(mpv "${MPVOPTS[@]}" -) | \
+            tee >(mpv "${MPVOPTS[@]}" --title="$WINDOW_NAME" -) | \
                 qcli -i - -o "${logdir}/${id}${suffix}.${extension}.qctools.xml.gz"
         else
-            mpv "${MPVOPTS[@]}" -
+            mpv "${MPVOPTS[@]}" --title="$WINDOW_NAME" -
         fi
 else
     "${FFMPEG_DECKLINK[@]}" \
@@ -1235,13 +1237,13 @@ else
         if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
             tee >("${FFPLAY_DECKLINK[@]}" \
                 -v info -hide_banner -stats -autoexit -i - \
-                -window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" \
+                -window_title "$WINDOW_NAME" \
                 -vf "${playbackfilter}") | \
                 qcli -i - -o "${logdir}/${id}${suffix}.${extension}.qctools.xml.gz"
         else
             "${FFPLAY_DECKLINK[@]}" \
                 -v info -hide_banner -stats -autoexit -i - \
-                -window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" \
+                -window_title "$WINDOW_NAME" \
                 -vf "${playbackfilter}"
         fi
 fi
