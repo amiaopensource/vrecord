@@ -270,5 +270,6 @@ local function toggle_bindings(explicit, no_osd)
   if not no_osd then updateOSD() end
 end
 
+updateOSD()
 mp.add_forced_key_binding(key_toggle_bindings, toggle_bindings)
 if bindings_enabled then toggle_bindings(true, true) end
