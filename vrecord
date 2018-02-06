@@ -830,6 +830,10 @@ elif [[ "${runtype}" = "edit" ]] ; then
         # check validity of duration value
         duration_check
         # report back options
+        if [[ -z "${logdir}" ]] ; then
+            logdir="${dir}"
+            echo "As auxiliary files directory was left blank, logs will be written to recording directory at ${dir}."
+        fi
         echo "Variables set:"
         echo "  dir = ${dir}"
         echo "  logdir = ${logdir}"
@@ -1050,9 +1054,10 @@ if [ ! -d "${dir}" ] ; then
 fi
 
 if [ ! -d "${logdir}" ] ; then
-    _report -q -n "Enter Directory for Auxiliary Files (If blank will default to recording directory): "
-    read logdir
-    if [ -z "${logdir}" ] ; then
+    if [ ! -d "${dir}" ] ; then
+        _report -q -n "Enter Directory for Auxiliary Files (If blank will default to recording directory): "
+        read logdir
+    else
         logdir="${dir}"
     fi
     if [ ! -d "${logdir}" ] ; then
@@ -1066,11 +1071,6 @@ if [[ "${framemd5_choice}" = "Yes" ]] ; then
     extraoutputs+=(-an -f framemd5 "${framemd5name}")
 else
     extraoutputs+=( )
-fi
-
-if [ -z "${duration}" ] ; then
-    _report -q -n "Set recording time (in minutes), leave blank for unlimited recording time: "
-    read duration
 fi
 
 # check validity of duration value
