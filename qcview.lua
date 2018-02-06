@@ -15,7 +15,7 @@ local key_toggle_bindings = 'ctrl+s'  -- enable/disable scopes key bindings
 local intensity = 0.1
 local graticule = true
 local envelope = 0
-local filter = 0
+local scopefilter = 0
 local display = 0
 local last_key = 1
 local defaultfont = "/Library/Fonts/Tahoma.ttf"
@@ -145,9 +145,9 @@ local function getBind(key, index)
         envelope = 0
       end
     elseif key[1] == 'w' then
-      filter = filter + 1;
-      if filter == 6 then
-        filter = 0
+      scopefilter = scopefilter + 1;
+      if scopefilter == 6 then
+        scopefilter = 0
       end
     elseif key[1] == 'd' then
       display = display + 1;
@@ -172,22 +172,22 @@ local function getBind(key, index)
       env = "peak+instant"
     end
     
-    if filter == 0 then
+    if scopefilter == 0 then
       filW = "lowpass"
       filV = "gray"
-    elseif filter == 1 then
+    elseif scopefilter == 1 then
       filW = "flat"
       filV = "color"
-    elseif filter == 2 then
+    elseif scopefilter == 2 then
       filW = "aflat"
       filV = "color2"
-    elseif filter == 3 then
+    elseif scopefilter == 3 then
       filW = "chroma"
       filV = "color3"
-    elseif filter == 4 then
+    elseif scopefilter == 4 then
       filW = "color"
       filV = "color4"
-    elseif filter == 5 then
+    elseif scopefilter == 5 then
       filW = "acolor"
       filV = "color5"
     end
