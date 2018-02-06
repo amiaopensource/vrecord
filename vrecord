@@ -26,6 +26,10 @@ AUD_OUTLIER_THRSHLD=10
 BRNG_OUTLIER_THRSHLD=14
 FFMPEG_DECKLINK=($(brew --prefix ffmpegdecklink)/bin/ffmpeg-dl)
 FFPLAY_DECKLINK=($(brew --prefix ffmpegdecklink)/bin/ffplay-dl)
+MPVOPTS+=(--no-osc)
+MPVOPTS+=(--load-scripts=no)
+MPVOPTS+=(--script ./qcview.lua)
+MPVOPTS+=(--really-quiet)
 
 if [[ "$("${FFMPEG_DECKLINK[@]}" -version 2>&1 | grep "Library not loaded" >/dev/null)" || ! -f "${FFMPEG_DECKLINK}" || ! -f "$FFPLAY_DECKLINK" ]] ; then
     echo "Please reinstall 'ffmpeg-dl':"
@@ -1017,7 +1021,7 @@ if [[ "${runtype}" = "passthrough" ]] ; then
     if [[ "${media_player_choice}" = "mpv" ]] ; then
         "${FFMPEG_DECKLINK}" -v info -nostats "${GRAB_DECKLINK[@]}" 2> /tmp/vrecord_input.log \
         -map 0 -c copy -f nut - | \
-        mpv 2>/dev/null --scripts-append ./qcview.lua -
+        mpv "${MPVOPTS[@]}" -
     else
         "${FFPLAY_DECKLINK}" -v info -nostats "${GRAB_DECKLINK[@]}" 2> /tmp/vrecord_input.log \
         -window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" \
@@ -1211,10 +1215,10 @@ if [[ "${media_player_choice}" = "mpv" ]] ; then
         -f "${format}" "${dir}/${id}${suffix}.${extension}" \
         "${extraoutputs[@]}" -map 0 -c copy -f nut - | \
         if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
-            tee >(mpv 2>/dev/null --scripts-append ./qcview.lua -) | \
+            tee >(mpv "${MPVOPTS[@]}" -) | \
                 qcli -i - -o "${logdir}/${id}${suffix}.${extension}.qctools.xml.gz"
         else
-            mpv 2>/dev/null --scripts-append ./qcview.lua -
+            mpv "${MPVOPTS[@]}" -
         fi
 else
     "${FFMPEG_DECKLINK[@]}" \
