@@ -1,6 +1,7 @@
 --[[
-mpv scopes
+qcview for vrecord, based on:
 
+mpv scopes
 Copyright 2017 Paul B Mahol
 License: public domain
 Source: https://paste.ubuntu.com/25318437/
