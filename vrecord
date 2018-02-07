@@ -24,8 +24,13 @@ defaultfont="/Library/Fonts/Andale Mono.ttf"
 SAT_OUTLIER_THRSHLD=14
 AUD_OUTLIER_THRSHLD=10
 BRNG_OUTLIER_THRSHLD=14
-FFMPEG_DECKLINK=($(brew --prefix ffmpegdecklink)/bin/ffmpeg-dl)
-FFPLAY_DECKLINK=($(brew --prefix ffmpegdecklink)/bin/ffplay-dl)
+BREW_PREFIX=$(brew --prefix ffmpegdecklink)
+FFMPEG_DECKLINK=("${BREW_PREFIX}/bin/ffmpeg-dl")
+FFPLAY_DECKLINK=("${BREW_PREFIX}/bin/ffplay-dl")
+MPVOPTS+=(--no-osc)
+MPVOPTS+=(--load-scripts=no)
+MPVOPTS+=(--script ./qcview.lua)
+MPVOPTS+=(--really-quiet)
 
 if [[ "$("${FFMPEG_DECKLINK[@]}" -version 2>&1 | grep "Library not loaded" >/dev/null)" || ! -f "${FFMPEG_DECKLINK}" || ! -f "$FFPLAY_DECKLINK" ]] ; then
     echo "Please reinstall 'ffmpeg-dl':"
@@ -202,7 +207,7 @@ video_codec_options=("Uncompressed Video" "FFV1 version 3" "JPEG2000" "ProRes" "
 channel_mapping_options=("2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, Channels 3 & 4 -> 2nd Track Stereo)" "1 Stereo Track (From Channels 1 & 2)" "1 Stereo Track (From Channels 3 & 4)" "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono" "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono" "quit")
 container_options=("QuickTime" "Matroska" "AVI" "MXF" "quit")
 standard_options=("NTSC" "PAL" "quit")
-playbackview_options=("Broadcast Range Visual" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes" "quit")
+playbackview_options=("Quality Control View (mpv)" "Broadcast Range Visual" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes" "quit")
 framemd5_options=("Yes" "No" "quit")
 qctoolsxml_options=("Yes" "No" "quit")
 
@@ -492,6 +497,9 @@ drawgrid=w=256:h=256:t=1:c=white@0.2"
 
 lookup_playbackview(){
     case "${1}" in
+        "Quality Control View (mpv)")
+media_player_choice="mpv"
+            ;;
         "Broadcast Range Visual")
 playbackfilter="\
 split=5[a][b][c][d][e];\
@@ -724,6 +732,7 @@ playbackview_choice.type = popup
 playbackview_choice.label = Select View
 playbackview_choice.default = ${playbackview_choice}
 playbackview_choice.option = ${undeclaredoption}
+playbackview_choice.option = Quality Control View (mpv)
 playbackview_choice.option = Broadcast Range Visual
 playbackview_choice.option = Full Range Visual
 playbackview_choice.option = Visual + Numerical
@@ -980,6 +989,8 @@ PIPE_DECKLINK=(-c copy)
 PIPE_DECKLINK+=(-f nut)
 PIPE_DECKLINK+=(-)
 
+WINDOW_NAME="mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'"
+
 if [[ "${runtype}" = "audiopassthrough" ]] ; then
     playbackfilter="\
     [aid1]asplit=2[z][ao],\
@@ -998,7 +1009,7 @@ if [[ "${runtype}" = "audiopassthrough" ]] ; then
     [abcde1][xx]overlay=10:10[vo]"
     echo "ESC quit" > ~/.config/mpv/input.conf
     "${FFMPEG_DECKLINK[@]}" -v info -nostdin -hide_banner -nostats "${inputoptions[@]}" "${GRAB_DECKLINK[@]}" -map 0 -c copy -f nut - 2> /tmp/vrecord_input.log | \
-        mpv - --title="mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" -lavfi-complex "${playbackfilter}"
+        mpv - --title="$WINDOW_NAME" -lavfi-complex "${playbackfilter}"
     exit 0
 fi
 
@@ -1014,9 +1025,15 @@ else
 fi
 
 if [[ "${runtype}" = "passthrough" ]] ; then
-    "${FFPLAY_DECKLINK}" -v info -nostats "${GRAB_DECKLINK[@]}" 2> /tmp/vrecord_input.log \
-        -window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" \
+    if [[ "${media_player_choice}" = "mpv" ]] ; then
+        "${FFMPEG_DECKLINK}" -v info -nostats "${GRAB_DECKLINK[@]}" 2> /tmp/vrecord_input.log \
+        -map 0 -c copy -f nut - | \
+        mpv "${MPVOPTS[@]}" --title="$WINDOW_NAME" -
+    else
+        "${FFPLAY_DECKLINK}" -v info -nostats "${GRAB_DECKLINK[@]}" 2> /tmp/vrecord_input.log \
+        -window_title "$WINDOW_NAME" \
         -vf "${playbackfilter}"
+    fi
     exit 0
 fi
 
@@ -1125,7 +1142,7 @@ else
     done
 fi
 
-_report -d "Summary: ${pixel_format} bit ${codecname} ${container_choice} file from ${standard_choice} ${video_input_choice} ${audio_input_choice} Frame MD5s=${framemd5_choice} QCTools XML=${qctoolsxml_choice} and Technician=${technician}. Inputs recorded to ${dir}/${id}${suffix}.${extension} Auxiliary Files created in ${logdir}"
+_report -d "Summary: ${pixel_format} bit ${codecname} ${container_choice} file from ${standard_choice} ${video_input_choice} ${audio_input_choice}. Frame MD5s=${framemd5_choice}, QCTools XML=${qctoolsxml_choice}, and Technician=${technician}. Inputs recorded to ${dir}/${id}${suffix}.${extension} and Auxiliary Files created in ${logdir}"
 if [[ "$invert_phase" = 1 ]] ; then
     echo -e " \033[101mWARNING: Option to invert phase of second audio channel has been selected\033[0m"
 fi
@@ -1134,7 +1151,6 @@ read
 
 # create log of vrecord decisions
 INGESTLOG="${logdir}/${id}_capture_options.log"
-
 touch "${INGESTLOG}"
 
 _writeingestlog "computer_name" "$(uname -n)"
@@ -1184,12 +1200,12 @@ else
     middleoptions+=(-color_range mpeg)
 fi
 
-if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
-    if [[ ! "$(which qcli)" ]] ; then
-        _report -w "Please install qcli to use the qctools reporting option."
-        _report -w "Such as \`brew install qcli\`."
-        exit 1
-    fi
+if [[ "${qctoolsxml_choice}" = "Yes" && ! "$(which qcli)" ]] ; then
+    _report -w "Please install qcli to use the qctools reporting option."
+    _report -w "Such as \`brew install qcli\`."
+    exit 1
+fi
+if [[ "${media_player_choice}" = "mpv" ]] ; then
     "${FFMPEG_DECKLINK[@]}" \
         2> >(tee "${logdir}/${id}${capturelogsuffix}" /tmp/vrecord_input.log >/dev/null) \
         -v info -nostdin -hide_banner -nostats "${inputoptions[@]}" "${GRAB_DECKLINK[@]}" \
@@ -1201,11 +1217,12 @@ if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
         $(if [ -n "$map2k" ] ; then echo ${map2k} ; fi) $(if [ -n "$map2v" ] ; then echo ${map2v} ; fi) \
         -f "${format}" "${dir}/${id}${suffix}.${extension}" \
         "${extraoutputs[@]}" -map 0 -c copy -f nut - | \
-        tee >("${FFPLAY_DECKLINK[@]}" \
-            -v info -hide_banner -stats -autoexit -i - \
-            -window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" \
-            -vf "${playbackfilter}") | \
-            qcli -i - -o "${logdir}/${id}${suffix}.${extension}.qctools.xml.gz"
+        if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
+            tee >(mpv "${MPVOPTS[@]}" --title="$WINDOW_NAME" -) | \
+                qcli -i - -o "${logdir}/${id}${suffix}.${extension}.qctools.xml.gz"
+        else
+            mpv "${MPVOPTS[@]}" --title="$WINDOW_NAME" -
+        fi
 else
     "${FFMPEG_DECKLINK[@]}" \
         2> >(tee "${logdir}/${id}${capturelogsuffix}" /tmp/vrecord_input.log >/dev/null) \
@@ -1218,32 +1235,39 @@ else
         $(if [ -n "$map2k" ] ; then echo ${map2k} ; fi) $(if [ -n "$map2v" ] ; then echo ${map2v} ; fi) \
         -f "${format}" "${dir}/${id}${suffix}.${extension}" \
         "${extraoutputs[@]}" -map 0 -c copy -f nut - | \
-        "${FFPLAY_DECKLINK[@]}" \
-            -v info -hide_banner -stats -autoexit -i - \
-            -window_title "mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'" \
-            -vf "${playbackfilter}"
+        if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
+            tee >("${FFPLAY_DECKLINK[@]}" \
+                -v info -hide_banner -stats -autoexit -i - \
+                -window_title "$WINDOW_NAME" \
+                -vf "${playbackfilter}") | \
+                qcli -i - -o "${logdir}/${id}${suffix}.${extension}.qctools.xml.gz"
+        else
+            "${FFPLAY_DECKLINK[@]}" \
+                -v info -hide_banner -stats -autoexit -i - \
+                -window_title "$WINDOW_NAME" \
+                -vf "${playbackfilter}"
+        fi
 fi
 
-
-
 if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
+    QCXML="${logdir}/${id}${suffix}.${extension}.qctools.xml.gz"
     _report -d "Vrecord is analyzing your video file. Please be patient."
-    if [[ "${pixel_format}" = "yuv422p10" ]] ; then
-        SAT_OUTLIERS=$(gzcat "${logdir}/${id}${suffix}.${extension}.qctools.xml.gz" | xml sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>496])" -n)
-    elif [[ "${pixel_format}" = "uyvy422" ]] ; then
-        SAT_OUTLIERS=$(gzcat "${logdir}/${id}${suffix}.${extension}.qctools.xml.gz" | xml sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>124])" -n)
+    if [[ -s "${QCXML}" ]] ; then
+        if [[ "${pixel_format}" = "yuv422p10" ]] ; then
+            SAT_OUTLIERS=$(gzcat "${QCXML}" | xml sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>496])" -n)
+        elif [[ "${pixel_format}" = "uyvy422" ]] ; then
+            SAT_OUTLIERS=$(gzcat "${QCXML}" | xml sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>124])" -n)
+        fi
+    AUD_OUTLIERS=$(gzcat "${QCXML}" | xml sel -t -v "count(//tag[@key='lavfi.astats.Overall.Max_level'][@value>=0.999998])" -n)
+    BRNG_OUTLIERS=$(gzcat "${QCXML}" | xml sel -t -v "count(//tag[@key='lavfi.signalstats.BRNG'][@value>=0.03])" -n)
+    audio_peak=$(gzcat "${QCXML}" | grep lavfi.astats.Overall.Peak_level | cut -d '"' -f 4 | sort -n | tail -n 1)
+    _writeingestlog "Peak Volume is (dB)" "${audio_peak}"
+    else
+        _report -w "qctools XML ${QCXML} is empty or does not exist!"
     fi
-    AUD_OUTLIERS=$(gzcat "${logdir}/${id}${suffix}.${extension}.qctools.xml.gz" | xml sel -t -v "count(//tag[@key='lavfi.astats.Overall.Max_level'][@value>=0.999998])" -n)
-    BRNG_OUTLIERS=$(gzcat "${logdir}/${id}${suffix}.${extension}.qctools.xml.gz" | xml sel -t -v "count(//tag[@key='lavfi.signalstats.BRNG'][@value>=0.03])" -n)
 fi
 
 _writeingestlog "datetime_end" "$(_get_iso8601)"
-
-# check audio levels
-if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
-    audio_peak=$(gzcat "${logdir}/${id}${suffix}.${extension}.qctools.xml.gz" | grep lavfi.astats.Overall.Peak_level | cut -d '"' -f 4 | sort -n | tail -n 1)
-    _writeingestlog "Peak Volume is (dB)" "${audio_peak}"
-fi
 
 # check for discontinuities in the Frame MD5s
 if [[ "${framemd5_choice}" = "Yes" ]] ; then
