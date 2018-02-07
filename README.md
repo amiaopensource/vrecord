@@ -1,6 +1,6 @@
 # Vrecord Documentation
 
-This documentation is up to date as of vrecord version 2018-01-12.
+This documentation is up to date as of vrecord version 2018-02-08.
 
 ## Table of Contents
 
