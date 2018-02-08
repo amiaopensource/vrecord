@@ -308,7 +308,7 @@ duration_check(){
             _report -w "Illegal value for recording time. Input must only be numbers."
             exit 1
         fi
-        if [[ 1 -eq "$(echo "${duration} = 0" | bc)" ]] ; then
+        if [[ 1 -eq "$(echo "${duration} == 0" | bc)" ]] ; then
             _report -w "A recording duration of zero is invalid."
             exit 1
         fi
