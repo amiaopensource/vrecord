@@ -168,6 +168,8 @@ All of options in the vrecord GUI (which appears when running `vrecord -e`) or o
 
 **Select standard** — Select the television standard of the tape you are digitizing. Currently vrecord only supports NTSC and PAL.
 
+**Select view** - Select the display you want to see as you digitize your tape.
+
 * **Quality Control View mode** - In Quality Control View mode, you can switch between a wide menu of views. When QC View loads, a menu will pop up with display options tied to keystrokes; pressing the key listed next to the name of the view you want will display that view. QC View options include each of the modes below, as well as several other visualizations for quality control (waveform, vectorscope, and histogram). QC View also offers the ability to toggle image intensity and other display filters.
 
 * **Broadcast Range Visual mode** — Broadcast Range Visual mode displays the video feed, the video feed with pixels out of broadcast range highlighted, the waveform monitor, and the vectorscope in the vrecord window.
