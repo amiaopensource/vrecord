@@ -42,7 +42,7 @@ local scopes = {
   {keys = {'p'}, desc = {'toggle peak envelope'}},
   {keys = {'i'}, desc = {'increase intensity'}},
   {keys = {'I'}, desc = {'decrease intensity'}},
-  {keys = {'+'}, desc = {'refresh onscreen display'}},
+  {keys = {'='}, desc = {'refresh onscreen display'}},
 }
 -- local waveform_filter = "format=yuv422p,waveform=c='..comp..':d='..disp..':f='..filW..':g='..grat..':e='..env..':fl=numbers+dots:s=ire:i='..intensity..',scale=iw:256"
 -- local vectorscope_filter = "format=yuv422p,vectorscope=m='..filV..':g='..grat..':e='..env..':i='..intensity..':c=601,scale=512:512,drawbox=w=9:h=9:t=1:x=128-3:y=512-452-5:c=sienna@0.8,drawbox=w=9:h=9:t=1:x=160-3:y=512-404-5:c=sienna@0.8,drawbox=w=9:h=9:t=1:x=192-3:y=512-354-5:c=sienna@0.8,drawbox=w=9:h=9:t=1:x=224-3:y=512-304-5:c=sienna@0.8,drawgrid=w=32:h=32:t=1:c=white@0.1,drawgrid=w=256:h=256:t=1:c=white@0.2"
@@ -248,7 +248,7 @@ local function getBind(key, index)
     elseif key[1] == 'd' then
       mp.command(get_cmd(filters[last_key].filter))
       ass_osd("display: " .. disp .. " " .. comment, duration);
-    elseif key[1] == '+' then
+    elseif key[1] == '=' then
       updateOSD();
     else
       mp.command(get_cmd(filters[index].filter))
