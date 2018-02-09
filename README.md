@@ -227,7 +227,7 @@ Click the buttons to run Vrecord in your chosen mode. The documentation button b
 
 ### Ending a Capture
 
-If you are finished recording and the vrecord window hasn't already closed, close the window. You can also press `q` or `esc` while the window is active.
+If you are finished recording and the player window hasn't already closed, close the window. You can also press `q` or `esc` while the player window is active.
 
 ### A Few Quirks
 
