@@ -227,7 +227,7 @@ Click the buttons to run Vrecord in your chosen mode. The documentation button b
 
 ### Ending a Capture
 
-If you are finished recording and the vrecord window hasn't already closed, close the window.
+If you are finished recording and the vrecord window hasn't already closed, close the window. You can also press `q` or `esc` while the window is active.
 
 ### A Few Quirks
 
@@ -255,7 +255,7 @@ By default vrecord saves the choices you made the last time you used the program
 ```
 vrecord -x
 ```
-Vrecord will then prompt you to make selections for video capture and proceed to start recording a new tape. If you want to interrupt vrecord hold down control + c. 
+Vrecord will then prompt you to make selections for video capture and proceed to start recording a new tape. If you want to interrupt vrecord hold down `control + c`. 
 
 ## Help and Issues
 

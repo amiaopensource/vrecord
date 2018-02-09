@@ -989,7 +989,7 @@ PIPE_DECKLINK=(-c copy)
 PIPE_DECKLINK+=(-f nut)
 PIPE_DECKLINK+=(-)
 
-WINDOW_NAME="mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}'"
+WINDOW_NAME="mode:${runtype} - video:'${video_input_choice}' audio:'${audio_input_choice}' - to end recording press q, esc, or close video window"
 
 if [[ "${runtype}" = "audiopassthrough" ]] ; then
     playbackfilter="\
