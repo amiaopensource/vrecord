@@ -75,6 +75,7 @@ local function ass(x)
 end
 
 local function fsize(s)  -- 100 is the normal font size
+  local s = 40
   return ass('{\\fscx' .. s .. '\\fscy' .. s ..'}')
 end
 
@@ -124,7 +125,7 @@ local function updateOSD()
 
   local msg = msg3 .. '\n' .. msg2
 
-  local duration = iff(start_keys_enabled, iff(bindings_enabled, 5, nil))
+  local duration = iff(start_keys_enabled, iff(bindings_enabled, 6, nil))
   ass_osd(msg, duration);
 end
 
