@@ -168,32 +168,34 @@ All of options in the vrecord GUI (which appears when running `vrecord -e`) or o
 
 **Select standard** — Select the television standard of the tape you are digitizing. Currently vrecord only supports NTSC and PAL.
 
-**Quality Control View mode** - In Quality Control View mode, you can switch between a wide menu of views. When QC View loads, a menu will pop up with display options tied to keystrokes; pressing the key listed next to the name of the view you want will display that view. QC View options include each of the modes below, as well as several other visualizations for quality control (waveform, vectorscope, and histogram). QC View also offers the ability to toggle image intensity and other display filters.
+**Select view** - Select the display you want to see as you digitize your tape.
 
-**Broadcast Range Visual mode** — Broadcast Range Visual mode displays the video feed, the video feed with pixels out of broadcast range highlighted, the waveform monitor, and the vectorscope in the vrecord window.
+* **Quality Control View mode** - In Quality Control View mode, you can switch between a wide menu of views. When QC View loads, a menu will pop up with display options tied to keystrokes; pressing the key listed next to the name of the view you want will display that view. QC View options include each of the modes below, as well as several other visualizations for quality control (waveform, vectorscope, and histogram). QC View also offers the ability to toggle image intensity and other display filters.
 
-**Full Range Visual mode** - Full Range Visual mode displays the video feed, the video feed with pixels at full range extremes highlighted, the waveform monitor, and the vectorscope in the vrecord window.
+* **Broadcast Range Visual mode** — Broadcast Range Visual mode displays the video feed, the video feed with pixels out of broadcast range highlighted, the waveform monitor, and the vectorscope in the vrecord window.
 
-**Visual + Numerical mode** — Visual and Numerical mode displays your favorite video feeds and scopes as well as numerical values for the characteristics of the video signal in the left sidebar. 
+* **Full Range Visual mode** - Full Range Visual mode displays the video feed, the video feed with pixels at full range extremes highlighted, the waveform monitor, and the vectorscope in the vrecord window.
+
+* **Visual + Numerical mode** — Visual and Numerical mode displays your favorite video feeds and scopes as well as numerical values for the characteristics of the video signal in the left sidebar. 
 
 ![Alt text](Resources/vrecord_visual_numerical_2016-11-22.jpg "Vrecord in Visual + Numerical Mode")
 
-The numerical values are as follows:
+* The numerical values are as follows:
 
-* Y — Low, high, and average luminance of the video signal. "Diff" means the difference of the luminance between successive frames.
-* U — Low, high, and average of the U channel value of the video signal. "Diff" means the difference of the U value between successive frames.
-* V — Low, high, and average of the V channel value of the video signal. "Diff" means the difference of the V value between successive frames.
-* SAT — Low, high, and average saturation values (sometimes called chroma) of the video signal.
-* HUE — Low, high, and average hue values of the video signal.
-* TOUT — The percentage of pixels that are temporal outliers. Temporal Outliers are pixels which have different values from the pixels above or below them. This is useful for detecting noise in the video signal or other artifacts. However, the number will also increase with fast motion, camera movement, or cuts to different shots.  
-* VREP — The amount of vertical line repetitions in the video. The VREP reading can be useful for detecting video artifacts, dropout, and especially head clogs.
-* BRNG — Percentage of pixels that are in broadcast range. This may be helpful for detecting problems with the video signal such as dropout or if the signal has not been calibrated properly. If BRNG is 0.1 or greater, you probably have an issue.
+    * Y — Low, high, and average luminance of the video signal. "Diff" means the difference of the luminance between successive frames.
+    * U — Low, high, and average of the U channel value of the video signal. "Diff" means the difference of the U value between successive frames.
+    * V — Low, high, and average of the V channel value of the video signal. "Diff" means the difference of the V value between successive frames.
+    * SAT — Low, high, and average saturation values (sometimes called chroma) of the video signal.
+    * HUE — Low, high, and average hue values of the video signal.
+    * TOUT — The percentage of pixels that are temporal outliers. Temporal Outliers are pixels which have different values from the pixels above or below them. This is useful for detecting noise in the video signal or other artifacts. However, the number will also increase with fast motion, camera movement, or cuts to different shots.  
+    * VREP — The amount of vertical line repetitions in the video. The VREP reading can be useful for detecting video artifacts, dropout, and especially head clogs.
+    * BRNG — Percentage of pixels that are in broadcast range. This may be helpful for detecting problems with the video signal such as dropout or if the signal has not been calibrated properly. If BRNG is 0.1 or greater, you probably have an issue.
 
-**Color Matrix mode** — Color Matrix mode displays the video feed as seen through a matrix with hue and saturation differences to aid in calibrating hue and chroma. If the preferred image is not seen in the center square of the matrix, hue and chroma levels may need to be adjusted.
+* **Color Matrix mode** — Color Matrix mode displays the video feed as seen through a matrix with hue and saturation differences to aid in calibrating hue and chroma. If the preferred image is not seen in the center square of the matrix, hue and chroma levels may need to be adjusted.
 
 ![Alt text](Resources/vrecord_color_matrix_2016-11-22.jpg "Vrecord in Color Matrix Mode")
 
-**Bit Planes mode** — Bit Planes mode allows to display the video according to the bit position of each plane.
+* **Bit Planes mode** — Bit Planes mode allows to display the video according to the bit position of each plane.
 
 **Create QCTools XML** — While capturing the video signal, vrecord will also create an XML file that contains a record of the characteristics of the video signal (such as luminance, color saturation, audio levels, etc.). It will then compress the XML file using [gzip](https://www.gnu.org/software/gzip/). Choosing to create a QCTools XML is highly recommended. This file can be quickly imported into QCTools for further analysis of the video. In addition, if you choose this option, vrecord can analyze the video signal for potential errors. Currently vrecord only tests the saturation levels of the video.
 
@@ -225,7 +227,7 @@ Click the buttons to run Vrecord in your chosen mode. The documentation button b
 
 ### Ending a Capture
 
-If you are finished recording and the vrecord window hasn't already closed, close the window.
+If you are finished recording and the player window hasn't already closed, close the window. You can also press `q` or `esc` while the player window is active.
 
 ### A Few Quirks
 
@@ -253,7 +255,7 @@ By default vrecord saves the choices you made the last time you used the program
 ```
 vrecord -x
 ```
-Vrecord will then prompt you to make selections for video capture and proceed to start recording a new tape. If you want to interrupt vrecord hold down control + c. 
+Vrecord will then prompt you to make selections for video capture and proceed to start recording a new tape. If you want to interrupt vrecord hold down `control + c`. 
 
 ## Help and Issues
 
