@@ -205,7 +205,7 @@ video_input_options=("Composite" "SDI" "Component" "S-Video" "quit")
 audio_input_options=("Analog" "SDI Embedded Audio" "Digital Audio (AES/EBU)" "quit")
 video_bitdepth_options=("10 bit" "8 bit" "quit")
 video_codec_options=("Uncompressed Video" "FFV1 version 3" "JPEG2000" "ProRes" "quit")
-channel_mapping_options=("2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, Channels 3 & 4 -> 2nd Track Stereo)" "1 Stereo Track (From Channels 1 & 2)" "1 Stereo Track (From Channels 3 & 4)" "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono" "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono" "quit")
+channel_mapping_options=("2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, Channels 3 & 4 -> 2nd Track Stereo)" "1 Stereo Track (From Channels 1 & 2)" "1 Stereo Track (From Channels 3 & 4)" "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono" "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono" "Channel 1 -> Single Track Mono" "Channel 2 -> Single Track Mono" "quit")
 container_options=("QuickTime" "Matroska" "AVI" "MXF" "quit")
 standard_options=("NTSC" "PAL" "quit")
 playbackview_options=("Quality Control View (mpv)" "Broadcast Range Visual" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes" "quit")
@@ -424,6 +424,16 @@ lookup_audio_mapping(){
             map1v="[mono1]"
             map2k="-map"
             map2v="[mono2]"
+            ;;
+        "Channel 1 -> Single Track Mono")
+            audiomap="[0:a:0]pan=mono| c0=c0[mono1]"
+            map1k="-map"
+            map1v="[mono1]"
+            ;;
+        "Channel 2 -> Single Track Mono")
+            audiomap="[0:a:0]pan=mono| c0=c1[mono1]"
+            map1k="-map"
+            map1v="[mono1]"
             ;;
         "quit") _report -d "Bye then" ; exit 0 ;;
         *) _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
@@ -661,7 +671,7 @@ audio_input_choice.option = SDI Embedded Audio
 audio_input_choice.option = Digital Audio (AES/EBU)
 # audio mapping
 audio_mapping_choice.x = 240
-audio_mapping_choice.y = 115
+audio_mapping_choice.y = 100
 audio_mapping_choice.type = radiobutton
 audio_mapping_choice.label = Select Audio Channel Mapping
 audio_mapping_choice.default = ${audio_mapping_choice}
@@ -671,6 +681,8 @@ audio_mapping_choice.option = 1 Stereo Track (From Channels 1 & 2)
 audio_mapping_choice.option = 1 Stereo Track (From Channels 3 & 4)
 audio_mapping_choice.option = Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono
 audio_mapping_choice.option = Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono
+audio_mapping_choice.option = Channel 1 -> Single Track Mono
+audio_mapping_choice.option = Channel 2 -> Single Track Mono
 # recording file format
 container_choice.x = 170
 container_choice.y = 280
