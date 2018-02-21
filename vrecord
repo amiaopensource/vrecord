@@ -1258,7 +1258,7 @@ if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
         elif [[ "${pixel_format}" = "uyvy422" ]] ; then
             SAT_OUTLIERS=$(gzcat "${QCXML}" | xml sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>124])" -n)
         fi
-    AUD_OUTLIERS=$(gzcat "${QCXML}" | xml sel -t -v "count(//tag[@key='lavfi.astats.Overall.Max_level'][@value>=0.999998])" -n)
+    AUD_OUTLIERS=$(gzcat "${QCXML}" | xml sel -t -v "count(//tag[@key='lavfi.astats.Overall.Peak_level'][@value>=-0.01])" -n)
     BRNG_OUTLIERS=$(gzcat "${QCXML}" | xml sel -t -v "count(//tag[@key='lavfi.signalstats.BRNG'][@value>=0.03])" -n)
     audio_peak=$(gzcat "${QCXML}" | grep lavfi.astats.Overall.Peak_level | cut -d '"' -f 4 | sort -n | tail -n 1)
     _writeingestlog "Peak Volume is (dB)" "${audio_peak}"
