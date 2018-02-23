@@ -486,6 +486,12 @@ yes_or_no(){
     esac
 }
 
+_frames_to_hhmmss(){
+    framerate=$(grep "fps=" "${logdir}/${id}${capturelogsuffix}" | cut -d' ' -f 5)
+    num=$(echo "scale=0; $i / $framerate" | bc)
+    printf "%02d:%02d:%02d\n" $(($num/3600)) $(($num%3600/60)) $(($num%60))
+}
+
 # set up drawtext.txt files in case needed
 set_up_drawtext
 
@@ -1304,6 +1310,19 @@ if [[ "${framemd5_choice}" = "No" ]] ; then
         _writeingestlog "ffmpeg_missing_frames" "None"
     fi
 fi
+
+# finally, check for frames dropped in decklink_input.log
+dropped_frames_instances=$(grep -c "Frames dropped" "${logdir}/${id}${capturelogsuffix}")
+dropped_frames_framenumbers=$(grep "Frames dropped" "${logdir}/${id}${capturelogsuffix}" | awk '{print $6}' | sed 's/[(#)]//g')
+if [[ "${dropped_frames_instances}" -gt 0 ]] ; then
+    cowsay "$(_report -w "WARNING: FFmpeg Decklink input reported dropped frames in the following ${dropped_frames_instances} locations. The file may have sync issues.")"
+    for i in ${dropped_frames_framenumbers} ; do
+        dropped_frames_timestamps+="$(_frames_to_hhmmss $i) "
+    done
+    _report -w "Dropped frames locations: ${dropped_frames_timestamps}"
+    _writeingestlog "dropped_frames_timestamps" "${dropped_frames_timestamps}"
+fi
+
 if [[ "${SAT_OUTLIERS}" -gt "${SAT_OUTLIER_THRSHLD}" ]] ; then
     cowsay "$(_report -w "WARNING: Your video file contains ${SAT_OUTLIERS} frames with illegal saturation values. Your deck may require cleaning.")"
 fi
