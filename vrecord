@@ -28,7 +28,7 @@ BRNG_OUTLIER_THRSHLD=14
 BREW_PREFIX=$(brew --prefix ffmpegdecklink)
 FFMPEG_DECKLINK=("${BREW_PREFIX}/bin/ffmpeg-dl")
 FFPLAY_DECKLINK=("${BREW_PREFIX}/bin/ffplay-dl")
-MPVOPTS+=(--no-osc)
+MPVOPTS=(--no-osc)
 MPVOPTS+=(--load-scripts=no)
 MPVOPTS+=(--script "${SCRIPTDIR}/qcview.lua")
 MPVOPTS+=(--really-quiet)
