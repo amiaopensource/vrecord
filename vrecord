@@ -1315,6 +1315,33 @@ if [[ "${QCTOOLSXML_CHOICE}" = "Yes" ]] ; then
     _report -d "QCTools analysis is complete."
 fi
 
+if [[ "${MAKEWAVEFORM_CHOICE}" = "Yes" ]] ; then
+    _report -d "Vrecord is generating your audio waveform. Please be patient."
+    # Get length
+    total_duration=$(ffprobe -print_format json -select_streams a:0 -show_streams "${dir}/${id}${suffix}.${extension}" | grep '"duration"' | cut -d '"' -f4 | cut -d '.' -f 1)
+
+    # Get sub-lengths
+    onequarter=$((total_duration / 4))
+    midpoint=$((total_duration / 2))
+    threequarter=$((total_duration / 4 * 3))
+
+    # Get sub-length components for drawtext
+    onequarter_normalized_h=$(date -d@"${onequarter}" -u +%H)
+    onequarter_normalized_m=$(date -d@"${onequarter}" -u +%M)
+    onequarter_normalized_s=$(date -d@"${onequarter}" -u +%S)
+    midpoint_normalized_h=$(date -d@"${midpoint}" -u +%H)
+    midpoint_normalized_m=$(date -d@"${midpoint}" -u +%M)
+    midpoint_normalized_s=$(date -d@"${midpoint}" -u +%S)
+    threequarter_normalized_h=$(date -d@"${threequarter}" -u +%H)
+    threequarter_normalized_m=$(date -d@"${threequarter}" -u +%M)
+    threequarter_normalized_s=$(date -d@"${threequarter}" -u +%S)
+
+    # Generate waveform with timestamps
+    ffmpeg -i "${dir}/${id}${suffix}.${extension}" -filter_complex "showwavespic=split_channels=1:s=1024x600[a],[a]drawtext=fontfile=/usr/share/fonts/truetype/freefont/FreeSerif.ttf:box=1:boxcolor=black:boxborderw=4:fontcolor=white:text='$midpoint_normalized_h\:$midpoint_normalized_m\:$midpoint_normalized_s':x=(w-text_w)/2:y=50[b],\
+    [b]drawtext=fontfile=/usr/share/fonts/truetype/freefont/FreeSerif.ttf:box=1:boxcolor=black:boxborderw=4:fontcolor=white:text='$onequarter_normalized_h\:$onequarter_normalized_m\:$onequarter_normalized_s':x=(w-text_w)/4:y=50[c],\
+    [c]drawtext=fontfile=/usr/share/fonts/truetype/freefont/FreeSerif.ttf:box=1:boxcolor=black:boxborderw=4:fontcolor=white:text='$threequarter_normalized_h\:$threequarter_normalized_m\:$threequarter_normalized_s':x=(w-text_w)*0.75:y=50[out1]" -map [out1] -y "${logdir}/${id}_audiowaveform.png"
+fi
+
 # finally, check for frames dropped in decklink_input.log
 DROPPED_FRAMES_INSTANCES=$(grep -c "Frames dropped" "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}")
 DROPPED_FRAMES_FRAMENUMBERS=$(grep "Frames dropped" "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}" | awk '{print $6}' | sed 's/[(#)]//g')
