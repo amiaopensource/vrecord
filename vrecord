@@ -670,9 +670,9 @@ audio_input_choice.option = Analog
 audio_input_choice.option = SDI Embedded Audio
 audio_input_choice.option = Digital Audio (AES/EBU)
 # audio mapping
-audio_mapping_choice.x = 240
-audio_mapping_choice.y = 100
-audio_mapping_choice.type = radiobutton
+audio_mapping_choice.x = 200
+audio_mapping_choice.y = 200
+audio_mapping_choice.type = popup
 audio_mapping_choice.label = Select Audio Channel Mapping
 audio_mapping_choice.default = ${audio_mapping_choice}
 audio_mapping_choice.option = ${undeclaredoption}
