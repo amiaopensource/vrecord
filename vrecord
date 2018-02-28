@@ -1098,8 +1098,6 @@ fi
 if [[ "${framemd5_choice}" = "Yes" ]] ; then
     framemd5name="${logdir}/${id}${suffix}.framemd5"
     extraoutputs+=(-an -f framemd5 "${framemd5name}")
-else
-    extraoutputs+=( )
 fi
 
 # check validity of duration value
