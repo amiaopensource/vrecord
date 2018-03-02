@@ -80,7 +80,6 @@ _report(){
     local COLOR=""
     local STARTMESSAGE=""
     local ECHOOPT=""
-    local LOG_MESSAGE=""
     OPTIND=1
     while getopts "qdwstn" opt ; do
         case "${opt}" in
