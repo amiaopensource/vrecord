@@ -132,6 +132,53 @@ _get_decklink_inputs(){
     fi
 }
 
+_pashua_run() {
+    # Wrapper function for interfacing to Pashua. Written by Carsten
+    # Bluem <carsten@bluem.net> in 10/2003, modified in 12/2003 (including
+    # a code snippet contributed by Tor Sigurdsson), 08/2004 and 12/2004.
+    # Write config file
+
+    # Find Pashua binary. We do search both . and dirname "$0"
+    # , as in a doubleclickable application, cwd is /
+    # BTW, all these quotes below are necessary to handle paths
+    # containing spaces.
+    BUNDLEPATH="Pashua.app/Contents/MacOS/Pashua"
+    MYPATH=$(dirname "$0")
+    for searchpath in "$MYPATH/Pashua" "${MYPATH}/${BUNDLEPATH}" "./${BUNDLEPATH}" \
+                      "/Applications/${BUNDLEPATH}" "$HOME/Applications/${BUNDLEPATH}"
+    do
+        if [ -f "${searchpath}" -a -x "${searchpath}" ] ; then
+            PASHUAPATH="${searchpath}"
+            break
+        fi
+    done
+    if [[ ! "${PASHUAPATH}" ]] ; then
+        echo "Error: Pashua is used to edit vrecord options but is not found."
+        if [[ -z "${PASHUAINSTALL}" ]] ; then
+            echo "Attempting to run: brew cask install pashua"
+            if [[ "${PASHUAINSTALL}" != "Y" ]] ; then
+                brew cask install pashua
+                PASHUAINSTALL="Y"
+                _pashua_run
+            else
+                break 2
+            fi
+        fi
+    else
+        # Get result
+        result=$("${PASHUAPATH}" "${PASHUA_CONFIGFILE}" | sed 's/ /;;;/g')
+
+        # Parse result
+        for line in $result ; do
+            key=`echo $line | sed 's/^\([^=]*\)=.*$/\1/'`
+            value=`echo $line | sed 's/^[^=]*=\(.*\)$/\1/' | sed 's/;;;/ /g'`
+            varname=$key
+            varvalue="$value"
+            eval $varname='$varvalue'
+        done
+    fi
+}
+
 _master_gui(){
     GUI_CONF="
 # Set transparency: 0 is transparent, 1 is opaque
@@ -588,6 +635,7 @@ format=yuv420p10le|yuv422p10le|yuv444p10le|yuv440p10le,split=10[b0][b1][b2][b3][
         *) _report -w "Error: Not a valid option, select a valid number or [q] to quit." ; return 1 ;;
     esac
 }
+
 # defines the GUI dialog
 CONF="
 # Set transparency: 0 is transparent, 1 is opaque
@@ -752,53 +800,6 @@ WARNING.y = 0
 WARNING.type = text
 WARNING.default = WARNING: Do not use this option unless required
 ";
-
-_pashua_run() {
-    # Wrapper function for interfacing to Pashua. Written by Carsten
-    # Bluem <carsten@bluem.net> in 10/2003, modified in 12/2003 (including
-    # a code snippet contributed by Tor Sigurdsson), 08/2004 and 12/2004.
-    # Write config file
-
-    # Find Pashua binary. We do search both . and dirname "$0"
-    # , as in a doubleclickable application, cwd is /
-    # BTW, all these quotes below are necessary to handle paths
-    # containing spaces.
-    BUNDLEPATH="Pashua.app/Contents/MacOS/Pashua"
-    MYPATH=$(dirname "$0")
-    for searchpath in "$MYPATH/Pashua" "${MYPATH}/${BUNDLEPATH}" "./${BUNDLEPATH}" \
-                      "/Applications/${BUNDLEPATH}" "$HOME/Applications/${BUNDLEPATH}"
-    do
-        if [ -f "${searchpath}" -a -x "${searchpath}" ] ; then
-            PASHUAPATH="${searchpath}"
-            break
-        fi
-    done
-    if [[ ! "${PASHUAPATH}" ]] ; then
-        echo "Error: Pashua is used to edit vrecord options but is not found."
-        if [[ -z "${PASHUAINSTALL}" ]] ; then
-            echo "Attempting to run: brew cask install pashua"
-            if [[ "${PASHUAINSTALL}" != "Y" ]] ; then
-                brew cask install pashua
-                PASHUAINSTALL="Y"
-                _pashua_run
-            else
-                break 2
-            fi
-        fi
-    else
-        # Get result
-        result=$("${PASHUAPATH}" "${PASHUA_CONFIGFILE}" | sed 's/ /;;;/g')
-
-        # Parse result
-        for line in $result ; do
-            key=`echo $line | sed 's/^\([^=]*\)=.*$/\1/'`
-            value=`echo $line | sed 's/^[^=]*=\(.*\)$/\1/' | sed 's/;;;/ /g'`
-            varname=$key
-            varvalue="$value"
-            eval $varname='$varvalue'
-        done
-    fi
-} # _pashua_run()
 
 VIDEO_INPUT_OPTIONS=("Composite" "SDI" "Component" "S-Video" "quit")
 AUDIO_INPUT_OPTIONS=("Analog" "SDI Embedded Audio" "Digital Audio (AES/EBU)" "quit")
