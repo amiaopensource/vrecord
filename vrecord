@@ -82,6 +82,7 @@ while getopts ":herpaxg" opt ; do
         *) _report -w "Error: bad option -$OPTARG" ; _usage ; exit 1 ;;
     esac
 done
+shift $(( ${OPTIND} - 1 ))
 
 if [[ -f "${CONFIG_FILE}" ]] ; then
     . "${CONFIG_FILE}"
@@ -810,7 +811,6 @@ _pashua_run() {
     fi
 } # _pashua_run()
 
-shift $(( ${OPTIND} - 1 ))
 
 if [[ "${RUNTYPE}" = "GUI" ]] ; then
     _master_gui
