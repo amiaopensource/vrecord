@@ -201,17 +201,6 @@ db.label = Exit
     fi
 }
 
-VIDEO_INPUT_OPTIONS=("Composite" "SDI" "Component" "S-Video" "quit")
-AUDIO_INPUT_OPTIONS=("Analog" "SDI Embedded Audio" "Digital Audio (AES/EBU)" "quit")
-VIDEO_BITDEPTH_OPTIONS=("10 bit" "8 bit" "quit")
-VIDEO_CODEC_OPTIONS=("Uncompressed Video" "FFV1 version 3" "JPEG2000" "ProRes" "quit")
-CHANNEL_MAPPING_OPTIONS=("2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, Channels 3 & 4 -> 2nd Track Stereo)" "1 Stereo Track (From Channels 1 & 2)" "1 Stereo Track (From Channels 3 & 4)" "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono" "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono" "Channel 1 -> Single Track Mono" "Channel 2 -> Single Track Mono" "quit")
-CONTAINER_OPTIONS=("QuickTime" "Matroska" "AVI" "MXF" "quit")
-STANDARD_OPTIONS=("NTSC" "PAL" "quit")
-PLAYBACKVIEW_OPTIONS=("Quality Control View (mpv)" "Broadcast Range Visual" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes" "quit")
-FRAMEMD5_OPTIONS=("Yes" "No" "quit")
-QCTOOLSXML_OPTIONS=("Yes" "No" "quit")
-
 _set_up_drawtext(){
     echo -e "%{pts:hms}
 
@@ -811,6 +800,16 @@ _pashua_run() {
     fi
 } # _pashua_run()
 
+VIDEO_INPUT_OPTIONS=("Composite" "SDI" "Component" "S-Video" "quit")
+AUDIO_INPUT_OPTIONS=("Analog" "SDI Embedded Audio" "Digital Audio (AES/EBU)" "quit")
+VIDEO_BITDEPTH_OPTIONS=("10 bit" "8 bit" "quit")
+VIDEO_CODEC_OPTIONS=("Uncompressed Video" "FFV1 version 3" "JPEG2000" "ProRes" "quit")
+CHANNEL_MAPPING_OPTIONS=("2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, Channels 3 & 4 -> 2nd Track Stereo)" "1 Stereo Track (From Channels 1 & 2)" "1 Stereo Track (From Channels 3 & 4)" "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono" "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono" "Channel 1 -> Single Track Mono" "Channel 2 -> Single Track Mono" "quit")
+CONTAINER_OPTIONS=("QuickTime" "Matroska" "AVI" "MXF" "quit")
+STANDARD_OPTIONS=("NTSC" "PAL" "quit")
+PLAYBACKVIEW_OPTIONS=("Quality Control View (mpv)" "Broadcast Range Visual" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes" "quit")
+FRAMEMD5_OPTIONS=("Yes" "No" "quit")
+QCTOOLSXML_OPTIONS=("Yes" "No" "quit")
 
 if [[ "${RUNTYPE}" = "GUI" ]] ; then
     _master_gui
