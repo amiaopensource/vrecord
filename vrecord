@@ -33,7 +33,7 @@ MPVOPTS+=(--load-scripts=no)
 MPVOPTS+=(--script "${SCRIPTDIR}/qcview.lua")
 MPVOPTS+=(--really-quiet)
 
-if [[ "$("${FFMPEG_DECKLINK[@]}" -version 2>&1 | grep "Library not loaded" >/dev/null)" || ! -f "${FFMPEG_DECKLINK}" || ! -f "$FFPLAY_DECKLINK" ]] ; then
+if [[ "$("${FFMPEG_DECKLINK[@]}" -version 2>&1 | grep "Library not loaded" >/dev/null)" || ! -f "${FFMPEG_DECKLINK}" || ! -f "${FFPLAY_DECKLINK}" ]] ; then
     echo "Please reinstall 'ffmpeg-dl':"
     echo "  brew reinstall amiaopensource/amiaos/ffmpegdecklink --with-sdl2 --with-freetype --with-openjpeg"
     echo "Exiting."
@@ -126,7 +126,7 @@ done
 
 if [[ -f "${CONFIG_FILE}" ]] ; then
     . "${CONFIG_FILE}"
-elif [[ "${RUNTYPE}" = "record" || ${RUNTYPE} = "edit" ]] ; then
+elif [[ "${RUNTYPE}" = "record" || "${RUNTYPE}" = "edit" ]] ; then
     echo "No configuration file, restarting in edit mode."
     touch "${CONFIG_FILE}"
     exec "$(basename "${0}")" -e
@@ -178,7 +178,7 @@ db.label = Exit
 "
 
     PASHUA_CONFIGFILE=$(/usr/bin/mktemp /tmp/pashua_XXXXXXXXX)
-    echo "$GUI_CONF" > "$PASHUA_CONFIGFILE"
+    echo "${GUI_CONF}" > "${PASHUA_CONFIGFILE}"
     _pashua_run
     if [[ "${REC_BUTTON}" = 1 ]] ; then
         RUNTYPE="record"
@@ -779,12 +779,12 @@ _pashua_run() {
     for searchpath in "$MYPATH/Pashua" "${MYPATH}/${BUNDLEPATH}" "./${BUNDLEPATH}" \
                       "/Applications/${BUNDLEPATH}" "$HOME/Applications/${BUNDLEPATH}"
     do
-        if [ -f "$searchpath" -a -x "$searchpath" ] ; then
-            PASHUAPATH=$searchpath
+        if [ -f "${searchpath}" -a -x "${searchpath}" ] ; then
+            PASHUAPATH="${searchpath}"
             break
         fi
     done
-    if [ ! "$PASHUAPATH" ] ; then
+    if [ ! "${PASHUAPATH}" ] ; then
         echo "Error: Pashua is used to edit vrecord options but is not found."
         if [[ -z "${PASHUAINSTALL}" ]] ; then
             echo "Attempting to run: brew cask install pashua"
@@ -798,7 +798,7 @@ _pashua_run() {
         fi
     else
         # Get result
-        RESULT=$("${PASHUAPATH}" ${PASHUA_CONFIGFILE} | sed 's/ /;;;/g')
+        result=$("${PASHUAPATH}" "${PASHUA_CONFIGFILE}" | sed 's/ /;;;/g')
 
         # Parse result
         for line in $result ; do
@@ -1021,7 +1021,7 @@ if [[ "${RUNTYPE}" = "audiopassthrough" ]] ; then
 [abcde1][xx]overlay=10:10[vo]"
     echo "ESC quit" > ~/.config/mpv/input.conf
     "${FFMPEG_DECKLINK[@]}" -v info -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_DECKLINK[@]}" -map 0 -c copy -f nut - 2> /tmp/vrecord_input.log | \
-        mpv - --title="$WINDOW_NAME" -lavfi-complex "${PLAYBACKFILTER}"
+        mpv - --title="${WINDOW_NAME}" -lavfi-complex "${PLAYBACKFILTER}"
     exit 0
 fi
 
@@ -1040,10 +1040,10 @@ if [[ "${RUNTYPE}" = "passthrough" ]] ; then
     if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
         "${FFMPEG_DECKLINK}" -v info -nostats "${GRAB_DECKLINK[@]}" 2> /tmp/vrecord_input.log \
         -map 0 -c copy -f nut - | \
-        mpv "${MPVOPTS[@]}" --title="$WINDOW_NAME" -
+        mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -
     else
         "${FFPLAY_DECKLINK}" -v info -nostats "${GRAB_DECKLINK[@]}" 2> /tmp/vrecord_input.log \
-        -window_title "$WINDOW_NAME" \
+        -window_title "${WINDOW_NAME}" \
         -vf "${PLAYBACKFILTER}"
     fi
     exit 0
@@ -1177,8 +1177,7 @@ _writeingestlog "FRAMEMD5_CHOICE" "${FRAMEMD5_CHOICE}"
 _writeingestlog "AUDIO_MAPPING_CHOICE" "${AUDIO_MAPPING_CHOICE}"
 _writeingestlog "QCTOOLSXML_CHOICE" "${QCTOOLSXML_CHOICE}"
 _writeingestlog "FILE_PATH" "${DIR}/${ID}.${EXTENSION}"
-
-if [[ -z ${TECHNICIAN} ]] ; then
+if [[ -z "${TECHNICIAN}" ]] ; then
     _writeingestlog "TECHNICIAN" "N/A"
 else
     _writeingestlog "TECHNICIAN" "${TECHNICIAN}"
@@ -1228,10 +1227,10 @@ if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
         -f "${FORMAT}" "${DIR}/${ID}${SUFFIX}.${EXTENSION}" \
         "${EXTRAOUTPUTS[@]}" -map 0 -c copy -f nut - | \
         if [[ "${QCTOOLSXML_CHOICE}" = "Yes" ]] ; then
-            tee >(mpv "${MPVOPTS[@]}" --title="$WINDOW_NAME" -) | \
+            tee >(mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -) | \
                 qcli -i - -o "${LOGDIR}/${ID}${SUFFIX}.${EXTENSION}.qctools.xml.gz"
         else
-            mpv "${MPVOPTS[@]}" --title="$WINDOW_NAME" -
+            mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -
         fi
 else
     "${FFMPEG_DECKLINK[@]}" \
@@ -1248,13 +1247,13 @@ else
         if [[ "${QCTOOLSXML_CHOICE}" = "Yes" ]] ; then
             tee >("${FFPLAY_DECKLINK[@]}" \
                 -v info -hide_banner -stats -autoexit -i - \
-                -window_title "$WINDOW_NAME" \
+                -window_title "${WINDOW_NAME}" \
                 -vf "${PLAYBACKFILTER}") | \
                 qcli -i - -o "${LOGDIR}/${ID}${SUFFIX}.${EXTENSION}.qctools.xml.gz"
         else
             "${FFPLAY_DECKLINK[@]}" \
                 -v info -hide_banner -stats -autoexit -i - \
-                -window_title "$WINDOW_NAME" \
+                -window_title "${WINDOW_NAME}" \
                 -vf "${PLAYBACKFILTER}"
         fi
 fi
@@ -1294,7 +1293,7 @@ fi
 if [[ "${FRAMEMD5_CHOICE}" = "No" ]] ; then
     FRAMES_ENCODED=$(cat "${LOGDIR}/${ID}"_ffmpeg_*.log | grep -w "frames encoded" | awk '{print $10}' | grep -m 1 [0-9])
     FRAMES_DECODED=$(cat "${LOGDIR}/${ID}"_ffmpeg_*.log | grep -w "frames decoded" | awk '{print $10}' | grep -m 1 [0-9])
-    if [[ ${FRAMES_ENCODED} -lt $((${FRAMES_DECODED}-1)) ]] ; then
+    if [[ "${FRAMES_ENCODED}" -lt $((${FRAMES_DECODED}-1)) ]] ; then
         FRAMES_DISCREPANCY=$((${FRAMES_DECODED}-${FRAMES_ENCODED}))
         cowsay "$(_report -w "WARNING: FFmpeg reported missing frames. The file may have sync issues.")" 
         _writeingestlog "ffmpeg_missing_frames" "${FRAMES_DISCREPANCY}"
@@ -1329,7 +1328,7 @@ if [[ "${VIDEO_CODEC_CHOICE}" = "Uncompressed Video" ]] ; then
     fi
 elif [[ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" ]] ; then
     STATUS=$(mediaconch -fx -p "${SCRIPTDIR}/vrecord_policy_ffv1.xml" "${DIR}/${ID}${SUFFIX}.${EXTENSION}" | xmlstarlet sel -N mc="https://mediaarea.net/mediaconch" -t -v mc:MediaConch/mc:media/mc:policy/@outcome -n)
-    if [[ "$STATUS" = "pass" ]] ; then
+    if [[ "${STATUS}" = "pass" ]] ; then
         _report -dt "File passed policy check for FFV1 video."
     else
         _report -wt "File did not pass vrecord policy check for FFV1 video and may not conform to digital preservation STANDARDs. Try another file?"
