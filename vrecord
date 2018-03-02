@@ -195,7 +195,7 @@ db.label = Exit
         echo "Exiting Vrecord. Goodbye!" && exit 0
     fi
 
-    if [ -f "${PASHUA_CONFIGFILE}" ] ; then
+    if [[ -f "${PASHUA_CONFIGFILE}" ]] ; then
         rm "${PASHUA_CONFIGFILE}"
     fi
 }
@@ -316,7 +316,7 @@ _duration_check(){
 
 # This function creates a capture log of decisions made in vrecord
 _writeingestlog(){
-    if [ "${INGESTLOG}" ] ; then
+    if [[ "${INGESTLOG}" ]] ; then
         KEY="${1}"
         VALUE="${2}"
         # need to add yaml style escaping
@@ -359,10 +359,10 @@ _lookup_pixel_format(){
 _lookup_video_codec(){
     case "${1}" in
         "Uncompressed Video")
-            if [ "${PIXEL_FORMAT}" = "yuv422p10" ] ; then
+            if [[ "${PIXEL_FORMAT}" = "yuv422p10" ]] ; then
                 CODECNAME="Uncompressed 10-bit 4:2:2"
                 MIDDLEOPTIONS+=(-c:v v210)
-            elif [ "${PIXEL_FORMAT}" = "uyvy422" ] ; then
+            elif [[ "${PIXEL_FORMAT}" = "uyvy422" ]] ; then
                 CODECNAME="Uncompressed 8-bit 4:2:2"
                 MIDDLEOPTIONS+=(-c:v rawvideo -pix_fmt uyvy422 -tag:v 2vuy)
             fi
@@ -783,7 +783,7 @@ _pashua_run() {
             break
         fi
     done
-    if [ ! "${PASHUAPATH}" ] ; then
+    if [[ ! "${PASHUAPATH}" ]] ; then
         echo "Error: Pashua is used to edit vrecord options but is not found."
         if [[ -z "${PASHUAINSTALL}" ]] ; then
             echo "Attempting to run: brew cask install pashua"
@@ -950,7 +950,7 @@ else
     PS3="Select a video input: "
     select VIDEO_INPUT_CHOICE in "${VIDEO_INPUT_OPTIONS[@]}" ; do
         _lookup_video_input "${VIDEO_INPUT_CHOICE}"
-        [ "${?}" -eq 0 ] && break
+        [[ "${?}" -eq 0 ]] && break
     done
 fi
 
@@ -961,7 +961,7 @@ else
     PS3="Select an audio input: "
     select AUDIO_INPUT_CHOICE in "${AUDIO_INPUT_OPTIONS[@]}" ; do
         _lookup_audio_input "${AUDIO_INPUT_CHOICE}"
-        [ "${?}" -eq 0 ] && break
+        [[ "${?}" -eq 0 ]] && break
     done
 fi
 
@@ -972,7 +972,7 @@ else
     PS3="Select a television STANDARD: "
     select STANDARD_CHOICE in "${STANDARD_OPTIONS[@]}" ; do
         _lookup_standard "${STANDARD_CHOICE}"
-        [ "${?}" -eq 0 ] && break
+        [[ "${?}" -eq 0 ]] && break
     done
 fi
 
@@ -983,7 +983,7 @@ else
     PS3="Select a video bit depth: "
     select VIDEO_BIT_DEPTH_CHOICE in "${VIDEO_BITDEPTH_OPTIONS[@]}" ; do
         _lookup_pixel_format "${VIDEO_BIT_DEPTH_CHOICE}"
-        [ "${?}" -eq 0 ] && break
+        [[ "${?}" -eq 0 ]] && break
     done
 fi
 
@@ -1031,7 +1031,7 @@ else
     PS3="Select a playback view: "
     select PLAYBACKVIEW_CHOICE in "${PLAYBACKVIEW_OPTIONS[@]}" ; do
         _lookup_playbackview "${PLAYBACKVIEW_CHOICE}"
-        [ "${?}" -eq 0 ] && break
+        [[ "${?}" -eq 0 ]] && break
     done
 fi
 
@@ -1055,7 +1055,7 @@ else
     PS3="Select an option: "
     select FRAMEMD5_CHOICE in "${FRAMEMD5_OPTIONS[@]}" ; do
         _yes_or_no "${FRAMEMD5_CHOICE}"
-        [ "${?}" -eq 0 ] && break
+        [[ "${?}" -eq 0 ]] && break
     done
 fi
 
@@ -1066,29 +1066,29 @@ else
     PS3="Select an option: "
     select QCTOOLSXML_CHOICE in "${QCTOOLSXML_OPTIONS[@]}" ; do
         _yes_or_no "${QCTOOLSXML_CHOICE}"
-        [ "${?}" -eq 0 ] && break
+        [[ "${?}" -eq 0 ]] && break
     done
 fi
 
 _report -q -n "Enter Identifier: "
 read ID
-if [ ! -d "${DIR}" ] ; then
+if [[ ! -d "${DIR}" ]] ; then
     _report -q -n "Enter Directory: "
     read DIR
-    if [ ! -d "${DIR}" ] ; then
+    if [[ ! -d "${DIR}" ]] ; then
         _report -w "Error: Not a valid directory"
         exit 1
     fi
 fi
 
-if [ ! -d "${LOGDIR}" ] ; then
-    if [ ! -d "${DIR}" ] ; then
+if [[ ! -d "${LOGDIR}" ]] ; then
+    if [[ ! -d "${DIR}" ]] ; then
         _report -q -n "Enter Directory for Auxiliary Files (If blank will default to recording directory): "
         read LOGDIR
     else
         LOGDIR="${DIR}"
     fi
-    if [ ! -d "${LOGDIR}" ] ; then
+    if [[ ! -d "${LOGDIR}" ]] ; then
         _report -w "Error: Not a valid directory"
         exit 1
     fi
@@ -1102,12 +1102,12 @@ fi
 # check validity of duration value
 _duration_check
 
-if [ -n "${DURATION}" ] ; then
+if [[ -n "${DURATION}" ]] ; then
     DUR_SECONDS=$(echo "${DURATION} * 60" | bc)
     INPUTOPTIONS=(-t "${DUR_SECONDS}")
 fi
 
-if [ -z "${TECHNICIAN}" ] ; then
+if [[ -z "${TECHNICIAN}" ]] ; then
     _report -q -n "Enter the name of the person digitizing the tape or leave blank: "
     read TECHNICIAN
 fi
@@ -1119,7 +1119,7 @@ else
     PS3="Select a container format: "
     select CONTAINER_CHOICE in "${CONTAINER_OPTIONS[@]}" ; do
         _lookup_container "${CONTAINER_CHOICE}"
-        [ "${?}" -eq 0 ] && break
+        [[ "${?}" -eq 0 ]] && break
     done
 fi
 
@@ -1130,11 +1130,11 @@ else
     PS3="Select a video codec: "
     select VIDEO_CODEC_CHOICE in "${VIDEO_CODEC_OPTIONS[@]}" ; do
         _lookup_video_codec "${VIDEO_CODEC_CHOICE}"
-        [ "${?}" -eq 0 ] && break
+        [[ "${?}" -eq 0 ]] && break
     done
 fi
 
-if [ -f "${DIR}/${ID}${SUFFIX}.${EXTENSION}" ] ; then
+if [[ -f "${DIR}/${ID}${SUFFIX}.${EXTENSION}" ]] ; then
     _report -w "A file called ${DIR}/${ID}.${EXTENSION} already exists."
     _report -w "Exiting to avoid overwriting that file."
     exit
@@ -1147,7 +1147,7 @@ else
     PS3="Select an audio mapping: "
     select AUDIO_MAPPING_CHOICE in "${CHANNEL_MAPPING_OPTIONS[@]}" ; do
         _lookup_audio_mapping "${AUDIO_MAPPING_CHOICE}"
-        [ "${?}" -eq 0 ] && break
+        [[ "${?}" -eq 0 ]] && break
     done
 fi
 
