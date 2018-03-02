@@ -1096,7 +1096,7 @@ fi
 
 if [[ "${FRAMEMD5_CHOICE}" = "Yes" ]] ; then
     FRAMEMD5NAME="${LOGDIR}/${ID}${SUFFIX}.framemd5"
-    EXTRAOUTPUTS+=(-an -f framemd5 "${FRAMEMD5NAME}")
+    EXTRAOUTPUTS=(-an -f framemd5 "${FRAMEMD5NAME}")
 fi
 
 # check validity of duration value
@@ -1104,7 +1104,7 @@ _duration_check
 
 if [ -n "${DURATION}" ] ; then
     DUR_SECONDS=$(echo "${DURATION} * 60" | bc)
-    INPUTOPTIONS+=(-t "${DUR_SECONDS}")
+    INPUTOPTIONS=(-t "${DUR_SECONDS}")
 fi
 
 if [ -z "${TECHNICIAN}" ] ; then
