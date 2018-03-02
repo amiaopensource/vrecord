@@ -68,6 +68,29 @@ See also the man page: man $(basename "${0}")
 EOF
 }
 
+# command-line options to set media id and original variables
+OPTIND=1
+while getopts ":herpaxg" opt ; do
+    case "${opt}" in
+        h) _usage ; exit 0 ;;
+        e) RUNTYPE="edit" ;;
+        r) RUNTYPE="record" ;;
+        p) RUNTYPE="passthrough" ;;
+        a) RUNTYPE="audiopassthrough" ;;
+        x) RUNTYPE="reset" ;;
+        g) RUNTYPE="GUI" ;;
+        *) _report -w "Error: bad option -$OPTARG" ; _usage ; exit 1 ;;
+    esac
+done
+
+if [[ -f "${CONFIG_FILE}" ]] ; then
+    . "${CONFIG_FILE}"
+elif [[ "${RUNTYPE}" = "record" || "${RUNTYPE}" = "edit" ]] ; then
+    echo "No configuration file, restarting in edit mode."
+    touch "${CONFIG_FILE}"
+    exec "$(basename "${0}")" -e
+fi
+
 _get_iso8601(){
     date +%FT%T
 }
@@ -107,29 +130,6 @@ _get_decklink_inputs(){
         FIRST_DECKLINK_INPUT="$(echo "${DECKLINK_INPUTS}" | head -n 1 )"
     fi
 }
-
-# command-line options to set media id and original variables
-OPTIND=1
-while getopts ":herpaxg" opt ; do
-    case "${opt}" in
-        h) _usage ; exit 0 ;;
-        e) RUNTYPE="edit" ;;
-        r) RUNTYPE="record" ;;
-        p) RUNTYPE="passthrough" ;;
-        a) RUNTYPE="audiopassthrough" ;;
-        x) RUNTYPE="reset" ;;
-        g) RUNTYPE="GUI" ;;
-        *) _report -w "Error: bad option -$OPTARG" ; _usage ; exit 1 ;;
-    esac
-done
-
-if [[ -f "${CONFIG_FILE}" ]] ; then
-    . "${CONFIG_FILE}"
-elif [[ "${RUNTYPE}" = "record" || "${RUNTYPE}" = "edit" ]] ; then
-    echo "No configuration file, restarting in edit mode."
-    touch "${CONFIG_FILE}"
-    exec "$(basename "${0}")" -e
-fi
 
 _master_gui(){
     GUI_CONF="
