@@ -179,7 +179,7 @@ db.label = Exit
 
     PASHUA_CONFIGFILE=$(/usr/bin/mktemp /tmp/pashua_XXXXXXXXX)
     echo "$GUI_CONF" > "$PASHUA_CONFIGFILE"
-    pashua_run
+    _pashua_run
     if [[ "${REC_BUTTON}" = 1 ]] ; then
         RUNTYPE="record"
     elif [[ "${PASS_BUTTON}" = 1 ]] ; then
@@ -212,7 +212,7 @@ PLAYBACKVIEW_OPTIONS=("Quality Control View (mpv)" "Broadcast Range Visual" "Ful
 FRAMEMD5_OPTIONS=("Yes" "No" "quit")
 QCTOOLSXML_OPTIONS=("Yes" "No" "quit")
 
-set_up_drawtext(){
+_set_up_drawtext(){
     echo -e "%{pts:hms}
 
   Y
@@ -301,7 +301,7 @@ BRNG
 " > /tmp/drawtext3.txt
 }
 
-duration_check(){
+_duration_check(){
     # Sets up function to verify validitiy of duration settings
     if [[ -n "${DURATION}" ]] ; then
         if ! [[ "${DURATION}" =~ ^$|^[0-9]+$|^[0-9]+\.[0-9]*$|^\.[0-9]+$ ]] ; then
@@ -327,7 +327,7 @@ _writeingestlog(){
     fi
 }
 
-lookup_video_input(){
+_lookup_video_input(){
     case "${1}" in
         "Composite") VIDEO_INPUT="composite" ;;
         "SDI")       VIDEO_INPUT="sdi" ;;
@@ -338,7 +338,7 @@ lookup_video_input(){
     esac
 }
 
-lookup_audio_input(){
+_lookup_audio_input(){
     case "${1}" in
         "Analog")                  AUDIO_INPUT="analog" ;;
         "SDI Embedded Audio")      AUDIO_INPUT="embedded" ;;
@@ -348,7 +348,7 @@ lookup_audio_input(){
     esac
 }
 
-lookup_pixel_format(){
+_lookup_pixel_format(){
     case "${1}" in
         "10 bit") PIXEL_FORMAT="yuv422p10" ;;
         "8 bit")  PIXEL_FORMAT="uyvy422" ;;
@@ -357,7 +357,7 @@ lookup_pixel_format(){
     esac
 }
 
-lookup_video_codec(){
+_lookup_video_codec(){
     case "${1}" in
         "Uncompressed Video")
             if [ "${PIXEL_FORMAT}" = "yuv422p10" ] ; then
@@ -388,7 +388,7 @@ lookup_video_codec(){
     esac
 }
 
-lookup_audio_mapping(){
+_lookup_audio_mapping(){
     case "${1}" in
         "2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, Channels 3 & 4 -> 2nd Track Stereo)")
             AUDIOMAP="[0:a:0]pan=stereo| c0=c0 | c1="$PHASE_VALUE"c1[stereo1];[0:a:0]pan=stereo| c0=c2 | c1=c3[stereo2]"
@@ -440,7 +440,7 @@ lookup_audio_mapping(){
     esac
 }
 
-lookup_container(){
+_lookup_container(){
     case "${1}" in
         "QuickTime")
             EXTENSION="mov"
@@ -465,7 +465,7 @@ lookup_container(){
     esac
 }
 
-lookup_standard(){
+_lookup_standard(){
     case "${1}" in
         "NTSC")
             STANDARD="ntsc"
@@ -478,7 +478,7 @@ lookup_standard(){
     esac
 }
 
-yes_or_no(){
+_yes_or_no(){
     case "${1}" in
         "Yes"|"No") ;;
         "quit") _report -d "Bye then" ; exit 0 ;;
@@ -487,7 +487,7 @@ yes_or_no(){
 }
 
 # set up drawtext.txt files in case needed
-set_up_drawtext
+_set_up_drawtext
 
 # select playback views
 
@@ -506,7 +506,7 @@ drawbox=w=9:h=9:t=1:x=224-3:y=512-304-5:c=sienna@0.8,\
 drawgrid=w=32:h=32:t=1:c=white@0.1,\
 drawgrid=w=256:h=256:t=1:c=white@0.2"
 
-lookup_playbackview(){
+_lookup_playbackview(){
     case "${1}" in
         "Quality Control View (mpv)")
             MEDIA_PLAYER_CHOICE="mpv"
@@ -764,7 +764,7 @@ WARNING.type = text
 WARNING.default = WARNING: Do not use this option unless required
 ";
 
-pashua_run() {
+_pashua_run() {
     # Wrapper function for interfacing to Pashua. Written by Carsten
     # Bluem <carsten@bluem.net> in 10/2003, modified in 12/2003 (including
     # a code snippet contributed by Tor Sigurdsson), 08/2004 and 12/2004.
@@ -791,7 +791,7 @@ pashua_run() {
             if [[ "${PASHUAINSTALL}" != "Y" ]] ; then
                 brew cask install pashua
                 PASHUAINSTALL="Y"
-                pashua_run
+                _pashua_run
             else
                 break 2
             fi
@@ -809,7 +809,7 @@ pashua_run() {
             eval $varname='$varvalue'
         done
     fi
-} # pashua_run()
+} # _pashua_run()
 
 shift $(( ${OPTIND} - 1 ))
 
@@ -850,7 +850,7 @@ elif [[ "${RUNTYPE}" = "edit" ]] ; then
     rm $PASHUA_CONFIGFILE
     if [[ "${cb}" = 0 ]] ; then
         # check validity of duration value
-        duration_check
+        _duration_check
         # report back options
         if [[ -z "${LOGDIR}" ]] ; then
             LOGDIR="${DIR}"
@@ -945,45 +945,45 @@ if [[ "${INVERT_PHASE}" = 1 ]] ; then
 fi
 
 if [[ "${VIDEO_INPUT_CHOICE}" && "${VIDEO_INPUT_CHOICE}" != "${UNDECLAREDOPTION}" ]] ; then
-    lookup_video_input "${VIDEO_INPUT_CHOICE}"
+    _lookup_video_input "${VIDEO_INPUT_CHOICE}"
 else
     _report -q "Which video input are you using?"
     PS3="Select a video input: "
     select VIDEO_INPUT_CHOICE in "${VIDEO_INPUT_OPTIONS[@]}" ; do
-        lookup_video_input "${VIDEO_INPUT_CHOICE}"
+        _lookup_video_input "${VIDEO_INPUT_CHOICE}"
         [ "${?}" -eq 0 ] && break
     done
 fi
 
 if [[ "${AUDIO_INPUT_CHOICE}" && "${AUDIO_INPUT_CHOICE}" != "${UNDECLAREDOPTION}" ]] ; then
-    lookup_audio_input "${AUDIO_INPUT_CHOICE}"
+    _lookup_audio_input "${AUDIO_INPUT_CHOICE}"
 else
     _report -q "Which audio input are you using?"
     PS3="Select an audio input: "
     select AUDIO_INPUT_CHOICE in "${AUDIO_INPUT_OPTIONS[@]}" ; do
-        lookup_audio_input "${AUDIO_INPUT_CHOICE}"
+        _lookup_audio_input "${AUDIO_INPUT_CHOICE}"
         [ "${?}" -eq 0 ] && break
     done
 fi
 
 if [[ "${STANDARD_CHOICE}" && "${STANDARD_CHOICE}" != "${UNDECLAREDOPTION}" ]] ; then
-    lookup_standard "${STANDARD_CHOICE}"
+    _lookup_standard "${STANDARD_CHOICE}"
 else
     _report -q "Which television STANDARD?"
     PS3="Select a television STANDARD: "
     select STANDARD_CHOICE in "${STANDARD_OPTIONS[@]}" ; do
-        lookup_standard "${STANDARD_CHOICE}"
+        _lookup_standard "${STANDARD_CHOICE}"
         [ "${?}" -eq 0 ] && break
     done
 fi
 
 if [[ "${VIDEO_BIT_DEPTH_CHOICE}" && "${VIDEO_BIT_DEPTH_CHOICE}" != "${UNDECLAREDOPTION}" ]] ; then
-    lookup_pixel_format "${VIDEO_BIT_DEPTH_CHOICE}"
+    _lookup_pixel_format "${VIDEO_BIT_DEPTH_CHOICE}"
 else
     _report -q "Which video bit depth?"
     PS3="Select a video bit depth: "
     select VIDEO_BIT_DEPTH_CHOICE in "${VIDEO_BITDEPTH_OPTIONS[@]}" ; do
-        lookup_pixel_format "${VIDEO_BIT_DEPTH_CHOICE}"
+        _lookup_pixel_format "${VIDEO_BIT_DEPTH_CHOICE}"
         [ "${?}" -eq 0 ] && break
     done
 fi
@@ -1026,12 +1026,12 @@ if [[ "${RUNTYPE}" = "audiopassthrough" ]] ; then
 fi
 
 if [[ "${PLAYBACKVIEW_CHOICE}" && "${PLAYBACKVIEW_CHOICE}" != "${UNDECLAREDOPTION}" ]] ; then
-    lookup_playbackview "${PLAYBACKVIEW_CHOICE}"
+    _lookup_playbackview "${PLAYBACKVIEW_CHOICE}"
 else
     _report -q "Which playback view?"
     PS3="Select a playback view: "
     select PLAYBACKVIEW_CHOICE in "${PLAYBACKVIEW_OPTIONS[@]}" ; do
-        lookup_playbackview "${PLAYBACKVIEW_CHOICE}"
+        _lookup_playbackview "${PLAYBACKVIEW_CHOICE}"
         [ "${?}" -eq 0 ] && break
     done
 fi
@@ -1055,7 +1055,7 @@ else
     _report -q "Create frame-level MD5 checksums?"
     PS3="Select an option: "
     select FRAMEMD5_CHOICE in "${FRAMEMD5_OPTIONS[@]}" ; do
-        yes_or_no "${FRAMEMD5_CHOICE}"
+        _yes_or_no "${FRAMEMD5_CHOICE}"
         [ "${?}" -eq 0 ] && break
     done
 fi
@@ -1066,7 +1066,7 @@ else
     _report -q "Create QCTools XML?"
     PS3="Select an option: "
     select QCTOOLSXML_CHOICE in "${QCTOOLSXML_OPTIONS[@]}" ; do
-        yes_or_no "${QCTOOLSXML_CHOICE}"
+        _yes_or_no "${QCTOOLSXML_CHOICE}"
         [ "${?}" -eq 0 ] && break
     done
 fi
@@ -1101,7 +1101,7 @@ if [[ "${FRAMEMD5_CHOICE}" = "Yes" ]] ; then
 fi
 
 # check validity of duration value
-duration_check
+_duration_check
 
 if [ -n "${DURATION}" ] ; then
     DUR_SECONDS=$(echo "${DURATION} * 60" | bc)
@@ -1114,23 +1114,23 @@ if [ -z "${TECHNICIAN}" ] ; then
 fi
 
 if [[ "${CONTAINER_CHOICE}" && "${CONTAINER_CHOICE}" != "${UNDECLAREDOPTION}" ]] ; then
-    lookup_container "${CONTAINER_CHOICE}"
+    _lookup_container "${CONTAINER_CHOICE}"
 else
     _report -q "Which audiovisual container format?"
     PS3="Select a container format: "
     select CONTAINER_CHOICE in "${CONTAINER_OPTIONS[@]}" ; do
-        lookup_container "${CONTAINER_CHOICE}"
+        _lookup_container "${CONTAINER_CHOICE}"
         [ "${?}" -eq 0 ] && break
     done
 fi
 
 if [[ "${VIDEO_CODEC_CHOICE}" && "${VIDEO_CODEC_CHOICE}" != "${UNDECLAREDOPTION}" ]] ; then
-    lookup_video_codec "${VIDEO_CODEC_CHOICE}"
+    _lookup_video_codec "${VIDEO_CODEC_CHOICE}"
 else
     _report -q "Which video codec?"
     PS3="Select a video codec: "
     select VIDEO_CODEC_CHOICE in "${VIDEO_CODEC_OPTIONS[@]}" ; do
-        lookup_video_codec "${VIDEO_CODEC_CHOICE}"
+        _lookup_video_codec "${VIDEO_CODEC_CHOICE}"
         [ "${?}" -eq 0 ] && break
     done
 fi
@@ -1142,12 +1142,12 @@ if [ -f "${DIR}/${ID}${SUFFIX}.${EXTENSION}" ] ; then
 fi
 
 if [[ "${AUDIO_MAPPING_CHOICE}" && "${AUDIO_MAPPING_CHOICE}" != "${UNDECLAREDOPTION}" ]] ; then
-    lookup_audio_mapping "${AUDIO_MAPPING_CHOICE}"
+    _lookup_audio_mapping "${AUDIO_MAPPING_CHOICE}"
 else
     _report -q "Which audio mapping?"
     PS3="Select an audio mapping: "
     select AUDIO_MAPPING_CHOICE in "${CHANNEL_MAPPING_OPTIONS[@]}" ; do
-        lookup_audio_mapping "${AUDIO_MAPPING_CHOICE}"
+        _lookup_audio_mapping "${AUDIO_MAPPING_CHOICE}"
         [ "${?}" -eq 0 ] && break
     done
 fi
