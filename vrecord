@@ -360,10 +360,10 @@ lookup_pixel_format(){
 lookup_video_codec(){
     case "${1}" in
         "Uncompressed Video")
-            if [ "${pixel_format}" = "yuv422p10" ] ; then
+            if [[ "${pixel_format}" = "yuv422p10" ]] ; then
                 codecname="Uncompressed 10-bit 4:2:2"
                 middleoptions+=(-c:v v210)
-            elif [ "${pixel_format}" = "uyvy422" ] ; then
+            elif [[ "${pixel_format}" = "uyvy422" ]] ; then
                 codecname="Uncompressed 8-bit 4:2:2"
                 middleoptions+=(-c:v rawvideo -pix_fmt uyvy422 -tag:v 2vuy)
             fi
@@ -762,7 +762,7 @@ warning.x = 350
 warning.y = 0
 warning.type = text
 warning.default = WARNING: Do not use this option unless required
-";
+"
 
 pashua_run() {
     # Wrapper function for interfacing to Pashua. Written by Carsten
@@ -776,15 +776,15 @@ pashua_run() {
     # containing spaces.
     bundlepath="Pashua.app/Contents/MacOS/Pashua"
     mypath=$(dirname "$0")
-    for searchpath in "$mypath/Pashua" "$mypath/$bundlepath" "./$bundlepath" \
-                      "/Applications/$bundlepath" "$HOME/Applications/$bundlepath"
+    for searchpath in "${mypath}/Pashua" "${mypath}/${bundlepath}" "./${bundlepath}" \
+                      "/Applications/${bundlepath}" "${HOME}/Applications/${bundlepath}"
     do
-        if [ -f "$searchpath" -a -x "$searchpath" ] ; then
-            pashuapath=$searchpath
+        if [ -f "${searchpath}" -a -x "${searchpath}" ] ; then
+            pashuapath=${searchpath}
             break
         fi
     done
-    if [ ! "$pashuapath" ] ; then
+    if [ ! "${pashuapath}" ] ; then
         echo "Error: Pashua is used to edit vrecord options but is not found."
         if [[ -z "${pashuainstall}" ]] ; then
             echo "Attempting to run: brew cask install pashua"
@@ -801,9 +801,9 @@ pashua_run() {
         result=$("${pashuapath}" ${pashua_configfile} | sed 's/ /;;;/g')
 
         # Parse result
-        for line in $result ; do
-            key=`echo $line | sed 's/^\([^=]*\)=.*$/\1/'`
-            value=`echo $line | sed 's/^[^=]*=\(.*\)$/\1/' | sed 's/;;;/ /g'`
+        for line in ${result} ; do
+            key=$(echo ${line} | sed 's/^\([^=]*\)=.*$/\1/')
+            value=$(echo ${line} | sed 's/^[^=]*=\(.*\)$/\1/' | sed 's/;;;/ /g')
             varname=$key
             varvalue="$value"
             eval $varname='$varvalue'
@@ -1103,12 +1103,12 @@ fi
 # check validity of duration value
 duration_check
 
-if [ -n "${duration}" ] ; then
+if [[ -n "${duration}" ]] ; then
     dur_seconds=$(echo "${duration} * 60" | bc)
     inputoptions+=(-t "${dur_seconds}")
 fi
 
-if [ -z "${technician}" ] ; then
+if [[ -z "${technician}" ]] ; then
     _report -q -n "Enter the name of the person digitizing the tape or leave blank: "
     read technician
 fi
