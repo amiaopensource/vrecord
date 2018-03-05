@@ -295,12 +295,28 @@ _lookup_audio_input(){
     esac
 }
 
-_lookup_pixel_format(){
+_lookup_container(){
     case "${1}" in
-        "10 bit") PIXEL_FORMAT="yuv422p10" ;;
-        "8 bit")  PIXEL_FORMAT="uyvy422" ;;
-        "quit")   _report -d "Bye then" ; exit 0 ;;
-        *)        _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
+        "QuickTime")
+            EXTENSION="mov"
+            MIDDLEOPTIONS+=(-movflags write_colr)
+            FORMAT="mov"
+            ;;
+        "Matroska")
+            EXTENSION="mkv"
+            MIDDLEOPTIONS+=(-f_strict unofficial)
+            FORMAT="matroska"
+            ;;
+        "AVI")
+            EXTENSION="avi"
+            FORMAT="avi"
+            ;;
+        "MXF")
+            EXTENSION="mxf"
+            FORMAT="mxf"
+            ;;
+        "quit") _report -d "Bye then" ; exit 0 ;;
+        *) _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
     esac
 }
 
@@ -332,6 +348,15 @@ _lookup_video_codec(){
             ;;
         "quit") _report -d "Bye then" ; exit 0 ;;
         *) _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
+    esac
+}
+
+_lookup_pixel_format(){
+    case "${1}" in
+        "10 bit") PIXEL_FORMAT="yuv422p10" ;;
+        "8 bit")  PIXEL_FORMAT="uyvy422" ;;
+        "quit")   _report -d "Bye then" ; exit 0 ;;
+        *)        _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
     esac
 }
 
@@ -381,31 +406,6 @@ _lookup_audio_mapping(){
             AUDIOMAP="[0:a:0]pan=mono| c0=c1[mono1]"
             MAP1K="-map"
             MAP1V="[mono1]"
-            ;;
-        "quit") _report -d "Bye then" ; exit 0 ;;
-        *) _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
-    esac
-}
-
-_lookup_container(){
-    case "${1}" in
-        "QuickTime")
-            EXTENSION="mov"
-            MIDDLEOPTIONS+=(-movflags write_colr)
-            FORMAT="mov"
-            ;;
-        "Matroska")
-            EXTENSION="mkv"
-            MIDDLEOPTIONS+=(-f_strict unofficial)
-            FORMAT="matroska"
-            ;;
-        "AVI")
-            EXTENSION="avi"
-            FORMAT="avi"
-            ;;
-        "MXF")
-            EXTENSION="mxf"
-            FORMAT="mxf"
             ;;
         "quit") _report -d "Bye then" ; exit 0 ;;
         *) _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
@@ -674,15 +674,27 @@ VIDEO_INPUT_CHOICE.option = Composite
 VIDEO_INPUT_CHOICE.option = SDI
 VIDEO_INPUT_CHOICE.option = Component
 VIDEO_INPUT_CHOICE.option = S-Video
-# video bit depth
-VIDEO_BIT_DEPTH_CHOICE.x = 470
-VIDEO_BIT_DEPTH_CHOICE.y = 317
-VIDEO_BIT_DEPTH_CHOICE.type = radiobutton
-VIDEO_BIT_DEPTH_CHOICE.label = Select Video Bit Depth
-VIDEO_BIT_DEPTH_CHOICE.default = ${VIDEO_BIT_DEPTH_CHOICE}
-VIDEO_BIT_DEPTH_CHOICE.option = ${UNDECLAREDOPTION}
-VIDEO_BIT_DEPTH_CHOICE.option = 10 bit
-VIDEO_BIT_DEPTH_CHOICE.option = 8 bit
+# audio input
+AUDIO_INPUT_CHOICE.x = 20
+AUDIO_INPUT_CHOICE.y = 150
+AUDIO_INPUT_CHOICE.type = radiobutton
+AUDIO_INPUT_CHOICE.label = Select Audio Input
+AUDIO_INPUT_CHOICE.default = ${AUDIO_INPUT_CHOICE}
+AUDIO_INPUT_CHOICE.option = ${UNDECLAREDOPTION}
+AUDIO_INPUT_CHOICE.option = Analog
+AUDIO_INPUT_CHOICE.option = SDI Embedded Audio
+AUDIO_INPUT_CHOICE.option = Digital Audio (AES/EBU)
+# recording file format
+CONTAINER_CHOICE.x = 170
+CONTAINER_CHOICE.y = 280
+CONTAINER_CHOICE.type = radiobutton
+CONTAINER_CHOICE.label = Select File Format
+CONTAINER_CHOICE.default = ${CONTAINER_CHOICE}
+CONTAINER_CHOICE.option = ${UNDECLAREDOPTION}
+CONTAINER_CHOICE.option = QuickTime
+CONTAINER_CHOICE.option = Matroska
+CONTAINER_CHOICE.option = AVI
+CONTAINER_CHOICE.option = MXF
 # video codec
 VIDEO_CODEC_CHOICE.x = 300
 VIDEO_CODEC_CHOICE.y = 280
@@ -694,16 +706,15 @@ VIDEO_CODEC_CHOICE.option = Uncompressed Video
 VIDEO_CODEC_CHOICE.option = FFV1 version 3
 VIDEO_CODEC_CHOICE.option = JPEG2000
 VIDEO_CODEC_CHOICE.option = ProRes
-# audio input
-AUDIO_INPUT_CHOICE.x = 20
-AUDIO_INPUT_CHOICE.y = 150
-AUDIO_INPUT_CHOICE.type = radiobutton
-AUDIO_INPUT_CHOICE.label = Select Audio Input
-AUDIO_INPUT_CHOICE.default = ${AUDIO_INPUT_CHOICE}
-AUDIO_INPUT_CHOICE.option = ${UNDECLAREDOPTION}
-AUDIO_INPUT_CHOICE.option = Analog
-AUDIO_INPUT_CHOICE.option = SDI Embedded Audio
-AUDIO_INPUT_CHOICE.option = Digital Audio (AES/EBU)
+# video bit depth
+VIDEO_BIT_DEPTH_CHOICE.x = 470
+VIDEO_BIT_DEPTH_CHOICE.y = 317
+VIDEO_BIT_DEPTH_CHOICE.type = radiobutton
+VIDEO_BIT_DEPTH_CHOICE.label = Select Video Bit Depth
+VIDEO_BIT_DEPTH_CHOICE.default = ${VIDEO_BIT_DEPTH_CHOICE}
+VIDEO_BIT_DEPTH_CHOICE.option = ${UNDECLAREDOPTION}
+VIDEO_BIT_DEPTH_CHOICE.option = 10 bit
+VIDEO_BIT_DEPTH_CHOICE.option = 8 bit
 # audio mapping
 AUDIO_MAPPING_CHOICE.x = 200
 AUDIO_MAPPING_CHOICE.y = 200
@@ -718,17 +729,6 @@ AUDIO_MAPPING_CHOICE.option = Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Trac
 AUDIO_MAPPING_CHOICE.option = Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono
 AUDIO_MAPPING_CHOICE.option = Channel 1 -> Single Track Mono
 AUDIO_MAPPING_CHOICE.option = Channel 2 -> Single Track Mono
-# recording file format
-CONTAINER_CHOICE.x = 170
-CONTAINER_CHOICE.y = 280
-CONTAINER_CHOICE.type = radiobutton
-CONTAINER_CHOICE.label = Select File Format
-CONTAINER_CHOICE.default = ${CONTAINER_CHOICE}
-CONTAINER_CHOICE.option = ${UNDECLAREDOPTION}
-CONTAINER_CHOICE.option = QuickTime
-CONTAINER_CHOICE.option = Matroska
-CONTAINER_CHOICE.option = AVI
-CONTAINER_CHOICE.option = MXF
 # video standard
 STANDARD_CHOICE.x = 470
 STANDARD_CHOICE.y = 230
@@ -738,15 +738,6 @@ STANDARD_CHOICE.default = ${STANDARD_CHOICE}
 STANDARD_CHOICE.option = ${UNDECLAREDOPTION}
 STANDARD_CHOICE.option = NTSC
 STANDARD_CHOICE.option = PAL
-# frame md5 
-FRAMEMD5_CHOICE.x = 660
-FRAMEMD5_CHOICE.y = 230
-FRAMEMD5_CHOICE.type = radiobutton
-FRAMEMD5_CHOICE.label = Create frame-level MD5 checksums?
-FRAMEMD5_CHOICE.default = ${FRAMEMD5_CHOICE}
-FRAMEMD5_CHOICE.option = ${UNDECLAREDOPTION}
-FRAMEMD5_CHOICE.option = Yes
-FRAMEMD5_CHOICE.option = No
 # qctools xml 
 QCTOOLSXML_CHOICE.x = 660
 QCTOOLSXML_CHOICE.y = 317
@@ -756,6 +747,28 @@ QCTOOLSXML_CHOICE.default = ${QCTOOLSXML_CHOICE}
 QCTOOLSXML_CHOICE.option = ${UNDECLAREDOPTION}
 QCTOOLSXML_CHOICE.option = Yes
 QCTOOLSXML_CHOICE.option = No
+# frame md5 
+FRAMEMD5_CHOICE.x = 660
+FRAMEMD5_CHOICE.y = 230
+FRAMEMD5_CHOICE.type = radiobutton
+FRAMEMD5_CHOICE.label = Create frame-level MD5 checksums?
+FRAMEMD5_CHOICE.default = ${FRAMEMD5_CHOICE}
+FRAMEMD5_CHOICE.option = ${UNDECLAREDOPTION}
+FRAMEMD5_CHOICE.option = Yes
+FRAMEMD5_CHOICE.option = No
+# playbackview choice
+PLAYBACKVIEW_CHOICE.x = 20
+PLAYBACKVIEW_CHOICE.y = 3
+PLAYBACKVIEW_CHOICE.type = popup
+PLAYBACKVIEW_CHOICE.label = Select View
+PLAYBACKVIEW_CHOICE.default = ${PLAYBACKVIEW_CHOICE}
+PLAYBACKVIEW_CHOICE.option = ${UNDECLAREDOPTION}
+PLAYBACKVIEW_CHOICE.option = Quality Control View (mpv)
+PLAYBACKVIEW_CHOICE.option = Broadcast Range Visual
+PLAYBACKVIEW_CHOICE.option = Full Range Visual
+PLAYBACKVIEW_CHOICE.option = Visual + Numerical
+PLAYBACKVIEW_CHOICE.option = Color Matrix
+PLAYBACKVIEW_CHOICE.option = Bit Planes
 # duration
 DURATION.x = 20
 DURATION.y = 60
@@ -773,19 +786,6 @@ TECHNICIAN.type = textbox
 TECHNICIAN.height = 30
 TECHNICIAN.label = Enter the name of the person digitizing this tape.
 # Add a cancel button with default label
-# playbackview choice
-PLAYBACKVIEW_CHOICE.x = 20
-PLAYBACKVIEW_CHOICE.y = 3
-PLAYBACKVIEW_CHOICE.type = popup
-PLAYBACKVIEW_CHOICE.label = Select View
-PLAYBACKVIEW_CHOICE.default = ${PLAYBACKVIEW_CHOICE}
-PLAYBACKVIEW_CHOICE.option = ${UNDECLAREDOPTION}
-PLAYBACKVIEW_CHOICE.option = Quality Control View (mpv)
-PLAYBACKVIEW_CHOICE.option = Broadcast Range Visual
-PLAYBACKVIEW_CHOICE.option = Full Range Visual
-PLAYBACKVIEW_CHOICE.option = Visual + Numerical
-PLAYBACKVIEW_CHOICE.option = Color Matrix
-PLAYBACKVIEW_CHOICE.option = Bit Planes
 cb.type=cancelbutton
 # Add option to invert second channel
 INVERT_PHASE.x = 410
@@ -801,14 +801,14 @@ WARNING.default = WARNING: Do not use this option unless required
 
 VIDEO_INPUT_OPTIONS=("Composite" "SDI" "Component" "S-Video" "quit")
 AUDIO_INPUT_OPTIONS=("Analog" "SDI Embedded Audio" "Digital Audio (AES/EBU)" "quit")
-VIDEO_BITDEPTH_OPTIONS=("10 bit" "8 bit" "quit")
-VIDEO_CODEC_OPTIONS=("Uncompressed Video" "FFV1 version 3" "JPEG2000" "ProRes" "quit")
-CHANNEL_MAPPING_OPTIONS=("2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, Channels 3 & 4 -> 2nd Track Stereo)" "1 Stereo Track (From Channels 1 & 2)" "1 Stereo Track (From Channels 3 & 4)" "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono" "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono" "Channel 1 -> Single Track Mono" "Channel 2 -> Single Track Mono" "quit")
 CONTAINER_OPTIONS=("QuickTime" "Matroska" "AVI" "MXF" "quit")
+VIDEO_CODEC_OPTIONS=("Uncompressed Video" "FFV1 version 3" "JPEG2000" "ProRes" "quit")
+VIDEO_BITDEPTH_OPTIONS=("10 bit" "8 bit" "quit")
+CHANNEL_MAPPING_OPTIONS=("2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, Channels 3 & 4 -> 2nd Track Stereo)" "1 Stereo Track (From Channels 1 & 2)" "1 Stereo Track (From Channels 3 & 4)" "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono" "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono" "Channel 1 -> Single Track Mono" "Channel 2 -> Single Track Mono" "quit")
 STANDARD_OPTIONS=("NTSC" "PAL" "quit")
-PLAYBACKVIEW_OPTIONS=("Quality Control View (mpv)" "Broadcast Range Visual" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes" "quit")
-FRAMEMD5_OPTIONS=("Yes" "No" "quit")
 QCTOOLSXML_OPTIONS=("Yes" "No" "quit")
+FRAMEMD5_OPTIONS=("Yes" "No" "quit")
+PLAYBACKVIEW_OPTIONS=("Quality Control View (mpv)" "Broadcast Range Visual" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes" "quit")
 
 CONFIG_COMMENT="# Set each value to empty quotes (like \"\") to prompt during run, or set to a provided option."
 DIR_COMMENT="#Set dir to the preferred recording directory or leave blank to request each run:"
@@ -855,17 +855,17 @@ elif [[ "${RUNTYPE}" = "edit" ]] ; then
         echo "Variables set:"
         echo "  DIR = ${DIR}"
         echo "  LOGDIR = ${LOGDIR}"
-        echo "  VIDEO_INPUT_CHOICE = ${VIDEO_INPUT_CHOICE}"
-        echo "  VIDEO_BIT_DEPTH_CHOICE = ${VIDEO_BIT_DEPTH_CHOICE}"
-        echo "  VIDEO_CODEC_CHOICE = ${VIDEO_CODEC_CHOICE}"
-        echo "  AUDIO_INPUT_CHOICE = ${AUDIO_INPUT_CHOICE}"
-        echo "  AUDIO_MAPPING_CHOICE = ${AUDIO_MAPPING_CHOICE}"
         echo "  CONTAINER_CHOICE = ${CONTAINER_CHOICE}"
+        echo "  VIDEO_INPUT_CHOICE = ${VIDEO_INPUT_CHOICE}"
+        echo "  AUDIO_INPUT_CHOICE = ${AUDIO_INPUT_CHOICE}"
+        echo "  VIDEO_CODEC_CHOICE = ${VIDEO_CODEC_CHOICE}"
+        echo "  VIDEO_BIT_DEPTH_CHOICE = ${VIDEO_BIT_DEPTH_CHOICE}"
+        echo "  AUDIO_MAPPING_CHOICE = ${AUDIO_MAPPING_CHOICE}"
         echo "  STANDARD_CHOICE = ${STANDARD_CHOICE}"
-        echo "  FRAMEMD5_CHOICE = ${FRAMEMD5_CHOICE}"
         echo "  QCTOOLSXML_CHOICE = ${QCTOOLSXML_CHOICE}"
-        echo "  DURATION = ${DURATION}"
+        echo "  FRAMEMD5_CHOICE = ${FRAMEMD5_CHOICE}"
         echo "  PLAYBACKVIEW_CHOICE = ${PLAYBACKVIEW_CHOICE}"
+        echo "  DURATION = ${DURATION}"
         echo "  TECHNICIAN = ${TECHNICIAN}"
         if [[ "${INVERT_PHASE}" = 1 ]] ; then
             echo -e " \033[101mWARNING: Option to invert phase of second audio channel has been selected\033[0m"
@@ -886,37 +886,38 @@ VIDEO_INPUT_CHOICE="${VIDEO_INPUT_CHOICE}"
 ${AUDIO_INPUT_CHOICE_COMMENT}
 AUDIO_INPUT_CHOICE="${AUDIO_INPUT_CHOICE}"
 
-${STANDARD_CHOICE_COMMENT}
-STANDARD_CHOICE="${STANDARD_CHOICE}"
-
-${PLAYBACKVIEW_CHOICE_COMMENT}
-PLAYBACKVIEW_CHOICE="${PLAYBACKVIEW_CHOICE}"
-
-${FRAMEMD5_CHOICE_COMMENT}
-FRAMEMD5_CHOICE="${FRAMEMD5_CHOICE}"
-
-QCTOOLSXML_CHOICE="${QCTOOLSXML_CHOICE}"
-
-${VIDEO_BIT_DEPTH_CHOICE_COMMENT}
-VIDEO_BIT_DEPTH_CHOICE="${VIDEO_BIT_DEPTH_CHOICE}"
+${CONTAINER_CHOICE_COMMENT}
+CONTAINER_CHOICE="${CONTAINER_CHOICE}"
 
 ${VIDEO_CODEC_CHOICE_COMMENT}
 VIDEO_CODEC_CHOICE="${VIDEO_CODEC_CHOICE}"
 
+${VIDEO_BIT_DEPTH_CHOICE_COMMENT}
+VIDEO_BIT_DEPTH_CHOICE="${VIDEO_BIT_DEPTH_CHOICE}"
+
 ${AUDIO_MAPPING_CHOICE_COMMENT}
 AUDIO_MAPPING_CHOICE="${AUDIO_MAPPING_CHOICE}"
 
+${STANDARD_CHOICE_COMMENT}
+STANDARD_CHOICE="${STANDARD_CHOICE}"
+
+QCTOOLSXML_CHOICE="${QCTOOLSXML_CHOICE}"
+
+${FRAMEMD5_CHOICE_COMMENT}
+FRAMEMD5_CHOICE="${FRAMEMD5_CHOICE}"
+
+${PLAYBACKVIEW_CHOICE_COMMENT}
+PLAYBACKVIEW_CHOICE="${PLAYBACKVIEW_CHOICE}"
+
 ${DIR_COMMENT}
 DIR="${DIR}"
-
 LOGDIR="${LOGDIR}"
 
 INVERT_PHASE="${INVERT_PHASE}"
-${CONTAINER_CHOICE_COMMENT}
-CONTAINER_CHOICE="${CONTAINER_CHOICE}"
 
 ${DURATION_COMMENT}
 DURATION="${DURATION}"
+
 ${TECHNICIAN_COMMENT}
 TECHNICIAN="${TECHNICIAN}"
 EOF
@@ -938,6 +939,36 @@ fi
 open /Applications/Utilities/Terminal.app
 if [[ "${INVERT_PHASE}" = 1 ]] ; then
     PHASE_VALUE="-1*"
+fi
+
+_report -q -n "Enter Identifier: "
+read ID
+if [[ ! -d "${DIR}" ]] ; then
+    _report -q -n "Enter Directory: "
+    read DIR
+    if [[ ! -d "${DIR}" ]] ; then
+        _report -w "Error: Not a valid directory"
+        exit 1
+    fi
+fi
+
+if [[ ! -d "${LOGDIR}" ]] ; then
+    if [[ ! -d "${DIR}" ]] ; then
+        _report -q -n "Enter Directory for Auxiliary Files (If blank will default to recording directory): "
+        read LOGDIR
+    else
+        LOGDIR="${DIR}"
+    fi
+    if [[ ! -d "${LOGDIR}" ]] ; then
+        _report -w "Error: Not a valid directory"
+        exit 1
+    fi
+fi
+
+if [[ -f "${DIR}/${ID}${SUFFIX}.${EXTENSION}" ]] ; then
+    _report -w "A file called ${DIR}/${ID}.${EXTENSION} already exists."
+    _report -w "Exiting to avoid overwriting that file."
+    exit
 fi
 
 if [[ "${VIDEO_INPUT_CHOICE}" && "${VIDEO_INPUT_CHOICE}" != "${UNDECLAREDOPTION}" ]] ; then
@@ -962,13 +993,24 @@ else
     done
 fi
 
-if [[ "${STANDARD_CHOICE}" && "${STANDARD_CHOICE}" != "${UNDECLAREDOPTION}" ]] ; then
-    _lookup_standard "${STANDARD_CHOICE}"
+if [[ "${CONTAINER_CHOICE}" && "${CONTAINER_CHOICE}" != "${UNDECLAREDOPTION}" ]] ; then
+    _lookup_container "${CONTAINER_CHOICE}"
 else
-    _report -q "Which television STANDARD?"
-    PS3="Select a television STANDARD: "
-    select STANDARD_CHOICE in "${STANDARD_OPTIONS[@]}" ; do
-        _lookup_standard "${STANDARD_CHOICE}"
+    _report -q "Which audiovisual container format?"
+    PS3="Select a container format: "
+    select CONTAINER_CHOICE in "${CONTAINER_OPTIONS[@]}" ; do
+        _lookup_container "${CONTAINER_CHOICE}"
+        [[ "${?}" -eq 0 ]] && break
+    done
+fi
+
+if [[ "${VIDEO_CODEC_CHOICE}" && "${VIDEO_CODEC_CHOICE}" != "${UNDECLAREDOPTION}" ]] ; then
+    _lookup_video_codec "${VIDEO_CODEC_CHOICE}"
+else
+    _report -q "Which video codec?"
+    PS3="Select a video codec: "
+    select VIDEO_CODEC_CHOICE in "${VIDEO_CODEC_OPTIONS[@]}" ; do
+        _lookup_video_codec "${VIDEO_CODEC_CHOICE}"
         [[ "${?}" -eq 0 ]] && break
     done
 fi
@@ -984,6 +1026,55 @@ else
     done
 fi
 
+if [[ "${AUDIO_MAPPING_CHOICE}" && "${AUDIO_MAPPING_CHOICE}" != "${UNDECLAREDOPTION}" ]] ; then
+    _lookup_audio_mapping "${AUDIO_MAPPING_CHOICE}"
+else
+    _report -q "Which audio mapping?"
+    PS3="Select an audio mapping: "
+    select AUDIO_MAPPING_CHOICE in "${CHANNEL_MAPPING_OPTIONS[@]}" ; do
+        _lookup_audio_mapping "${AUDIO_MAPPING_CHOICE}"
+        [[ "${?}" -eq 0 ]] && break
+    done
+fi
+
+if [[ "${STANDARD_CHOICE}" && "${STANDARD_CHOICE}" != "${UNDECLAREDOPTION}" ]] ; then
+    _lookup_standard "${STANDARD_CHOICE}"
+else
+    _report -q "Which television STANDARD?"
+    PS3="Select a television STANDARD: "
+    select STANDARD_CHOICE in "${STANDARD_OPTIONS[@]}" ; do
+        _lookup_standard "${STANDARD_CHOICE}"
+        [[ "${?}" -eq 0 ]] && break
+    done
+fi
+
+if [[ "${QCTOOLSXML_CHOICE}" != "${UNDECLAREDOPTION}" ]] ; then
+    echo ""
+else
+    _report -q "Create QCTools XML?"
+    PS3="Select an option: "
+    select QCTOOLSXML_CHOICE in "${QCTOOLSXML_OPTIONS[@]}" ; do
+        _yes_or_no "${QCTOOLSXML_CHOICE}"
+        [[ "${?}" -eq 0 ]] && break
+    done
+fi
+
+if [[ "${FRAMEMD5_CHOICE}" != "${UNDECLAREDOPTION}" ]] ; then
+    echo ""
+else
+    _report -q "Create frame-level MD5 checksums?"
+    PS3="Select an option: "
+    select FRAMEMD5_CHOICE in "${FRAMEMD5_OPTIONS[@]}" ; do
+        _yes_or_no "${FRAMEMD5_CHOICE}"
+        [[ "${?}" -eq 0 ]] && break
+    done
+fi
+
+if [[ "${FRAMEMD5_CHOICE}" = "Yes" ]] ; then
+    FRAMEMD5NAME="${LOGDIR}/${ID}${SUFFIX}.framemd5"
+    EXTRAOUTPUTS=(-an -f framemd5 "${FRAMEMD5NAME}")
+fi
+
 _set_up_drawtext
 _get_decklink_inputs
 GRAB_DECKLINK=(-f decklink)
@@ -997,7 +1088,6 @@ GRAB_DECKLINK+=(-i "${FIRST_DECKLINK_INPUT}")
 PIPE_DECKLINK=(-c copy)
 PIPE_DECKLINK+=(-f nut)
 PIPE_DECKLINK+=(-)
-
 WINDOW_NAME="mode:${RUNTYPE} - video:'${VIDEO_INPUT_CHOICE}' audio:'${AUDIO_INPUT_CHOICE}' - to end recording press q, esc, or close video window"
 
 if [[ "${RUNTYPE}" = "audiopassthrough" ]] ; then
@@ -1046,57 +1136,6 @@ if [[ "${RUNTYPE}" = "passthrough" ]] ; then
     exit 0
 fi
 
-if [[ "${FRAMEMD5_CHOICE}" != "${UNDECLAREDOPTION}" ]] ; then
-    echo ""
-else
-    _report -q "Create frame-level MD5 checksums?"
-    PS3="Select an option: "
-    select FRAMEMD5_CHOICE in "${FRAMEMD5_OPTIONS[@]}" ; do
-        _yes_or_no "${FRAMEMD5_CHOICE}"
-        [[ "${?}" -eq 0 ]] && break
-    done
-fi
-
-if [[ "${QCTOOLSXML_CHOICE}" != "${UNDECLAREDOPTION}" ]] ; then
-    echo ""
-else
-    _report -q "Create QCTools XML?"
-    PS3="Select an option: "
-    select QCTOOLSXML_CHOICE in "${QCTOOLSXML_OPTIONS[@]}" ; do
-        _yes_or_no "${QCTOOLSXML_CHOICE}"
-        [[ "${?}" -eq 0 ]] && break
-    done
-fi
-
-_report -q -n "Enter Identifier: "
-read ID
-if [[ ! -d "${DIR}" ]] ; then
-    _report -q -n "Enter Directory: "
-    read DIR
-    if [[ ! -d "${DIR}" ]] ; then
-        _report -w "Error: Not a valid directory"
-        exit 1
-    fi
-fi
-
-if [[ ! -d "${LOGDIR}" ]] ; then
-    if [[ ! -d "${DIR}" ]] ; then
-        _report -q -n "Enter Directory for Auxiliary Files (If blank will default to recording directory): "
-        read LOGDIR
-    else
-        LOGDIR="${DIR}"
-    fi
-    if [[ ! -d "${LOGDIR}" ]] ; then
-        _report -w "Error: Not a valid directory"
-        exit 1
-    fi
-fi
-
-if [[ "${FRAMEMD5_CHOICE}" = "Yes" ]] ; then
-    FRAMEMD5NAME="${LOGDIR}/${ID}${SUFFIX}.framemd5"
-    EXTRAOUTPUTS=(-an -f framemd5 "${FRAMEMD5NAME}")
-fi
-
 # check validity of duration value
 _duration_check
 
@@ -1108,45 +1147,6 @@ fi
 if [[ -z "${TECHNICIAN}" ]] ; then
     _report -q -n "Enter the name of the person digitizing the tape or leave blank: "
     read TECHNICIAN
-fi
-
-if [[ "${CONTAINER_CHOICE}" && "${CONTAINER_CHOICE}" != "${UNDECLAREDOPTION}" ]] ; then
-    _lookup_container "${CONTAINER_CHOICE}"
-else
-    _report -q "Which audiovisual container format?"
-    PS3="Select a container format: "
-    select CONTAINER_CHOICE in "${CONTAINER_OPTIONS[@]}" ; do
-        _lookup_container "${CONTAINER_CHOICE}"
-        [[ "${?}" -eq 0 ]] && break
-    done
-fi
-
-if [[ "${VIDEO_CODEC_CHOICE}" && "${VIDEO_CODEC_CHOICE}" != "${UNDECLAREDOPTION}" ]] ; then
-    _lookup_video_codec "${VIDEO_CODEC_CHOICE}"
-else
-    _report -q "Which video codec?"
-    PS3="Select a video codec: "
-    select VIDEO_CODEC_CHOICE in "${VIDEO_CODEC_OPTIONS[@]}" ; do
-        _lookup_video_codec "${VIDEO_CODEC_CHOICE}"
-        [[ "${?}" -eq 0 ]] && break
-    done
-fi
-
-if [[ -f "${DIR}/${ID}${SUFFIX}.${EXTENSION}" ]] ; then
-    _report -w "A file called ${DIR}/${ID}.${EXTENSION} already exists."
-    _report -w "Exiting to avoid overwriting that file."
-    exit
-fi
-
-if [[ "${AUDIO_MAPPING_CHOICE}" && "${AUDIO_MAPPING_CHOICE}" != "${UNDECLAREDOPTION}" ]] ; then
-    _lookup_audio_mapping "${AUDIO_MAPPING_CHOICE}"
-else
-    _report -q "Which audio mapping?"
-    PS3="Select an audio mapping: "
-    select AUDIO_MAPPING_CHOICE in "${CHANNEL_MAPPING_OPTIONS[@]}" ; do
-        _lookup_audio_mapping "${AUDIO_MAPPING_CHOICE}"
-        [[ "${?}" -eq 0 ]] && break
-    done
 fi
 
 _report -d "Summary: ${PIXEL_FORMAT} bit ${CODECNAME} ${CONTAINER_CHOICE} file from ${STANDARD_CHOICE} ${VIDEO_INPUT_CHOICE} ${AUDIO_INPUT_CHOICE}. Frame MD5s=${FRAMEMD5_CHOICE}, QCTools XML=${QCTOOLSXML_CHOICE}, and Technician=${TECHNICIAN}. Inputs recorded to ${DIR}/${ID}${SUFFIX}.${EXTENSION} and Auxiliary Files created in ${LOGDIR}"
@@ -1164,15 +1164,15 @@ _writeingestlog "computer_name" "$(uname -n)"
 _writeingestlog "user_name" "$(whoami)"
 _writeingestlog "operating_system_VERSION" "$(uname -v)"
 _writeingestlog "datetime_start" "$(_get_iso8601)"
-_writeingestlog "VIDEO_BIT_DEPTH" "${PIXEL_FORMAT}"
-_writeingestlog "CODECNAME" "${CODECNAME}"
-_writeingestlog "CONTAINER" "${CONTAINER_CHOICE}"
-_writeingestlog "STANDARD_CHOICE" "${STANDARD_CHOICE}"
 _writeingestlog "VIDEO_INPUT" "${VIDEO_INPUT_CHOICE}"
 _writeingestlog "AUDIO_INPUT" "${AUDIO_INPUT_CHOICE}"
-_writeingestlog "FRAMEMD5_CHOICE" "${FRAMEMD5_CHOICE}"
+_writeingestlog "CONTAINER" "${CONTAINER_CHOICE}"
+_writeingestlog "CODECNAME" "${CODECNAME}"
+_writeingestlog "VIDEO_BIT_DEPTH" "${PIXEL_FORMAT}"
 _writeingestlog "AUDIO_MAPPING_CHOICE" "${AUDIO_MAPPING_CHOICE}"
+_writeingestlog "STANDARD_CHOICE" "${STANDARD_CHOICE}"
 _writeingestlog "QCTOOLSXML_CHOICE" "${QCTOOLSXML_CHOICE}"
+_writeingestlog "FRAMEMD5_CHOICE" "${FRAMEMD5_CHOICE}"
 _writeingestlog "FILE_PATH" "${DIR}/${ID}.${EXTENSION}"
 if [[ -z "${TECHNICIAN}" ]] ; then
     _writeingestlog "TECHNICIAN" "N/A"
