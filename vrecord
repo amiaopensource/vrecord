@@ -149,8 +149,8 @@ _pashua_run() {
     for searchpath in "$MYPATH/Pashua" "${MYPATH}/${BUNDLEPATH}" "./${BUNDLEPATH}" \
                       "/Applications/${BUNDLEPATH}" "$HOME/Applications/${BUNDLEPATH}"
     do
-        if [ -f "${searchpath}" -a -x "${searchpath}" ] ; then
-            PASHUAPATH="${searchpath}"
+        if [ -f "${SEARCHPATH}" -a -x "${SEARCHPATH}" ] ; then
+            PASHUAPATH="${SEARCHPATH}"
             break
         fi
     done
@@ -168,15 +168,14 @@ _pashua_run() {
         fi
     else
         # Get result
-        result=$("${PASHUAPATH}" "${PASHUA_CONFIGFILE}" | sed 's/ /;;;/g')
-
+        RESULT=$("${PASHUAPATH}" "${PASHUA_CONFIGFILE}" | sed 's/ /;;;/g')
         # Parse result
-        for line in $result ; do
-            key=`echo $line | sed 's/^\([^=]*\)=.*$/\1/'`
-            value=`echo $line | sed 's/^[^=]*=\(.*\)$/\1/' | sed 's/;;;/ /g'`
-            varname=$key
-            varvalue="$value"
-            eval $varname='$varvalue'
+        for LINE in $RESULT ; do
+            KEY=`echo $LINE | sed 's/^\([^=]*\)=.*$/\1/'`
+            VALUE=`echo $LINE | sed 's/^[^=]*=\(.*\)$/\1/' | sed 's/;;;/ /g'`
+            VARNAME=$KEY
+            VARVALUE="$VALUE"
+            eval "$VARNAME"='$VARVALUE'
         done
     fi
 }
