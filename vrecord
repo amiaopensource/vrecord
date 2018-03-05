@@ -1019,6 +1019,11 @@ else
         [[ "${?}" -eq 0 ]] && break
     done
 fi
+if [[ "${PLAYBACKVIEW_CHOICE}" = "Full Range Visual" ]] ; then
+    MIDDLEOPTIONS+=(-color_range jpeg)
+else
+    MIDDLEOPTIONS+=(-color_range mpeg)
+fi
 
 # set up input and playback
 _set_up_drawtext
@@ -1196,12 +1201,6 @@ fi
 
 _report -d "Close the playback window to stop recording."
 export FFREPORT="file=${LOGDIR}/${ID}_%p_%t${FFMPEGLOGSUFFIX}"
-
-if [[ "${PLAYBACKVIEW_CHOICE}" = "Full Range Visual" ]] ; then
-    MIDDLEOPTIONS+=(-color_range jpeg)
-else
-    MIDDLEOPTIONS+=(-color_range mpeg)
-fi
 
 if [[ "${QCTOOLSXML_CHOICE}" = "Yes" && ! "$(which qcli)" ]] ; then
     _report -w "Please install qcli to use the qctools reporting option."
