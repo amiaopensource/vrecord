@@ -171,8 +171,8 @@ _pashua_run() {
         RESULT=$("${PASHUAPATH}" "${PASHUA_CONFIGFILE}" | sed 's/ /;;;/g')
         # Parse result
         for LINE in ${RESULT} ; do
-            KEY=`echo ${LINE} | sed 's/^\([^=]*\)=.*$/\1/'`
-            VALUE=`echo ${LINE} | sed 's/^[^=]*=\(.*\)$/\1/' | sed 's/;;;/ /g'`
+            KEY=$(echo ${LINE} | sed 's/^\([^=]*\)=.*$/\1/')
+            VALUE=$(echo ${LINE} | sed 's/^[^=]*=\(.*\)$/\1/' | sed 's/;;;/ /g')
             VARNAME="${KEY}"
             VARVALUE="${VALUE}"
             eval "${VARNAME}"='${VARVALUE}'
