@@ -248,95 +248,6 @@ db.label = Exit
     fi
 }
 
-_set_up_drawtext(){
-    echo -e "%{pts:hms}
-
-  Y
- Low  %{metadata:lavfi.signalstats.YLOW}
- Avg  %{metadata:lavfi.signalstats.YAVG}
- High %{metadata:lavfi.signalstats.YHIGH}
- Diff %{metadata:lavfi.signalstats.YDIF}
-
-  U
- Low  %{metadata:lavfi.signalstats.ULOW}
- Avg  %{metadata:lavfi.signalstats.UAVG}
- High %{metadata:lavfi.signalstats.UHIGH}
- Diff %{metadata:lavfi.signalstats.UDIF}
-
-  V
- Low  %{metadata:lavfi.signalstats.VLOW}
- Avg  %{metadata:lavfi.signalstats.VAVG}
- High %{metadata:lavfi.signalstats.VHIGH}
- Diff %{metadata:lavfi.signalstats.VDIF}
-
-  SAT
- Low  %{metadata:lavfi.signalstats.SATLOW}
- Avg  %{metadata:lavfi.signalstats.SATAVG}
- High %{metadata:lavfi.signalstats.SATHIGH}
- " > /tmp/drawtext.txt
-
-    echo -e "
- 
- 
- 
- 
- 
- 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- HUE(med) %{metadata:lavfi.signalstats.HUEMED}
- HUE(avg) %{metadata:lavfi.signalstats.HUEAVG}
- TOUT     %{metadata:lavfi.signalstats.TOUT}
- VREP     %{metadata:lavfi.signalstats.VREP}
-
-
-" > /tmp/drawtext2.txt
-    echo -e "
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-BRNG
-%{metadata:lavfi.signalstats.BRNG}
-" > /tmp/drawtext3.txt
-}
-
 _duration_check(){
     # Sets up function to verify validitiy of duration settings
     if [[ -n "${DURATION}" ]] ; then
@@ -523,7 +434,94 @@ _yes_or_no(){
 }
 
 # set up drawtext.txt files in case needed
-_set_up_drawtext
+_set_up_drawtext(){
+    echo -e "%{pts:hms}
+
+  Y
+ Low  %{metadata:lavfi.signalstats.YLOW}
+ Avg  %{metadata:lavfi.signalstats.YAVG}
+ High %{metadata:lavfi.signalstats.YHIGH}
+ Diff %{metadata:lavfi.signalstats.YDIF}
+
+  U
+ Low  %{metadata:lavfi.signalstats.ULOW}
+ Avg  %{metadata:lavfi.signalstats.UAVG}
+ High %{metadata:lavfi.signalstats.UHIGH}
+ Diff %{metadata:lavfi.signalstats.UDIF}
+
+  V
+ Low  %{metadata:lavfi.signalstats.VLOW}
+ Avg  %{metadata:lavfi.signalstats.VAVG}
+ High %{metadata:lavfi.signalstats.VHIGH}
+ Diff %{metadata:lavfi.signalstats.VDIF}
+
+  SAT
+ Low  %{metadata:lavfi.signalstats.SATLOW}
+ Avg  %{metadata:lavfi.signalstats.SATAVG}
+ High %{metadata:lavfi.signalstats.SATHIGH}
+ " > /tmp/drawtext.txt
+
+    echo -e "
+ 
+ 
+ 
+ 
+ 
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ HUE(med) %{metadata:lavfi.signalstats.HUEMED}
+ HUE(avg) %{metadata:lavfi.signalstats.HUEAVG}
+ TOUT     %{metadata:lavfi.signalstats.TOUT}
+ VREP     %{metadata:lavfi.signalstats.VREP}
+
+
+" > /tmp/drawtext2.txt
+    echo -e "
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+BRNG
+%{metadata:lavfi.signalstats.BRNG}
+" > /tmp/drawtext3.txt
+}
 
 # select playback views
 
@@ -987,6 +985,7 @@ else
     done
 fi
 
+_set_up_drawtext
 _get_decklink_inputs
 GRAB_DECKLINK=(-f decklink)
 GRAB_DECKLINK+=(-draw_bars 0)
