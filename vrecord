@@ -93,6 +93,7 @@ elif [[ "${RUNTYPE}" = "record" || "${RUNTYPE}" = "edit" ]] ; then
 fi
 
 
+# local functions
 _get_iso8601(){
     date +%FT%T
 }
@@ -180,6 +181,7 @@ _pashua_run() {
     fi
 }
 
+# GUI dialog to set vrecord runtypes
 _master_gui(){
     GUI_CONF="
 # Set transparency: 0 is transparent, 1 is opaque
@@ -248,6 +250,7 @@ db.label = Exit
     fi
 }
 
+# check validity of duration value
 _duration_check(){
     # Sets up function to verify validity of duration settings
     if [[ -n "${DURATION}" ]] ; then
@@ -262,7 +265,7 @@ _duration_check(){
     fi
 }
 
-# This function creates a capture log of decisions made in vrecord
+# create a capture log of decisions made in vrecord
 _writeingestlog(){
     if [[ "${INGESTLOG}" ]] ; then
         KEY="${1}"
@@ -274,6 +277,7 @@ _writeingestlog(){
     fi
 }
 
+# set vrecord options as specified by user
 _lookup_video_input(){
     case "${1}" in
         "Composite") VIDEO_INPUT="composite" ;;
@@ -433,7 +437,7 @@ _yes_or_no(){
     esac
 }
 
-# set up drawtext.txt files in case needed
+# set up drawtext.txt files for Visual + Numerical playback view
 _set_up_drawtext(){
     echo -e "%{pts:hms}
 
@@ -523,7 +527,7 @@ BRNG
 " > /tmp/drawtext3.txt
 }
 
-# select playback views
+# select playback view
 WAVEFORM_FILTER="\
 format=yuv422p,\
 waveform=intensity=0.1:mode=column:mirror=1:c=1:f=lowpass:e=instant:graticule=green:flags=numbers+dots"
@@ -632,7 +636,7 @@ format=yuv420p10le|yuv422p10le|yuv444p10le|yuv440p10le,split=10[b0][b1][b2][b3][
     esac
 }
 
-# defines the GUI dialog
+# GUI dialog to set vrecord options (in edit mode)
 CONF="
 # Set transparency: 0 is transparent, 1 is opaque
 *.transparency=0.95
@@ -656,7 +660,7 @@ DIR.width=400
 LOGDIR.x = 20
 LOGDIR.y = 395
 LOGDIR.type = openbrowser
-LOGDIR.label = Select a directory for auxiliary files (Leave blank to set as same with recording dir).
+LOGDIR.label = Select a directory for auxiliary files (leave blank to match the recording directory).
 LOGDIR.default = ${LOGDIR}
 LOGDIR.filetype = directory
 LOGDIR.width=400
@@ -797,6 +801,7 @@ WARNING.type = text
 WARNING.default = WARNING: Do not use this option unless required
 "
 
+# list of selections for each vrecord option
 VIDEO_INPUT_OPTIONS=("Composite" "SDI" "Component" "S-Video" "quit")
 AUDIO_INPUT_OPTIONS=("Analog" "SDI Embedded Audio" "Digital Audio (AES/EBU)" "quit")
 CONTAINER_OPTIONS=("QuickTime" "Matroska" "AVI" "MXF" "quit")
@@ -808,6 +813,7 @@ QCTOOLSXML_OPTIONS=("Yes" "No" "quit")
 FRAMEMD5_OPTIONS=("Yes" "No" "quit")
 PLAYBACKVIEW_OPTIONS=("Quality Control View (mpv)" "Broadcast Range Visual" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes" "quit")
 
+# comments to be printed to vrecord config file; must be commented (start with #)
 CONFIG_COMMENT="# Set each value to empty quotes (like \"\") to prompt during run, or set to a provided option."
 DIR_COMMENT="#Set dir to the preferred recording directory or leave blank to request each run:"
 VIDEO_INPUT_CHOICE_COMMENT="# Set VIDEO_INPUT_CHOICE to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${VIDEO_INPUT_OPTIONS[@]}")"
@@ -843,7 +849,6 @@ elif [[ "${RUNTYPE}" = "edit" ]] ; then
     _pashua_run
     rm $PASHUA_CONFIGFILE
     if [[ "${cb}" = 0 ]] ; then
-        # check validity of duration value
         _duration_check
         # report back options
         if [[ -z "${LOGDIR}" ]] ; then
@@ -899,6 +904,7 @@ AUDIO_MAPPING_CHOICE="${AUDIO_MAPPING_CHOICE}"
 ${STANDARD_CHOICE_COMMENT}
 STANDARD_CHOICE="${STANDARD_CHOICE}"
 
+${QCTOOLSXML_CHOICE_COMMENT}
 QCTOOLSXML_CHOICE="${QCTOOLSXML_CHOICE}"
 
 ${FRAMEMD5_CHOICE_COMMENT}
@@ -939,6 +945,7 @@ if [[ "${INVERT_PHASE}" = 1 ]] ; then
     PHASE_VALUE="-1*"
 fi
 
+# terminal dialog for undeclared options (needed to set up passthrough modes)
 if [[ "${VIDEO_INPUT_CHOICE}" && "${VIDEO_INPUT_CHOICE}" != "${UNDECLAREDOPTION}" ]] ; then
     _lookup_video_input "${VIDEO_INPUT_CHOICE}"
 else
@@ -1005,6 +1012,7 @@ else
     done
 fi
 
+# set up input and playback
 _set_up_drawtext
 _get_decklink_inputs
 GRAB_DECKLINK=(-f decklink)
@@ -1206,6 +1214,8 @@ if [[ "${QCTOOLSXML_CHOICE}" = "Yes" && ! "$(which qcli)" ]] ; then
     _report -w "Such as \`brew install qcli\`."
     exit 1
 fi
+
+# vrecord process!
 if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
     "${FFMPEG_DECKLINK[@]}" \
         2> >(tee "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}" /tmp/vrecord_input.log >/dev/null) \
@@ -1273,6 +1283,7 @@ elif [[ "${FRAMEMD5_CHOICE}" = "No" ]] ; then
     fi
 fi
 
+# qc tools process
 if [[ "${QCTOOLSXML_CHOICE}" = "Yes" ]] ; then
     QCXML="${LOGDIR}/${ID}${SUFFIX}.${EXTENSION}.qctools.xml.gz"
     _report -d "Vrecord is analyzing your video file. Please be patient."
@@ -1301,7 +1312,7 @@ if [[ "${QCTOOLSXML_CHOICE}" = "Yes" ]] ; then
     _report -d "Analysis is complete."
 fi
 
-# policy checks
+# policy checks with mediaconch
 if [[ "${VIDEO_CODEC_CHOICE}" = "Uncompressed Video" ]] ; then
     STATUS=$(mediaconch -fx -p "${SCRIPTDIR}/vrecord_policy_uncompressed.xml" "${DIR}/${ID}${SUFFIX}.${EXTENSION}" | xmlstarlet sel -N mc="https://mediaarea.net/mediaconch" -t -v mc:MediaConch/mc:media/mc:policy/@outcome -n)
     if [[ "$STATUS" = "pass" ]] ; then
