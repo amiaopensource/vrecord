@@ -784,6 +784,7 @@ DURATION.x = 20
 DURATION.y = 60
 DURATION.type = combobox
 DURATION.label = Set recording time (integer or decimal) in minutes.
+DURATION.tooltip = Leave blank for indefinite recording time
 DURATION.default = ${DURATION}
 DURATION.option = 23
 DURATION.option = 33
