@@ -1264,12 +1264,12 @@ if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
     _report -d "Vrecord is analyzing your video file. Please be patient."
     if [[ -s "${QCXML}" ]] ; then
         if [[ "${pixel_format}" = "yuv422p10" ]] ; then
-            SAT_OUTLIERS=$(gzcat "${QCXML}" | xml sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>496])" -n)
+            SAT_OUTLIERS=$(gzcat "${QCXML}" | perl -nle 'print if not m{lavfi.(?!signalstats.SATMAX)}' | xml sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>496])" -n)
         elif [[ "${pixel_format}" = "uyvy422" ]] ; then
-            SAT_OUTLIERS=$(gzcat "${QCXML}" | xml sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>124])" -n)
+            SAT_OUTLIERS=$(gzcat "${QCXML}" | perl -nle 'print if not m{lavfi.(?!signalstats.SATMAX)}' | xml sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>124])" -n)
         fi
-        AUD_OUTLIERS=$(gzcat "${QCXML}" | xml sel -t -v "count(//tag[@key='lavfi.astats.Overall.Peak_level'][@value>=-0.01])" -n)
-        BRNG_OUTLIERS=$(gzcat "${QCXML}" | xml sel -t -v "count(//tag[@key='lavfi.signalstats.BRNG'][@value>=0.03])" -n)
+        AUD_OUTLIERS=$(gzcat "${QCXML}" | perl -nle 'print if not m{lavfi.(?!astats.Overall.Peak_level)}' | grep -v "tag key=\"lavfi.[^a]" | xml sel -t -v "count(//tag[@key='lavfi.astats.Overall.Peak_level'][@value>=-0.01])" -n)
+        BRNG_OUTLIERS=$(gzcat "${QCXML}" | perl -nle 'print if not m{lavfi.(?!signalstats.BRNG)}' | xml sel -t -v "count(//tag[@key='lavfi.signalstats.BRNG'][@value>=0.03])" -n)
         audio_peak=$(gzcat "${QCXML}" | grep lavfi.astats.Overall.Peak_level | cut -d '"' -f 4 | sort -n | tail -n 1)
         _writeingestlog "Peak Volume is (dB)" "${audio_peak}"
     else
