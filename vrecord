@@ -92,6 +92,7 @@ elif [[ "${RUNTYPE}" = "record" || "${RUNTYPE}" = "edit" ]] ; then
     exec "$(basename "${0}")" -e
 fi
 
+
 _get_iso8601(){
     date +%FT%T
 }
@@ -242,14 +243,13 @@ db.label = Exit
     elif [[ "${RUNTYPE}" = "GUI" ]] ; then
         echo "Exiting Vrecord. Goodbye!" && exit 0
     fi
-
     if [[ -f "${PASHUA_CONFIGFILE}" ]] ; then
         rm "${PASHUA_CONFIGFILE}"
     fi
 }
 
 _duration_check(){
-    # Sets up function to verify validitiy of duration settings
+    # Sets up function to verify validity of duration settings
     if [[ -n "${DURATION}" ]] ; then
         if ! [[ "${DURATION}" =~ ^$|^[0-9]+$|^[0-9]+\.[0-9]*$|^\.[0-9]+$ ]] ; then
             _report -w "Illegal value for recording time. Input must only be numbers."
@@ -524,11 +524,9 @@ BRNG
 }
 
 # select playback views
-
 WAVEFORM_FILTER="\
 format=yuv422p,\
 waveform=intensity=0.1:mode=column:mirror=1:c=1:f=lowpass:e=instant:graticule=green:flags=numbers+dots"
-
 VECTORSCOPE_FILTER="\
 format=yuv422p,\
 vectorscope=i=0.04:mode=color2:c=1:envelope=instant:graticule=green:flags=name,\
@@ -797,7 +795,7 @@ WARNING.x = 350
 WARNING.y = 0
 WARNING.type = text
 WARNING.default = WARNING: Do not use this option unless required
-";
+"
 
 VIDEO_INPUT_OPTIONS=("Composite" "SDI" "Component" "S-Video" "quit")
 AUDIO_INPUT_OPTIONS=("Analog" "SDI Embedded Audio" "Digital Audio (AES/EBU)" "quit")
@@ -829,7 +827,7 @@ if [[ "${RUNTYPE}" = "GUI" ]] ; then
     _master_gui
 fi
 if [[ "${RUNTYPE}" = "reset" ]] ; then
-    _report -q -n "Reseting the configuration will clear ${CONFIG_FILE}. Please enter [Y] to confirm: "
+    _report -q -n "Resetting the configuration will clear ${CONFIG_FILE}. Please enter [Y] to confirm: "
     read RESET_RESPONSE
     if [[ "${RESET_RESPONSE}" = [Yy] ]] ; then
         _report -d "Clearing ${CONFIG_FILE}."
@@ -1131,7 +1129,6 @@ else
         [[ "${?}" -eq 0 ]] && break
     done
 fi
-
 if [[ "${FRAMEMD5_CHOICE}" = "Yes" ]] ; then
     FRAMEMD5NAME="${LOGDIR}/${ID}${SUFFIX}.framemd5"
     EXTRAOUTPUTS=(-an -f framemd5 "${FRAMEMD5NAME}")
@@ -1158,7 +1155,6 @@ read
 # create log of vrecord decisions
 INGESTLOG="${LOGDIR}/${ID}_capture_options.log"
 touch "${INGESTLOG}"
-
 _writeingestlog "computer_name" "$(uname -n)"
 _writeingestlog "user_name" "$(whoami)"
 _writeingestlog "operating_system_VERSION" "$(uname -v)"
