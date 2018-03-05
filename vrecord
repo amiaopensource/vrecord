@@ -810,6 +810,21 @@ PLAYBACKVIEW_OPTIONS=("Quality Control View (mpv)" "Broadcast Range Visual" "Ful
 FRAMEMD5_OPTIONS=("Yes" "No" "quit")
 QCTOOLSXML_OPTIONS=("Yes" "No" "quit")
 
+CONFIG_COMMENT="# Set each value to empty quotes (like \"\") to prompt during run, or set to a provided option."
+DIR_COMMENT="#Set dir to the preferred recording directory or leave blank to request each run:"
+VIDEO_INPUT_CHOICE_COMMENT="# Set VIDEO_INPUT_CHOICE to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${VIDEO_INPUT_OPTIONS[@]}")"
+AUDIO_INPUT_CHOICE_COMMENT="#Set AUDIO_INPUT_CHOICE to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${AUDIO_INPUT_OPTIONS[@]}")"
+CONTAINER_CHOICE_COMMENT="#Set CONTAINER_CHOICE to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${CONTAINER_OPTIONS[@]}")"
+VIDEO_CODEC_CHOICE_COMMENT="#Set VIDEO_CODEC_CHOICE to one of these valid options or leave blank to request each run: $(printf "\"%s\" " "${VIDEO_CODEC_OPTIONS[@]}")"
+VIDEO_BIT_DEPTH_CHOICE_COMMENT="#Set VIDEO_BIT_DEPTH_CHOICE to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${VIDEO_BITDEPTH_OPTIONS[@]}")"
+AUDIO_MAPPING_CHOICE_COMMENT="#Set AUDIO_MAPPING_CHOICE to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${CHANNEL_MAPPING_OPTIONS[@]}")"
+STANDARD_CHOICE_COMMENT="#Set STANDARD_CHOICE to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${STANDARD_OPTIONS[@]}")"
+QCTOOLSXML_CHOICE_COMMENT="#Set QCTOOLSXML_CHOICE to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${QCTOOLSXML_OPTIONS[@]}")"
+FRAMEMD5_CHOICE_COMMENT="#Set FRAMEMD5_CHOICE to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${FRAMEMD5_OPTIONS[@]}")"
+PLAYBACKVIEW_CHOICE_COMMENT="#Set PLAYBACKVIEW_CHOICE to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${PLAYBACKVIEW_OPTIONS[@]}")"
+DURATION_COMMENT="#Set the recording time as a number (integer or decimal) in minutes."
+TECHNICIAN_COMMENT="#Enter the name of the person digitizing this tape."
+
 if [[ "${RUNTYPE}" = "GUI" ]] ; then
     _master_gui
 fi
@@ -825,22 +840,6 @@ if [[ "${RUNTYPE}" = "reset" ]] ; then
         exit 0
     fi
 elif [[ "${RUNTYPE}" = "edit" ]] ; then
-    # comments must be commented (start with #)
-    CONFIG_COMMENT="# Set each value to empty quotes (like \"\") to prompt during run, or set to a provided option."
-    VIDEO_INPUT_CHOICE_COMMENT="# Set VIDEO_INPUT_CHOICE to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${VIDEO_INPUT_OPTIONS[@]}")"
-    AUDIO_INPUT_CHOICE_COMMENT="#Set AUDIO_INPUT_CHOICE to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${AUDIO_INPUT_OPTIONS[@]}")"
-    STANDARD_CHOICE_COMMENT="#Set STANDARD_CHOICE to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${STANDARD_OPTIONS[@]}")"
-    PLAYBACKVIEW_CHOICE_COMMENT="#Set PLAYBACKVIEW_CHOICE to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${PLAYBACKVIEW_OPTIONS[@]}")"
-    FRAMEMD5_CHOICE_COMMENT="#Set FRAMEMD5_CHOICE to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${FRAMEMD5_OPTIONS[@]}")"
-    QCTOOLSXML_CHOICE_COMMENT="#Set QCTOOLSXML_CHOICE to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${QCTOOLSXML_OPTIONS[@]}")"
-    VIDEO_BIT_DEPTH_CHOICE_COMMENT="#Set VIDEO_BIT_DEPTH_CHOICE to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${VIDEO_BITDEPTH_OPTIONS[@]}")"
-    VIDEO_CODEC_CHOICE_COMMENT="#Set VIDEO_CODEC_CHOICE to one of these valid options or leave blank to request each run: $(printf "\"%s\" " "${VIDEO_CODEC_OPTIONS[@]}")"
-    AUDIO_MAPPING_CHOICE_COMMENT="#Set AUDIO_MAPPING_CHOICE to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${CHANNEL_MAPPING_OPTIONS[@]}")"
-    DIR_COMMENT="#Set dir to the preferred recording directory or leave blank to request each run:"
-    CONTAINER_CHOICE_COMMENT="#Set CONTAINER_CHOICE to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${CONTAINER_OPTIONS[@]}")"
-    DURATION_COMMENT="#Set the recording time as a number (integer or decimal) in minutes."
-    TECHNICIAN_COMMENT="#Enter the name of the person digitizing this tape."
-
     PASHUA_CONFIGFILE=$(/usr/bin/mktemp /tmp/pashua_XXXXXXXXX)
     echo "${CONF}" > $PASHUA_CONFIGFILE
     _pashua_run
