@@ -4,7 +4,7 @@
 # Open-source software for capturing a video signal and turning it into a digital file.
 
 SCRIPTDIR=$(dirname "${0}")
-CONFIG_FILE="$HOME/.$(basename "${0}").conf"
+CONFIG_FILE="${HOME}/.$(basename "${0}").conf"
 unset VERSION
 if [[ $(dirname "$(which "${0}")") = "/usr/local/bin" ]] ; then
     VERSION=$(TMP=$(brew info vrecord | grep ".*\*$" | grep -Eo "/vrecord/.* \(") ; echo ${TMP:9:(${#TMP}-11)})
@@ -146,8 +146,8 @@ _pashua_run() {
     # containing spaces.
     BUNDLEPATH="Pashua.app/Contents/MacOS/Pashua"
     MYPATH=$(dirname "$0")
-    for searchpath in "$MYPATH/Pashua" "${MYPATH}/${BUNDLEPATH}" "./${BUNDLEPATH}" \
-                      "/Applications/${BUNDLEPATH}" "$HOME/Applications/${BUNDLEPATH}"
+    for SEARCHPATH in "${MYPATH}/Pashua" "${MYPATH}/${BUNDLEPATH}" "./${BUNDLEPATH}" \
+                      "/Applications/${BUNDLEPATH}" "${HOME}/Applications/${BUNDLEPATH}"
     do
         if [ -f "${SEARCHPATH}" -a -x "${SEARCHPATH}" ] ; then
             PASHUAPATH="${SEARCHPATH}"
@@ -170,12 +170,12 @@ _pashua_run() {
         # Get result
         RESULT=$("${PASHUAPATH}" "${PASHUA_CONFIGFILE}" | sed 's/ /;;;/g')
         # Parse result
-        for LINE in $RESULT ; do
-            KEY=`echo $LINE | sed 's/^\([^=]*\)=.*$/\1/'`
-            VALUE=`echo $LINE | sed 's/^[^=]*=\(.*\)$/\1/' | sed 's/;;;/ /g'`
-            VARNAME=$KEY
-            VARVALUE="$VALUE"
-            eval "$VARNAME"='$VARVALUE'
+        for LINE in ${RESULT} ; do
+            KEY=`echo ${LINE} | sed 's/^\([^=]*\)=.*$/\1/'`
+            VALUE=`echo ${LINE} | sed 's/^[^=]*=\(.*\)$/\1/' | sed 's/;;;/ /g'`
+            VARNAME="${KEY}"
+            VARVALUE="${VALUE}"
+            eval "${VARNAME}"='${VARVALUE}'
         done
     fi
 }
@@ -366,35 +366,35 @@ _lookup_pixel_format(){
 _lookup_audio_mapping(){
     case "${1}" in
         "2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, Channels 3 & 4 -> 2nd Track Stereo)")
-            AUDIOMAP="[0:a:0]pan=stereo| c0=c0 | c1="$PHASE_VALUE"c1[stereo1];[0:a:0]pan=stereo| c0=c2 | c1=c3[stereo2]"
+            AUDIOMAP="[0:a:0]pan=stereo| c0=c0 | c1="${PHASE_VALUE}"c1[stereo1];[0:a:0]pan=stereo| c0=c2 | c1=c3[stereo2]"
             MAP1K="-map"
             MAP1V="[stereo1]"
             MAP2K="-map"
             MAP2V="[stereo2]"
             ;;
         "1 Stereo Track (From Channels 1 & 2)")
-            AUDIOMAP="[0:a:0]pan=stereo| c0=c0 | c1="$PHASE_VALUE"c1[stereo1]"
+            AUDIOMAP="[0:a:0]pan=stereo| c0=c0 | c1="${PHASE_VALUE}"c1[stereo1]"
             MAP1K="-map"
             MAP1V="[stereo1]"
             MAP2K=""
             MAP2V=""
             ;;
         "1 Stereo Track (From Channels 3 & 4)")
-            AUDIOMAP="[0:a:0]pan=stereo| c0=c2 | c1="$PHASE_VALUE"c3[stereo1]"
+            AUDIOMAP="[0:a:0]pan=stereo| c0=c2 | c1="${PHASE_VALUE}"c3[stereo1]"
             MAP1K="-map"
             MAP1V="[stereo1]"
             MAP2K=""
             MAP2V=""
             ;;
         "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono")
-            AUDIOMAP="[0:a:0]pan=mono| c0=c0[mono1];[0:a:0]pan=mono| c0="$PHASE_VALUE"c1[mono2]"
+            AUDIOMAP="[0:a:0]pan=mono| c0=c0[mono1];[0:a:0]pan=mono| c0="${PHASE_VALUE}"c1[mono2]"
             MAP1K="-map"
             MAP1V="[mono1]"
             MAP2K="-map"
             MAP2V="[mono2]"
             ;;
         "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono")
-            AUDIOMAP="[0:a:0]pan=mono| c0="$PHASE_VALUE"c1[mono1];[0:a:0]pan=mono| c0=c0[mono2]"
+            AUDIOMAP="[0:a:0]pan=mono| c0="${PHASE_VALUE}"c1[mono1];[0:a:0]pan=mono| c0=c0[mono2]"
             MAP1K="-map"
             MAP1V="[mono1]"
             MAP2K="-map"
