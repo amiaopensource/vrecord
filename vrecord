@@ -1139,6 +1139,11 @@ else
         [[ "${?}" -eq 0 ]] && break
     done
 fi
+if [[ "${QCTOOLSXML_CHOICE}" = "Yes" && ! "$(which qcli)" ]] ; then
+    _report -w "Please install qcli to use the qctools reporting option."
+    _report -w "Such as \`brew install qcli\`."
+    exit 1
+fi
 
 if [[ "${FRAMEMD5_CHOICE}" != "${UNDECLAREDOPTION}" ]] ; then
     echo ""
@@ -1201,12 +1206,6 @@ fi
 
 _report -d "Close the playback window to stop recording."
 export FFREPORT="file=${LOGDIR}/${ID}_%p_%t${FFMPEGLOGSUFFIX}"
-
-if [[ "${QCTOOLSXML_CHOICE}" = "Yes" && ! "$(which qcli)" ]] ; then
-    _report -w "Please install qcli to use the qctools reporting option."
-    _report -w "Such as \`brew install qcli\`."
-    exit 1
-fi
 
 # vrecord process!
 if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
