@@ -1255,24 +1255,6 @@ else
         fi
 fi
 
-if [[ "${QCTOOLSXML_CHOICE}" = "Yes" ]] ; then
-    QCXML="${LOGDIR}/${ID}${SUFFIX}.${EXTENSION}.qctools.xml.gz"
-    _report -d "Vrecord is analyzing your video file. Please be patient."
-    if [[ -s "${QCXML}" ]] ; then
-        if [[ "${PIXEL_FORMAT}" = "yuv422p10" ]] ; then
-            SAT_OUTLIERS=$(gzcat "${QCXML}" | xml sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>496])" -n)
-        elif [[ "${PIXEL_FORMAT}" = "uyvy422" ]] ; then
-            SAT_OUTLIERS=$(gzcat "${QCXML}" | xml sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>124])" -n)
-        fi
-        AUD_OUTLIERS=$(gzcat "${QCXML}" | xml sel -t -v "count(//tag[@key='lavfi.astats.Overall.Peak_level'][@value>=-0.01])" -n)
-        BRNG_OUTLIERS=$(gzcat "${QCXML}" | xml sel -t -v "count(//tag[@key='lavfi.signalstats.BRNG'][@value>=0.03])" -n)
-        AUDIO_PEAK=$(gzcat "${QCXML}" | grep lavfi.astats.Overall.Peak_level | cut -d '"' -f 4 | sort -n | tail -n 1)
-        _writeingestlog "Peak Volume is (dB)" "${AUDIO_PEAK}"
-    else
-        _report -w "qctools XML ${QCXML} is empty or does not exist!"
-    fi
-fi
-
 _writeingestlog "datetime_end" "$(_get_iso8601)"
 
 # check for discontinuities in the Frame MD5s
@@ -1298,17 +1280,32 @@ if [[ "${FRAMEMD5_CHOICE}" = "No" ]] ; then
         _writeingestlog "ffmpeg_missing_frames" "None"
     fi
 fi
-if [[ "${SAT_OUTLIERS}" -gt "${SAT_OUTLIER_THRSHLD}" ]] ; then
-    cowsay "$(_report -w "WARNING: Your video file contains ${SAT_OUTLIERS} frames with illegal saturation values. Your deck may require cleaning.")"
-fi
-if [[ "${AUD_OUTLIERS}" -gt "${AUD_OUTLIER_THRSHLD}" ]] ; then
-    cowsay "$(_report -w "WARNING: Your video file contains ${AUD_OUTLIERS} frames with clipped audio levels.")"
-fi
-if [[ "${BRNG_OUTLIERS}" -gt "${BRNG_OUTLIER_THRSHLD}" ]] ; then
-    cowsay "$(_report -w "WARNING: Your video file contains ${BRNG_OUTLIERS} frames with pixels out of broadcast range.")"
-fi
 
 if [[ "${QCTOOLSXML_CHOICE}" = "Yes" ]] ; then
+    QCXML="${LOGDIR}/${ID}${SUFFIX}.${EXTENSION}.qctools.xml.gz"
+    _report -d "Vrecord is analyzing your video file. Please be patient."
+    if [[ -s "${QCXML}" ]] ; then
+        if [[ "${PIXEL_FORMAT}" = "yuv422p10" ]] ; then
+            SAT_OUTLIERS=$(gzcat "${QCXML}" | xml sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>496])" -n)
+        elif [[ "${PIXEL_FORMAT}" = "uyvy422" ]] ; then
+            SAT_OUTLIERS=$(gzcat "${QCXML}" | xml sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>124])" -n)
+        fi
+        AUD_OUTLIERS=$(gzcat "${QCXML}" | xml sel -t -v "count(//tag[@key='lavfi.astats.Overall.Peak_level'][@value>=-0.01])" -n)
+        BRNG_OUTLIERS=$(gzcat "${QCXML}" | xml sel -t -v "count(//tag[@key='lavfi.signalstats.BRNG'][@value>=0.03])" -n)
+        AUDIO_PEAK=$(gzcat "${QCXML}" | grep lavfi.astats.Overall.Peak_level | cut -d '"' -f 4 | sort -n | tail -n 1)
+        _writeingestlog "Peak Volume is (dB)" "${AUDIO_PEAK}"
+    else
+        _report -w "qctools XML ${QCXML} is empty or does not exist!"
+    fi
+    if [[ "${SAT_OUTLIERS}" -gt "${SAT_OUTLIER_THRSHLD}" ]] ; then
+        cowsay "$(_report -w "WARNING: Your video file contains ${SAT_OUTLIERS} frames with illegal saturation values. Your deck may require cleaning.")"
+    fi
+    if [[ "${AUD_OUTLIERS}" -gt "${AUD_OUTLIER_THRSHLD}" ]] ; then
+        cowsay "$(_report -w "WARNING: Your video file contains ${AUD_OUTLIERS} frames with clipped audio levels.")"
+    fi
+    if [[ "${BRNG_OUTLIERS}" -gt "${BRNG_OUTLIER_THRSHLD}" ]] ; then
+        cowsay "$(_report -w "WARNING: Your video file contains ${BRNG_OUTLIERS} frames with pixels out of broadcast range.")"
+    fi
     _report -d "Analysis is complete."
 fi
 
