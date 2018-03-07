@@ -1322,7 +1322,7 @@ if [[ "${video_codec_choice}" = "Uncompressed Video" ]] ; then
     if [[ "$STATUS" = "pass" ]] ; then
         _report -dt "File passed policy check for uncompressed video."
     else
-        report -wt "File did not pass vrecord policy check for FFV1 video and may not conform to digital preservation standards. Try another file?"
+        _report -wt "File did not pass vrecord policy check for FFV1 video and may not conform to digital preservation standards. Try another file?"
         mediaconch -p "${SCRIPTDIR}/vrecord_policy_uncompressed.xml" "${dir}/${id}${suffix}.${extension}"
         mediaconch -fx -p "${SCRIPTDIR}/vrecord_policy_uncompressed.xml" "${dir}/${id}${suffix}.${extension}" | xmlstarlet fo > "${dir}/${id}${suffix}_mediaconchreport.xml"
         _report -wt "See ${dir}/${id}${suffix}_mediaconchreport.xml for a full MediaConch policy report."
