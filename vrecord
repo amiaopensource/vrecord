@@ -1348,9 +1348,9 @@ if [[ "${MAKEWAVEFORM_CHOICE}" = "Yes" ]] ; then
     threequarter_normalized_s=$(date -d@"${threequarter}" -u +%S)
 
     # Generate waveform with timestamps
-    ffmpeg -i "${dir}/${id}${suffix}.${extension}" -filter_complex "showwavespic=split_channels=1:s=1024x600[a],[a]drawtext=fontfile=/usr/share/fonts/truetype/freefont/FreeSerif.ttf:box=1:boxcolor=black:boxborderw=4:fontcolor=white:text='$midpoint_normalized_h\:$midpoint_normalized_m\:$midpoint_normalized_s':x=(w-text_w)/2:y=50[b],\
-    [b]drawtext=fontfile=/usr/share/fonts/truetype/freefont/FreeSerif.ttf:box=1:boxcolor=black:boxborderw=4:fontcolor=white:text='$onequarter_normalized_h\:$onequarter_normalized_m\:$onequarter_normalized_s':x=(w-text_w)/4:y=50[c],\
-    [c]drawtext=fontfile=/usr/share/fonts/truetype/freefont/FreeSerif.ttf:box=1:boxcolor=black:boxborderw=4:fontcolor=white:text='$threequarter_normalized_h\:$threequarter_normalized_m\:$threequarter_normalized_s':x=(w-text_w)*0.75:y=50[out1]" -map [out1] -y "${logdir}/${id}_audiowaveform.png"
+    ffmpeg -i "${dir}/${id}${suffix}.${extension}" -filter_complex "showwavespic=split_channels=1:s=1024x600[a],[a]drawtext=fontfile=${defaultfont}:box=1:boxcolor=black:boxborderw=4:fontcolor=white:text='$midpoint_normalized_h\:$midpoint_normalized_m\:$midpoint_normalized_s':x=(w-text_w)/2:y=50[b],\
+    [b]drawtext=fontfile=${defaultfont}:box=1:boxcolor=black:boxborderw=4:fontcolor=white:text='$onequarter_normalized_h\:$onequarter_normalized_m\:$onequarter_normalized_s':x=(w-text_w)/4:y=50[c],\
+    [c]drawtext=fontfile=${defaultfont}:box=1:boxcolor=black:boxborderw=4:fontcolor=white:text='$threequarter_normalized_h\:$threequarter_normalized_m\:$threequarter_normalized_s':x=(w-text_w)*0.75:y=50[out1]" -map [out1] -y "${logdir}/${id}_audiowaveform.png"
 fi
 
 # finally, check for frames dropped in decklink_input.log
