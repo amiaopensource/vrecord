@@ -98,7 +98,7 @@ _report(){
 }
 
 _get_decklink_inputs(){
-    DECKLINK_INPUTS=$("${FFMPEG_DECKLINK[@]}" -f decklink -list_devices 1 -i dummy 2>&1 | grep "^\[decklink" | grep "'" | cut -d "'" -f 2)
+    DECKLINK_INPUTS=$("${FFMPEG_DECKLINK[@]}" -f decklink -list_devices 1 -i dummy 2>&1 | grep -o "^\[decklink[^\]*][^']*'.*" | cut -d "'" -f2- | sed "s/'$//g")
     if [[ -z "${DECKLINK_INPUTS}" ]] ; then
         _report -w "No decklink inputs were found. Running \`${FFMPEG_DECKLINK} -hide_banner -f decklink -list_devices 1 -i dummy\` results in:"
         "${FFMPEG_DECKLINK[@]}" -hide_banner -f decklink -list_devices 1 -i dummy
