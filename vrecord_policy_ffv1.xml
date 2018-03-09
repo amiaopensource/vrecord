@@ -42,6 +42,7 @@
                 </policy>
             </policy>
         </policy>
+    </policy>
         <rule name="Is the video format FFV1?" value="Format" tracktype="Video" operator="=">FFV1</rule>
         <rule name="FFV1 is version 3.4 or later?" value="Format_Version" tracktype="Video" operator="&gt;=">3.4</rule>
         <rule name="FFV1 is encoded in GOP size of 1?" value="Format_Settings_GOP" tracktype="Video" operator="=">N=1</rule>
@@ -89,5 +90,4 @@
             <rule name="1 channel of audio?" value="Channels" tracktype="Audio" operator="=">1</rule>
             <rule name="2 channels of audio?" value="Channels" tracktype="Audio" operator="=">2</rule>
         </policy>
-    </policy>
 </policy>
