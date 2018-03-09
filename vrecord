@@ -45,7 +45,7 @@ _usage(){
 $(basename "${0}") ${version}
 
 $(basename "${0}") will record a file via the Blackmagic SDK and ffmpeg. It is an
-interactive script and will create 8 or 10-bit video files.
+interactive script and will create 10 or 8-bit video files.
 
 Dependencies: cowsay, amiaopensource/amiaos/ffmpegdecklink --with-sdl2
   --with-freetype --with-openjpeg, mpv, qcli, and xmlstarlet
