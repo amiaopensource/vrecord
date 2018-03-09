@@ -45,7 +45,7 @@ _usage(){
 $(basename "${0}") ${VERSION}
 
 $(basename "${0}") will record a file via the Blackmagic SDK and ffmpeg. It is an
-interactive script and will create 8 or 10-bit video files.
+interactive script and will create 10 or 8-bit video files.
 
 Dependencies: cowsay, amiaopensource/amiaos/ffmpegdecklink --with-sdl2
   --with-freetype --with-openjpeg, mpv, qcli, and xmlstarlet
@@ -123,11 +123,16 @@ _report(){
 }
 
 _get_decklink_inputs(){
-    DECKLINK_INPUTS=$("${FFMPEG_DECKLINK[@]}" -f decklink -list_devices 1 -i dummy 2>&1 | grep "^\[decklink" | grep "'" | cut -d "'" -f 2)
+    DECKLINK_INPUTS=$("${FFMPEG_DECKLINK[@]}" -f decklink -list_devices 1 -i dummy 2>&1 | grep -o "^\[decklink[^\]*][^']*'.*" | cut -d "'" -f2- | sed "s/'$//g")
     if [[ -z "${DECKLINK_INPUTS}" ]] ; then
         _report -w "No decklink inputs were found. Running \`${FFMPEG_DECKLINK} -hide_banner -f decklink -list_devices 1 -i dummy\` results in:"
-        "${FFMPEG_DECKLINK[@]}" -hide_banner -f decklink -list_devices 1 -i dummy
-        _report -w "Please check connections and try again."
+        DECKLINK_RESULT=$("${FFMPEG_DECKLINK[@]}" -hide_banner -f decklink -list_devices 1 -i dummy)
+        echo "${DECKLINK_RESULT}"
+        if [[ "$(echo "${DECKLINK_RESULT}" | grep -c "Could not create DeckLink iterator")" ]] ; then
+            _report -w "You may need a newer version of Blackmagic Desktop Video, see https://www.blackmagicdesign.com/support/."
+        else
+            _report -w "Please check connections and try again."
+        fi
         exit 1
     else
         FIRST_DECKLINK_INPUT="$(echo "${DECKLINK_INPUTS}" | head -n 1 )"
@@ -444,6 +449,12 @@ _yes_or_no(){
     esac
 }
 
+_frames_to_hhmmss(){
+    framerate=$(grep "fps=" "${logdir}/${id}${capturelogsuffix}" | cut -d' ' -f 5)
+    num=$(echo "scale=0; $i / $framerate" | bc)
+    printf "%02d:%02d:%02d\n" $(($num/3600)) $(($num%3600/60)) $(($num%60))
+}
+
 # set up drawtext.txt files for Visual + Numerical playback view
 _set_up_drawtext(){
     echo -e "%{pts:hms}
@@ -576,7 +587,7 @@ split=5[a][b][c][d][e];\
 [c1]${WAVEFORM_FILTER}[c2];\
 [a][b2][c2]vstack=inputs=3,format=yuv422p[abc1];\
 [d]${VECTORSCOPE_FILTER}[d1];\
-[e]format=yuv444p,lutyuv=y=if(gte(val\,254)\,1\,if(lte(val\,1)\,254\,val)):u=val:v=val,scale=512:ih[e1];\
+[e]format=yuv444p,pseudocolor=if(between(1\,val\,amax)+between(val\,254\,amax)\,65\,-1):if(between(1\,val\,amax)+between(val\,254\,amax)\,100\,-1):if(between(1\,val\,amax)+between(val\,254\,amax)\,212\,-1),scale=512:ih[e1];\
 [e1][d1]vstack[de1];\
 [abc1][de1]hstack"
           ;;
@@ -1281,12 +1292,12 @@ if [[ "${QCTOOLSXML_CHOICE}" = "Yes" ]] ; then
     _report -d "Vrecord is analyzing your video file. Please be patient."
     if [[ -s "${QCXML}" ]] ; then
         if [[ "${PIXEL_FORMAT}" = "yuv422p10" ]] ; then
-            SAT_OUTLIERS=$(gzcat "${QCXML}" | xml sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>496])" -n)
+            SAT_OUTLIERS=$(gzcat "${QCXML}" | perl -nle 'print if not m{lavfi.(?!signalstats.SATMAX)}' | xml sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>496])" -n)
         elif [[ "${PIXEL_FORMAT}" = "uyvy422" ]] ; then
-            SAT_OUTLIERS=$(gzcat "${QCXML}" | xml sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>124])" -n)
+            SAT_OUTLIERS=$(gzcat "${QCXML}" | perl -nle 'print if not m{lavfi.(?!signalstats.SATMAX)}' | xml sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>124])" -n)
         fi
-        AUD_OUTLIERS=$(gzcat "${QCXML}" | xml sel -t -v "count(//tag[@key='lavfi.astats.Overall.Peak_level'][@value>=-0.01])" -n)
-        BRNG_OUTLIERS=$(gzcat "${QCXML}" | xml sel -t -v "count(//tag[@key='lavfi.signalstats.BRNG'][@value>=0.03])" -n)
+        AUD_OUTLIERS=$(gzcat "${QCXML}" | perl -nle 'print if not m{lavfi.(?!astats.Overall.Peak_level)}' | grep -v "tag key=\"lavfi.[^a]" | xml sel -t -v "count(//tag[@key='lavfi.astats.Overall.Peak_level'][@value>=-0.01])" -n)
+        BRNG_OUTLIERS=$(gzcat "${QCXML}" | perl -nle 'print if not m{lavfi.(?!signalstats.BRNG)}' | xml sel -t -v "count(//tag[@key='lavfi.signalstats.BRNG'][@value>=0.03])" -n)
         AUDIO_PEAK=$(gzcat "${QCXML}" | grep lavfi.astats.Overall.Peak_level | cut -d '"' -f 4 | sort -n | tail -n 1)
         _writeingestlog "Peak Volume is (dB)" "${AUDIO_PEAK}"
     else
@@ -1301,6 +1312,31 @@ if [[ "${QCTOOLSXML_CHOICE}" = "Yes" ]] ; then
     if [[ "${BRNG_OUTLIERS}" -gt "${BRNG_OUTLIER_THRSHLD}" ]] ; then
         cowsay "$(_report -w "WARNING: Your video file contains ${BRNG_OUTLIERS} frames with pixels out of broadcast range.")"
     fi
+fi
+
+# finally, check for frames dropped in decklink_input.log
+DROPPED_FRAMES_INSTANCES=$(grep -c "Frames dropped" "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}")
+DROPPED_FRAMES_FRAMENUMBERS=$(grep "Frames dropped" "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}" | awk '{print $6}' | sed 's/[(#)]//g')
+if [[ "${DROPPED_FRAMES_INSTANCES}" -gt 0 ]] ; then
+    cowsay "$(_report -w "WARNING: FFmpeg Decklink input reported dropped frames in the following ${DROPPED_FRAMES_INSTANCES} locations. The file may have sync issues.")"
+    for i in ${DROPPED_FRAMES_FRAMENUMBERS} ; do
+        DROPPED_FRAMES_TIMESTAMPS+="$(_frames_to_hhmmss $i) "
+    done
+    _report -w "Dropped frames locations: ${DROPPED_FRAMES_TIMESTAMPS}"
+    _writeingestlog "DROPPED_FRAMES_TIMESTAMPS" "${DROPPED_FRAMES_TIMESTAMPS}"
+fi
+
+if [[ "${SAT_OUTLIERS}" -gt "${SAT_OUTLIER_THRSHLD}" ]] ; then
+    cowsay "$(_report -w "WARNING: Your video file contains ${SAT_OUTLIERS} frames with illegal saturation values. Your deck may require cleaning.")"
+fi
+if [[ "${AUD_OUTLIERS}" -gt "${AUD_OUTLIER_THRSHLD}" ]] ; then
+    cowsay "$(_report -w "WARNING: Your video file contains ${AUD_OUTLIERS} frames with clipped audio levels.")"
+fi
+if [[ "${BRNG_OUTLIERS}" -gt "${BRNG_OUTLIER_THRSHLD}" ]] ; then
+    cowsay "$(_report -w "WARNING: Your video file contains ${BRNG_OUTLIERS} frames with pixels out of broadcast range.")"
+fi
+
+if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
     _report -d "Analysis is complete."
 fi
 
@@ -1310,10 +1346,10 @@ if [[ "${VIDEO_CODEC_CHOICE}" = "Uncompressed Video" ]] ; then
     if [[ "$STATUS" = "pass" ]] ; then
         _report -dt "File passed policy check for uncompressed video."
     else
-        report -wt "File did not pass vrecord policy check for FFV1 video and may not conform to digital preservation STANDARDs. Try another file?"
-        mediaconch -p "${SCRIPTDIR}/vrecord_policy_uncompressed.xml" "${DIR}/${ID}${SUFFIX}.${EXTENSION}"
-        mediaconch -fx -p "${SCRIPTDIR}/vrecord_policy_uncompressed.xml" "${DIR}/${ID}${SUFFIX}.${EXTENSION}" | xmlstarlet fo > "${DIR}/${ID}${SUFFIX}_mediaconchreport.xml"
-        _report -wt "See ${DIR}/${ID}${SUFFIX}_mediaconchreport.xml for a full MediaConch policy report."
+        _report -wt "File did not pass vrecord policy check for FFV1 video and may not conform to digital preservation standards. Try another file?"
+        mediaconch -p "${SCRIPTDIR}/vrecord_policy_uncompressed.xml" "${dir}/${id}${suffix}.${extension}"
+        mediaconch -fx -p "${SCRIPTDIR}/vrecord_policy_uncompressed.xml" "${dir}/${id}${suffix}.${extension}" | xmlstarlet fo > "${dir}/${id}${suffix}_mediaconchreport.xml"
+        _report -wt "See ${dir}/${id}${suffix}_mediaconchreport.xml for a full MediaConch policy report."
     fi
 elif [[ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" ]] ; then
     STATUS=$(mediaconch -fx -p "${SCRIPTDIR}/vrecord_policy_ffv1.xml" "${DIR}/${ID}${SUFFIX}.${EXTENSION}" | xmlstarlet sel -N mc="https://mediaarea.net/mediaconch" -t -v mc:MediaConch/mc:media/mc:policy/@outcome -n)
