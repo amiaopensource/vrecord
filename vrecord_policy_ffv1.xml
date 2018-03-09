@@ -66,7 +66,7 @@
             <rule name="NTSC height 486?" value="Height" tracktype="Video" operator="=">486</rule>
             <rule name="NTSC width 720?" value="Width" tracktype="Video" operator="=">720</rule>
             <rule name="NTSC FrameRate 29.970?" value="FrameRate" tracktype="Video" operator="=">29.970</rule>
-            <rule name="NTSC BitRate Mode CBR?" value="BitRate_Mode" tracktype="Video" ooperator="=">CBR</rule>
+            <rule name="NTSC BitRate Mode CBR?" value="BitRate_Mode" tracktype="Video" operator="=">CBR</rule>
             <rule name="NTSC pixel aspect ratio 0.900?" value="PixelAspectRatio" tracktype="Video" operator="=">0.900</rule>
             <rule name="NTSC scan order bottom field first?" value="ScanOrder" tracktype="Video" operator="=">BFF</rule>
             <rule name="NTSC colour primaries BT.601 NTSC?" value="colour_primaries" tracktype="Video" operator="=">BT.601 NTSC</rule>
