@@ -544,7 +544,7 @@ split=5[a][b][c][d][e];\
 [c1]${WAVEFORM_FILTER}[c2];\
 [a][b2][c2]vstack=inputs=3,format=yuv422p[abc1];\
 [d]${VECTORSCOPE_FILTER}[d1];\
-[e]format=yuv444p,lutyuv=y=if(gte(val\,254)\,1\,if(lte(val\,1)\,254\,val)):u=val:v=val,scale=512:ih[e1];\
+[e]format=yuv444p,pseudocolor=if(between(1\,val\,amax)+between(val\,254\,amax)\,65\,-1):if(between(1\,val\,amax)+between(val\,254\,amax)\,100\,-1):if(between(1\,val\,amax)+between(val\,254\,amax)\,212\,-1),scale=512:ih[e1];\
 [e1][d1]vstack[de1];\
 [abc1][de1]hstack"
           ;;
