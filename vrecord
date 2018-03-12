@@ -1337,15 +1337,15 @@ if [[ "${MAKEWAVEFORM_CHOICE}" = "Yes" ]] ; then
     threequarter=$((total_duration / 4 * 3))
 
     # Get sub-length components for drawtext
-    onequarter_normalized_h=$((onequarter/3600))
-    onequarter_normalized_m=$((onequarter%3600/60))
-    onequarter_normalized_s=$((onequarter%60))
-    midpoint_normalized_h=$((midpoint/3600))
-    midpoint_normalized_m=$((midpoint%3600/60))
-    midpoint_normalized_s=$((midpoint%60))
-    threequarter_normalized_h=$((threequarter/3600))
-    threequarter_normalized_m=$((threequarter%3600/60))
-    threequarter_normalized_s=$((threequarter%60))
+    onequarter_normalized_h=$(printf '%02i' $((onequarter/3600)))
+    onequarter_normalized_m=$(printf '%02i' $((onequarter%3600/60)))
+    onequarter_normalized_s=$(printf '%02i' $((onequarter%60)))
+    midpoint_normalized_h=$(printf '%02i' $((midpoint/3600)))
+    midpoint_normalized_m=$(printf '%02i' $((midpoint%3600/60)))
+    midpoint_normalized_s=$(printf '%02i' $((midpoint%60)))
+    threequarter_normalized_h=$(printf '%02i' $((threequarter/3600)))
+    threequarter_normalized_m=$(printf '%02i' $((threequarter%3600/60)))
+    threequarter_normalized_s=$(printf '%02i' $((threequarter%60)))
 
     # Generate waveform with timestamps
     ffmpeg -i "${dir}/${id}${suffix}.${extension}" -filter_complex "showwavespic=split_channels=1:s=1024x600[a],[a]drawtext=fontfile=${defaultfont}:box=1:boxcolor=black:boxborderw=4:fontcolor=white:text='$midpoint_normalized_h\:$midpoint_normalized_m\:$midpoint_normalized_s':x=(w-text_w)/2:y=50[b],\
