@@ -1312,6 +1312,7 @@ if [[ "${QCTOOLSXML_CHOICE}" = "Yes" ]] ; then
     if [[ "${BRNG_OUTLIERS}" -gt "${BRNG_OUTLIER_THRSHLD}" ]] ; then
         cowsay "$(_report -w "WARNING: Your video file contains ${BRNG_OUTLIERS} frames with pixels out of broadcast range.")"
     fi
+    _report -d "QCTools analysis is complete."
 fi
 
 # finally, check for frames dropped in decklink_input.log
@@ -1324,20 +1325,6 @@ if [[ "${DROPPED_FRAMES_INSTANCES}" -gt 0 ]] ; then
     done
     _report -w "Dropped frames locations: ${DROPPED_FRAMES_TIMESTAMPS}"
     _writeingestlog "DROPPED_FRAMES_TIMESTAMPS" "${DROPPED_FRAMES_TIMESTAMPS}"
-fi
-
-if [[ "${SAT_OUTLIERS}" -gt "${SAT_OUTLIER_THRSHLD}" ]] ; then
-    cowsay "$(_report -w "WARNING: Your video file contains ${SAT_OUTLIERS} frames with illegal saturation values. Your deck may require cleaning.")"
-fi
-if [[ "${AUD_OUTLIERS}" -gt "${AUD_OUTLIER_THRSHLD}" ]] ; then
-    cowsay "$(_report -w "WARNING: Your video file contains ${AUD_OUTLIERS} frames with clipped audio levels.")"
-fi
-if [[ "${BRNG_OUTLIERS}" -gt "${BRNG_OUTLIER_THRSHLD}" ]] ; then
-    cowsay "$(_report -w "WARNING: Your video file contains ${BRNG_OUTLIERS} frames with pixels out of broadcast range.")"
-fi
-
-if [[ "${QCTOOLSXML_CHOICE}" = "Yes" ]] ; then
-    _report -d "Analysis is complete."
 fi
 
 # policy checks with mediaconch
