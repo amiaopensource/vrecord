@@ -1336,7 +1336,7 @@ if [[ "${BRNG_OUTLIERS}" -gt "${BRNG_OUTLIER_THRSHLD}" ]] ; then
     cowsay "$(_report -w "WARNING: Your video file contains ${BRNG_OUTLIERS} frames with pixels out of broadcast range.")"
 fi
 
-if [[ "${qctoolsxml_choice}" = "Yes" ]] ; then
+if [[ "${QCTOOLSXML_CHOICE}" = "Yes" ]] ; then
     _report -d "Analysis is complete."
 fi
 
@@ -1346,17 +1346,17 @@ if [[ "${VIDEO_CODEC_CHOICE}" = "Uncompressed Video" ]] ; then
     if [[ "$STATUS" = "pass" ]] ; then
         _report -dt "File passed policy check for uncompressed video."
     else
-        _report -wt "File did not pass vrecord policy check for FFV1 video and may not conform to digital preservation standards. Try another file?"
-        mediaconch -p "${SCRIPTDIR}/vrecord_policy_uncompressed.xml" "${dir}/${id}${suffix}.${extension}"
-        mediaconch -fx -p "${SCRIPTDIR}/vrecord_policy_uncompressed.xml" "${dir}/${id}${suffix}.${extension}" | xmlstarlet fo > "${dir}/${id}${suffix}_mediaconchreport.xml"
-        _report -wt "See ${dir}/${id}${suffix}_mediaconchreport.xml for a full MediaConch policy report."
+        _report -wt "File did not pass vrecord policy check for uncompressed video and may not conform to digital preservation standards. Try another file?"
+        mediaconch -p "${SCRIPTDIR}/vrecord_policy_uncompressed.xml" "${DIR}/${ID}${SUFFIX}.${EXTENSION}"
+        mediaconch -fx -p "${SCRIPTDIR}/vrecord_policy_uncompressed.xml" "${DIR}/${ID}${SUFFIX}.${EXTENSION}" | xmlstarlet fo > "${DIR}/${ID}${SUFFIX}_mediaconchreport.xml"
+        _report -wt "See ${DIR}/${ID}${SUFFIX}_mediaconchreport.xml for a full MediaConch policy report."
     fi
 elif [[ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" ]] ; then
     STATUS=$(mediaconch -fx -p "${SCRIPTDIR}/vrecord_policy_ffv1.xml" "${DIR}/${ID}${SUFFIX}.${EXTENSION}" | xmlstarlet sel -N mc="https://mediaarea.net/mediaconch" -t -v mc:MediaConch/mc:media/mc:policy/@outcome -n)
     if [[ "${STATUS}" = "pass" ]] ; then
         _report -dt "File passed policy check for FFV1 video."
     else
-        _report -wt "File did not pass vrecord policy check for FFV1 video and may not conform to digital preservation STANDARDs. Try another file?"
+        _report -wt "File did not pass vrecord policy check for FFV1 video and may not conform to digital preservation standards. Try another file?"
         mediaconch -p "${SCRIPTDIR}/vrecord_policy_ffv1.xml" "${DIR}/${ID}${SUFFIX}.${EXTENSION}"
         mediaconch -fx -p "${SCRIPTDIR}/vrecord_policy_ffv1.xml" "${DIR}/${ID}${SUFFIX}.${EXTENSION}" | xmlstarlet fo > "${DIR}/${ID}${SUFFIX}_mediaconchreport.xml"
         _report -wt "See ${DIR}/${ID}${SUFFIX}_mediaconchreport.xml for a full MediaConch policy report."
