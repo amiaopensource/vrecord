@@ -7,7 +7,7 @@ SCRIPTDIR=$(dirname "${0}")
 CONFIG_FILE="${HOME}/.$(basename "${0}").conf"
 unset VERSION
 if [[ $(dirname "$(command -v "${0}")") = "/usr/local/bin" ]] ; then
-    VERSION=$(TMP=$(brew info vrecord | grep ".*\*$" | grep -Eo "/vrecord/.* \(") ; echo ${TMP:9:(${#TMP}-11)})
+    VERSION=$(TMP=$(brew info vrecord | grep ".*\*$" | grep -Eo "/vrecord/.* \(") ; echo "${TMP:9:(${#TMP}-11)}")
 fi
 LOGO_PATH="/usr/local/Cellar/vrecord/${VERSION}"
 unset INPUTOPTIONS
@@ -176,8 +176,8 @@ _pashua_run() {
         RESULT=$("${PASHUAPATH}" "${PASHUA_CONFIGFILE}" | sed 's/ /;;;/g')
         # Parse result
         for LINE in ${RESULT} ; do
-            KEY=$(echo ${LINE} | sed 's/^\([^=]*\)=.*$/\1/')
-            VALUE=$(echo ${LINE} | sed 's/^[^=]*=\(.*\)$/\1/' | sed 's/;;;/ /g')
+            KEY=$(echo "${LINE}" | sed 's/^\([^=]*\)=.*$/\1/')
+            VALUE=$(echo "${LINE}" | sed 's/^[^=]*=\(.*\)$/\1/' | sed 's/;;;/ /g')
             VARNAME="${KEY}"
             VARVALUE="${VALUE}"
             eval "${VARNAME}"='${VARVALUE}'
@@ -864,9 +864,9 @@ if [[ "${RUNTYPE}" = "reset" ]] ; then
     fi
 elif [[ "${RUNTYPE}" = "edit" ]] ; then
     PASHUA_CONFIGFILE=$(/usr/bin/mktemp /tmp/pashua_XXXXXXXXX)
-    echo "${CONF}" > $PASHUA_CONFIGFILE
+    echo "${CONF}" > "${PASHUA_CONFIGFILE}"
     _pashua_run
-    rm $PASHUA_CONFIGFILE
+    rm "${PASHUA_CONFIGFILE}"
     if [[ "${cb}" = 0 ]] ; then
         _duration_check
         # report back options
@@ -1320,7 +1320,7 @@ DROPPED_FRAMES_FRAMENUMBERS=$(grep "Frames dropped" "${LOGDIR}/${ID}${CAPTURELOG
 if [[ "${DROPPED_FRAMES_INSTANCES}" -gt 0 ]] ; then
     cowsay "$(_report -w "WARNING: FFmpeg Decklink input reported dropped frames in the following ${DROPPED_FRAMES_INSTANCES} locations. The file may have sync issues.")"
     for i in ${DROPPED_FRAMES_FRAMENUMBERS} ; do
-        DROPPED_FRAMES_TIMESTAMPS+="$(_frames_to_hhmmss $i) "
+        DROPPED_FRAMES_TIMESTAMPS+="$(_frames_to_hhmmss "${i}") "
     done
     _report -w "Dropped frames locations: ${DROPPED_FRAMES_TIMESTAMPS}"
     _writeingestlog "DROPPED_FRAMES_TIMESTAMPS" "${DROPPED_FRAMES_TIMESTAMPS}"
