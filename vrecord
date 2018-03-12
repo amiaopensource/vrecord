@@ -6,7 +6,7 @@
 SCRIPTDIR=$(dirname "${0}")
 CONFIG_FILE="${HOME}/.$(basename "${0}").conf"
 unset VERSION
-if [[ $(dirname "$(which "${0}")") = "/usr/local/bin" ]] ; then
+if [[ $(dirname "$(command -v "${0}")") = "/usr/local/bin" ]] ; then
     VERSION=$(TMP=$(brew info vrecord | grep ".*\*$" | grep -Eo "/vrecord/.* \(") ; echo ${TMP:9:(${#TMP}-11)})
 fi
 LOGO_PATH="/usr/local/Cellar/vrecord/${VERSION}"
@@ -1150,7 +1150,7 @@ else
         [[ "${?}" -eq 0 ]] && break
     done
 fi
-if [[ "${QCTOOLSXML_CHOICE}" = "Yes" && ! "$(which qcli)" ]] ; then
+if [[ "${QCTOOLSXML_CHOICE}" = "Yes" && ! "$(command -v qcli)" ]] ; then
     _report -w "Please install qcli to use the qctools reporting option."
     _report -w "Such as \`brew install qcli\`."
     exit 1
