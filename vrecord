@@ -1035,6 +1035,7 @@ if [[ "${PLAYBACKVIEW_CHOICE}" = "Full Range Visual" ]] ; then
 else
     MIDDLEOPTIONS+=(-color_range mpeg)
 fi
+MIDDLEOPTIONS+=(-metadata creation_time=now)
 
 # set up input and playback
 _set_up_drawtext
