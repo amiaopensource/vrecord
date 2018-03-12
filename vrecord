@@ -82,7 +82,7 @@ while getopts ":herpaxg" opt ; do
         *) _report -w "Error: bad option -$OPTARG" ; _usage ; exit 1 ;;
     esac
 done
-shift $(( ${OPTIND} - 1 ))
+shift $((OPTIND-1))
 
 if [[ -f "${CONFIG_FILE}" ]] ; then
     . "${CONFIG_FILE}"
@@ -117,7 +117,7 @@ _report(){
             n) ECHOOPT="-n" ;;                           # to avoid line breaks after echo
         esac
     done
-    shift $(( ${OPTIND} - 1 ))
+    shift $((OPTIND-1))
     MESSAGE="${1}"
     echo ${ECHOOPT} "${COLOR}${STARTMESSAGE[@]}${MESSAGE}${NC}"
 }
@@ -262,7 +262,7 @@ _duration_check(){
             _report -w "Illegal value for recording time. Input must only be numbers."
             exit 1
         fi
-        if [[ 1 -eq "$(echo "${DURATION} == 0" | bc)" ]] ; then
+        if (( $(bc <<< "$DURATION == 0") )) ; then
             _report -w "A recording duration of zero is invalid."
             exit 1
         fi
@@ -451,8 +451,8 @@ _yes_or_no(){
 
 _frames_to_hhmmss(){
     framerate=$(grep "fps=" "${logdir}/${id}${capturelogsuffix}" | cut -d' ' -f 5)
-    num=$(echo "scale=0; $i / $framerate" | bc)
-    printf "%02d:%02d:%02d\n" $(($num/3600)) $(($num%3600/60)) $(($num%60))
+    num=$(bc <<< "scale=0; ${i} / ${framerate}")
+    printf "%02d:%02d:%02d\n" $((num/3600)) $((num%3600/60)) $((num%60))
 }
 
 # set up drawtext.txt files for Visual + Numerical playback view
@@ -1173,7 +1173,7 @@ fi
 
 _duration_check
 if [[ -n "${DURATION}" ]] ; then
-    DUR_SECONDS=$(echo "${DURATION} * 60" | bc)
+    DUR_SECONDS=$(bc <<< "${DURATION} * 60")
     INPUTOPTIONS=(-t "${DUR_SECONDS}")
 fi
 
@@ -1277,8 +1277,8 @@ if [[ "${FRAMEMD5_CHOICE}" = "Yes" ]] ; then
 elif [[ "${FRAMEMD5_CHOICE}" = "No" ]] ; then
     FRAMES_ENCODED=$(cat "${LOGDIR}/${ID}"_ffmpeg_*.log | grep -w "frames encoded" | awk '{print $10}' | grep -m 1 [0-9])
     FRAMES_DECODED=$(cat "${LOGDIR}/${ID}"_ffmpeg_*.log | grep -w "frames decoded" | awk '{print $10}' | grep -m 1 [0-9])
-    if [[ "${FRAMES_ENCODED}" -lt $((${FRAMES_DECODED}-1)) ]] ; then
-        FRAMES_DISCREPANCY=$((${FRAMES_DECODED}-${FRAMES_ENCODED}))
+    if [[ "${FRAMES_ENCODED}" -lt $((FRAMES_DECODED-1)) ]] ; then
+        FRAMES_DISCREPANCY=$((FRAMES_DECODED-FRAMES_ENCODED))
         cowsay "$(_report -w "WARNING: FFmpeg reported missing frames. The file may have sync issues.")" 
         _writeingestlog "ffmpeg_missing_frames" "${FRAMES_DISCREPANCY}"
     else
