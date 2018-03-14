@@ -22,6 +22,19 @@
                     <rule name="Are the matrix coefficients BT.470 System B, BT.470 System G?" value="matrix_coefficients" tracktype="Video" operator="=">BT.470 System B, BT.470 System G</rule>
                 </policy>
             </policy>
+            <policy type="and" name="Has Matroska finished writing?"
+                <rule name="Duration is greater than zero?" scope="mmt" operator="&gt;" value="Segment/Info/Duration/Data">0</rule>
+                <rule name="SeekHead is present?" scope="mmt" value="Segment/SeekHead/"/>
+                <rule name="Cues is present?" scope="mmt" value="Segment/Cues/"/>
+                <policy type="and" name="Select Top-Level Elements have CRCs?">
+                    <rule name="SeekHead CRC-32 is present?" scope="mmt" value="Segment/SeekHead/CRC-32/"/>
+                    <rule name="Info CRC-32 is present?" scope="mmt" value="Segment/Info/CRC-32/"/>
+                    <rule name="Tracks CRC-32 is present?" scope="mmt" value="Segment/Tracks/CRC-32/"/>
+                    <rule name="Cluster CRC-32 is present?" scope="mmt" value="Segment/Cluster/CRC-32/"/>
+                    <rule name="Cues CRC-32 is present?" scope="mmt" value="Segment/Cues/CRC-32/"/>
+                    <rule name="Tags CRC-32 is present?" scope="mmt" value="Segment/Tags/CRC-32/"/>
+                </policy>
+            </policy>
         </policy>
         <policy type="and" name="Is it good Quicktime?">
             <rule name="Is the file extension mov?" value="FileExtension" tracktype="General" operator="=">mov</rule>
