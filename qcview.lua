@@ -36,6 +36,7 @@ local scopes = {
   {keys = {'o'}, desc = {'overlaid oscilloscope'}},
   {keys = {'h'}, desc = {'histogram parade'}},
   {keys = {'H'}, desc = {'overlaid histogram'}},
+  {keys = {'a'}, desc = {'Split Fields'}},
   {keys = {'d'}, desc = {'toggle display filter'}},
   {keys = {'w'}, desc = {'toggle waveform filter'}},
   {keys = {'g'}, desc = {'toggle graticule'}},
@@ -223,6 +224,7 @@ local function getBind(key, index)
       {filter = {'oscilloscope'}}, --o oscilloscope
       {filter = {'histogram=c='..comp..':d='..disp}}, --h histogram
       {filter = {'split[a][b],[a]format=yuva444p,histogram=d=parade[a],[b][a]overlay=x=W-w:y=H-h'}}, --H overlaid histogram
+      {filter = {'format=yuv422p,split=4[f][y][u][v];[f]il=d[f1],[y]il=l=d,extractplanes=y[y1],[u]il=c=d,extractplanes=u[u1],[v]il=c=d,extractplanes=v[v1],[f1][y1][u1][v1]hstack=4'}}, --split fields/planes view
     }
 
     if key[1] == 'i' then
