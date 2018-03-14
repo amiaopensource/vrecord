@@ -135,6 +135,7 @@ end
 local function getBind(key, index)
   return function()  -- onKey
 
+-- adjustment filters (filters that toggle, cycle, etc.)
     if key[1] == 'i' then
       intensity = intensity + 0.01;
       intensity = math.min(intensity, 1)
@@ -210,6 +211,8 @@ local function getBind(key, index)
       comp = 7
     end
 
+-- display filters
+-- key bindings are set in local scopes variable in config, above; filters are assigned to keys sequentially, so they must remain in order
     filters = {
       {filter = {'split=5[a][b][c][d][e],[b]field=top[b1],[c]field=bottom[c1],[b1]format=yuv422p,waveform=c='..comp..':d='..disp..':f='..filW..':g='..grat..':e='..env..':fl=numbers+dots:s=ire:i='..intensity..',scale=iw:256[b2],[c1]format=yuv422p,waveform=c='..comp..':d='..disp..':f='..filW..':g='..grat..':e='..env..':fl=numbers+dots:s=ire:i='..intensity..',scale=iw:256[c2],[a][b2][c2]vstack=inputs=3,format=yuv422p[abc1],[d]format=yuv422p,vectorscope=m='..filV..':g='..grat..':e='..env..':i='..intensity..':c=601,scale=512:512,drawbox=w=9:h=9:t=1:x=128-3:y=512-452-5:c=sienna@0.8,drawbox=w=9:h=9:t=1:x=160-3:y=512-404-5:c=sienna@0.8,drawbox=w=9:h=9:t=1:x=192-3:y=512-354-5:c=sienna@0.8,drawbox=w=9:h=9:t=1:x=224-3:y=512-304-5:c=sienna@0.8,drawgrid=w=32:h=32:t=1:c=white@0.1,drawgrid=w=256:h=256:t=1:c=white@0.2[d1],[e]signalstats=out=brng,scale=512:ih[e1],[e1][d1]vstack[de1],[abc1][de1]hstack'}}, --1 broadcast
       {filter = {'split=5[a][b][c][d][e],[b]field=top[b1],[c]field=bottom[c1],[b1]format=yuv422p,waveform=c='..comp..':d='..disp..':f='..filW..':g='..grat..':e='..env..':fl=numbers+dots:s=ire:i='..intensity..',scale=iw:256[b2],[c1]format=yuv422p,waveform=c='..comp..':d='..disp..':f='..filW..':g='..grat..':e='..env..':fl=numbers+dots:s=ire:i='..intensity..',scale=iw:256[c2],[a][b2][c2]vstack=inputs=3,format=yuv422p[abc1],[d]format=yuv422p,vectorscope=m='..filV..':g='..grat..':e='..env..':i='..intensity..':c=601,scale=512:512,drawbox=w=9:h=9:t=1:x=128-3:y=512-452-5:c=sienna@0.8,drawbox=w=9:h=9:t=1:x=160-3:y=512-404-5:c=sienna@0.8,drawbox=w=9:h=9:t=1:x=192-3:y=512-354-5:c=sienna@0.8,drawbox=w=9:h=9:t=1:x=224-3:y=512-304-5:c=sienna@0.8,drawgrid=w=32:h=32:t=1:c=white@0.1,drawgrid=w=256:h=256:t=1:c=white@0.2[d1],[e]format=yuv444p,lutyuv=y=if(gte(val\\,254)\\,1\\,if(lte(val\\,1)\\,254\\,val)):u=val:v=val,scale=512:ih[e1],[e1][d1]vstack[de1],[abc1][de1]hstack'}}, --2 full range
@@ -227,6 +230,7 @@ local function getBind(key, index)
       {filter = {'[aid1]asplit=2[z][ao],[z]channelsplit=channel_layout=quad[s1][s2][s3][s4],[s1][s2][s3][s4]amerge=inputs=4,aformat=channel_layouts=quad[zz],[zz]showvolume=t=0:h=17:w=200[xx],[vid1]split=5[a][b][c][d][e],[b]field=top[b1],[c]field=bottom[c1],[b1]format=yuv422p,waveform=c='..comp..':d='..disp..':f='..filW..':g='..grat..':e='..env..':fl=numbers+dots:s=ire:i='..intensity..',scale=iw:256[b2],[c1]format=yuv422p,waveform=c='..comp..':d='..disp..':f='..filW..':g='..grat..':e='..env..':fl=numbers+dots:s=ire:i='..intensity..',scale=iw:256[c2],[a][b2][c2]vstack=inputs=3,format=yuv422p[abc1],[d]format=yuv422p,vectorscope=m='..filV..':g='..grat..':e='..env..':i='..intensity..':c=601,scale=512:512,drawbox=w=9:h=9:t=1:x=128-3:y=512-452-5:c=sienna@0.8,drawbox=w=9:h=9:t=1:x=160-3:y=512-404-5:c=sienna@0.8,drawbox=w=9:h=9:t=1:x=192-3:y=512-354-5:c=sienna@0.8,drawbox=w=9:h=9:t=1:x=224-3:y=512-304-5:c=sienna@0.8,drawgrid=w=32:h=32:t=1:c=white@0.1,drawgrid=w=256:h=256:t=1:c=white@0.2[d1],[e]signalstats=out=brng,scale=512:ih[e1],[e1][d1]vstack[de1],[abc1][de1]hstack[abcde1],[abcde1][xx]overlay=10:10[vo]'}}, --a audio passthrough - not yet working, needs lavfi-complex
     }
 
+-- toggling filters
     if key[1] == 'i' then
       mp.command(get_cmd(filters[last_key].filter))
       ass_osd("intensity: " .. intensity, duration);
