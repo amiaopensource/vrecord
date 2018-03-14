@@ -28,7 +28,7 @@ local scopes = {
   {keys = {'3'}, desc = {'Visual + Numerical'}},
   {keys = {'4'}, desc = {'Color Matrix'}},
   {keys = {'5'}, desc = {'Bit Planes'}},
-  {keys = {'6'}, desc = {'Audio Passthrough'}},
+  {keys = {'6'}, desc = {'Split Fields'}},
   {keys = {'7'}, desc = {'color waveform'}},
   {keys = {'8'}, desc = {'overlaid waveform'}},
   {keys = {'9'}, desc = {'color vectorscope'}},
@@ -36,7 +36,7 @@ local scopes = {
   {keys = {'o'}, desc = {'overlaid oscilloscope'}},
   {keys = {'h'}, desc = {'histogram parade'}},
   {keys = {'H'}, desc = {'overlaid histogram'}},
-  {keys = {'a'}, desc = {'Split Fields'}},
+  {keys = {'a'}, desc = {'Audio Passthrough'}},
   {keys = {'d'}, desc = {'toggle display filter'}},
   {keys = {'w'}, desc = {'toggle waveform filter'}},
   {keys = {'g'}, desc = {'toggle graticule'}},
@@ -216,7 +216,7 @@ local function getBind(key, index)
       {filter = {'split=7[a][b][c][d][e][f][g],[b]field=top[b1],[c]field=bottom[c1],[b1]format=yuv422p,waveform=c='..comp..':d='..disp..':f='..filW..':g='..grat..':e='..env..':fl=numbers+dots:s=ire:i='..intensity..',scale=iw:256[b2],[c1]format=yuv422p,waveform=c='..comp..':d='..disp..':f='..filW..':g='..grat..':e='..env..':fl=numbers+dots:s=ire:i='..intensity..',scale=iw:256[c2],[a][b2][c2]vstack=inputs=3,format=yuv422p[abc1],[d]format=yuv422p,vectorscope=m='..filV..':g='..grat..':e='..env..':i='..intensity..':c=601,scale=512:512,drawbox=w=9:h=9:t=1:x=128-3:y=512-452-5:c=sienna@0.8,drawbox=w=9:h=9:t=1:x=160-3:y=512-404-5:c=sienna@0.8,drawbox=w=9:h=9:t=1:x=192-3:y=512-354-5:c=sienna@0.8,drawbox=w=9:h=9:t=1:x=224-3:y=512-304-5:c=sienna@0.8,drawgrid=w=32:h=32:t=1:c=white@0.1,drawgrid=w=256:h=256:t=1:c=white@0.2[d1],[e]signalstats=out=brng,scale=512:ih[e1],[e1][d1]vstack[de1],[f]signalstats=stat=brng+vrep+tout,format=yuv422p,geq=lum=60:cb=128:cr=128,scale=180:ih+512,setsar=1/1,drawtext=fontcolor=white:fontsize=22:fontfile='..defaultfont..':textfile=/tmp/drawtext.txt,drawtext=fontcolor=white:fontsize=17:fontfile='..defaultfont..':textfile=/tmp/drawtext2.txt,drawtext=fontcolor=white:fontsize=52:fontfile='..defaultfont..':textfile=/tmp/drawtext3.txt[f1],[abc1][de1][f1]hstack=inputs=3[abcdef1],[g]scale=iw+512+180:82,format=yuv422p,geq=lum=60:cb=128:cr=128,drawtext=fontcolor=white:fontsize=22:fontfile='..defaultfont..':textfile=/tmp/vrecord_input.log:reload=1:y=100-th[g1],[abcdef1][g1]vstack'}}, --3 visual + numerical
       {filter = {'scale=iw/4:ih/4,split=9[x][hm][hp][sm][sp][hmsm][hmsp][hpsm][hpsp],[hm]hue=h=-'..hue..'[hm1],[hp]hue=h='..hue..'[hp1],[sm]hue=s=1-'..sat..'[sm1],[sp]hue=s=1+'..sat..'[sp1],[hmsm]hue=h=-'..hue..':s=1-'..sat..'[hmsm1],[hmsp]hue=h=-'..hue..':s=1+'..sat..'[hmsp1],[hpsm]hue=h='..hue..':s=1-'..sat..'[hpsm1],[hpsp]hue=h='..hue..':s=1+'..sat..'[hpsp1],[hpsm1][hp1][hpsp1]hstack=3[top],[sm1][x][sp1]hstack=3[mid],[hmsm1][hm1][hmsp1]hstack=3[bottom],[top][mid][bottom]vstack=3'}}, --4 color matrix
       {filter = {'format=yuv420p10le|yuv422p10le|yuv444p10le|yuv440p10le,split=10[b0][b1][b2][b3][b4][b5][b6][b7][b8][b9],'..bitplanes1..','..bitplanes2..',[b0c][b1c][b2c][b3c][b4c][b5c][b6c][b7c][b8c][b9c]hstack=10,format=yuv444p,drawgrid=w=iw/10:h=ih:t=2:c=green@0.5'}}, --5 bit planes
-      {filter = {'[aid1]asplit=2[z][ao],[z]channelsplit=channel_layout=quad[s1][s2][s3][s4];[s1][s2][s3][s4]amerge=inputs=4,aformat=channel_layouts=quad[zz],[zz]showvolume=t=0:h=17:w=200[xx],[vid1]split=5[a][b][c][d][e],[b]field=top[b1],[c]field=bottom[c1],[b1]${WAVEFORM_FILTER}[b2],[c1]${WAVEFORM_FILTER}[c2],[a][b2][c2]vstack=inputs=3,format=yuv422p[abc1],[d]${VECTORSCOPE_FILTER}[d1],[e]signalstats=out=brng,scale=512:ih[e1],[e1][d1]vstack[de1],[abc1][de1]hstack[abcde1],[abcde1][xx]overlay=10:10[vo]'}}, --6 audio passthrough - not yet working, needs lavfi-complex
+      {filter = {'format=yuv422p,split=4[f][y][u][v];[f]il=d[f1],[y]il=l=d,extractplanes=y[y1],[u]il=c=d,extractplanes=u[u1],[v]il=c=d,extractplanes=v[v1],[f1][y1][u1][v1]hstack=4'}}, --split fields/planes view
       {filter = {'waveform=f=acolor:i='..intensity..':g='..grat}}, --7 color waveform
       {filter = {'split[a][b],[a]format=yuva444p,waveform=g='..grat..':f=acolor:i='..intensity..':[a],[b][a]overlay=x=W-w:y=H-h'}}, --8 overlaid waveform
       {filter = {'vectorscope=m=color3:i='..intensity..':g='..grat}}, --9 color vectorscope
@@ -224,7 +224,7 @@ local function getBind(key, index)
       {filter = {'oscilloscope'}}, --o oscilloscope
       {filter = {'histogram=c='..comp..':d='..disp}}, --h histogram
       {filter = {'split[a][b],[a]format=yuva444p,histogram=d=parade[a],[b][a]overlay=x=W-w:y=H-h'}}, --H overlaid histogram
-      {filter = {'format=yuv422p,split=4[f][y][u][v];[f]il=d[f1],[y]il=l=d,extractplanes=y[y1],[u]il=c=d,extractplanes=u[u1],[v]il=c=d,extractplanes=v[v1],[f1][y1][u1][v1]hstack=4'}}, --split fields/planes view
+      {filter = {'[aid1]asplit=2[z][ao],[z]channelsplit=channel_layout=quad[s1][s2][s3][s4],[s1][s2][s3][s4]amerge=inputs=4,aformat=channel_layouts=quad[zz],[zz]showvolume=t=0:h=17:w=200[xx],[vid1]split=5[a][b][c][d][e],[b]field=top[b1],[c]field=bottom[c1],[b1]format=yuv422p,waveform=c='..comp..':d='..disp..':f='..filW..':g='..grat..':e='..env..':fl=numbers+dots:s=ire:i='..intensity..',scale=iw:256[b2],[c1]format=yuv422p,waveform=c='..comp..':d='..disp..':f='..filW..':g='..grat..':e='..env..':fl=numbers+dots:s=ire:i='..intensity..',scale=iw:256[c2],[a][b2][c2]vstack=inputs=3,format=yuv422p[abc1],[d]format=yuv422p,vectorscope=m='..filV..':g='..grat..':e='..env..':i='..intensity..':c=601,scale=512:512,drawbox=w=9:h=9:t=1:x=128-3:y=512-452-5:c=sienna@0.8,drawbox=w=9:h=9:t=1:x=160-3:y=512-404-5:c=sienna@0.8,drawbox=w=9:h=9:t=1:x=192-3:y=512-354-5:c=sienna@0.8,drawbox=w=9:h=9:t=1:x=224-3:y=512-304-5:c=sienna@0.8,drawgrid=w=32:h=32:t=1:c=white@0.1,drawgrid=w=256:h=256:t=1:c=white@0.2[d1],[e]signalstats=out=brng,scale=512:ih[e1],[e1][d1]vstack[de1],[abc1][de1]hstack[abcde1],[abcde1][xx]overlay=10:10[vo]'}}, --a audio passthrough - not yet working, needs lavfi-complex
     }
 
     if key[1] == 'i' then
