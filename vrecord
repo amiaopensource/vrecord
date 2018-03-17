@@ -3,8 +3,9 @@
 # vrecord
 # Open-source software for capturing a video signal and turning it into a digital file.
 
+SCRIPTNAME=$(basename "${0}")
 SCRIPTDIR=$(dirname "${0}")
-CONFIG_FILE="${HOME}/.$(basename "${0}").conf"
+CONFIG_FILE="${HOME}/.${SCRIPTNAME}.conf"
 unset VERSION
 if [[ $(dirname "$(command -v "${0}")") = "/usr/local/bin" ]] ; then
     VERSION=$(TMP=$(brew info vrecord | grep ".*\*$" | grep -Eo "/vrecord/.* \(") ; echo "${TMP:9:(${#TMP}-11)}")
@@ -42,15 +43,15 @@ fi
 
 _usage(){
     cat <<EOF
-$(basename "${0}") ${VERSION}
+${SCRIPTNAME} ${VERSION}
 
-$(basename "${0}") will record a file via the Blackmagic SDK and ffmpeg. It is an
+${SCRIPTNAME} will record a file via the Blackmagic SDK and ffmpeg. It is an
 interactive script and will create 10 or 8-bit video files.
 
 Dependencies: cowsay, amiaopensource/amiaos/ffmpegdecklink --with-sdl2
   --with-freetype --with-openjpeg, mpv, qcli, and xmlstarlet
 
-Usage: $(basename "${0}") [ -g | -e | -r | -p | -a | -x | -h ]
+Usage: ${SCRIPTNAME} [ -g | -e | -r | -p | -a | -x | -h ]
   -g  use the GUI
   -e  edit the configuration file before recording
   -r  enable record mode [default]
@@ -64,7 +65,7 @@ Usage: $(basename "${0}") [ -g | -e | -r | -p | -a | -x | -h ]
       file at '${CONFIG_FILE}' with an empty one.
   -h  display this help menu
 
-See also the man page: man $(basename "${0}")
+See also the man page: man ${SCRIPTNAME}
 EOF
 }
 
@@ -89,7 +90,7 @@ if [[ -f "${CONFIG_FILE}" ]] ; then
 elif [[ "${RUNTYPE}" = "record" || "${RUNTYPE}" = "edit" ]] ; then
     echo "No configuration file, restarting in edit mode."
     touch "${CONFIG_FILE}"
-    exec "$(basename "${0}")" -e
+    exec "${SCRIPTNAME}" -e
 fi
 
 
@@ -112,7 +113,7 @@ _report(){
             q) COLOR="${BLUE}" ;;                        # question mode, use color blue
             d) COLOR="${GREEN}" ;;                       # declaration mode, use color green
             w) COLOR="${RED}" ;;                         # warning mode, use color red
-            s) STARTMESSAGE+=([$(basename "${0}")] ) ;;  # prepend scriptname to the message
+            s) STARTMESSAGE+=([${SCRIPTNAME}] ) ;;  # prepend scriptname to the message
             t) STARTMESSAGE+=($(_get_iso8601) '- ' ) ;;  # prepend timestamp to the message
             n) ECHOOPT="-n" ;;                           # to avoid line breaks after echo
         esac
@@ -900,7 +901,7 @@ elif [[ "${RUNTYPE}" = "edit" ]] ; then
         echo ""
         # write config file
         cat > "${CONFIG_FILE}" << EOF
-#$(basename "${0}") config file
+#${SCRIPTNAME} config file
 ${CONFIG_COMMENT}
 ${VIDEO_INPUT_CHOICE_COMMENT}
 VIDEO_INPUT_CHOICE="${VIDEO_INPUT_CHOICE}"
