@@ -157,7 +157,7 @@ All of options in the vrecord GUI (which appears when running `vrecord -e`) or o
 
 **Select codec for video** — Choose how you would like the video signal to be encoded digitally. You can choose from some uncompressed, lossless, and lossy codecs. 
 
-**Select bit depth for video** — Choose the level of bit depth you would like for your video file. Vrecord currently supports 8 and 10-bit video capture.
+**Select bit depth for video** — Choose the level of bit depth you would like for your video file. Vrecord supports 10 and 8-bit video capture.
 
 **Select audio channel mapping** — Choose how you want the audio to be captured. Currently vrecord captures audio at 24-bits and can only capture 4 tracks. The options are: 
 * "2 Stereo Tracks" — For capturing videotape formats that have four tracks which are arranged as stereo pairs.
