@@ -70,9 +70,9 @@
     <rule name="Is the video stream first?" value="StreamOrder" tracktype="Video" operator="=">0</rule>
     <rule name="Is the colour description present?" value="colour_description_present" tracktype="Video" operator="=">Yes</rule>
     <rule name="Are the transfer characteristics BT.709?" value="transfer_characteristics" tracktype="Video" operator="=">BT.709</rule>
-    <policy type="or" name="Is the bit depth 8 or 10?">
-        <rule name="Is the bit depth 8?" value="BitDepth" tracktype="Video" operator="=">8</rule>
-        <rule name="Is the bit depth 10?" value="BitDepth" tracktype="Video" operator="=">10</rule>
+    <policy type="or" name="Is the video bit depth 8 or 10?">
+        <rule name="Is the video bit depth 8?" value="BitDepth" tracktype="Video" operator="=">8</rule>
+        <rule name="Is the video bit depth 10?" value="BitDepth" tracktype="Video" operator="=">10</rule>
     </policy>
     <policy type="or" name="Is it NTSC SD or PAL SD?">
         <policy type="and" name="Is it NTSC?">
@@ -95,7 +95,7 @@
     </policy>
     <rule name="Is the audio stream on track 2?" value="StreamOrder" tracktype="Audio" operator="=">1</rule>
     <rule name="Is the audio PCM?" value="Format" tracktype="Audio" operator="=">PCM</rule>
-    <rule name="Is the bit Depth 24?" value="BitDepth" tracktype="Audio" operator="=">24</rule>
+    <rule name="Is the audio bit depth 24?" value="BitDepth" tracktype="Audio" operator="=">24</rule>
     <rule name="Is the sample rate 48kHz?" value="SamplingRate" tracktype="Audio" operator="=">48000</rule>
     <policy type="or" name="1 or 2 channels of audio?">
         <rule name="1 channel of audio?" value="Channels" tracktype="Audio" operator="=">1</rule>

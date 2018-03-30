@@ -2,7 +2,6 @@
 <policy type="and" name="Check validity of Uncompressed Quicktime files">
     <description>This policy tests Uncompressed Quicktime files made using vrecord and checks their validity</description>
     <policy type="and" name="Is it good Quicktime?">
-        <!-- is the above necessary-->
         <rule name="Is the file extension mov?" value="FileExtension" tracktype="General" operator="=">mov</rule>
         <rule name="Is the format MPEG-4?" value="Format" tracktype="General" operator="=">MPEG-4</rule>
         <rule name="Is the format profile QuickTime" value="Format_Profile" tracktype="General" operator="=">QuickTime</rule>
@@ -43,7 +42,7 @@
         </policy>
         <!--channel positions and channel layout?-->
         <rule name="Is the sample rate 48kHz?" value="SamplingRate" tracktype="Audio" operator="=">48000</rule>
-        <rule name="Is the bit Depth 24?" value="BitDepth" tracktype="Audio" operator="=">24</rule>
+        <rule name="Is the audio bit depth 24?" value="BitDepth" tracktype="Audio" operator="=">24</rule>
         <!--stream size proportion?-->
         <policy type="or" name="Is it NTSC SD or PAL SD?">
             <policy type="and" name="Is it NTSC?">
