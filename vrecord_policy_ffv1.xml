@@ -22,7 +22,7 @@
                     <rule name="Are the matrix coefficients BT.470 System B, BT.470 System G?" value="matrix_coefficients" tracktype="Video" operator="=">BT.470 System B, BT.470 System G</rule>
                 </policy>
             </policy>
-            <policy type="and" name="Has Matroska finished writing?"
+            <policy type="and" name="Has Matroska finished writing?">
                 <rule name="Duration is greater than zero?" scope="mmt" operator="&gt;" value="Segment/Info/Duration/Data">0</rule>
                 <rule name="SeekHead is present?" scope="mmt" value="Segment/SeekHead/"/>
                 <rule name="Cues is present?" scope="mmt" value="Segment/Cues/"/>
