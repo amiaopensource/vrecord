@@ -770,6 +770,15 @@ FRAMEMD5_CHOICE.default = ${FRAMEMD5_CHOICE}
 FRAMEMD5_CHOICE.option = ${UNDECLAREDOPTION}
 FRAMEMD5_CHOICE.option = Yes
 FRAMEMD5_CHOICE.option = No
+# embed logs choice
+EMBED_LOGS_CHOICE.x = 660
+EMBED_LOGS_CHOICE.y = 143
+EMBED_LOGS_CHOICE.type = radiobutton
+EMBED_LOGS_CHOICE.label = Embed digitization logs in video file? (Matroska only)
+EMBED_LOGS_CHOICE.default = ${EMBED_LOGS_CHOICE}
+EMBED_LOGS_CHOICE.option = ${UNDECLAREDOPTION}
+EMBED_LOGS_CHOICE.option = Yes
+EMBED_LOGS_CHOICE.option = No
 # playbackview choice
 PLAYBACKVIEW_CHOICE.x = 20
 PLAYBACKVIEW_CHOICE.y = 3
@@ -824,6 +833,7 @@ CHANNEL_MAPPING_OPTIONS=("2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, C
 STANDARD_OPTIONS=("NTSC" "PAL" "quit")
 QCTOOLSXML_OPTIONS=("Yes" "No" "quit")
 FRAMEMD5_OPTIONS=("Yes" "No" "quit")
+EMBED_LOGS_OPTIONS=("Yes" "No" "quit")
 PLAYBACKVIEW_OPTIONS=("Quality Control View (mpv)" "Broadcast Range Visual" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes" "quit")
 
 # comments to be printed to vrecord config file; must be commented (start with #)
@@ -838,6 +848,7 @@ AUDIO_MAPPING_CHOICE_COMMENT="#Set AUDIO_MAPPING_CHOICE to one of these valid op
 STANDARD_CHOICE_COMMENT="#Set STANDARD_CHOICE to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${STANDARD_OPTIONS[@]}")"
 QCTOOLSXML_CHOICE_COMMENT="#Set QCTOOLSXML_CHOICE to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${QCTOOLSXML_OPTIONS[@]}")"
 FRAMEMD5_CHOICE_COMMENT="#Set FRAMEMD5_CHOICE to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${FRAMEMD5_OPTIONS[@]}")"
+EMBED_LOGS_CHOICE_COMMENT="#Set embed_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${EMBED_LOGS_OPTIONS[@]}")"
 PLAYBACKVIEW_CHOICE_COMMENT="#Set PLAYBACKVIEW_CHOICE to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${PLAYBACKVIEW_OPTIONS[@]}")"
 DURATION_COMMENT="#Set the recording time as a number (integer or decimal) in minutes."
 TECHNICIAN_COMMENT="#Enter the name of the person digitizing this tape."
@@ -880,6 +891,7 @@ elif [[ "${RUNTYPE}" = "edit" ]] ; then
         echo "  STANDARD_CHOICE = ${STANDARD_CHOICE}"
         echo "  QCTOOLSXML_CHOICE = ${QCTOOLSXML_CHOICE}"
         echo "  FRAMEMD5_CHOICE = ${FRAMEMD5_CHOICE}"
+        echo "  EMBED_LOGS_CHOICE = ${EMBED_LOGS_CHOICE}"
         echo "  PLAYBACKVIEW_CHOICE = ${PLAYBACKVIEW_CHOICE}"
         echo "  DURATION = ${DURATION}"
         echo "  TECHNICIAN = ${TECHNICIAN}"
@@ -890,6 +902,9 @@ elif [[ "${RUNTYPE}" = "edit" ]] ; then
             echo -e " \033[101mWARNING: Incompatible video codecs and CONTAINERs have been selected\033[0m"
         elif [ "${VIDEO_CODEC_CHOICE}" = "ProRes" -a "${CONTAINER_CHOICE}" = "MXF" ] ; then
             echo -e " \033[101mWARNING: Incompatible video codecs and CONTAINERs have been selected\033[0m"
+        fi
+        if [ "${EMBED_LOGS_CHOICE}" = "Yes" -a "${CONTAINER_CHOICE}" != "Matroska" ] ; then
+            _report -w "WARNING: Logs cannot be embedded in non-Matroska files. This vrecord session will generate logs in ${LOGDIR}, but will not embed them in your video file."
         fi
         echo ""
         # write config file
@@ -922,6 +937,9 @@ QCTOOLSXML_CHOICE="${QCTOOLSXML_CHOICE}"
 
 ${FRAMEMD5_CHOICE_COMMENT}
 FRAMEMD5_CHOICE="${FRAMEMD5_CHOICE}"
+
+${EMBED_LOGS_CHOICE_COMMENT}
+EMBED_LOGS_CHOICE="${EMBED_LOGS_CHOICE}"
 
 ${PLAYBACKVIEW_CHOICE_COMMENT}
 PLAYBACKVIEW_CHOICE="${PLAYBACKVIEW_CHOICE}"
@@ -1166,6 +1184,17 @@ if [[ "${FRAMEMD5_CHOICE}" = "Yes" ]] ; then
     EXTRAOUTPUTS=(-an -f framemd5 "${FRAMEMD5NAME}")
 fi
 
+if [[ "${EMBED_LOGS_CHOICE}" != "${UNDECLAREDOPTION}" ]] ; then
+    echo ""
+elif [[ "${EMBED_LOGS_CHOICE}" = "${UNDECLAREDOPTION}" ]] && [[ "${CONTAINER_CHOICE}" = "Matroska" ]] ; then
+    _report -q "Embed logs in Matroska file?"
+    PS3="Select an option: "
+    select EMBED_LOGS_CHOICE in "${EMBED_LOGS_OPTIONS[@]}" ; do
+        _yes_or_no "${EMBED_LOGS_CHOICE}"
+        [[ "${?}" -eq 0 ]] && break
+    done
+fi
+
 _duration_check
 if [[ -n "${DURATION}" ]] ; then
     DUR_SECONDS=$(bc <<< "${DURATION} * 60")
@@ -1200,6 +1229,7 @@ _writeingestlog "AUDIO_MAPPING_CHOICE" "${AUDIO_MAPPING_CHOICE}"
 _writeingestlog "STANDARD_CHOICE" "${STANDARD_CHOICE}"
 _writeingestlog "QCTOOLSXML_CHOICE" "${QCTOOLSXML_CHOICE}"
 _writeingestlog "FRAMEMD5_CHOICE" "${FRAMEMD5_CHOICE}"
+_writeingestlog "EMBED_LOGS_CHOICE" "${EMBED_LOGS_CHOICE}"
 _writeingestlog "FILE_PATH" "${DIR}/${ID}.${EXTENSION}"
 if [[ -z "${TECHNICIAN}" ]] ; then
     _writeingestlog "TECHNICIAN" "N/A"
@@ -1341,7 +1371,7 @@ elif [[ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" ]] ; then
 fi
 
 # embed logs in Matroska files
-if [[ "${container_choice}" = "Matroska" ]] ; then
+if [[ "${CONTAINER_CHOICE}" = "Matroska" && "${EMBED_LOGS_CHOICE}" = "Yes" ]]; then
     _report -d "Vrecord is attaching logs to your Matroska file:"
     mkvpropedit "${DIR}/${ID}${SUFFIX}.${EXTENSION}" --add-attachment "${INGESTLOG}"
     mkvpropedit "${DIR}/${ID}${SUFFIX}.${EXTENSION}" --add-attachment "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}"
