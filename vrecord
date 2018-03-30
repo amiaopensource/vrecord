@@ -93,7 +93,6 @@ elif [[ "${RUNTYPE}" = "record" || "${RUNTYPE}" = "edit" ]] ; then
     exec "${SCRIPTNAME}" -e
 fi
 
-
 # local functions
 _get_iso8601(){
     date +%FT%T
@@ -113,7 +112,7 @@ _report(){
             q) COLOR="${BLUE}" ;;                        # question mode, use color blue
             d) COLOR="${GREEN}" ;;                       # declaration mode, use color green
             w) COLOR="${RED}" ;;                         # warning mode, use color red
-            s) STARTMESSAGE+=([${SCRIPTNAME}] ) ;;  # prepend scriptname to the message
+            s) STARTMESSAGE+=([${SCRIPTNAME}] ) ;;       # prepend scriptname to the message
             t) STARTMESSAGE+=($(_get_iso8601) '- ' ) ;;  # prepend timestamp to the message
             n) ECHOOPT="-n" ;;                           # to avoid line breaks after echo
         esac
