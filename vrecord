@@ -1338,3 +1338,14 @@ elif [[ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" ]] ; then
         mediaconch -p "${SCRIPTDIR}/vrecord_policy_ffv1.xml" "${DIR}/${ID}${SUFFIX}.${EXTENSION}"
     fi
 fi
+
+# embed logs in Matroska files
+if [[ "${container_choice}" = "Matroska" ]] ; then
+    _report -d "Vrecord is attaching logs to your Matroska file:"
+    mkvpropedit "${DIR}/${ID}${SUFFIX}.${EXTENSION}" --add-attachment "${INGESTLOG}"
+    mkvpropedit "${DIR}/${ID}${SUFFIX}.${EXTENSION}" --add-attachment "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}"
+    if [[ "${QCTOOLSXML_CHOICE}" = "Yes" ]] ; then
+        mkvpropedit "${DIR}/${ID}${SUFFIX}.${EXTENSION}" --add-attachment "${QCXML}"
+    fi
+    _report -d "Vrecord is done attaching logs to your Matroska file!"
+fi
