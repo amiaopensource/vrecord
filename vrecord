@@ -1211,7 +1211,8 @@ if [[ "${INVERT_PHASE}" = 1 ]] ; then
 fi
 
 _report -d "Close the playback window to stop recording."
-export FFREPORT="file=${LOGDIR}/${ID}_%p_%t${FFMPEGLOGSUFFIX}"
+FFREPORT_LOG="${LOGDIR}/${ID}_ffmpeg_$(date +%Y%m%d-%H%M%S)${FFMPEGLOGSUFFIX}"
+export FFREPORT="file=${FFREPORT_LOG}"
 
 # vrecord process!
 if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
@@ -1344,6 +1345,7 @@ if [[ "${container_choice}" = "Matroska" ]] ; then
     _report -d "Vrecord is attaching logs to your Matroska file:"
     mkvpropedit "${DIR}/${ID}${SUFFIX}.${EXTENSION}" --add-attachment "${INGESTLOG}"
     mkvpropedit "${DIR}/${ID}${SUFFIX}.${EXTENSION}" --add-attachment "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}"
+    mkvpropedit "${DIR}/${ID}${SUFFIX}.${EXTENSION}" --add-attachment "${FFREPORT_LOG}"
     if [[ "${QCTOOLSXML_CHOICE}" = "Yes" ]] ; then
         mkvpropedit "${DIR}/${ID}${SUFFIX}.${EXTENSION}" --add-attachment "${QCXML}"
     fi
