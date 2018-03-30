@@ -2,7 +2,6 @@
 <policy type="and" name="Check validity of Uncompressed Quicktime files">
     <description>This policy tests Uncompressed Quicktime files made using vrecord and checks their validity</description>
     <policy type="and" name="Is it good Quicktime?">
-        <!-- is the above necessary-->
         <rule name="Is the file extension mov?" value="FileExtension" tracktype="General" operator="=">mov</rule>
         <rule name="Is the format MPEG-4?" value="Format" tracktype="General" operator="=">MPEG-4</rule>
         <rule name="Is the format profile QuickTime" value="Format_Profile" tracktype="General" operator="=">QuickTime</rule>
@@ -11,16 +10,20 @@
         <rule name="Is the video stream first?" value="StreamOrder" tracktype="Video" operator="=">0</rule>
         <rule name="Is the video format YUV?" value="Format" tracktype="Video" operator="=">YUV</rule>
         <!-- is this misreporting? call something else?-->
-        <rule name="Is the Codec ID v210?" value="CodecID" tracktype="Video" operator="=">v210</rule>
+        <policy type="or" name="Is the Codec ID v210 or 2vuy?">
+            <rule name="Is the Codec ID v210?" value="CodecID" tracktype="Video" operator="=">v210</rule>
+            <rule name="Is the Codec ID 2vuy?" value="CodecID" tracktype="Video" operator="=">2vuy</rule>
+        </policy>
         <rule name="Is the bitrate mode CBR?" value="BitRate_Mode" tracktype="Video" operator="=">CBR</rule>
         <rule name="Is the display aspect ratio 1.333?" value="DisplayAspectRatio" tracktype="Video" operator="=">1.333</rule>
         <!--add rotation?-->
         <rule name="Is the frame rate mode constant?" value="FrameRate_Mode" tracktype="Video" operator="=">CFR</rule>
         <rule name="Is the color space YUV?" value="ColorSpace" tracktype="Video" operator="=">YUV</rule>
         <rule name="Is the chroma subsampling 4:2:2?" value="ChromaSubsampling" tracktype="Video" operator="=">4:2:2</rule>
-        <policy type="or" name="Is the bit depth 8 or 10?">
-            <rule name="Is the bit depth 8?" value="BitDepth" tracktype="Video" operator="=">8</rule>
-            <rule name="Is the bit depth 10?" value="BitDepth" tracktype="Video" operator="=">10</rule>
+        <policy type="or" name="Is the video bit depth 8 or 10?">
+            <rule name="Is the video bit depth 8?" value="CodecID" tracktype="Video" operator="=">2vuy</rule>
+            <!--MediaInfo library does not currently store explicit video BitDepth value for this codec-->
+            <rule name="Is the video bit depth 10?" value="BitDepth" tracktype="Video" operator="=">10</rule>
         </policy>
         <rule name="Is the video interlaced?" value="ScanType" tracktype="Video" operator="=">Interlaced</rule>
         <rule name="Is the compression mode lossless?" value="Compression_Mode" tracktype="Video" operator="=">Lossless</rule>
@@ -39,7 +42,7 @@
         </policy>
         <!--channel positions and channel layout?-->
         <rule name="Is the sample rate 48kHz?" value="SamplingRate" tracktype="Audio" operator="=">48000</rule>
-        <rule name="Is the bit Depth 24?" value="BitDepth" tracktype="Audio" operator="=">24</rule>
+        <rule name="Is the audio bit depth 24?" value="BitDepth" tracktype="Audio" operator="=">24</rule>
         <!--stream size proportion?-->
         <policy type="or" name="Is it NTSC SD or PAL SD?">
             <policy type="and" name="Is it NTSC?">

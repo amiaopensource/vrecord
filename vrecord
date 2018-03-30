@@ -451,9 +451,9 @@ _yes_or_no(){
 }
 
 _frames_to_hhmmss(){
-    framerate=$(grep "fps=" "${logdir}/${id}${capturelogsuffix}" | cut -d' ' -f 5)
-    num=$(bc <<< "scale=0; ${i} / ${framerate}")
-    printf "%02d:%02d:%02d\n" $((num/3600)) $((num%3600/60)) $((num%60))
+    FRAMERATE=$(grep "fps=" "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}" | cut -d' ' -f 5)
+    NUM=$(bc <<< "scale=0; ${i} / ${FRAMERATE}")
+    printf "%02d:%02d:%02d\n" $(($NUM/3600)) $(($NUM%3600/60)) $(($NUM%60))
 }
 
 # set up drawtext.txt files for Visual + Numerical playback view
@@ -1322,7 +1322,7 @@ DROPPED_FRAMES_INSTANCES=$(grep -c "Frames dropped" "${LOGDIR}/${ID}${CAPTURELOG
 DROPPED_FRAMES_FRAMENUMBERS=$(grep "Frames dropped" "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}" | awk '{print $6}' | sed 's/[(#)]//g')
 if [[ "${DROPPED_FRAMES_INSTANCES}" -gt 0 ]] ; then
     cowsay "$(_report -w "WARNING: FFmpeg Decklink input reported dropped frames in the following ${DROPPED_FRAMES_INSTANCES} locations. The file may have sync issues.")"
-    for i in ${DROPPED_FRAMES_FRAMENUMBERS} ; do
+    for i in "${DROPPED_FRAMES_FRAMENUMBERS}" ; do
         DROPPED_FRAMES_TIMESTAMPS+="$(_frames_to_hhmmss "${i}") "
     done
     _report -w "Dropped frames locations: ${DROPPED_FRAMES_TIMESTAMPS}"
