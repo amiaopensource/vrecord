@@ -453,7 +453,7 @@ _yes_or_no(){
 _frames_to_hhmmss(){
     framerate=$(grep "fps=" "${logdir}/${id}${capturelogsuffix}" | cut -d' ' -f 5)
     num=$(bc <<< "scale=0; ${i} / ${framerate}")
-    printf "%02d:%02d:%02d\n" $((num/3600)) $((num%3600/60)) $((num%60))
+    printf "%02d:%02d:%02d\n" $(($num/3600)) $(($num%3600/60)) $(($num%60))
 }
 
 # set up drawtext.txt files for Visual + Numerical playback view
