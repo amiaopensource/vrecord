@@ -371,53 +371,47 @@ _lookup_pixel_format(){
 _lookup_audio_mapping(){
     case "${1}" in
         "2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, Channels 3 & 4 -> 2nd Track Stereo)")
-            AUDIOMAP="[0:a:0]pan=stereo| c0=c0 | c1="${PHASE_VALUE}"c1[stereo1];[0:a:0]pan=stereo| c0=c2 | c1=c3[stereo2]"
-            MAP1K="-map"
+            AUDIOMAP="[0:a:0]pan=stereo| c0=c0 | c1=${PHASE_VALUE}c1[stereo1];[0:a:0]pan=stereo| c0=c2 | c1=c3[stereo2]"
             MAP1V="[stereo1]"
-            MAP2K="-map"
             MAP2V="[stereo2]"
             ;;
         "1 Stereo Track (From Channels 1 & 2)")
-            AUDIOMAP="[0:a:0]pan=stereo| c0=c0 | c1="${PHASE_VALUE}"c1[stereo1]"
-            MAP1K="-map"
+            AUDIOMAP="[0:a:0]pan=stereo| c0=c0 | c1=${PHASE_VALUE}c1[stereo1]"
             MAP1V="[stereo1]"
-            MAP2K=""
             MAP2V=""
             ;;
         "1 Stereo Track (From Channels 3 & 4)")
-            AUDIOMAP="[0:a:0]pan=stereo| c0=c2 | c1="${PHASE_VALUE}"c3[stereo1]"
-            MAP1K="-map"
+            AUDIOMAP="[0:a:0]pan=stereo| c0=c2 | c1=${PHASE_VALUE}c3[stereo1]"
             MAP1V="[stereo1]"
-            MAP2K=""
             MAP2V=""
             ;;
         "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono")
-            AUDIOMAP="[0:a:0]pan=mono| c0=c0[mono1];[0:a:0]pan=mono| c0="${PHASE_VALUE}"c1[mono2]"
-            MAP1K="-map"
+            AUDIOMAP="[0:a:0]pan=mono| c0=c0[mono1];[0:a:0]pan=mono| c0=${PHASE_VALUE}c1[mono2]"
             MAP1V="[mono1]"
-            MAP2K="-map"
             MAP2V="[mono2]"
             ;;
         "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono")
-            AUDIOMAP="[0:a:0]pan=mono| c0="${PHASE_VALUE}"c1[mono1];[0:a:0]pan=mono| c0=c0[mono2]"
-            MAP1K="-map"
+            AUDIOMAP="[0:a:0]pan=mono| c0=${PHASE_VALUE}c1[mono1];[0:a:0]pan=mono| c0=c0[mono2]"
             MAP1V="[mono1]"
-            MAP2K="-map"
             MAP2V="[mono2]"
             ;;
         "Channel 1 -> Single Track Mono")
             AUDIOMAP="[0:a:0]pan=mono| c0=c0[mono1]"
-            MAP1K="-map"
             MAP1V="[mono1]"
             ;;
         "Channel 2 -> Single Track Mono")
             AUDIOMAP="[0:a:0]pan=mono| c0=c1[mono1]"
-            MAP1K="-map"
             MAP1V="[mono1]"
             ;;
         "quit") _report -d "Bye then" ; exit 0 ;;
         *) _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
     esac
+    if [[ -n "${MAP1V}" ]] ; then
+        AUDIO_CHANNEL_MAP+=(-map "${MAP1V}")
+    fi
+    if [[ -n "${MAP2V}" ]] ; then
+        AUDIO_CHANNEL_MAP+=(-map "${MAP2V}")
+    fi
 }
 
 _lookup_standard(){
@@ -1225,11 +1219,7 @@ if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
         2> >(tee "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}" /tmp/vrecord_input.log >/dev/null) \
         -v info -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_DECKLINK[@]}" \
         -metadata:s:v:0 encoder="${CODECNAME}" "${MIDDLEOPTIONS[@]}" -c:a pcm_s24le \
-        -filter_complex "\
-            [0:v:0]${RECORDINGFILTER};\
-            ${AUDIOMAP}" \
-        $(if [ -n "$MAP1K" ] ; then echo ${MAP1K} ; fi) $(if [ -n "$MAP1V" ] ; then echo ${MAP1V} ; fi) \
-        $(if [ -n "$MAP2K" ] ; then echo ${MAP2K} ; fi) $(if [ -n "$MAP2V" ] ; then echo ${MAP2V} ; fi) \
+        -filter_complex "[0:v:0]${RECORDINGFILTER}; ${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" \
         -f "${FORMAT}" "${DIR}/${ID}${SUFFIX}.${EXTENSION}" \
         "${EXTRAOUTPUTS[@]}" -map 0 -c copy -f nut - | \
         if [[ "${QCTOOLSXML_CHOICE}" = "Yes" ]] ; then
@@ -1243,11 +1233,7 @@ else
         2> >(tee "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}" /tmp/vrecord_input.log >/dev/null) \
         -v info -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_DECKLINK[@]}" \
         -metadata:s:v:0 encoder="${CODECNAME}" "${MIDDLEOPTIONS[@]}" -c:a pcm_s24le \
-        -filter_complex "\
-            [0:v:0]${RECORDINGFILTER};\
-            ${AUDIOMAP}" \
-        $(if [ -n "$MAP1K" ] ; then echo ${MAP1K} ; fi) $(if [ -n "$MAP1V" ] ; then echo ${MAP1V} ; fi) \
-        $(if [ -n "$MAP2K" ] ; then echo ${MAP2K} ; fi) $(if [ -n "$MAP2V" ] ; then echo ${MAP2V} ; fi) \
+        -filter_complex "[0:v:0]${RECORDINGFILTER}; ${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" \
         -f "${FORMAT}" "${DIR}/${ID}${SUFFIX}.${EXTENSION}" \
         "${EXTRAOUTPUTS[@]}" -map 0 -c copy -f nut - | \
         if [[ "${QCTOOLSXML_CHOICE}" = "Yes" ]] ; then
