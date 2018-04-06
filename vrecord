@@ -49,7 +49,7 @@ ${SCRIPTNAME} will record a file via the Blackmagic SDK and ffmpeg. It is an
 interactive script and will create 10 or 8-bit video files.
 
 Dependencies: cowsay, amiaopensource/amiaos/ffmpegdecklink --with-sdl2
-  --with-freetype --with-openjpeg, mpv, qcli, and xmlstarlet
+  --with-freetype --with-openjpeg, mkvtoolnix, mpv, qcli and xmlstarlet
 
 Usage: ${SCRIPTNAME} [ -g | -e | -r | -p | -a | -x | -h ]
   -g  use the GUI
