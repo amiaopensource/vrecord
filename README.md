@@ -201,6 +201,11 @@ All of options in the vrecord GUI (which appears when running `vrecord -e`) or o
 
 **Frame MD5s** — You can choose to create an MD5 hash value (AKA a checksum) for each frame of video captured. A separate .md5 file with all the hash values will be created along with the video file. Generally choosing to create frame-level MD5s will not slow down or hinder the capture of your video. To read more about the value of frame-level MD5s see this article: http://dericed.com/papers/reconsidering-the-checksum-for-audiovisual-preservation/ 
 
+**Embedding logs** — If you choose Matroska, vrecord can embed the logs it generates into the Matroska container. Preservation metadata will then be available to the user both as sidecar logs (the vrecord default) and within the file itself. After logs have been attached, you can extract and read them as follows:
+* To show a list of attachments to a video file and their IDs, type: `mkvmerge -i [video filename]`
+* To extract attachments with IDs 1 through 4, type: `mkvextract [video filename] attachments 1 2 3 4`
+* The logs will then be extracted into the directory you're in, where they can be opened with a text editor.
+
 **Set recording time** — Set the amount of time (in minutes) that you would like vrecord to capture for, or leave it blank to capture indefinitely. For example, if you are digitizing a tape with a capacity of 30 minutes of video, you might want set vrecord to capture for 33 minutes. After 33 minutes vrecord will automatically stop recording and shut down. You may select a preset length from the dropdown menu, or type a different number. If you enter a number, it should be an integer or decimal in minutes (e.g. `15` will record for 15 minutes, and `15.75` will record for 15 minutes and 45 seconds).
 
 **Enter the name of the person digitizing this tape** — This field is optional. You can enter the name of the technician digitizing the tape. The name will be written to the capture options log produced at the end of the transfer.
