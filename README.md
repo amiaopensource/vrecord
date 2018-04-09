@@ -14,6 +14,7 @@ This documentation is up to date as of vrecord version 2018-02-08.
    1. [Audio Passthrough Mode](#audio-passthrough-mode)
    1. [Edit Mode](#edit-mode)
       1. [Options for Video Capture](#options-for-video-capture)
+      1. [Video Capture Views](#video-capture-views)
       1. [A Few Quirks](#a-few-quirks)
          1. [Timing of Recording](#timing-of-recording)
          1. [FFmpeg Error Message](#ffmpeg-error-message)
@@ -105,7 +106,7 @@ For those who want the simplest possible explanation on how to use vrecord:
 
 ![Alt text](Resources/vrecord_broadcast_range_visual_2016-11-22.jpg "Vrecord in Broadcast Range Visual Mode")
 
-Shown above is the layout of the vrecord window in "Broadcast Range Visual" mode. Vrecord also includes a "Visual + Numerical" mode, which is discussed in the [Options for Video Capture](https://github.com/amiaopensource/vrecord#options-for-video-capture) section below.
+Shown above is the layout of the vrecord window in "Broadcast Range Visual" mode. Vrecord also includes several other display modes discussed in [Video Capture Views](#video-capture-views) below.
 
 1. **Video feed** — Displays the entire 720 x 486 video signal coming through. The image will appear a bit more stretched than it does on a television monitor. 
 1. **Video feed with broadcast-safe indicator** — Displays a feed of an underscanned version of the video signal. Pixels whose luminance or chrominance is outside of broadcast range are colored yellow. Due to space constraints in the vrecord window this feed will appear slightly squeezed.  
@@ -168,7 +169,7 @@ All of options in the vrecord GUI (which appears when running `vrecord -e`) or o
 
 **Select standard** — Select the television standard of the tape you are digitizing. Currently vrecord only supports NTSC and PAL.
 
-**Select view** - Select the display you want to see as you digitize your tape.
+**Select view** - Select the display you want to see as you digitize your tape. See [Video Capture Views](#video-capture-views) below for more details.
 
 **Create QCTools XML** — While capturing the video signal, vrecord will also create an XML file that contains a record of the characteristics of the video signal (such as luminance, color saturation, audio levels, etc.). It will then compress the XML file using [gzip](https://www.gnu.org/software/gzip/). Choosing to create a QCTools XML is highly recommended. This file can be quickly imported into QCTools for further analysis of the video. In addition, if you choose this option, vrecord can analyze the video signal for potential errors. Currently vrecord only tests the saturation levels of the video.
 
