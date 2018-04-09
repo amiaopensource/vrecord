@@ -230,7 +230,7 @@ All of options in the vrecord GUI (which appears when running `vrecord -e`) or o
 
 **Frame MD5s** — You can choose to create an MD5 hash value (AKA a checksum) for each frame of video captured. A separate .md5 file with all the hash values will be created along with the video file. Generally choosing to create frame-level MD5s will not slow down or hinder the capture of your video. To read more about the value of frame-level MD5s see this article: http://dericed.com/papers/reconsidering-the-checksum-for-audiovisual-preservation/ 
 
-**Embedding logs** — If you choose Matroska, vrecord can embed the logs it generates into the Matroska container. Preservation metadata will then be available to the user both as sidecar logs (the vrecord default) and within the file itself. After logs have been attached, you can extract and read them as follows:
+**Embedding logs** — If you select the Matroska file format, vrecord can embed the logs it generates into the Matroska container. Preservation metadata will then be available to the user both as sidecar logs (the vrecord default) and within the file itself. After logs have been attached, you can extract and read them as follows:
 * To show a list of attachments to a video file and their IDs, type: `mkvmerge -i [video filename]`
 * To extract attachments with IDs 1 through 4, type: `mkvextract [video filename] attachments 1 2 3 4`
 * The logs will then be extracted into the directory you're in, where they can be opened with a text editor.
