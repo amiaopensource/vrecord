@@ -190,8 +190,6 @@ Click "OK" when you are finished with your selections. Vrecord will save all of 
 
 Vrecord will then prompt you for a unique ID. The ID that you type in will become a prefix for the filename of all the resulting files in that recording session. After entering your unique ID you will be asked to press enter to start recording. Press enter and start playing your tape. The vrecord window will appear. Do not type any keys or click the mouse inside the window while the vrecord is working. 
 
-After the transfer is finished, vrecord will automatically check to make sure that no frames were missed during the capture. Check the Terminal window for any error messages. If frames were missed you may get the following message: "WARNING: There were pts discontinuities for these frame ranges: ##-##. The file may have sync issues." The message will give the frame numbers that are missing. Check the file immediately at these points and throughout the video to make sure there are no sync issues. The tape may need to be redigitized.
-
 #### Video Capture Views
 
 **Broadcast Range Visual mode** — Broadcast Range Visual mode displays the video feed, the video feed with pixels out of broadcast range highlighted, the waveform monitor, and the vectorscope in the vrecord window.
@@ -266,6 +264,22 @@ Click the buttons to run Vrecord in your chosen mode. The documentation button b
 ### Ending a Capture
 
 If you are finished recording and the player window hasn't already closed, close the window. You can also press `q` or `esc` while the player window is active.
+
+After the transfer is finished, vrecord will automatically check for the following transfer errors:
+
+* Discontinuities in the frame MD5s (if they were created), or missing frames in the FFmpeg log (if frame MD5s were not created).
+  * Error message: "WARNING: There were pts discontinuities for these frame ranges: ##-##. The file may have sync issues" or "WARNING: FFmpeg reported missing frames. The file may have sync issues." The message may give the frame numbers that are missing. Check the file immediately at these points and throughout the video to make sure there are no sync issues.
+  * These errors are caused by digital encoding/decoding issues that lead to missing information.
+* Frames dropped because of a disconnected signal.
+  * Error message: "WARNING: FFmpeg Decklink input reported dropped frames in the following ## locations. The file may be missing content." The message will give the timestamps where content may be missing. Check the file immediately at these points and throughout the video to make sure it is complete.
+  * These errors are caused when no signal reaches the computer, and could be caused by a disconnect (e.g. unplugged cable) between the video deck and Blackmagic hardware, or Blackmagic and computer.
+* File conformity to codec standards.
+  * If the video codec is Uncompressed Video or FFV1, vrecord will validate file against a vrecord MediaConch policy to ensure the file conforms to those standards. Conformance to these standards is important for long-term digital preservation.
+  * If the file doesn't conform to these policies, it is probably because of a bug in vrecord itself or the tools it relies on. Please let us know if this happens by filing an issue in our GitHub [issue tracker](https://github.com/amiaopensource/vrecord/issues)!
+
+Check the Terminal window for any error messages. If you get these messages, the tape may need to be redigitized in order to ensure all information is encoded.
+
+If you chose to generate a QCTools file or embed logs from digitization, vrecord will start those processes as well.
 
 ### A Few Quirks
 
