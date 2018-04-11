@@ -263,6 +263,42 @@ _gui_return(){
     fi
 }
 
+# passthrough and audiopassthrough modes
+_passthrough_mode(){
+    if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
+        "${FFMPEG_DECKLINK}" -v info -nostats "${GRAB_DECKLINK[@]}" 2> /tmp/vrecord_input.log \
+        -map 0 -c copy -f nut - | \
+        mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -
+    else
+        "${FFPLAY_DECKLINK}" -v info -nostats "${GRAB_DECKLINK[@]}" 2> /tmp/vrecord_input.log \
+        -window_title "${WINDOW_NAME}" \
+        -vf "${PLAYBACKFILTER}"
+    fi
+    _gui_return
+}
+
+_audiopassthrough_mode(){
+    PLAYBACKFILTER="\
+[aid1]asplit=2[z][ao],\
+[z]channelsplit=channel_layout=quad[s1][s2][s3][s4];[s1][s2][s3][s4]amerge=inputs=4,aformat=channel_layouts=quad[zz],\
+[zz]showvolume=t=0:h=17:w=200[xx],\
+[vid1]split=5[a][b][c][d][e],\
+[b]field=top[b1],\
+[c]field=bottom[c1],\
+[b1]${WAVEFORM_FILTER}[b2],\
+[c1]${WAVEFORM_FILTER}[c2],\
+[a][b2][c2]vstack=inputs=3,format=yuv422p[abc1],\
+[d]${VECTORSCOPE_FILTER}[d1],\
+[e]signalstats=out=brng,scale=512:ih[e1],\
+[e1][d1]vstack[de1],\
+[abc1][de1]hstack[abcde1],\
+[abcde1][xx]overlay=10:10[vo]"
+    echo "ESC quit" > ~/.config/mpv/input.conf
+    "${FFMPEG_DECKLINK[@]}" -v info -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_DECKLINK[@]}" -map 0 -c copy -f nut - 2> /tmp/vrecord_input.log | \
+        mpv - --title="${WINDOW_NAME}" -lavfi-complex "${PLAYBACKFILTER}"
+    _gui_return
+}
+
 # check validity of duration value
 _duration_check(){
     # Sets up function to verify validity of duration settings
@@ -1074,39 +1110,11 @@ PIPE_DECKLINK+=(-f nut)
 PIPE_DECKLINK+=(-)
 WINDOW_NAME="mode:${RUNTYPE} - video:'${VIDEO_INPUT_CHOICE}' audio:'${AUDIO_INPUT_CHOICE}' - to end recording press q, esc, or close video window"
 
-# passthrough and audiopassthrough modes
+# CLI passthrough and audiopassthrough modes
 if [[ "${RUNTYPE}" = "passthrough" ]] ; then
-    if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
-        "${FFMPEG_DECKLINK}" -v info -nostats "${GRAB_DECKLINK[@]}" 2> /tmp/vrecord_input.log \
-        -map 0 -c copy -f nut - | \
-        mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -
-    else
-        "${FFPLAY_DECKLINK}" -v info -nostats "${GRAB_DECKLINK[@]}" 2> /tmp/vrecord_input.log \
-        -window_title "${WINDOW_NAME}" \
-        -vf "${PLAYBACKFILTER}"
-    fi
-    exit 0
-fi
-if [[ "${RUNTYPE}" = "audiopassthrough" ]] ; then
-    PLAYBACKFILTER="\
-[aid1]asplit=2[z][ao],\
-[z]channelsplit=channel_layout=quad[s1][s2][s3][s4];[s1][s2][s3][s4]amerge=inputs=4,aformat=channel_layouts=quad[zz],\
-[zz]showvolume=t=0:h=17:w=200[xx],\
-[vid1]split=5[a][b][c][d][e],\
-[b]field=top[b1],\
-[c]field=bottom[c1],\
-[b1]${WAVEFORM_FILTER}[b2],\
-[c1]${WAVEFORM_FILTER}[c2],\
-[a][b2][c2]vstack=inputs=3,format=yuv422p[abc1],\
-[d]${VECTORSCOPE_FILTER}[d1],\
-[e]signalstats=out=brng,scale=512:ih[e1],\
-[e1][d1]vstack[de1],\
-[abc1][de1]hstack[abcde1],\
-[abcde1][xx]overlay=10:10[vo]"
-    echo "ESC quit" > ~/.config/mpv/input.conf
-    "${FFMPEG_DECKLINK[@]}" -v info -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_DECKLINK[@]}" -map 0 -c copy -f nut - 2> /tmp/vrecord_input.log | \
-        mpv - --title="${WINDOW_NAME}" -lavfi-complex "${PLAYBACKFILTER}"
-    exit 0
+    _passthrough_mode
+elif [[ "${RUNTYPE}" = "audiopassthrough" ]] ; then
+    _audiopassthrough_mode
 fi
 
 # terminal dialog for rest of undeclared options (needed to record)
