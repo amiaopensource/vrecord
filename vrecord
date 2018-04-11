@@ -263,6 +263,116 @@ _gui_return(){
     fi
 }
 
+# edit mode
+_edit_mode(){
+    PASHUA_CONFIGFILE=$(/usr/bin/mktemp /tmp/pashua_XXXXXXXXX)
+    echo "${CONF}" > "${PASHUA_CONFIGFILE}"
+    _pashua_run
+    rm "${PASHUA_CONFIGFILE}"
+    if [[ "${cb}" = 0 ]] ; then
+        _duration_check
+        # report back options
+        if [[ -z "${LOGDIR}" ]] ; then
+            LOGDIR="${DIR}"
+            echo "As auxiliary files directory was left blank, logs will be written to recording directory at ${DIR}."
+        fi
+        echo "Variables set:"
+        echo "  DIR = ${DIR}"
+        echo "  LOGDIR = ${LOGDIR}"
+        echo "  CONTAINER_CHOICE = ${CONTAINER_CHOICE}"
+        echo "  VIDEO_INPUT_CHOICE = ${VIDEO_INPUT_CHOICE}"
+        echo "  AUDIO_INPUT_CHOICE = ${AUDIO_INPUT_CHOICE}"
+        echo "  VIDEO_CODEC_CHOICE = ${VIDEO_CODEC_CHOICE}"
+        echo "  VIDEO_BIT_DEPTH_CHOICE = ${VIDEO_BIT_DEPTH_CHOICE}"
+        echo "  AUDIO_MAPPING_CHOICE = ${AUDIO_MAPPING_CHOICE}"
+        echo "  STANDARD_CHOICE = ${STANDARD_CHOICE}"
+        echo "  QCTOOLSXML_CHOICE = ${QCTOOLSXML_CHOICE}"
+        echo "  FRAMEMD5_CHOICE = ${FRAMEMD5_CHOICE}"
+        echo "  EMBED_LOGS_CHOICE = ${EMBED_LOGS_CHOICE}"
+        echo "  PLAYBACKVIEW_CHOICE = ${PLAYBACKVIEW_CHOICE}"
+        echo "  DURATION = ${DURATION}"
+        echo "  TECHNICIAN = ${TECHNICIAN}"
+        if [[ "${INVERT_PHASE}" = 1 ]] ; then
+            echo -e " \033[101mWARNING: Option to invert phase of second audio channel has been selected\033[0m"
+        fi
+        if [ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" -a "${CONTAINER_CHOICE}" = "MXF" ] ; then
+            echo -e " \033[101mWARNING: Incompatible video codecs and CONTAINERs have been selected\033[0m"
+        elif [ "${VIDEO_CODEC_CHOICE}" = "ProRes" -a "${CONTAINER_CHOICE}" = "MXF" ] ; then
+            echo -e " \033[101mWARNING: Incompatible video codecs and CONTAINERs have been selected\033[0m"
+        fi
+        if [ "${EMBED_LOGS_CHOICE}" = "Yes" -a "${CONTAINER_CHOICE}" != "Matroska" ] ; then
+            _report -w "WARNING: Logs cannot be embedded in non-Matroska files. This vrecord session will generate logs in ${LOGDIR}, but will not embed them in your video file."
+        fi
+        echo ""
+        # write config file
+        cat > "${CONFIG_FILE}" << EOF
+#${SCRIPTNAME} config file
+${CONFIG_COMMENT}
+${VIDEO_INPUT_CHOICE_COMMENT}
+VIDEO_INPUT_CHOICE="${VIDEO_INPUT_CHOICE}"
+
+${AUDIO_INPUT_CHOICE_COMMENT}
+AUDIO_INPUT_CHOICE="${AUDIO_INPUT_CHOICE}"
+
+${CONTAINER_CHOICE_COMMENT}
+CONTAINER_CHOICE="${CONTAINER_CHOICE}"
+
+${VIDEO_CODEC_CHOICE_COMMENT}
+VIDEO_CODEC_CHOICE="${VIDEO_CODEC_CHOICE}"
+
+${VIDEO_BIT_DEPTH_CHOICE_COMMENT}
+VIDEO_BIT_DEPTH_CHOICE="${VIDEO_BIT_DEPTH_CHOICE}"
+
+${AUDIO_MAPPING_CHOICE_COMMENT}
+AUDIO_MAPPING_CHOICE="${AUDIO_MAPPING_CHOICE}"
+
+${STANDARD_CHOICE_COMMENT}
+STANDARD_CHOICE="${STANDARD_CHOICE}"
+
+${QCTOOLSXML_CHOICE_COMMENT}
+QCTOOLSXML_CHOICE="${QCTOOLSXML_CHOICE}"
+
+${FRAMEMD5_CHOICE_COMMENT}
+FRAMEMD5_CHOICE="${FRAMEMD5_CHOICE}"
+
+${EMBED_LOGS_CHOICE_COMMENT}
+EMBED_LOGS_CHOICE="${EMBED_LOGS_CHOICE}"
+
+${PLAYBACKVIEW_CHOICE_COMMENT}
+PLAYBACKVIEW_CHOICE="${PLAYBACKVIEW_CHOICE}"
+
+${DIR_COMMENT}
+DIR="${DIR}"
+LOGDIR="${LOGDIR}"
+
+INVERT_PHASE="${INVERT_PHASE}"
+
+${DURATION_COMMENT}
+DURATION="${DURATION}"
+
+${TECHNICIAN_COMMENT}
+TECHNICIAN="${TECHNICIAN}"
+EOF
+        . "${CONFIG_FILE}"
+    else
+        _report -d "Editing of preferences was canceled by the user."
+    fi
+    if [[ "${GUI}" = 1 ]] ; then
+        _master_gui
+    else
+        RUNTYPE="record"
+        open /Applications/Utilities/Terminal.app
+        _report -nd "Press [q] to quit, [p] to enter passthrough mode or any other key to proceed: "
+        read AFTEREDITRESPONSE
+        if [[ "${AFTEREDITRESPONSE}" = "q" ]] ; then
+            _report -d "Bye then"
+            exit 0
+        elif [[ "${AFTEREDITRESPONSE}" = "p" ]] ; then
+            RUNTYPE="passthrough"
+        fi
+    fi
+}
+
 # passthrough and audiopassthrough modes
 _passthrough_mode(){
     if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
@@ -912,110 +1022,11 @@ if [[ "${RUNTYPE}" = "reset" ]] ; then
         _report -d "Reset aborted. Exiting."
         exit 0
     fi
-elif [[ "${RUNTYPE}" = "edit" ]] ; then
-    PASHUA_CONFIGFILE=$(/usr/bin/mktemp /tmp/pashua_XXXXXXXXX)
-    echo "${CONF}" > "${PASHUA_CONFIGFILE}"
-    _pashua_run
-    rm "${PASHUA_CONFIGFILE}"
-    if [[ "${cb}" = 0 ]] ; then
-        _duration_check
-        # report back options
-        if [[ -z "${LOGDIR}" ]] ; then
-            LOGDIR="${DIR}"
-            echo "As auxiliary files directory was left blank, logs will be written to recording directory at ${DIR}."
-        fi
-        echo "Variables set:"
-        echo "  DIR = ${DIR}"
-        echo "  LOGDIR = ${LOGDIR}"
-        echo "  CONTAINER_CHOICE = ${CONTAINER_CHOICE}"
-        echo "  VIDEO_INPUT_CHOICE = ${VIDEO_INPUT_CHOICE}"
-        echo "  AUDIO_INPUT_CHOICE = ${AUDIO_INPUT_CHOICE}"
-        echo "  VIDEO_CODEC_CHOICE = ${VIDEO_CODEC_CHOICE}"
-        echo "  VIDEO_BIT_DEPTH_CHOICE = ${VIDEO_BIT_DEPTH_CHOICE}"
-        echo "  AUDIO_MAPPING_CHOICE = ${AUDIO_MAPPING_CHOICE}"
-        echo "  STANDARD_CHOICE = ${STANDARD_CHOICE}"
-        echo "  QCTOOLSXML_CHOICE = ${QCTOOLSXML_CHOICE}"
-        echo "  FRAMEMD5_CHOICE = ${FRAMEMD5_CHOICE}"
-        echo "  EMBED_LOGS_CHOICE = ${EMBED_LOGS_CHOICE}"
-        echo "  PLAYBACKVIEW_CHOICE = ${PLAYBACKVIEW_CHOICE}"
-        echo "  DURATION = ${DURATION}"
-        echo "  TECHNICIAN = ${TECHNICIAN}"
-        if [[ "${INVERT_PHASE}" = 1 ]] ; then
-            echo -e " \033[101mWARNING: Option to invert phase of second audio channel has been selected\033[0m"
-        fi
-        if [ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" -a "${CONTAINER_CHOICE}" = "MXF" ] ; then
-            echo -e " \033[101mWARNING: Incompatible video codecs and CONTAINERs have been selected\033[0m"
-        elif [ "${VIDEO_CODEC_CHOICE}" = "ProRes" -a "${CONTAINER_CHOICE}" = "MXF" ] ; then
-            echo -e " \033[101mWARNING: Incompatible video codecs and CONTAINERs have been selected\033[0m"
-        fi
-        if [ "${EMBED_LOGS_CHOICE}" = "Yes" -a "${CONTAINER_CHOICE}" != "Matroska" ] ; then
-            _report -w "WARNING: Logs cannot be embedded in non-Matroska files. This vrecord session will generate logs in ${LOGDIR}, but will not embed them in your video file."
-        fi
-        echo ""
-        # write config file
-        cat > "${CONFIG_FILE}" << EOF
-#${SCRIPTNAME} config file
-${CONFIG_COMMENT}
-${VIDEO_INPUT_CHOICE_COMMENT}
-VIDEO_INPUT_CHOICE="${VIDEO_INPUT_CHOICE}"
-
-${AUDIO_INPUT_CHOICE_COMMENT}
-AUDIO_INPUT_CHOICE="${AUDIO_INPUT_CHOICE}"
-
-${CONTAINER_CHOICE_COMMENT}
-CONTAINER_CHOICE="${CONTAINER_CHOICE}"
-
-${VIDEO_CODEC_CHOICE_COMMENT}
-VIDEO_CODEC_CHOICE="${VIDEO_CODEC_CHOICE}"
-
-${VIDEO_BIT_DEPTH_CHOICE_COMMENT}
-VIDEO_BIT_DEPTH_CHOICE="${VIDEO_BIT_DEPTH_CHOICE}"
-
-${AUDIO_MAPPING_CHOICE_COMMENT}
-AUDIO_MAPPING_CHOICE="${AUDIO_MAPPING_CHOICE}"
-
-${STANDARD_CHOICE_COMMENT}
-STANDARD_CHOICE="${STANDARD_CHOICE}"
-
-${QCTOOLSXML_CHOICE_COMMENT}
-QCTOOLSXML_CHOICE="${QCTOOLSXML_CHOICE}"
-
-${FRAMEMD5_CHOICE_COMMENT}
-FRAMEMD5_CHOICE="${FRAMEMD5_CHOICE}"
-
-${EMBED_LOGS_CHOICE_COMMENT}
-EMBED_LOGS_CHOICE="${EMBED_LOGS_CHOICE}"
-
-${PLAYBACKVIEW_CHOICE_COMMENT}
-PLAYBACKVIEW_CHOICE="${PLAYBACKVIEW_CHOICE}"
-
-${DIR_COMMENT}
-DIR="${DIR}"
-LOGDIR="${LOGDIR}"
-
-INVERT_PHASE="${INVERT_PHASE}"
-
-${DURATION_COMMENT}
-DURATION="${DURATION}"
-
-${TECHNICIAN_COMMENT}
-TECHNICIAN="${TECHNICIAN}"
-EOF
-        . "${CONFIG_FILE}"
-    else
-        _report -d "Editing of preferences was canceled by the user."
-    fi
-    RUNTYPE="record"
-    open /Applications/Utilities/Terminal.app
-    _report -nd "Press [q] to quit, [p] to enter passthrough mode or any other key to proceed: "
-    read AFTEREDITRESPONSE
-    if [[ "${AFTEREDITRESPONSE}" = "q" ]] ; then
-        _report -d "Bye then"
-        exit 0
-    elif [[ "${AFTEREDITRESPONSE}" = "p" ]] ; then
-        RUNTYPE="passthrough"
-    fi
 fi
+while [[ "${RUNTYPE}" = "edit" ]] ; do
+    _edit_mode
+done
+
 open /Applications/Utilities/Terminal.app
 if [[ "${INVERT_PHASE}" = 1 ]] ; then
     PHASE_VALUE="-1*"
