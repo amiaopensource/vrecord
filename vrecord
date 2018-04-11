@@ -1128,7 +1128,18 @@ elif [[ "${RUNTYPE}" = "audiopassthrough" ]] ; then
     _audiopassthrough_mode
 fi
 
-# terminal dialog for rest of undeclared options (needed to record)
+# GUI mode loops
+while [[ "${GUI}" = 1 ]] && [[ "${RUNTYPE}" != "record" ]] ; do
+    if [[ "${RUNTYPE}" = "passthrough" ]] ; then
+        _passthrough_mode
+    elif [[ "${RUNTYPE}" = "audiopassthrough" ]] ; then
+        _audiopassthrough_mode
+    elif [[ "${RUNTYPE}" = "edit" ]] ; then
+        _edit_mode
+    fi
+done
+
+# record mode
 _report -q -n "Enter Identifier: "
 read ID
 if [[ ! -d "${DIR}" ]] ; then
