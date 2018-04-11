@@ -69,6 +69,30 @@ See also the man page: man ${SCRIPTNAME}
 EOF
 }
 
+_report(){
+    local RED="$(tput setaf 1)"    # Red      - For Warnings
+    local GREEN="$(tput setaf 2)"  # Green    - For Declarations
+    local BLUE="$(tput setaf 4)"   # Blue     - For Questions
+    local NC="$(tput sgr0)"        # No Color
+    local COLOR=""
+    local STARTMESSAGE=""
+    local ECHOOPT=""
+    OPTIND=1
+    while getopts "qdwstn" opt ; do
+        case "${opt}" in
+            q) COLOR="${BLUE}" ;;                        # question mode, use color blue
+            d) COLOR="${GREEN}" ;;                       # declaration mode, use color green
+            w) COLOR="${RED}" ;;                         # warning mode, use color red
+            s) STARTMESSAGE+=([${SCRIPTNAME}] ) ;;       # prepend scriptname to the message
+            t) STARTMESSAGE+=($(_get_iso8601) '- ' ) ;;  # prepend timestamp to the message
+            n) ECHOOPT="-n" ;;                           # to avoid line breaks after echo
+        esac
+    done
+    shift "$((OPTIND-1))"
+    MESSAGE="${1}"
+    echo ${ECHOOPT} "${COLOR}${STARTMESSAGE[@]}${MESSAGE}${NC}"
+}
+
 # command-line options to set media id and original variables
 OPTIND=1
 while getopts ":herpaxg" opt ; do
@@ -96,30 +120,6 @@ fi
 # local functions
 _get_iso8601(){
     date +%FT%T
-}
-
-_report(){
-    local RED="$(tput setaf 1)"    # Red      - For Warnings
-    local GREEN="$(tput setaf 2)"  # Green    - For Declarations
-    local BLUE="$(tput setaf 4)"   # Blue     - For Questions
-    local NC="$(tput sgr0)"        # No Color
-    local COLOR=""
-    local STARTMESSAGE=""
-    local ECHOOPT=""
-    OPTIND=1
-    while getopts "qdwstn" opt ; do
-        case "${opt}" in
-            q) COLOR="${BLUE}" ;;                        # question mode, use color blue
-            d) COLOR="${GREEN}" ;;                       # declaration mode, use color green
-            w) COLOR="${RED}" ;;                         # warning mode, use color red
-            s) STARTMESSAGE+=([${SCRIPTNAME}] ) ;;       # prepend scriptname to the message
-            t) STARTMESSAGE+=($(_get_iso8601) '- ' ) ;;  # prepend timestamp to the message
-            n) ECHOOPT="-n" ;;                           # to avoid line breaks after echo
-        esac
-    done
-    shift "$((OPTIND-1))"
-    MESSAGE="${1}"
-    echo ${ECHOOPT} "${COLOR}${STARTMESSAGE[@]}${MESSAGE}${NC}"
 }
 
 _get_decklink_inputs(){
