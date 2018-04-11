@@ -246,6 +246,7 @@ db.label = Exit
         echo -n -e "\033]0;PRESS Q TO EXIT\007" && man vrecord && echo -n -e "\033]0;\007" && _master_gui
     elif [[ "${DOCUMENTATION_BUTTON}" = 1 ]] ; then
         open https://github.com/amiaopensource/vrecord#vrecord-documentation && _master_gui
+    # db = default button, set to exit
     elif [[ "${db}" = 1 ]] ; then
         echo "Exiting Vrecord. Goodbye!" && exit 0
     fi
@@ -269,6 +270,7 @@ _edit_mode(){
     echo "${CONF}" > "${PASHUA_CONFIGFILE}"
     _pashua_run
     rm "${PASHUA_CONFIGFILE}"
+    # cb = cancel button; default button is "OK"
     if [[ "${cb}" = 0 ]] ; then
         _duration_check
         # report back options
@@ -1008,6 +1010,7 @@ PLAYBACKVIEW_CHOICE_COMMENT="#Set PLAYBACKVIEW_CHOICE to one of these valid opti
 DURATION_COMMENT="#Set the recording time as a number (integer or decimal) in minutes."
 TECHNICIAN_COMMENT="#Enter the name of the person digitizing this tape."
 
+# GUI mode + CLI reset, edit modes
 if [[ "${RUNTYPE}" = "GUI" ]] ; then
     _master_gui
 fi
