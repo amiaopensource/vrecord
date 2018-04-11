@@ -246,7 +246,7 @@ db.label = Exit
         echo -n -e "\033]0;PRESS Q TO EXIT\007" && man vrecord && echo -n -e "\033]0;\007" && _master_gui
     elif [[ "${DOCUMENTATION_BUTTON}" = 1 ]] ; then
         open https://github.com/amiaopensource/vrecord#vrecord-documentation && _master_gui
-    elif [[ "${RUNTYPE}" = "GUI" ]] ; then
+    elif [[ "${db}" = 1 ]] ; then
         echo "Exiting Vrecord. Goodbye!" && exit 0
     fi
     if [[ -f "${PASHUA_CONFIGFILE}" ]] ; then
