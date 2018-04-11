@@ -171,7 +171,7 @@ All of options in the vrecord GUI (which appears when running `vrecord -e`) or o
 
 **Select standard** — Select the television standard of the tape you are digitizing. Currently vrecord only supports NTSC and PAL.
 
-**Select view** - Select the display you want to see as you digitize your tape. See [Video Capture Views](#video-capture-views) below for more details.
+**Select view** — Select the display you want to see as you digitize your tape. See [Video Capture Views](#video-capture-views) below for more details.
 
 **Create QCTools XML** — While capturing the video signal, vrecord will also create an XML file that contains a record of the characteristics of the video signal (such as luminance, color saturation, audio levels, etc.). It will then compress the XML file using [gzip](https://www.gnu.org/software/gzip/). Choosing to create a QCTools XML is highly recommended. This file can be quickly imported into QCTools for further analysis of the video. In addition, if you choose this option, vrecord can analyze the video signal for potential errors. Currently vrecord only tests the saturation levels of the video.
 
@@ -196,7 +196,7 @@ Vrecord will then prompt you for a unique ID. The ID that you type in will becom
 
 **Broadcast Range Visual mode** — Broadcast Range Visual mode displays the video feed, the video feed with pixels out of broadcast range highlighted, the waveform monitor, and the vectorscope in the vrecord window.
 
-**Full Range Visual mode** - Full Range Visual mode displays the video feed, the video feed with pixels at full range extremes highlighted, the waveform monitor, and the vectorscope in the vrecord window.
+**Full Range Visual mode** — Full Range Visual mode displays the video feed, the video feed with pixels at full range extremes highlighted, the waveform monitor, and the vectorscope in the vrecord window.
 
 **Visual + Numerical mode** — Visual and Numerical mode displays your favorite video feeds and scopes as well as numerical values for the characteristics of the video signal in the left sidebar. 
 
@@ -219,7 +219,7 @@ Vrecord will then prompt you for a unique ID. The ID that you type in will becom
 
 **Bit Planes mode** — Bit Planes mode allows to display the video according to the bit position of each plane.
 
-**Quality Control View mode** - Quality Control View mode can display all the views above, as well as several other quality control tools (waveforms, vectorscopes, and histograms). The menu in QC View shows options tied to keystrokes; pressing the key listed next to the name of the view you want will display that view. This feature means you can switch between several different views during the same transfer. QC View key bindings are as follows:
+**Quality Control View mode** — Quality Control View mode can display all the views above, as well as several other quality control tools (waveforms, vectorscopes, and histograms). The menu in QC View shows options tied to keystrokes; pressing the key listed next to the name of the view you want will display that view. This feature means you can switch between several different views during the same transfer. QC View key bindings are as follows:
 
 * Views
   * 1 — Broadcast Range Visual
