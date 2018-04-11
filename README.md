@@ -18,7 +18,7 @@ This documentation is up to date as of vrecord version 2018-04-06.
       1. [A Few Quirks](#a-few-quirks)
          1. [Timing of Recording](#timing-of-recording)
          1. [FFmpeg Error Message](#ffmpeg-error-message)
-   1. [Ending a capture](#ending-a-capture)
+   1. [Ending a Capture](#ending-a-capture)
    1. [Clearing the Configuration File](#clearing-the-configuration-file)
 1. [Help and Issues](#help-and-issues)
 1. [License](#license)
@@ -115,7 +115,7 @@ Shown above is the layout of the vrecord window in "Broadcast Range Visual" mode
 
 ### Passthrough Mode
 
-Passthrough mode means that the vrecord window will appear with video feeds and scopes, but the incoming video signal will not be recorded to a file. Passthrough mode is best used for tasks like testing equipment or setting up a tape to bars before actually recording. When you are finished using passthrough mode simply close the vrecord window.
+Passthrough mode means that the vrecord window will appear with video feeds and scopes, but the incoming video signal will not be recorded to a file. Passthrough mode is best used for tasks like testing equipment or setting up a tape to bars before actually recording. When you are finished using passthrough mode, simply close the vrecord window.
 
 Run passthrough mode by typing:
 ```
@@ -186,7 +186,7 @@ All of options in the vrecord GUI (which appears when running `vrecord -e`) or o
 
 **Enter the name of the person digitizing this tape** — This field is optional. You can enter the name of the technician digitizing the tape. The name will be written to the capture options log produced at the end of the transfer.
 
-**Invert Second Channel of Audio** — This option allows you to invert the phase of the second channel of audio on ingest.  This option is only for rare cases. Use only if you are positive that the audio channels are 180 degrees out of phase!
+**Invert Second Channel of Audio** — This option allows you to invert the phase of the second channel of audio on ingest. This option is only for rare cases. Use only if you are positive that the audio channels are 180 degrees out of phase!
 
 Click "OK" when you are finished with your selections. Vrecord will save all of your selections to a configuration file. If any selections are "Undeclared" vrecord will prompt you in the terminal window to make a choice. 
 
