@@ -103,7 +103,7 @@ while getopts ":herpaxg" opt ; do
         p) RUNTYPE="passthrough" ;;
         a) RUNTYPE="audiopassthrough" ;;
         x) RUNTYPE="reset" ;;
-        g) RUNTYPE="GUI" ;;
+        g) RUNTYPE="GUI" ; GUI=1 ;;
         *) _report -w "Error: bad option -${OPTARG}" ; _usage ; exit 1 ;;
     esac
 done
@@ -251,6 +251,15 @@ db.label = Exit
     fi
     if [[ -f "${PASHUA_CONFIGFILE}" ]] ; then
         rm "${PASHUA_CONFIGFILE}"
+    fi
+}
+
+# relaunch GUI in GUI mode/exit script in terminal mode
+_gui_return(){
+    if [[ "${GUI}" = 1 ]] ; then
+        _master_gui
+    else
+        exit 0
     fi
 }
 
