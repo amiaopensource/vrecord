@@ -69,6 +69,11 @@ See also the man page: man ${SCRIPTNAME}
 EOF
 }
 
+# local functions
+_get_iso8601(){
+    date +%FT%T
+}
+
 _report(){
     local RED="$(tput setaf 1)"    # Red      - For Warnings
     local GREEN="$(tput setaf 2)"  # Green    - For Declarations
@@ -118,10 +123,6 @@ elif [[ "${RUNTYPE}" = "record" || "${RUNTYPE}" = "edit" ]] ; then
 fi
 
 # local functions
-_get_iso8601(){
-    date +%FT%T
-}
-
 _get_decklink_inputs(){
     DECKLINK_INPUTS=$("${FFMPEG_DECKLINK[@]}" -f decklink -list_devices 1 -i dummy 2>&1 | grep -o "^\[decklink[^\]*][^']*'.*" | cut -d "'" -f2- | sed "s/'$//g")
     if [[ -z "${DECKLINK_INPUTS}" ]] ; then
