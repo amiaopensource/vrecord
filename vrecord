@@ -108,7 +108,7 @@ while getopts ":herpaxg" opt ; do
         p) RUNTYPE="passthrough" ;;
         a) RUNTYPE="audiopassthrough" ;;
         x) RUNTYPE="reset" ;;
-        g) RUNTYPE="GUI" ;;
+        g) RUNTYPE="GUI" ; GUI=1 ;;
         *) _report -w "Error: bad option -${OPTARG}" ; _usage ; exit 1 ;;
     esac
 done
@@ -247,12 +247,169 @@ db.label = Exit
         echo -n -e "\033]0;PRESS Q TO EXIT\007" && man vrecord && echo -n -e "\033]0;\007" && _master_gui
     elif [[ "${DOCUMENTATION_BUTTON}" = 1 ]] ; then
         open https://github.com/amiaopensource/vrecord#vrecord-documentation && _master_gui
-    elif [[ "${RUNTYPE}" = "GUI" ]] ; then
+    # db = default button, set to exit
+    elif [[ "${db}" = 1 ]] ; then
         echo "Exiting Vrecord. Goodbye!" && exit 0
     fi
     if [[ -f "${PASHUA_CONFIGFILE}" ]] ; then
         rm "${PASHUA_CONFIGFILE}"
     fi
+}
+
+# relaunch GUI in GUI mode/exit script in terminal mode
+_gui_return(){
+    if [[ "${GUI}" = 1 ]] ; then
+        _master_gui
+    else
+        exit 0
+    fi
+}
+
+# edit mode
+_edit_mode(){
+    PASHUA_CONFIGFILE=$(/usr/bin/mktemp /tmp/pashua_XXXXXXXXX)
+    echo "${CONF}" > "${PASHUA_CONFIGFILE}"
+    _pashua_run
+    rm "${PASHUA_CONFIGFILE}"
+    # cb = cancel button; default button is "OK"
+    if [[ "${cb}" = 0 ]] ; then
+        _duration_check
+        # report back options
+        if [[ -z "${LOGDIR}" ]] ; then
+            LOGDIR="${DIR}"
+            echo "As auxiliary files directory was left blank, logs will be written to recording directory at ${DIR}."
+        fi
+        echo "Variables set:"
+        echo "  DIR = ${DIR}"
+        echo "  LOGDIR = ${LOGDIR}"
+        echo "  CONTAINER_CHOICE = ${CONTAINER_CHOICE}"
+        echo "  VIDEO_INPUT_CHOICE = ${VIDEO_INPUT_CHOICE}"
+        echo "  AUDIO_INPUT_CHOICE = ${AUDIO_INPUT_CHOICE}"
+        echo "  VIDEO_CODEC_CHOICE = ${VIDEO_CODEC_CHOICE}"
+        echo "  VIDEO_BIT_DEPTH_CHOICE = ${VIDEO_BIT_DEPTH_CHOICE}"
+        echo "  AUDIO_MAPPING_CHOICE = ${AUDIO_MAPPING_CHOICE}"
+        echo "  STANDARD_CHOICE = ${STANDARD_CHOICE}"
+        echo "  QCTOOLSXML_CHOICE = ${QCTOOLSXML_CHOICE}"
+        echo "  FRAMEMD5_CHOICE = ${FRAMEMD5_CHOICE}"
+        echo "  EMBED_LOGS_CHOICE = ${EMBED_LOGS_CHOICE}"
+        echo "  PLAYBACKVIEW_CHOICE = ${PLAYBACKVIEW_CHOICE}"
+        echo "  DURATION = ${DURATION}"
+        echo "  TECHNICIAN = ${TECHNICIAN}"
+        if [[ "${INVERT_PHASE}" = 1 ]] ; then
+            echo -e " \033[101mWARNING: Option to invert phase of second audio channel has been selected\033[0m"
+        fi
+        if [ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" -a "${CONTAINER_CHOICE}" = "MXF" ] ; then
+            echo -e " \033[101mWARNING: Incompatible video codecs and CONTAINERs have been selected\033[0m"
+        elif [ "${VIDEO_CODEC_CHOICE}" = "ProRes" -a "${CONTAINER_CHOICE}" = "MXF" ] ; then
+            echo -e " \033[101mWARNING: Incompatible video codecs and CONTAINERs have been selected\033[0m"
+        fi
+        if [ "${EMBED_LOGS_CHOICE}" = "Yes" -a "${CONTAINER_CHOICE}" != "Matroska" ] ; then
+            _report -w "WARNING: Logs cannot be embedded in non-Matroska files. This vrecord session will generate logs in ${LOGDIR}, but will not embed them in your video file."
+        fi
+        echo ""
+        # write config file
+        cat > "${CONFIG_FILE}" << EOF
+#${SCRIPTNAME} config file
+${CONFIG_COMMENT}
+${VIDEO_INPUT_CHOICE_COMMENT}
+VIDEO_INPUT_CHOICE="${VIDEO_INPUT_CHOICE}"
+
+${AUDIO_INPUT_CHOICE_COMMENT}
+AUDIO_INPUT_CHOICE="${AUDIO_INPUT_CHOICE}"
+
+${CONTAINER_CHOICE_COMMENT}
+CONTAINER_CHOICE="${CONTAINER_CHOICE}"
+
+${VIDEO_CODEC_CHOICE_COMMENT}
+VIDEO_CODEC_CHOICE="${VIDEO_CODEC_CHOICE}"
+
+${VIDEO_BIT_DEPTH_CHOICE_COMMENT}
+VIDEO_BIT_DEPTH_CHOICE="${VIDEO_BIT_DEPTH_CHOICE}"
+
+${AUDIO_MAPPING_CHOICE_COMMENT}
+AUDIO_MAPPING_CHOICE="${AUDIO_MAPPING_CHOICE}"
+
+${STANDARD_CHOICE_COMMENT}
+STANDARD_CHOICE="${STANDARD_CHOICE}"
+
+${QCTOOLSXML_CHOICE_COMMENT}
+QCTOOLSXML_CHOICE="${QCTOOLSXML_CHOICE}"
+
+${FRAMEMD5_CHOICE_COMMENT}
+FRAMEMD5_CHOICE="${FRAMEMD5_CHOICE}"
+
+${EMBED_LOGS_CHOICE_COMMENT}
+EMBED_LOGS_CHOICE="${EMBED_LOGS_CHOICE}"
+
+${PLAYBACKVIEW_CHOICE_COMMENT}
+PLAYBACKVIEW_CHOICE="${PLAYBACKVIEW_CHOICE}"
+
+${DIR_COMMENT}
+DIR="${DIR}"
+LOGDIR="${LOGDIR}"
+
+INVERT_PHASE="${INVERT_PHASE}"
+
+${DURATION_COMMENT}
+DURATION="${DURATION}"
+
+${TECHNICIAN_COMMENT}
+TECHNICIAN="${TECHNICIAN}"
+EOF
+        . "${CONFIG_FILE}"
+    else
+        _report -d "Editing of preferences was canceled by the user."
+    fi
+    if [[ "${GUI}" = 1 ]] ; then
+        _master_gui
+    else
+        RUNTYPE="record"
+        open /Applications/Utilities/Terminal.app
+        _report -nd "Press [q] to quit, [p] to enter passthrough mode or any other key to proceed: "
+        read AFTEREDITRESPONSE
+        if [[ "${AFTEREDITRESPONSE}" = "q" ]] ; then
+            _report -d "Bye then"
+            exit 0
+        elif [[ "${AFTEREDITRESPONSE}" = "p" ]] ; then
+            RUNTYPE="passthrough"
+        fi
+    fi
+}
+
+# passthrough and audiopassthrough modes
+_passthrough_mode(){
+    if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
+        "${FFMPEG_DECKLINK}" -v info -nostats "${GRAB_DECKLINK[@]}" 2> /tmp/vrecord_input.log \
+        -map 0 -c copy -f nut - | \
+        mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -
+    else
+        "${FFPLAY_DECKLINK}" -v info -nostats "${GRAB_DECKLINK[@]}" 2> /tmp/vrecord_input.log \
+        -window_title "${WINDOW_NAME}" \
+        -vf "${PLAYBACKFILTER}"
+    fi
+    _gui_return
+}
+
+_audiopassthrough_mode(){
+    PLAYBACKFILTER="\
+[aid1]asplit=2[z][ao],\
+[z]channelsplit=channel_layout=quad[s1][s2][s3][s4];[s1][s2][s3][s4]amerge=inputs=4,aformat=channel_layouts=quad[zz],\
+[zz]showvolume=t=0:h=17:w=200[xx],\
+[vid1]split=5[a][b][c][d][e],\
+[b]field=top[b1],\
+[c]field=bottom[c1],\
+[b1]${WAVEFORM_FILTER}[b2],\
+[c1]${WAVEFORM_FILTER}[c2],\
+[a][b2][c2]vstack=inputs=3,format=yuv422p[abc1],\
+[d]${VECTORSCOPE_FILTER}[d1],\
+[e]signalstats=out=brng,scale=512:ih[e1],\
+[e1][d1]vstack[de1],\
+[abc1][de1]hstack[abcde1],\
+[abcde1][xx]overlay=10:10[vo]"
+    echo "ESC quit" > ~/.config/mpv/input.conf
+    "${FFMPEG_DECKLINK[@]}" -v info -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_DECKLINK[@]}" -map 0 -c copy -f nut - 2> /tmp/vrecord_input.log | \
+        mpv - --title="${WINDOW_NAME}" -lavfi-complex "${PLAYBACKFILTER}"
+    _gui_return
 }
 
 # check validity of duration value
@@ -854,6 +1011,7 @@ PLAYBACKVIEW_CHOICE_COMMENT="#Set PLAYBACKVIEW_CHOICE to one of these valid opti
 DURATION_COMMENT="#Set the recording time as a number (integer or decimal) in minutes."
 TECHNICIAN_COMMENT="#Enter the name of the person digitizing this tape."
 
+# GUI mode + CLI reset, edit modes
 if [[ "${RUNTYPE}" = "GUI" ]] ; then
     _master_gui
 fi
@@ -868,110 +1026,11 @@ if [[ "${RUNTYPE}" = "reset" ]] ; then
         _report -d "Reset aborted. Exiting."
         exit 0
     fi
-elif [[ "${RUNTYPE}" = "edit" ]] ; then
-    PASHUA_CONFIGFILE=$(/usr/bin/mktemp /tmp/pashua_XXXXXXXXX)
-    echo "${CONF}" > "${PASHUA_CONFIGFILE}"
-    _pashua_run
-    rm "${PASHUA_CONFIGFILE}"
-    if [[ "${cb}" = 0 ]] ; then
-        _duration_check
-        # report back options
-        if [[ -z "${LOGDIR}" ]] ; then
-            LOGDIR="${DIR}"
-            echo "As auxiliary files directory was left blank, logs will be written to recording directory at ${DIR}."
-        fi
-        echo "Variables set:"
-        echo "  DIR = ${DIR}"
-        echo "  LOGDIR = ${LOGDIR}"
-        echo "  CONTAINER_CHOICE = ${CONTAINER_CHOICE}"
-        echo "  VIDEO_INPUT_CHOICE = ${VIDEO_INPUT_CHOICE}"
-        echo "  AUDIO_INPUT_CHOICE = ${AUDIO_INPUT_CHOICE}"
-        echo "  VIDEO_CODEC_CHOICE = ${VIDEO_CODEC_CHOICE}"
-        echo "  VIDEO_BIT_DEPTH_CHOICE = ${VIDEO_BIT_DEPTH_CHOICE}"
-        echo "  AUDIO_MAPPING_CHOICE = ${AUDIO_MAPPING_CHOICE}"
-        echo "  STANDARD_CHOICE = ${STANDARD_CHOICE}"
-        echo "  QCTOOLSXML_CHOICE = ${QCTOOLSXML_CHOICE}"
-        echo "  FRAMEMD5_CHOICE = ${FRAMEMD5_CHOICE}"
-        echo "  EMBED_LOGS_CHOICE = ${EMBED_LOGS_CHOICE}"
-        echo "  PLAYBACKVIEW_CHOICE = ${PLAYBACKVIEW_CHOICE}"
-        echo "  DURATION = ${DURATION}"
-        echo "  TECHNICIAN = ${TECHNICIAN}"
-        if [[ "${INVERT_PHASE}" = 1 ]] ; then
-            echo -e " \033[101mWARNING: Option to invert phase of second audio channel has been selected\033[0m"
-        fi
-        if [ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" -a "${CONTAINER_CHOICE}" = "MXF" ] ; then
-            echo -e " \033[101mWARNING: Incompatible video codecs and CONTAINERs have been selected\033[0m"
-        elif [ "${VIDEO_CODEC_CHOICE}" = "ProRes" -a "${CONTAINER_CHOICE}" = "MXF" ] ; then
-            echo -e " \033[101mWARNING: Incompatible video codecs and CONTAINERs have been selected\033[0m"
-        fi
-        if [ "${EMBED_LOGS_CHOICE}" = "Yes" -a "${CONTAINER_CHOICE}" != "Matroska" ] ; then
-            _report -w "WARNING: Logs cannot be embedded in non-Matroska files. This vrecord session will generate logs in ${LOGDIR}, but will not embed them in your video file."
-        fi
-        echo ""
-        # write config file
-        cat > "${CONFIG_FILE}" << EOF
-#${SCRIPTNAME} config file
-${CONFIG_COMMENT}
-${VIDEO_INPUT_CHOICE_COMMENT}
-VIDEO_INPUT_CHOICE="${VIDEO_INPUT_CHOICE}"
-
-${AUDIO_INPUT_CHOICE_COMMENT}
-AUDIO_INPUT_CHOICE="${AUDIO_INPUT_CHOICE}"
-
-${CONTAINER_CHOICE_COMMENT}
-CONTAINER_CHOICE="${CONTAINER_CHOICE}"
-
-${VIDEO_CODEC_CHOICE_COMMENT}
-VIDEO_CODEC_CHOICE="${VIDEO_CODEC_CHOICE}"
-
-${VIDEO_BIT_DEPTH_CHOICE_COMMENT}
-VIDEO_BIT_DEPTH_CHOICE="${VIDEO_BIT_DEPTH_CHOICE}"
-
-${AUDIO_MAPPING_CHOICE_COMMENT}
-AUDIO_MAPPING_CHOICE="${AUDIO_MAPPING_CHOICE}"
-
-${STANDARD_CHOICE_COMMENT}
-STANDARD_CHOICE="${STANDARD_CHOICE}"
-
-${QCTOOLSXML_CHOICE_COMMENT}
-QCTOOLSXML_CHOICE="${QCTOOLSXML_CHOICE}"
-
-${FRAMEMD5_CHOICE_COMMENT}
-FRAMEMD5_CHOICE="${FRAMEMD5_CHOICE}"
-
-${EMBED_LOGS_CHOICE_COMMENT}
-EMBED_LOGS_CHOICE="${EMBED_LOGS_CHOICE}"
-
-${PLAYBACKVIEW_CHOICE_COMMENT}
-PLAYBACKVIEW_CHOICE="${PLAYBACKVIEW_CHOICE}"
-
-${DIR_COMMENT}
-DIR="${DIR}"
-LOGDIR="${LOGDIR}"
-
-INVERT_PHASE="${INVERT_PHASE}"
-
-${DURATION_COMMENT}
-DURATION="${DURATION}"
-
-${TECHNICIAN_COMMENT}
-TECHNICIAN="${TECHNICIAN}"
-EOF
-        . "${CONFIG_FILE}"
-    else
-        _report -d "Editing of preferences was canceled by the user."
-    fi
-    RUNTYPE="record"
-    open /Applications/Utilities/Terminal.app
-    _report -nd "Press [q] to quit, [p] to enter passthrough mode or any other key to proceed: "
-    read AFTEREDITRESPONSE
-    if [[ "${AFTEREDITRESPONSE}" = "q" ]] ; then
-        _report -d "Bye then"
-        exit 0
-    elif [[ "${AFTEREDITRESPONSE}" = "p" ]] ; then
-        RUNTYPE="passthrough"
-    fi
 fi
+while [[ "${RUNTYPE}" = "edit" ]] ; do
+    _edit_mode
+done
+
 open /Applications/Utilities/Terminal.app
 if [[ "${INVERT_PHASE}" = 1 ]] ; then
     PHASE_VALUE="-1*"
@@ -1066,42 +1125,25 @@ PIPE_DECKLINK+=(-f nut)
 PIPE_DECKLINK+=(-)
 WINDOW_NAME="mode:${RUNTYPE} - video:'${VIDEO_INPUT_CHOICE}' audio:'${AUDIO_INPUT_CHOICE}' - to end recording press q, esc, or close video window"
 
-# passthrough and audiopassthrough modes
+# CLI passthrough and audiopassthrough modes
 if [[ "${RUNTYPE}" = "passthrough" ]] ; then
-    if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
-        "${FFMPEG_DECKLINK}" -v info -nostats "${GRAB_DECKLINK[@]}" 2> /tmp/vrecord_input.log \
-        -map 0 -c copy -f nut - | \
-        mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -
-    else
-        "${FFPLAY_DECKLINK}" -v info -nostats "${GRAB_DECKLINK[@]}" 2> /tmp/vrecord_input.log \
-        -window_title "${WINDOW_NAME}" \
-        -vf "${PLAYBACKFILTER}"
-    fi
-    exit 0
-fi
-if [[ "${RUNTYPE}" = "audiopassthrough" ]] ; then
-    PLAYBACKFILTER="\
-[aid1]asplit=2[z][ao],\
-[z]channelsplit=channel_layout=quad[s1][s2][s3][s4];[s1][s2][s3][s4]amerge=inputs=4,aformat=channel_layouts=quad[zz],\
-[zz]showvolume=t=0:h=17:w=200[xx],\
-[vid1]split=5[a][b][c][d][e],\
-[b]field=top[b1],\
-[c]field=bottom[c1],\
-[b1]${WAVEFORM_FILTER}[b2],\
-[c1]${WAVEFORM_FILTER}[c2],\
-[a][b2][c2]vstack=inputs=3,format=yuv422p[abc1],\
-[d]${VECTORSCOPE_FILTER}[d1],\
-[e]signalstats=out=brng,scale=512:ih[e1],\
-[e1][d1]vstack[de1],\
-[abc1][de1]hstack[abcde1],\
-[abcde1][xx]overlay=10:10[vo]"
-    echo "ESC quit" > ~/.config/mpv/input.conf
-    "${FFMPEG_DECKLINK[@]}" -v info -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_DECKLINK[@]}" -map 0 -c copy -f nut - 2> /tmp/vrecord_input.log | \
-        mpv - --title="${WINDOW_NAME}" -lavfi-complex "${PLAYBACKFILTER}"
-    exit 0
+    _passthrough_mode
+elif [[ "${RUNTYPE}" = "audiopassthrough" ]] ; then
+    _audiopassthrough_mode
 fi
 
-# terminal dialog for rest of undeclared options (needed to record)
+# GUI mode loops
+while [[ "${GUI}" = 1 ]] && [[ "${RUNTYPE}" != "record" ]] ; do
+    if [[ "${RUNTYPE}" = "passthrough" ]] ; then
+        _passthrough_mode
+    elif [[ "${RUNTYPE}" = "audiopassthrough" ]] ; then
+        _audiopassthrough_mode
+    elif [[ "${RUNTYPE}" = "edit" ]] ; then
+        _edit_mode
+    fi
+done
+
+# record mode
 _report -q -n "Enter Identifier: "
 read ID
 if [[ ! -d "${DIR}" ]] ; then
