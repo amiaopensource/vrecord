@@ -18,7 +18,6 @@ unset DURATION
 unset TECHNICIAN
 RUNTYPE="record"
 CAPTURELOGSUFFIX="_ffmpeg_decklink_input.log"
-FFMPEGLOGSUFFIX=".log"
 unset PASHUAINSTALL
 unset EXTRAOUTPUTS
 UNDECLAREDOPTION="Undeclared"
@@ -96,6 +95,17 @@ _report(){
     shift "$((OPTIND-1))"
     MESSAGE="${1}"
     echo ${ECHOOPT} "${COLOR}${STARTMESSAGE[@]}${MESSAGE}${NC}"
+}
+
+_run(){
+    RUN_ERR=""
+    "${@}"
+    _writeingestlog "FFmpeg command" "${*}"
+    RUN_ERR="${?}"
+    if [[ "${RUN_ERR}" != 0 ]] ; then
+        _report -wts "Error: Running: \"${*}\" gave an Error Code - ${RUN_ERR}"
+        _writeingestlog "Error" "Running: \"${*}\" gave an Error Code - ${RUN_ERR}"
+    fi
 }
 
 # command-line options to set media id and original variables
@@ -1284,12 +1294,10 @@ if [[ "${INVERT_PHASE}" = 1 ]] ; then
 fi
 
 _report -d "Close the playback window to stop recording."
-FFREPORT_LOG="${LOGDIR}/${ID}_ffmpeg_$(date +%Y%m%d-%H%M%S)${FFMPEGLOGSUFFIX}"
-export FFREPORT="file=${FFREPORT_LOG}"
 
 # vrecord process!
 if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
-    "${FFMPEG_DECKLINK[@]}" \
+    _run "${FFMPEG_DECKLINK[@]}" \
         2> >(tee "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}" /tmp/vrecord_input.log >/dev/null) \
         -v info -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_DECKLINK[@]}" \
         -metadata:s:v:0 encoder="${CODECNAME}" "${MIDDLEOPTIONS[@]}" -c:a pcm_s24le \
@@ -1303,7 +1311,7 @@ if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
             mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -
         fi
 else
-    "${FFMPEG_DECKLINK[@]}" \
+    _run "${FFMPEG_DECKLINK[@]}" \
         2> >(tee "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}" /tmp/vrecord_input.log >/dev/null) \
         -v info -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_DECKLINK[@]}" \
         -metadata:s:v:0 encoder="${CODECNAME}" "${MIDDLEOPTIONS[@]}" -c:a pcm_s24le \
@@ -1417,8 +1425,7 @@ fi
 if [[ "${CONTAINER_CHOICE}" = "Matroska" && "${EMBED_LOGS_CHOICE}" = "Yes" ]]; then
     _report -d "Vrecord is attaching logs to your Matroska file:"
     mkvpropedit "${DIR}/${ID}${SUFFIX}.${EXTENSION}" --attachment-description "Capture options selected by user during vrecord process" --add-attachment "${INGESTLOG}"
-    mkvpropedit "${DIR}/${ID}${SUFFIX}.${EXTENSION}" --attachment-description "Description of vrecord input (as captured from decklink) and output (written to files)" --add-attachment "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}"
-    mkvpropedit "${DIR}/${ID}${SUFFIX}.${EXTENSION}" --attachment-description "Full FFmpeg output from vrecord capture process" --add-attachment "${FFREPORT_LOG}"
+    mkvpropedit "${DIR}/${ID}${SUFFIX}.${EXTENSION}" --attachment-description "Full FFmpeg output from vrecord capture process" --add-attachment "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}"
     if [[ "${QCTOOLSXML_CHOICE}" = "Yes" ]] ; then
         mkvpropedit "${DIR}/${ID}${SUFFIX}.${EXTENSION}" --attachment-description "QCTools report from vrecord capture process (zipped XML)" --add-attachment "${QCXML}"
     fi
