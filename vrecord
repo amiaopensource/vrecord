@@ -97,6 +97,17 @@ _report(){
     echo ${ECHOOPT} "${COLOR}${STARTMESSAGE[@]}${MESSAGE}${NC}"
 }
 
+_run(){
+    RUN_ERR=""
+    "${@}"
+    _writeingestlog "FFmpeg command" "\"${*}\""
+    RUN_ERR="${?}"
+    if [[ "${RUN_ERR}" != 0 ]] ; then
+        _report -wts "Error: Running: \"${*}\" gave an Error Code - ${RUN_ERR}"
+        _writeingestlog "Error" "Running: \"${*}\" gave an Error Code - ${RUN_ERR}"
+    fi
+}
+
 # command-line options to set media id and original variables
 OPTIND=1
 while getopts ":herpaxg" opt ; do
@@ -1286,7 +1297,7 @@ _report -d "Close the playback window to stop recording."
 
 # vrecord process!
 if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
-    "${FFMPEG_DECKLINK[@]}" \
+    _run "${FFMPEG_DECKLINK[@]}" \
         2> >(tee "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}" /tmp/vrecord_input.log >/dev/null) \
         -v info -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_DECKLINK[@]}" \
         -metadata:s:v:0 encoder="${CODECNAME}" "${MIDDLEOPTIONS[@]}" -c:a pcm_s24le \
@@ -1300,7 +1311,7 @@ if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
             mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -
         fi
 else
-    "${FFMPEG_DECKLINK[@]}" \
+    _run "${FFMPEG_DECKLINK[@]}" \
         2> >(tee "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}" /tmp/vrecord_input.log >/dev/null) \
         -v info -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_DECKLINK[@]}" \
         -metadata:s:v:0 encoder="${CODECNAME}" "${MIDDLEOPTIONS[@]}" -c:a pcm_s24le \
