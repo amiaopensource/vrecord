@@ -100,7 +100,7 @@ _report(){
 _run(){
     RUN_ERR=""
     "${@}"
-    _writeingestlog "FFmpeg command" "\"${*}\""
+    _writeingestlog "FFmpeg command" "${*}"
     RUN_ERR="${?}"
     if [[ "${RUN_ERR}" != 0 ]] ; then
         _report -wts "Error: Running: \"${*}\" gave an Error Code - ${RUN_ERR}"
