@@ -128,11 +128,7 @@ _get_decklink_inputs(){
         _report -w "No decklink inputs were found. Running \`${FFMPEG_DECKLINK} -hide_banner -f decklink -list_devices 1 -i dummy\` results in:"
         DECKLINK_RESULT=$("${FFMPEG_DECKLINK[@]}" -hide_banner -f decklink -list_devices 1 -i dummy)
         echo "${DECKLINK_RESULT}"
-        if [[ "$(echo "${DECKLINK_RESULT}" | grep -c "Could not create DeckLink iterator")" ]] ; then
-            _report -w "You may need a newer version of Blackmagic Desktop Video, see https://www.blackmagicdesign.com/support/."
-        else
-            _report -w "Please check connections and try again."
-        fi
+        _report -w "Please check connections and drivers and try again."
         exit 1
     else
         FIRST_DECKLINK_INPUT="$(echo "${DECKLINK_INPUTS}" | head -n 1 )"
