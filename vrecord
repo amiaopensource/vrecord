@@ -586,6 +586,7 @@ _lookup_standard(){
     case "${1}" in
         "NTSC")
             STANDARD="ntsc"
+            DECKLINK_FPS="30000/1001"
             RECORDINGFILTER="setfield=bff,setsar=40/27,setdar=4/3"
             MIDDLEOPTIONS+=(-color_primaries smpte170m)
             MIDDLEOPTIONS+=(-color_trc bt709)
@@ -593,6 +594,7 @@ _lookup_standard(){
             ;;
         "PAL")
             STANDARD="pal "
+            DECKLINK_FPS="25000/1000"
             RECORDINGFILTER="setfield=tff,setsar=16/15,setdar=4/3"
             MIDDLEOPTIONS+=(-color_primaries bt470bg)
             MIDDLEOPTIONS+=(-color_trc bt709)
@@ -612,8 +614,7 @@ _yes_or_no(){
 }
 
 _frames_to_hhmmss(){
-    FRAMERATE=$(grep "fps=" "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}" | cut -d' ' -f 5)
-    NUM=$(bc <<< "scale=0; ${i} / ${FRAMERATE}")
+    NUM=$(bc <<< "scale=0; ${i} / (${DECKLINK_FPS})")
     printf "%02d:%02d:%02d\n" $(($NUM/3600)) $(($NUM%3600/60)) $(($NUM%60))
 }
 
