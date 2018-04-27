@@ -269,11 +269,11 @@ If you are finished recording and the player window hasn't already closed, close
 
 After the transfer is finished, vrecord will automatically check for the following transfer errors:
 
-* Discontinuities in the frame MD5s (if they were created), or missing frames in the FFmpeg log (if frame MD5s were not created).
-  * Error message: "WARNING: There were pts discontinuities for these frame ranges: ##-##. The file may have sync issues" or "WARNING: FFmpeg reported missing frames. The file may have sync issues." The message may give the frame numbers that are missing. Check the file immediately at these points and throughout the video to make sure there are no sync issues.
+* Presentation timestamp discontinuities in the frame MD5s (if they were created), or missing frames in the FFmpeg log (if frame MD5s were not created).
+  * Error message: "WARNING: There were presentation timestamp discontinuities found in the framemd5s. This error may indicate frames dropped by FFmpeg or vrecord. The file may have sync issues." The message may give the frame numbers that are missing. Check the file immediately at these points and throughout the video to make sure there are no sync issues.
   * These errors are caused by digital encoding/decoding issues that lead to missing information.
 * Frames dropped because of a disconnected signal.
-  * Error message: "WARNING: FFmpeg Decklink input reported dropped frames in the following ## locations. The file may be missing content." The message will give the timestamps where content may be missing. Check the file immediately at these points and throughout the video to make sure it is complete.
+  * Error message: "WARNING: FFmpeg Decklink input reported dropped frames in the following ## locations. This error may indicate an interrupted signal between hardware components. The file may be missing content." The message will give the timestamps where content may be missing. Check the file at these points and throughout the video to make sure it is complete.
   * These errors are caused when no signal reaches the computer, and could be caused by a disconnect (e.g. unplugged cable) between the video deck and Blackmagic hardware, or Blackmagic and computer.
 * File conformity to codec standards.
   * If the video codec is Uncompressed Video or FFV1, vrecord will validate file against a vrecord MediaConch policy to ensure the file conforms to those standards. Conformance to these standards is important for long-term digital preservation.
