@@ -1393,6 +1393,13 @@ if [[ "${DROPPED_FRAMES_INSTANCES}" -gt 0 ]] ; then
     _writeingestlog "DROPPED_FRAMES_TIMESTAMPS" "${DROPPED_FRAMES_TIMESTAMPS}"
 fi
 
+# check for input buffer overrun error
+BUFFER_OVERRUN=$(grep -c "Decklink input buffer overrun" "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}")
+if [[ "${BUFFER_OVERRUN}" -gt 0 ]] ; then
+    cowsay "$(_report -w "WARNING: FFmpeg Decklink input reported a buffer overrun. The file is likely missing frames or contains artifacts from the buffer overrun.")"
+    _writeingestlog "Decklink input buffer overrun" "Yes"
+fi
+
 # policy checks with mediaconch
 if [[ "${VIDEO_CODEC_CHOICE}" = "Uncompressed Video" ]] ; then
     STATUS=$(mediaconch -fx -p "${SCRIPTDIR}/vrecord_policy_uncompressed.xml" "${DIR}/${ID}${SUFFIX}.${EXTENSION}" | xmlstarlet sel -N mc="https://mediaarea.net/mediaconch" -t -v mc:MediaConch/mc:media/mc:policy/@outcome -n)
