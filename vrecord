@@ -1331,26 +1331,6 @@ fi
 
 _writeingestlog "datetime_end" "$(_get_iso8601)"
 
-# check for discontinuities in the Frame MD5s; if user chose not to use Frame MD5s, check for frame discontinuties in the FFmpeg file
-if [[ "${FRAMEMD5_CHOICE}" = "Yes" ]] ; then
-    PTS_DISCONTINUITY=$(cat "${FRAMEMD5NAME}" | grep -v "^#" | cut -d, -f3 | sed 's/ //g' | grep -v "^0$" | awk '$1!=p+1{printf p+1"-"$1-1" "}{p=$1}')
-    if [[ -z "${PTS_DISCONTINUITY}" ]] ; then
-        _writeingestlog "PTS_DISCONTINUITY" "none"
-    else
-        _writeingestlog "PTS_DISCONTINUITY" "${PTS_DISCONTINUITY}"
-        cowsay "$(_report -w "WARNING: There were pts discontinuities for these frame ranges: ${PTS_DISCONTINUITY}. The file may have sync issues.")"
-    fi
-elif [[ "${FRAMEMD5_CHOICE}" = "No" ]] ; then
-    FRAMES_ENCODED=$(cat "${LOGDIR}/${ID}"_ffmpeg_*.log | grep -w "frames encoded" | awk '{print $10}' | grep -m 1 [0-9])
-    FRAMES_DECODED=$(cat "${LOGDIR}/${ID}"_ffmpeg_*.log | grep -w "frames decoded" | awk '{print $10}' | grep -m 1 [0-9])
-    if [[ "${FRAMES_ENCODED}" -lt $((FRAMES_DECODED-1)) ]] ; then
-        FRAMES_DISCREPANCY=$((FRAMES_DECODED-FRAMES_ENCODED))
-        cowsay "$(_report -w "WARNING: FFmpeg reported missing frames. The file may have sync issues.")" 
-        _writeingestlog "ffmpeg_missing_frames" "${FRAMES_DISCREPANCY}"
-    else
-        _writeingestlog "ffmpeg_missing_frames" "None"
-    fi
-fi
 
 # qc tools process
 if [[ "${QCTOOLSXML_CHOICE}" = "Yes" ]] ; then
@@ -1382,6 +1362,27 @@ if [[ "${QCTOOLSXML_CHOICE}" = "Yes" ]] ; then
 fi
 
 # check for discontinuities in the Frame MD5s; if user chose not to use Frame MD5s, check for frame discontinuties in the FFmpeg file
+if [[ "${FRAMEMD5_CHOICE}" = "Yes" ]] ; then
+    PTS_DISCONTINUITY=$(cat "${FRAMEMD5NAME}" | grep -v "^#" | cut -d, -f3 | sed 's/ //g' | grep -v "^0$" | awk '$1!=p+1{printf p+1"-"$1-1" "}{p=$1}')
+    if [[ -z "${PTS_DISCONTINUITY}" ]] ; then
+        _writeingestlog "PTS_DISCONTINUITY" "none"
+    else
+        _writeingestlog "PTS_DISCONTINUITY" "${PTS_DISCONTINUITY}"
+        cowsay "$(_report -w "WARNING: There were pts discontinuities for these frame ranges: ${PTS_DISCONTINUITY}. The file may have sync issues.")"
+    fi
+elif [[ "${FRAMEMD5_CHOICE}" = "No" ]] ; then
+    FRAMES_ENCODED=$(cat "${LOGDIR}/${ID}"_ffmpeg_*.log | grep -w "frames encoded" | awk '{print $10}' | grep -m 1 [0-9])
+    FRAMES_DECODED=$(cat "${LOGDIR}/${ID}"_ffmpeg_*.log | grep -w "frames decoded" | awk '{print $10}' | grep -m 1 [0-9])
+    if [[ "${FRAMES_ENCODED}" -lt $((FRAMES_DECODED-1)) ]] ; then
+        FRAMES_DISCREPANCY=$((FRAMES_DECODED-FRAMES_ENCODED))
+        cowsay "$(_report -w "WARNING: FFmpeg reported missing frames. The file may have sync issues.")" 
+        _writeingestlog "ffmpeg_missing_frames" "${FRAMES_DISCREPANCY}"
+    else
+        _writeingestlog "ffmpeg_missing_frames" "None"
+    fi
+fi
+
+# check for frames dropped in decklink_input.log
 DROPPED_FRAMES_INSTANCES=$(grep -c "Frames dropped" "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}")
 DROPPED_FRAMES_FRAMENUMBERS=$(grep "Frames dropped" "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}" | awk '{print $6}' | sed 's/[(#)]//g')
 if [[ "${DROPPED_FRAMES_INSTANCES}" -gt 0 ]] ; then
