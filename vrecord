@@ -1395,6 +1395,7 @@ fi
 
 # policy checks with mediaconch
 if [[ "${VIDEO_CODEC_CHOICE}" = "Uncompressed Video" ]] ; then
+    _report -d "Checking file conformance against uncompressed video policy..."
     STATUS=$(mediaconch -fx -p "${SCRIPTDIR}/vrecord_policy_uncompressed.xml" "${DIR}/${ID}${SUFFIX}.${EXTENSION}" | xmlstarlet sel -N mc="https://mediaarea.net/mediaconch" -t -v mc:MediaConch/mc:media/mc:policy/@outcome -n)
     if [[ "$STATUS" = "pass" ]] ; then
         _report -dt "File passed policy check for uncompressed video."
@@ -1406,6 +1407,7 @@ if [[ "${VIDEO_CODEC_CHOICE}" = "Uncompressed Video" ]] ; then
         mediaconch -p "${SCRIPTDIR}/vrecord_policy_uncompressed.xml" "${DIR}/${ID}${SUFFIX}.${EXTENSION}"
     fi
 elif [[ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" ]] ; then
+    _report -d "Checking file conformance against FFV1 video policy..."
     STATUS=$(mediaconch -fx -p "${SCRIPTDIR}/vrecord_policy_ffv1.xml" "${DIR}/${ID}${SUFFIX}.${EXTENSION}" | xmlstarlet sel -N mc="https://mediaarea.net/mediaconch" -t -v mc:MediaConch/mc:media/mc:policy/@outcome -n)
     if [[ "${STATUS}" = "pass" ]] ; then
         _report -dt "File passed policy check for FFV1 video."
