@@ -177,7 +177,7 @@ All of options in the vrecord GUI (which appears when running `vrecord -e`) or o
 * Choosing to create a QCTools XML is highly recommended. This file can be quickly imported into QCTools for further analysis of the video. In addition, if you choose this option, vrecord can analyze the video signal for potential errors. Currently vrecord only tests the saturation levels of the video.
 * As of May 2018, creating this QCTools XML **after** capture is highly recommended. Creating the QCTools XML at the same time as the transfer has been found to generate sync errors (apparently as a result of a conflict between FFmpeg 4.0 and qcli; see [discussion](https://github.com/amiaopensource/vrecord/issues/310)).
 
-**Frame MD5s** — You can choose to create an MD5 hash value (AKA a checksum) for each frame of video captured. A separate .md5 file with all the hash values will be created along with the video file. Generally choosing to create frame-level MD5s will not slow down or hinder the capture of your video. To read more about the value of frame-level MD5s see this article: http://dericed.com/papers/reconsidering-the-checksum-for-audiovisual-preservation/ 
+**Frame MD5s** — You can choose to create an MD5 hash value (AKA a checksum) for each frame of video captured. Frame MD5s are strongly recommended, as some dropped-frame errors will not be caught without the hash values. A separate .md5 file with all the hash values will be created along with the video file. Generally choosing to create frame-level MD5s will not slow down or hinder the capture of your video. To read more about the value of frame-level MD5s see this article: http://dericed.com/papers/reconsidering-the-checksum-for-audiovisual-preservation/ 
 
 **Embedding logs** — If you select the Matroska file format, vrecord can embed the logs it generates into the Matroska container. Preservation metadata will then be available to the user both as sidecar logs (the vrecord default) and within the file itself. After logs have been attached, you can extract and read them as follows:
 * To show a list of attachments to a video file and their IDs, type: `mkvmerge -i [video filename]`
@@ -271,11 +271,11 @@ If you are finished recording and the player window hasn't already closed, close
 
 After the transfer is finished, vrecord will automatically check for the following transfer errors:
 
-* Discontinuities in the frame MD5s (if they were created), or missing frames in the FFmpeg log (if frame MD5s were not created).
-  * Error message: "WARNING: There were pts discontinuities for these frame ranges: ##-##. The file may have sync issues" or "WARNING: FFmpeg reported missing frames. The file may have sync issues." The message may give the frame numbers that are missing. Check the file immediately at these points and throughout the video to make sure there are no sync issues.
+* Presentation timestamp discontinuities in the frame MD5s (if they were created), or missing frames in the FFmpeg log (if frame MD5s were not created).
+  * Error message: "WARNING: There were presentation timestamp discontinuities found in the framemd5s. This error may indicate frames dropped by FFmpeg or vrecord. The file may have sync issues." The message may give the frame numbers that are missing. Check the file immediately at these points and throughout the video to make sure there are no sync issues.
   * These errors are caused by digital encoding/decoding issues that lead to missing information.
 * Frames dropped because of a disconnected signal.
-  * Error message: "WARNING: FFmpeg Decklink input reported dropped frames in the following ## locations. The file may be missing content." The message will give the timestamps where content may be missing. Check the file immediately at these points and throughout the video to make sure it is complete.
+  * Error message: "WARNING: FFmpeg Decklink input reported dropped frames in the following ## locations. This error may indicate an interrupted signal between hardware components. The file may be missing content." The message will give the timestamps where content may be missing. Check the file at these points and throughout the video to make sure it is complete.
   * These errors are caused when no signal reaches the computer, and could be caused by a disconnect (e.g. unplugged cable) between the video deck and Blackmagic hardware, or Blackmagic and computer.
 * File conformity to codec standards.
   * If the video codec is Uncompressed Video or FFV1, vrecord will validate file against a vrecord MediaConch policy to ensure the file conforms to those standards. Conformance to these standards is important for long-term digital preservation.

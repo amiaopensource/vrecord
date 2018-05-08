@@ -943,7 +943,7 @@ QCTOOLSXML_CHOICE.option = No
 FRAMEMD5_CHOICE.x = 660
 FRAMEMD5_CHOICE.y = 230
 FRAMEMD5_CHOICE.type = radiobutton
-FRAMEMD5_CHOICE.label = Create frame-level MD5 checksums?
+FRAMEMD5_CHOICE.label = Create frame-level MD5 checksums? (recommended)
 FRAMEMD5_CHOICE.default = ${FRAMEMD5_CHOICE}
 FRAMEMD5_CHOICE.option = ${UNDECLAREDOPTION}
 FRAMEMD5_CHOICE.option = Yes
@@ -1384,14 +1384,14 @@ if [[ "${FRAMEMD5_CHOICE}" = "Yes" ]] ; then
         _writeingestlog "PTS_DISCONTINUITY" "none"
     else
         _writeingestlog "PTS_DISCONTINUITY" "${PTS_DISCONTINUITY}"
-        cowsay "$(_report -w "WARNING: There were pts discontinuities for these frame ranges: ${PTS_DISCONTINUITY}. The file may have sync issues.")"
+        cowsay "$(_report -w "WARNING: There were presentation timestamp discontinuities in the file's frame MD5s for these frame ranges: ${PTS_DISCONTINUITY}. This error may indicate frames dropped by FFmpeg or vrecord. The file may have sync issues.")"
     fi
 elif [[ "${FRAMEMD5_CHOICE}" = "No" ]] ; then
     FRAMES_ENCODED=$(cat "${LOGDIR}/${ID}"_ffmpeg_*.log | grep -w "frames encoded" | awk '{print $10}' | grep -m 1 [0-9])
     FRAMES_DECODED=$(cat "${LOGDIR}/${ID}"_ffmpeg_*.log | grep -w "frames decoded" | awk '{print $10}' | grep -m 1 [0-9])
     if [[ "${FRAMES_ENCODED}" -lt $((FRAMES_DECODED-1)) ]] ; then
         FRAMES_DISCREPANCY=$((FRAMES_DECODED-FRAMES_ENCODED))
-        cowsay "$(_report -w "WARNING: FFmpeg reported missing frames. The file may have sync issues.")" 
+        cowsay "$(_report -w "WARNING: There were presentation timestamp discontinuities found in the framemd5s. This error may indicate frames dropped by FFmpeg or vrecord. The file may have sync issues.")" 
         _writeingestlog "ffmpeg_missing_frames" "${FRAMES_DISCREPANCY}"
     else
         _writeingestlog "ffmpeg_missing_frames" "None"
@@ -1402,11 +1402,11 @@ fi
 DROPPED_FRAMES_INSTANCES=$(grep -c "Frames dropped" "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}")
 DROPPED_FRAMES_FRAMENUMBERS=$(grep "Frames dropped" "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}" | awk '{print $6}' | sed 's/[(#)]//g')
 if [[ "${DROPPED_FRAMES_INSTANCES}" -gt 0 ]] ; then
-    cowsay "$(_report -w "WARNING: FFmpeg Decklink input reported dropped frames in the following ${DROPPED_FRAMES_INSTANCES} locations. The file may be missing content.")"
+    cowsay "$(_report -w "WARNING: FFmpeg Decklink input reported dropped frames in the following ${DROPPED_FRAMES_INSTANCES} locations. This error may indicate an interrupted signal between hardware components. The file may be missing content.")"
     for i in ${DROPPED_FRAMES_FRAMENUMBERS} ; do # do not quote this variable
         DROPPED_FRAMES_TIMESTAMPS+="$(_frames_to_hhmmss "${i}") "
     done
-    _report -w "Dropped frames locations: ${DROPPED_FRAMES_TIMESTAMPS}"
+    _report -w "Dropped frames timestamps: ${DROPPED_FRAMES_TIMESTAMPS}"
     _writeingestlog "DROPPED_FRAMES_TIMESTAMPS" "${DROPPED_FRAMES_TIMESTAMPS}"
 fi
 
@@ -1419,6 +1419,7 @@ fi
 
 # policy checks with mediaconch
 if [[ "${VIDEO_CODEC_CHOICE}" = "Uncompressed Video" ]] ; then
+    _report -d "Checking file conformance against uncompressed video policy..."
     STATUS=$(mediaconch -fx -p "${SCRIPTDIR}/vrecord_policy_uncompressed.xml" "${DIR}/${ID}${SUFFIX}.${EXTENSION}" | xmlstarlet sel -N mc="https://mediaarea.net/mediaconch" -t -v mc:MediaConch/mc:media/mc:policy/@outcome -n)
     if [[ "$STATUS" = "pass" ]] ; then
         _report -dt "File passed policy check for uncompressed video."
@@ -1430,6 +1431,7 @@ if [[ "${VIDEO_CODEC_CHOICE}" = "Uncompressed Video" ]] ; then
         mediaconch -p "${SCRIPTDIR}/vrecord_policy_uncompressed.xml" "${DIR}/${ID}${SUFFIX}.${EXTENSION}"
     fi
 elif [[ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" ]] ; then
+    _report -d "Checking file conformance against FFV1 video policy..."
     STATUS=$(mediaconch -fx -p "${SCRIPTDIR}/vrecord_policy_ffv1.xml" "${DIR}/${ID}${SUFFIX}.${EXTENSION}" | xmlstarlet sel -N mc="https://mediaarea.net/mediaconch" -t -v mc:MediaConch/mc:media/mc:policy/@outcome -n)
     if [[ "${STATUS}" = "pass" ]] ; then
         _report -dt "File passed policy check for FFV1 video."
