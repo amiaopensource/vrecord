@@ -610,8 +610,12 @@ _yes_or_no(){
 }
 
 _frames_to_hhmmss(){
-    NUM=$(bc <<< "scale=0; ${i} / (${DECKLINK_FPS})")
-    printf "%02d:%02d:%02d\n" $(($NUM/3600)) $(($NUM%3600/60)) $(($NUM%60))
+    H=$(echo "${i} / (60 * 60 * ${DECKLINK_FPS})" | bc)
+    M=$(echo "(${i} - (${H}*60 * 60 * ${DECKLINK_FPS})) / (60 * ${DECKLINK_FPS})" | bc)
+    S="$(echo "scale=3;(${i} - (${H}*60 * 60 * ${DECKLINK_FPS})-($M*60*${DECKLINK_FPS})) / (${DECKLINK_FPS})" | bc)"
+    Ss=$(echo "${S}" | cut -d. -f1)
+    Sm=$(echo "${S}" | cut -d. -f2)
+    printf "%02d:%02d:%02d.%03d\n" "${H}" "${M}" "${Ss}" "${Sm}"
 }
 
 # set up drawtext.txt files for Visual + Numerical playback view
@@ -1269,6 +1273,7 @@ touch "${INGESTLOG}"
 _writeingestlog "computer_name" "$(uname -n)"
 _writeingestlog "user_name" "$(whoami)"
 _writeingestlog "operating_system_VERSION" "$(uname -v)"
+_writeingestlog "vrecord version" "${VERSION}"
 _writeingestlog "datetime_start" "$(_get_iso8601)"
 _writeingestlog "VIDEO_INPUT" "${VIDEO_INPUT_CHOICE}"
 _writeingestlog "AUDIO_INPUT" "${AUDIO_INPUT_CHOICE}"
