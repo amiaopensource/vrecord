@@ -601,6 +601,14 @@ _lookup_standard(){
     esac
 }
 
+_lookup_qctoolsxml(){
+    case "${1}" in
+        "Yes, after recording"|"Yes, concurrent with recording"|"No") ;;
+        "quit") _report -d "Bye then" ; exit 0 ;;
+        *) _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
+    esac
+}
+
 _yes_or_no(){
     case "${1}" in
         "Yes"|"No") ;;
@@ -610,8 +618,12 @@ _yes_or_no(){
 }
 
 _frames_to_hhmmss(){
-    NUM=$(bc <<< "scale=0; ${i} / (${DECKLINK_FPS})")
-    printf "%02d:%02d:%02d\n" $(($NUM/3600)) $(($NUM%3600/60)) $(($NUM%60))
+    H=$(echo "${i} / (60 * 60 * ${DECKLINK_FPS})" | bc)
+    M=$(echo "(${i} - (${H}*60 * 60 * ${DECKLINK_FPS})) / (60 * ${DECKLINK_FPS})" | bc)
+    S="$(echo "scale=3;(${i} - (${H}*60 * 60 * ${DECKLINK_FPS})-($M*60*${DECKLINK_FPS})) / (${DECKLINK_FPS})" | bc)"
+    Ss=$(echo "${S}" | cut -d. -f1)
+    Sm=$(echo "${S}" | cut -d. -f2)
+    printf "%02d:%02d:%02d.%03d\n" "${H}" "${M}" "${Ss}" "${Sm}"
 }
 
 # set up drawtext.txt files for Visual + Numerical playback view
@@ -924,7 +936,8 @@ QCTOOLSXML_CHOICE.type = radiobutton
 QCTOOLSXML_CHOICE.label = Create QCTools XML?
 QCTOOLSXML_CHOICE.default = ${QCTOOLSXML_CHOICE}
 QCTOOLSXML_CHOICE.option = ${UNDECLAREDOPTION}
-QCTOOLSXML_CHOICE.option = Yes
+QCTOOLSXML_CHOICE.option = Yes, after recording (recommended)
+QCTOOLSXML_CHOICE.option = Yes, concurrent with recording
 QCTOOLSXML_CHOICE.option = No
 # frame md5 
 FRAMEMD5_CHOICE.x = 660
@@ -996,7 +1009,7 @@ VIDEO_CODEC_OPTIONS=("Uncompressed Video" "FFV1 version 3" "JPEG2000" "ProRes" "
 VIDEO_BITDEPTH_OPTIONS=("10 bit" "8 bit" "quit")
 CHANNEL_MAPPING_OPTIONS=("2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, Channels 3 & 4 -> 2nd Track Stereo)" "1 Stereo Track (From Channels 1 & 2)" "1 Stereo Track (From Channels 3 & 4)" "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono" "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono" "Channel 1 -> Single Track Mono" "Channel 2 -> Single Track Mono" "quit")
 STANDARD_OPTIONS=("NTSC" "PAL" "quit")
-QCTOOLSXML_OPTIONS=("Yes" "No" "quit")
+QCTOOLSXML_OPTIONS=("Yes, after recording" "Yes, concurrent with recording" "No" "quit")
 FRAMEMD5_OPTIONS=("Yes" "No" "quit")
 EMBED_LOGS_OPTIONS=("Yes" "No" "quit")
 PLAYBACKVIEW_OPTIONS=("Quality Control View (mpv)" "Broadcast Range Visual" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes" "quit")
@@ -1203,17 +1216,17 @@ else
     done
 fi
 
-if [[ "${QCTOOLSXML_CHOICE}" != "${UNDECLAREDOPTION}" ]] ; then
+if [[ "${QCTOOLSXML_CHOICE}" != "${UNDECLAREDOPTION}" && "${QCTOOLSXML_CHOICE}" != "Yes" ]] ; then
     echo ""
 else
     _report -q "Create QCTools XML?"
     PS3="Select an option: "
     select QCTOOLSXML_CHOICE in "${QCTOOLSXML_OPTIONS[@]}" ; do
-        _yes_or_no "${QCTOOLSXML_CHOICE}"
+        _lookup_qctoolsxml "${QCTOOLSXML_CHOICE}"
         [[ "${?}" -eq 0 ]] && break
     done
 fi
-if [[ "${QCTOOLSXML_CHOICE}" = "Yes" && ! "$(command -v qcli)" ]] ; then
+if [[ "${QCTOOLSXML_CHOICE}" != "No" && ! "$(command -v qcli)" ]] ; then
     _report -w "Please install qcli to use the qctools reporting option."
     _report -w "Such as \`brew install qcli\`."
     exit 1
@@ -1269,6 +1282,7 @@ touch "${INGESTLOG}"
 _writeingestlog "computer_name" "$(uname -n)"
 _writeingestlog "user_name" "$(whoami)"
 _writeingestlog "operating_system_VERSION" "$(uname -v)"
+_writeingestlog "vrecord version" "${VERSION}"
 _writeingestlog "datetime_start" "$(_get_iso8601)"
 _writeingestlog "VIDEO_INPUT" "${VIDEO_INPUT_CHOICE}"
 _writeingestlog "AUDIO_INPUT" "${AUDIO_INPUT_CHOICE}"
@@ -1296,12 +1310,12 @@ _report -d "Close the playback window to stop recording."
 if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
     _run "${FFMPEG_DECKLINK[@]}" \
         2> >(tee "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}" /tmp/vrecord_input.log >/dev/null) \
-        -v info -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_DECKLINK[@]}" \
+        -v info -nostdin -nostats "${INPUTOPTIONS[@]}" "${GRAB_DECKLINK[@]}" \
         -metadata:s:v:0 encoder="${CODECNAME}" "${MIDDLEOPTIONS[@]}" -c:a pcm_s24le \
         -filter_complex "[0:v:0]${RECORDINGFILTER}; ${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" \
         -f "${FORMAT}" "${DIR}/${ID}${SUFFIX}.${EXTENSION}" \
         "${EXTRAOUTPUTS[@]}" -map 0 -c copy -f nut - | \
-        if [[ "${QCTOOLSXML_CHOICE}" = "Yes" ]] ; then
+        if [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]] ; then
             tee >(mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -) | \
                 qcli -i - -o "${LOGDIR}/${ID}${SUFFIX}.${EXTENSION}.qctools.xml.gz"
         else
@@ -1310,12 +1324,12 @@ if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
 else
     _run "${FFMPEG_DECKLINK[@]}" \
         2> >(tee "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}" /tmp/vrecord_input.log >/dev/null) \
-        -v info -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_DECKLINK[@]}" \
+        -v info -nostdin -nostats "${INPUTOPTIONS[@]}" "${GRAB_DECKLINK[@]}" \
         -metadata:s:v:0 encoder="${CODECNAME}" "${MIDDLEOPTIONS[@]}" -c:a pcm_s24le \
         -filter_complex "[0:v:0]${RECORDINGFILTER}; ${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" \
         -f "${FORMAT}" "${DIR}/${ID}${SUFFIX}.${EXTENSION}" \
         "${EXTRAOUTPUTS[@]}" -map 0 -c copy -f nut - | \
-        if [[ "${QCTOOLSXML_CHOICE}" = "Yes" ]] ; then
+        if [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]] ; then
             tee >("${FFPLAY_DECKLINK[@]}" \
                 -v info -hide_banner -stats -autoexit -i - \
                 -window_title "${WINDOW_NAME}" \
@@ -1331,29 +1345,11 @@ fi
 
 _writeingestlog "datetime_end" "$(_get_iso8601)"
 
-# check for discontinuities in the Frame MD5s; if user chose not to use Frame MD5s, check for frame discontinuties in the FFmpeg file
-if [[ "${FRAMEMD5_CHOICE}" = "Yes" ]] ; then
-    PTS_DISCONTINUITY=$(cat "${FRAMEMD5NAME}" | grep -v "^#" | cut -d, -f3 | sed 's/ //g' | grep -v "^0$" | awk '$1!=p+1{printf p+1"-"$1-1" "}{p=$1}')
-    if [[ -z "${PTS_DISCONTINUITY}" ]] ; then
-        _writeingestlog "PTS_DISCONTINUITY" "none"
-    else
-        _writeingestlog "PTS_DISCONTINUITY" "${PTS_DISCONTINUITY}"
-        cowsay "$(_report -w "WARNING: There were discontinuities in the file's frame MD5s for these frame ranges: ${PTS_DISCONTINUITY}. This error may indicate frames dropped by FFmpeg or vrecord. The file may have sync issues.")"
-    fi
-elif [[ "${FRAMEMD5_CHOICE}" = "No" ]] ; then
-    FRAMES_ENCODED=$(cat "${LOGDIR}/${ID}"_ffmpeg_*.log | grep -w "frames encoded" | awk '{print $10}' | grep -m 1 [0-9])
-    FRAMES_DECODED=$(cat "${LOGDIR}/${ID}"_ffmpeg_*.log | grep -w "frames decoded" | awk '{print $10}' | grep -m 1 [0-9])
-    if [[ "${FRAMES_ENCODED}" -lt $((FRAMES_DECODED-1)) ]] ; then
-        FRAMES_DISCREPANCY=$((FRAMES_DECODED-FRAMES_ENCODED))
-        cowsay "$(_report -w "WARNING: There were presentation timestamp discontinuities found in the framemd5s. This error may indicate frames dropped by FFmpeg or vrecord. The file may have sync issues.")" 
-        _writeingestlog "ffmpeg_missing_frames" "${FRAMES_DISCREPANCY}"
-    else
-        _writeingestlog "ffmpeg_missing_frames" "None"
-    fi
-fi
-
 # qc tools process
-if [[ "${QCTOOLSXML_CHOICE}" = "Yes" ]] ; then
+if [[ "${QCTOOLSXML_CHOICE}" = "Yes, after recording" ]] ; then
+    qcli -i "${LOGDIR}/${ID}${SUFFIX}.${EXTENSION}" -o "${LOGDIR}/${ID}${SUFFIX}.${EXTENSION}.qctools.xml.gz"
+fi
+if [[ "${QCTOOLSXML_CHOICE}" != "No" ]] ; then
     QCXML="${LOGDIR}/${ID}${SUFFIX}.${EXTENSION}.qctools.xml.gz"
     _report -d "Vrecord is analyzing your video file. Please be patient."
     if [[ -s "${QCXML}" ]] ; then
@@ -1381,7 +1377,28 @@ if [[ "${QCTOOLSXML_CHOICE}" = "Yes" ]] ; then
     _report -d "QCTools analysis is complete."
 fi
 
-# finally, check for frames dropped in decklink_input.log
+# check for discontinuities in the Frame MD5s; if user chose not to use Frame MD5s, check for frame discontinuties in the FFmpeg file
+if [[ "${FRAMEMD5_CHOICE}" = "Yes" ]] ; then
+    PTS_DISCONTINUITY=$(cat "${FRAMEMD5NAME}" | grep -v "^#" | cut -d, -f3 | sed 's/ //g' | grep -v "^0$" | awk '$1!=p+1{printf p+1"-"$1-1" "}{p=$1}')
+    if [[ -z "${PTS_DISCONTINUITY}" ]] ; then
+        _writeingestlog "PTS_DISCONTINUITY" "none"
+    else
+        _writeingestlog "PTS_DISCONTINUITY" "${PTS_DISCONTINUITY}"
+        cowsay "$(_report -w "WARNING: There were presentation timestamp discontinuities in the file's frame MD5s for these frame ranges: ${PTS_DISCONTINUITY}. This error may indicate frames dropped by FFmpeg or vrecord. The file may have sync issues.")"
+    fi
+elif [[ "${FRAMEMD5_CHOICE}" = "No" ]] ; then
+    FRAMES_ENCODED=$(cat "${LOGDIR}/${ID}"_ffmpeg_*.log | grep -w "frames encoded" | awk '{print $10}' | grep -m 1 [0-9])
+    FRAMES_DECODED=$(cat "${LOGDIR}/${ID}"_ffmpeg_*.log | grep -w "frames decoded" | awk '{print $10}' | grep -m 1 [0-9])
+    if [[ "${FRAMES_ENCODED}" -lt $((FRAMES_DECODED-1)) ]] ; then
+        FRAMES_DISCREPANCY=$((FRAMES_DECODED-FRAMES_ENCODED))
+        cowsay "$(_report -w "WARNING: There were presentation timestamp discontinuities found in the framemd5s. This error may indicate frames dropped by FFmpeg or vrecord. The file may have sync issues.")" 
+        _writeingestlog "ffmpeg_missing_frames" "${FRAMES_DISCREPANCY}"
+    else
+        _writeingestlog "ffmpeg_missing_frames" "None"
+    fi
+fi
+
+# check for frames dropped in decklink_input.log
 DROPPED_FRAMES_INSTANCES=$(grep -c "Frames dropped" "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}")
 DROPPED_FRAMES_FRAMENUMBERS=$(grep "Frames dropped" "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}" | awk '{print $6}' | sed 's/[(#)]//g')
 if [[ "${DROPPED_FRAMES_INSTANCES}" -gt 0 ]] ; then
@@ -1391,6 +1408,13 @@ if [[ "${DROPPED_FRAMES_INSTANCES}" -gt 0 ]] ; then
     done
     _report -w "Dropped frames timestamps: ${DROPPED_FRAMES_TIMESTAMPS}"
     _writeingestlog "DROPPED_FRAMES_TIMESTAMPS" "${DROPPED_FRAMES_TIMESTAMPS}"
+fi
+
+# check for input buffer overrun error
+BUFFER_OVERRUN=$(grep -c "Decklink input buffer overrun" "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}")
+if [[ "${BUFFER_OVERRUN}" -gt 0 ]] ; then
+    cowsay "$(_report -w "WARNING: FFmpeg Decklink input reported a buffer overrun. The file is likely missing frames or contains artifacts from the buffer overrun.")"
+    _writeingestlog "Decklink input buffer overrun" "Yes"
 fi
 
 # policy checks with mediaconch
@@ -1421,7 +1445,7 @@ elif [[ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" ]] ; then
 fi
 
 # embed logs in Matroska files
-if [[ "${CONTAINER_CHOICE}" = "Matroska" && "${EMBED_LOGS_CHOICE}" = "Yes" ]]; then
+if [[ "${CONTAINER_CHOICE}" = "Matroska" ]] | [[ "${EMBED_LOGS_CHOICE}" != "Yes" ]] ; then
     _report -d "Vrecord is attaching logs to your Matroska file:"
     mkvpropedit "${DIR}/${ID}${SUFFIX}.${EXTENSION}" --attachment-description "Capture options selected by user during vrecord process" --add-attachment "${INGESTLOG}"
     mkvpropedit "${DIR}/${ID}${SUFFIX}.${EXTENSION}" --attachment-description "Full FFmpeg output from vrecord capture process" --add-attachment "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}"
