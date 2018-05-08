@@ -601,6 +601,14 @@ _lookup_standard(){
     esac
 }
 
+_lookup_qctoolsxml(){
+    case "${1}" in
+        "Yes, after recording"|"Yes, concurrent with recording"|"No") ;;
+        "quit") _report -d "Bye then" ; exit 0 ;;
+        *) _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
+    esac
+}
+
 _yes_or_no(){
     case "${1}" in
         "Yes"|"No") ;;
@@ -928,7 +936,8 @@ QCTOOLSXML_CHOICE.type = radiobutton
 QCTOOLSXML_CHOICE.label = Create QCTools XML?
 QCTOOLSXML_CHOICE.default = ${QCTOOLSXML_CHOICE}
 QCTOOLSXML_CHOICE.option = ${UNDECLAREDOPTION}
-QCTOOLSXML_CHOICE.option = Yes
+QCTOOLSXML_CHOICE.option = Yes, after recording (recommended)
+QCTOOLSXML_CHOICE.option = Yes, concurrent with recording
 QCTOOLSXML_CHOICE.option = No
 # frame md5 
 FRAMEMD5_CHOICE.x = 660
@@ -1000,7 +1009,7 @@ VIDEO_CODEC_OPTIONS=("Uncompressed Video" "FFV1 version 3" "JPEG2000" "ProRes" "
 VIDEO_BITDEPTH_OPTIONS=("10 bit" "8 bit" "quit")
 CHANNEL_MAPPING_OPTIONS=("2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, Channels 3 & 4 -> 2nd Track Stereo)" "1 Stereo Track (From Channels 1 & 2)" "1 Stereo Track (From Channels 3 & 4)" "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono" "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono" "Channel 1 -> Single Track Mono" "Channel 2 -> Single Track Mono" "quit")
 STANDARD_OPTIONS=("NTSC" "PAL" "quit")
-QCTOOLSXML_OPTIONS=("Yes" "No" "quit")
+QCTOOLSXML_OPTIONS=("Yes, after recording" "Yes, concurrent with recording" "No" "quit")
 FRAMEMD5_OPTIONS=("Yes" "No" "quit")
 EMBED_LOGS_OPTIONS=("Yes" "No" "quit")
 PLAYBACKVIEW_OPTIONS=("Quality Control View (mpv)" "Broadcast Range Visual" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes" "quit")
@@ -1207,17 +1216,17 @@ else
     done
 fi
 
-if [[ "${QCTOOLSXML_CHOICE}" != "${UNDECLAREDOPTION}" ]] ; then
+if [[ "${QCTOOLSXML_CHOICE}" != "${UNDECLAREDOPTION}" && "${QCTOOLSXML_CHOICE}" != "Yes" ]] ; then
     echo ""
 else
     _report -q "Create QCTools XML?"
     PS3="Select an option: "
     select QCTOOLSXML_CHOICE in "${QCTOOLSXML_OPTIONS[@]}" ; do
-        _yes_or_no "${QCTOOLSXML_CHOICE}"
+        _lookup_qctoolsxml "${QCTOOLSXML_CHOICE}"
         [[ "${?}" -eq 0 ]] && break
     done
 fi
-if [[ "${QCTOOLSXML_CHOICE}" = "Yes" && ! "$(command -v qcli)" ]] ; then
+if [[ "${QCTOOLSXML_CHOICE}" != "No" && ! "$(command -v qcli)" ]] ; then
     _report -w "Please install qcli to use the qctools reporting option."
     _report -w "Such as \`brew install qcli\`."
     exit 1
@@ -1306,7 +1315,7 @@ if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
         -filter_complex "[0:v:0]${RECORDINGFILTER}; ${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" \
         -f "${FORMAT}" "${DIR}/${ID}${SUFFIX}.${EXTENSION}" \
         "${EXTRAOUTPUTS[@]}" -map 0 -c copy -f nut - | \
-        if [[ "${QCTOOLSXML_CHOICE}" = "Yes" ]] ; then
+        if [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]] ; then
             tee >(mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -) | \
                 qcli -i - -o "${LOGDIR}/${ID}${SUFFIX}.${EXTENSION}.qctools.xml.gz"
         else
@@ -1320,7 +1329,7 @@ else
         -filter_complex "[0:v:0]${RECORDINGFILTER}; ${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" \
         -f "${FORMAT}" "${DIR}/${ID}${SUFFIX}.${EXTENSION}" \
         "${EXTRAOUTPUTS[@]}" -map 0 -c copy -f nut - | \
-        if [[ "${QCTOOLSXML_CHOICE}" = "Yes" ]] ; then
+        if [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]] ; then
             tee >("${FFPLAY_DECKLINK[@]}" \
                 -v info -hide_banner -stats -autoexit -i - \
                 -window_title "${WINDOW_NAME}" \
@@ -1336,9 +1345,11 @@ fi
 
 _writeingestlog "datetime_end" "$(_get_iso8601)"
 
-
 # qc tools process
-if [[ "${QCTOOLSXML_CHOICE}" = "Yes" ]] ; then
+if [[ "${QCTOOLSXML_CHOICE}" = "Yes, after recording" ]] ; then
+    qcli -i "${LOGDIR}/${ID}${SUFFIX}.${EXTENSION}" -o "${LOGDIR}/${ID}${SUFFIX}.${EXTENSION}.qctools.xml.gz"
+fi
+if [[ "${QCTOOLSXML_CHOICE}" != "No" ]] ; then
     QCXML="${LOGDIR}/${ID}${SUFFIX}.${EXTENSION}.qctools.xml.gz"
     _report -d "Vrecord is analyzing your video file. Please be patient."
     if [[ -s "${QCXML}" ]] ; then
@@ -1432,7 +1443,7 @@ elif [[ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" ]] ; then
 fi
 
 # embed logs in Matroska files
-if [[ "${CONTAINER_CHOICE}" = "Matroska" && "${EMBED_LOGS_CHOICE}" = "Yes" ]]; then
+if [[ "${CONTAINER_CHOICE}" = "Matroska" ]] | [[ "${EMBED_LOGS_CHOICE}" != "Yes" ]] ; then
     _report -d "Vrecord is attaching logs to your Matroska file:"
     mkvpropedit "${DIR}/${ID}${SUFFIX}.${EXTENSION}" --attachment-description "Capture options selected by user during vrecord process" --add-attachment "${INGESTLOG}"
     mkvpropedit "${DIR}/${ID}${SUFFIX}.${EXTENSION}" --attachment-description "Full FFmpeg output from vrecord capture process" --add-attachment "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}"
