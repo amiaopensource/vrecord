@@ -1301,7 +1301,7 @@ _report -d "Close the playback window to stop recording."
 if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
     _run "${FFMPEG_DECKLINK[@]}" \
         2> >(tee "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}" /tmp/vrecord_input.log >/dev/null) \
-        -v info -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_DECKLINK[@]}" \
+        -v info -nostdin -nostats "${INPUTOPTIONS[@]}" "${GRAB_DECKLINK[@]}" \
         -metadata:s:v:0 encoder="${CODECNAME}" "${MIDDLEOPTIONS[@]}" -c:a pcm_s24le \
         -filter_complex "[0:v:0]${RECORDINGFILTER}; ${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" \
         -f "${FORMAT}" "${DIR}/${ID}${SUFFIX}.${EXTENSION}" \
@@ -1315,7 +1315,7 @@ if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
 else
     _run "${FFMPEG_DECKLINK[@]}" \
         2> >(tee "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}" /tmp/vrecord_input.log >/dev/null) \
-        -v info -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_DECKLINK[@]}" \
+        -v info -nostdin -nostats "${INPUTOPTIONS[@]}" "${GRAB_DECKLINK[@]}" \
         -metadata:s:v:0 encoder="${CODECNAME}" "${MIDDLEOPTIONS[@]}" -c:a pcm_s24le \
         -filter_complex "[0:v:0]${RECORDINGFILTER}; ${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" \
         -f "${FORMAT}" "${DIR}/${ID}${SUFFIX}.${EXTENSION}" \
