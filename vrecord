@@ -936,7 +936,7 @@ QCTOOLSXML_CHOICE.type = radiobutton
 QCTOOLSXML_CHOICE.label = Create QCTools XML?
 QCTOOLSXML_CHOICE.default = ${QCTOOLSXML_CHOICE}
 QCTOOLSXML_CHOICE.option = ${UNDECLAREDOPTION}
-QCTOOLSXML_CHOICE.option = Yes, after recording (recommended)
+QCTOOLSXML_CHOICE.option = Yes, after recording
 QCTOOLSXML_CHOICE.option = Yes, concurrent with recording
 QCTOOLSXML_CHOICE.option = No
 # frame md5 
