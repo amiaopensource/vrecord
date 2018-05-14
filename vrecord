@@ -1455,7 +1455,7 @@ elif [[ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" ]] ; then
 fi
 
 # embed logs in Matroska files
-if [[ "${CONTAINER_CHOICE}" = "Matroska" ]] | [[ "${EMBED_LOGS_CHOICE}" != "Yes" ]] ; then
+if [[ "${CONTAINER_CHOICE}" = "Matroska" ]] && [[ "${EMBED_LOGS_CHOICE}" = "Yes" ]] ; then
     _report -d "Vrecord is attaching logs to your Matroska file:"
     mkvpropedit "${DIR}/${ID}${SUFFIX}.${EXTENSION}" --attachment-description "Capture options selected by user during vrecord process" --add-attachment "${INGESTLOG}"
     mkvpropedit "${DIR}/${ID}${SUFFIX}.${EXTENSION}" --attachment-description "Full FFmpeg output from vrecord capture process" --add-attachment "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}"
