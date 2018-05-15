@@ -21,6 +21,8 @@ This documentation is up to date as of vrecord version 2018-04-06.
    1. [Ending a Capture](#ending-a-capture)
    1. [Clearing the Configuration File](#clearing-the-configuration-file)
 1. [Help and Issues](#help-and-issues)
+   1. [Testing Your Equipment](#testing-your-equipment)
+   1. [Other Issues](#other-issues)
 1. [License](#license)
 
 ---
@@ -314,6 +316,45 @@ vrecord -x
 Vrecord will then prompt you to make selections for video capture and proceed to start recording a new tape. If you want to interrupt vrecord hold down `control + c`. 
 
 ## Help and Issues
+
+###Testing Your Equipment
+
+If you want to test and adjust your monitor without a test tape, whether to avoid overuse of a deck or because you don't have a test tape, you can pipe preset bars and tone, a local combination of test sources, or your own test file through your BlackMagic card.
+
+To pipe NTSC bars and tone through your BlackMagic card to your monitor, run:
+```
+vtest -n
+```
+
+To pipe PAL bars and tone through your BlackMagic card to your monitor, run:
+```
+vtest -p
+```
+
+To pipe an audio test with visuals to distinguish left and right channels, run:
+```
+vtest -a
+```
+
+To set a local combination of video and audio test sources, run:
+```
+vtest -e
+```
+
+To run the most recently set combination of video and audio test sources, run:
+```
+vtest -l
+```
+
+To play your own test file, run:
+```
+vtest -f [TESTFILE]
+```
+This test file must be in a format (frame size/frame rate combination) compatible with your BlackMagic device. To see a list of accepted formats, run `[ffmpegdecklink location] -f decklink -list_formats 1 -i [BlackMagic device name]` (for example, `/usr/local/opt/ffmpegdecklink/bin/ffmpeg-dl -f decklink -list_formats 1 -i 'UltraStudio 3D'`)
+
+To see this options in the command line interface, run `vtest -h`.
+
+###Other issues
 
 If you are stuck and want to see vrecord's help menu run:
 ```
