@@ -514,8 +514,8 @@ _lookup_video_codec(){
             SUFFIX="_j2k"
             ;;
         "ProRes")
-            CODECNAME="Apple ProRes 422"
-            MIDDLEOPTIONS+=(-c:v prores_ks -flags +ilme+ildct)
+            CODECNAME="Apple ProRes 422 HQ"
+            MIDDLEOPTIONS+=(-c:v prores_ks -profile:v 3 -flags +ilme+ildct)
             SUFFIX="_prores"
             ;;
         "quit") _report -d "Bye then" ; exit 0 ;;
