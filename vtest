@@ -1,0 +1,454 @@
+#!/usr/bin/env bash
+
+# vtest
+# Open-source software for piping test streams and files from the computer out to a monitor through a BlackMagic card.
+
+SCRIPTNAME=$(basename "${0}")
+SCRIPTDIR=$(dirname "${0}")
+CONFIG_FILE="${HOME}/.${SCRIPTNAME}.conf"
+unset PASHUAINSTALL
+unset VERSION
+if [[ $(dirname "$(command -v "${0}")") = "/usr/local/bin" ]] ; then
+    VERSION=$(TMP=$(brew info vplay | grep ".*\*$" | grep -Eo "/vplay/.* \(") ; echo "${TMP:7:(${#TMP}-9)}")
+fi
+BREW_PREFIX=$(brew --prefix ffmpegdecklink)
+FFMPEG_DECKLINK=("${BREW_PREFIX}/bin/ffmpeg-dl")
+FFPLAY_DECKLINK=("${BREW_PREFIX}/bin/ffplay-dl")
+DEVICE_NAME=$("${FFMPEG_DECKLINK[@]}" -f decklink -list_devices 1 -i dummy 2>&1 | grep -o "^\[decklink[^\]*][^']*'.*" | cut -d "'" -f2- | sed "s/'$//g")
+
+if [[ "$("${FFMPEG_DECKLINK[@]}" -version 2>&1 | grep "Library not loaded" >/dev/null)" || ! -f "${FFMPEG_DECKLINK}" || ! -f "${FFPLAY_DECKLINK}" ]] ; then
+    echo "Please reinstall 'ffmpeg-dl':"
+    echo "  brew reinstall amiaopensource/amiaos/ffmpegdecklink --with-sdl2 --with-freetype --with-openjpeg"
+    echo "Exiting."
+    exit 1
+fi
+
+_usage(){
+    cat <<EOF
+${SCRIPTNAME} ${VERSION}
+
+${SCRIPTNAME} will pipe test files and output from the computer out to your
+monitor, via a BlackMagic capture card. It is useful for testing equipment
+without having to play a test tape.
+
+Dependencies: amiaopensource/amiaos/ffmpegdecklink --with-sdl2
+  --with-freetype --with-openjpeg
+
+Usage: ${SCRIPTNAME} [ -n | -p | -a | -l | -e | -f | -h ] optionaltestfile
+  -n    pipe NTSC SMPTE bars + sine wave tone through output device
+  -p    pipe PAL SMPTE bars + sine wave tone through output device
+  -a    pipe audio test for left and right channels through output device
+  -l    pipe a local combination of video and audio test sources through
+          output device (chooses the most recent combination stored in vplay -e)
+  -e    edit the local combination of video and audio sources
+  -f    play optionaltestfile through output device (must be in format
+          compatible with your BlackMagic device)*
+  -h    display this help menu
+  
+* If you do not know what formats are compatible with your BlackMagic device,
+try running:
+    [ffmpegdecklink location] -f decklink -list_formats 1 -i [BlackMagic device name]
+e.g.
+    /usr/local/opt/ffmpegdecklink/bin/ffmpeg-dl -f decklink -list_formats 1 -i 'UltraStudio 3D'
+
+EOF
+}
+
+# local functions
+_get_iso8601(){
+    date +%FT%T
+}
+
+_report(){
+    local RED="$(tput setaf 1)"    # Red      - For Warnings
+    local GREEN="$(tput setaf 2)"  # Green    - For Declarations
+    local BLUE="$(tput setaf 4)"   # Blue     - For Questions
+    local NC="$(tput sgr0)"        # No Color
+    local COLOR=""
+    local STARTMESSAGE=""
+    local ECHOOPT=""
+    OPTIND=1
+    while getopts "qdwstn" opt ; do
+        case "${opt}" in
+            q) COLOR="${BLUE}" ;;                        # question mode, use color blue
+            d) COLOR="${GREEN}" ;;                       # declaration mode, use color green
+            w) COLOR="${RED}" ;;                         # warning mode, use color red
+            s) STARTMESSAGE+=([${SCRIPTNAME}] ) ;;       # prepend scriptname to the message
+            t) STARTMESSAGE+=($(_get_iso8601) '- ' ) ;;  # prepend timestamp to the message
+            n) ECHOOPT="-n" ;;                           # to avoid line breaks after echo
+        esac
+    done
+    shift "$((OPTIND-1))"
+    MESSAGE="${1}"
+    echo ${ECHOOPT} "${COLOR}${STARTMESSAGE[@]}${MESSAGE}${NC}"
+}
+
+# command-line options to set media id and original variables
+OPTIND=1
+while getopts ":npalef:h" opt ; do
+    case "${opt}" in
+        h) _usage ; exit 0 ;;
+        n) RUNTYPE="ntsc" ;;
+        p) RUNTYPE="pal" ;;
+        a) RUNTYPE="audio" ;;
+        l) RUNTYPE="local" ;;
+        e) RUNTYPE="edit" ;;
+        f) RUNTYPE="file" && TESTFILE="${OPTARG}";;
+        *) _report -w "Error: bad option -${OPTARG}" ; _usage ; exit 1 ;;
+    esac
+done
+shift "$((OPTIND-1))"
+
+# script functions
+_get_decklink_output(){
+    DECKLINK_OUTPUT=$("${FFMPEG_DECKLINK[@]}" -f decklink -list_devices 1 -i dummy 2>&1 | grep -o "^\[decklink[^\]*][^']*'.*" | cut -d "'" -f2- | sed "s/'$//g")
+    if [[ -z "${DECKLINK_OUTPUT}" ]] ; then
+        _report -w "No decklink inputs were found. Running \`${FFMPEG_DECKLINK} -hide_banner -f decklink -list_devices 1 -i dummy\` results in:"
+        DECKLINK_RESULT=$("${FFMPEG_DECKLINK[@]}" -hide_banner -f decklink -list_devices 1 -i dummy)
+        echo "${DECKLINK_RESULT}"
+        _report -w "Please check connections and drivers and try again."
+        exit 1
+    else
+        FIRST_DECKLINK_OUTPUT="$(echo "${DECKLINK_OUTPUT}" | head -n 1 )"
+    fi
+}
+
+_pashua_run() {
+    # Wrapper function for interfacing to Pashua. Written by Carsten
+    # Bluem <carsten@bluem.net> in 10/2003, modified in 12/2003 (including
+    # a code snippet contributed by Tor Sigurdsson), 08/2004 and 12/2004.
+    # Write config file
+
+    # Find Pashua binary. We do search both . and dirname "$0"
+    # , as in a doubleclickable application, cwd is /
+    # BTW, all these quotes below are necessary to handle paths
+    # containing spaces.
+    BUNDLEPATH="Pashua.app/Contents/MacOS/Pashua"
+    MYPATH=$(dirname "$0")
+    for SEARCHPATH in "${MYPATH}/Pashua" "${MYPATH}/${BUNDLEPATH}" "./${BUNDLEPATH}" \
+                      "/Applications/${BUNDLEPATH}" "${HOME}/Applications/${BUNDLEPATH}"
+    do
+        if [ -f "${SEARCHPATH}" -a -x "${SEARCHPATH}" ] ; then
+            PASHUAPATH="${SEARCHPATH}"
+            break
+        fi
+    done
+    if [[ ! "${PASHUAPATH}" ]] ; then
+        echo "Error: Pashua is used to edit vrecord options but is not found."
+        if [[ -z "${PASHUAINSTALL}" ]] ; then
+            echo "Attempting to run: brew cask install pashua"
+            if [[ "${PASHUAINSTALL}" != "Y" ]] ; then
+                brew cask install pashua
+                PASHUAINSTALL="Y"
+                _pashua_run
+            else
+                break 2
+            fi
+        fi
+    else
+        # Get result
+        RESULT=$("${PASHUAPATH}" "${PASHUA_CONFIGFILE}" | sed 's/ /;;;/g')
+        # Parse result
+        for LINE in ${RESULT} ; do
+            KEY=$(echo "${LINE}" | sed 's/^\([^=]*\)=.*$/\1/')
+            VALUE=$(echo "${LINE}" | sed 's/^[^=]*=\(.*\)$/\1/' | sed 's/;;;/ /g')
+            VARNAME="${KEY}"
+            VARVALUE="${VALUE}"
+            eval "${VARNAME}"='${VARVALUE}'
+        done
+    fi
+}
+
+_lookup_video_source(){
+    case "${1}" in
+        "testsrc")      VIDEO_SOURCE="testsrc" ;;
+        "testsrc2")     VIDEO_SOURCE="testsrc2" ;;
+        "yuvtestsrc")   VIDEO_SOURCE="yuvtestsrc" ;;
+        "rgbtestsrc")   VIDEO_SOURCE="rgbtestsrc" ;;
+        "quit")         _report -d "Bye then" ; exit 0 ;;
+        *)              _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
+    esac
+}
+
+_lookup_standard(){
+    case "${1}" in
+        "SD: NTSC (720x486, 30000/1001 fps)")
+            STANDARD="ntsc"
+            FRAME_SIZE="720x486"
+            FRAME_RATE="30000/1001"
+            MIDDLE_OPTS=(-vf setfield="bff")
+            ;;
+        "SD: PAL (720x576, 25000/1000 fps)")
+            STANDARD="pal "
+            FRAME_SIZE="720x576"
+            FRAME_RATE="25000/1000"
+            MIDDLE_OPTS=(-vf setfield="tff")
+            ;;
+        "HD: 1080p 25 fps (1920x1080, 25000/1000 fps)")
+            STANDARD="Hp25"
+            FRAME_SIZE="1920x1080"
+            FRAME_RATE="25000/1000"
+            ;;
+        "HD: 1080p 29.97 fps (1920x1080, 30000/1001 fps)")
+            STANDARD="Hp29"
+            FRAME_SIZE="1920x1080"
+            FRAME_RATE="30000/1001"
+            ;;
+        "HD: 1080p 30 fps (1920x1080, 30000/1000 fps)")
+            STANDARD="Hp30"
+            FRAME_SIZE="1920x1080"
+            FRAME_RATE="30000/1000"
+            ;;
+        "HD: 1080p 50 fps (1920x1080, 50000/1000 fps)")
+            STANDARD="Hp50"
+            FRAME_SIZE="1920x1080"
+            FRAME_RATE="50000/1000"
+            ;;
+        "HD: 1080i 50 fps (1920x1080, 25000/1000 fps)")
+            STANDARD="Hi50"
+            FRAME_SIZE="1920x1080"
+            FRAME_RATE="25000/1000"
+            MIDDLE_OPTS=(-vf setfield="tff")
+            ;;
+        "HD: 1080p 59.94 fps (1920x1080, 60000/1001 fps)")
+            STANDARD="Hp59"
+            FRAME_SIZE="1920x1080"
+            FRAME_RATE="60000/1001"
+            ;;
+        "HD: 1080i 59.94 fps (1920x1080, 30000/1001 fps)")
+            STANDARD="Hi59"
+            FRAME_SIZE="1920x1080"
+            FRAME_RATE="30000/1001"
+            MIDDLE_OPTS=(-vf setfield="tff")
+            ;;
+        "HD: 1080p 60 fps (1920x1080, 60000/1001 fps)")
+            STANDARD="Hp60"
+            FRAME_SIZE="1920x1080"
+            FRAME_RATE="60000/1001"
+            ;;
+        "quit") _report -d "Bye then" ; exit 0 ;;
+        *) _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
+    esac
+}
+
+_lookup_audio_source(){
+    AUDIO_OPTS=(-f lavfi -i)
+    case "${1}" in
+        "Stereo sine wave, 1000 Hz")
+            AUDIO_OPTS+=(aevalsrc="sin(1000*2*PI*t):channel_layout=stereo")
+            ;;
+        "Stereo sine wave (L, 1000 Hz) and cosine wave (R, 440 Hz)")
+            AUDIO_OPTS+=(aevalsrc="sin(1000*2*PI*t)|cos(440*2*PI*t):c=FL|FR")
+            ;;
+        "Mono sine wave, 1000 Hz")
+            AUDIO_OPTS+=(aevalsrc="sin(1000*2*PI*t):channel_layout=mono")
+            ;;
+        "quit")   _report -d "Bye then" ; exit 0 ;;
+        *)        _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
+    esac
+}
+
+_duration_check(){
+    # Sets up function to verify validity of duration settings
+    if [[ -n "${DURATION}" ]] ; then
+        if ! [[ "${DURATION}" =~ ^$|^[0-9]+$|^[0-9]+\.[0-9]*$|^\.[0-9]+$ ]] ; then
+            _report -w "Illegal value for recording time. Input must only be numbers."
+            exit 1
+        fi
+        if (( $(bc <<< "${DURATION} == 0") )) ; then
+            _report -w "A recording duration of zero is invalid."
+            exit 1
+        fi
+    fi
+}
+
+_config_check(){
+    if [[ -f "${CONFIG_FILE}" ]] ; then
+        . "${CONFIG_FILE}"
+    else
+        touch "${CONFIG_FILE}"
+        exec "${SCRIPTDIR}/${SCRIPTNAME}" -e
+    fi
+}
+
+_edit_mode(){
+    PASHUA_CONFIGFILE=$(/usr/bin/mktemp /tmp/pashua_XXXXXXXXX)
+    echo "${CONF}" > "${PASHUA_CONFIGFILE}"
+    _pashua_run
+    rm "${PASHUA_CONFIGFILE}"
+    # cb = cancel button; default button is "OK"
+    if [[ "${cb}" != 1 ]] ; then
+        _duration_check
+        # report back options
+        _report -d "Test variables set:"
+        _report -d "  VIDEO SOURCE = ${VIDEO_SOURCE_CHOICE}"
+        _report -d "  VIDEO STANDARD = ${STANDARD_CHOICE}"
+        _report -d "  AUDIO SOURCE = ${AUDIO_SOURCE_CHOICE}"
+        echo ""
+        # write config file
+        cat > "${CONFIG_FILE}" << EOF
+#${SCRIPTNAME} config file
+${CONFIG_COMMENT}
+${VIDEO_SOURCE_CHOICE_COMMENT}
+VIDEO_SOURCE_CHOICE="${VIDEO_SOURCE_CHOICE}"
+
+${STANDARD_CHOICE_COMMENT}
+STANDARD_CHOICE="${STANDARD_CHOICE}"
+
+${AUDIO_SOURCE_CHOICE_COMMENT}
+AUDIO_SOURCE_CHOICE="${AUDIO_SOURCE_CHOICE}"
+
+${DURATION_COMMENT}
+DURATION="${DURATION}"
+EOF
+        . "${CONFIG_FILE}"
+    else
+        _report -d "Editing of preferences was canceled by the user."
+    fi
+}
+
+# selections GUI dialog
+CONF="
+# Set transparency: 0 is transparent, 1 is opaque
+*.transparency=0.95
+# Set window title
+*.title = vtest configuration
+# video test source
+VIDEO_SOURCE_CHOICE.x = 20
+VIDEO_SOURCE_CHOICE.y = 440
+VIDEO_SOURCE_CHOICE.type = radiobutton
+VIDEO_SOURCE_CHOICE.label = Select video source:
+VIDEO_SOURCE_CHOICE.default = ${VIDEO_SOURCE}
+VIDEO_SOURCE_CHOICE.option = testsrc
+VIDEO_SOURCE_CHOICE.option = testsrc2
+VIDEO_SOURCE_CHOICE.option = yuvtestsrc
+VIDEO_SOURCE_CHOICE.option = rgbtestsrc
+# video standard
+STANDARD_CHOICE.x = 20
+STANDARD_CHOICE.y = 210
+STANDARD_CHOICE.type = radiobutton
+STANDARD_CHOICE.label = Select Television Standard
+STANDARD_CHOICE.default = ${STANDARD_CHOICE}
+STANDARD_CHOICE.option = SD: NTSC (720x486, 30000/1001 fps)
+STANDARD_CHOICE.option = SD: PAL (720x576, 25000/1000 fps)
+STANDARD_CHOICE.option = HD: 1080p 25 fps (1920x1080, 25000/1000 fps)
+STANDARD_CHOICE.option = HD: 1080p 29.97 fps (1920x1080, 30000/1001 fps)
+STANDARD_CHOICE.option = HD: 1080p 30 fps (1920x1080, 30000/1000 fps)
+STANDARD_CHOICE.option = HD: 1080p 50 fps (1920x1080, 50000/1000 fps)
+STANDARD_CHOICE.option = HD: 1080i 50 fps (1920x1080, 25000/1000 fps)
+STANDARD_CHOICE.option = HD: 1080p 59.94 fps (1920x1080, 60000/1001 fps)
+STANDARD_CHOICE.option = HD: 1080i 59.94 fps (1920x1080, 30000/1001 fps)
+STANDARD_CHOICE.option = HD: 1080p 60 fps (1920x1080, 60000/1001 fps)
+# audio test source
+AUDIO_SOURCE_CHOICE.x = 20
+AUDIO_SOURCE_CHOICE.y = 120
+AUDIO_SOURCE_CHOICE.type = radiobutton
+AUDIO_SOURCE_CHOICE.label = Select audio source:
+AUDIO_SOURCE_CHOICE.default = ${AUDIO_SOURCE_CHOICE}
+AUDIO_SOURCE_CHOICE.option = Stereo sine wave, 1000 Hz
+AUDIO_SOURCE_CHOICE.option = Stereo sine wave (L, 1000 Hz) and cosine wave (R, 440 Hz)
+AUDIO_SOURCE_CHOICE.option = Mono sine wave, 1000 Hz
+# duration
+DURATION.x = 20
+DURATION.y = 50
+DURATION.type = combobox
+DURATION.label = Set test time in minutes, or leave blank for indefinite:
+DURATION.default = ${DURATION}
+DURATION.option = 1
+DURATION.option = 5
+DURATION.option = 10
+# Add a cancel button with default label
+cb.type=cancelbutton
+"
+
+# list of selections for each vplay option
+VIDEO_SOURCE_OPTIONS=("testsrc" "testsrc2" "yuvtestsrc" "rgbtestsrc" "quit")
+STANDARD_OPTIONS=("SD: NTSC (720x486, 30000/1001 fps)" "SD: PAL (720x576, 25000/1000 fps)" "HD: 1080p 25 fps (1920x1080, 25000/1000 fps)" "HD: 1080p 29.97 fps (1920x1080, 30000/1001 fps)" "HD: 1080p 30 fps (1920x1080, 30000/1000 fps)" "HD: 1080p 50 fps (1920x1080, 50000/1000 fps)" "HD: 1080i 50 fps (1920x1080, 25000/1000 fps)" "HD: 1080p 59.94 fps (1920x1080, 60000/1001 fps)" "HD: 1080i 59.94 fps (1920x1080, 30000/1001 fps)" "HD: 1080p 60 fps (1920x1080, 60000/1001 fps)" "quit")
+AUDIO_SOURCE_OPTIONS=("Stereo sine wave, 1000 Hz" "Stereo sine wave (L, 1000 Hz) and cosine wave (R, 440 Hz)" "Mono sine wave, 1000 Hz" "quit")
+
+# comments to be printed to vplay config file
+CONFIG_COMMENT="# Set each value to empty quotes (like \"\") to prompt during run, or set to a provided option."
+VIDEO_SOURCE_CHOICE_COMMENT="#Set VIDEO_SOURCE_CHOICE to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${VIDEO_SOURCE_OPTIONS[@]}")"
+STANDARD_CHOICE_COMMENT="#Set STANDARD_CHOICE to one of these valid options or leave blank to request each run: $(printf "\"%s\" " "${STANDARD_CHOICE_OPTIONS[@]}")"
+AUDIO_SOURCE_CHOICE_COMMENT="#Set AUDIO_SOURCE_CHOICE to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${AUDIO_SOURCE_OPTIONS[@]}")"
+DURATION_COMMENT="#Set the recording time as a number (integer or decimal) in minutes."
+
+# local and edit mode setup
+if [[ "${RUNTYPE}" = "edit" ]] || [[ "${RUNTYPE}" = "local" ]] ; then
+    _config_check
+    if [[ "${RUNTYPE}" = "edit" ]] ; then
+        _edit_mode
+    fi
+    # terminal dialog for undeclared options
+    if [[ "${VIDEO_SOURCE_CHOICE}" && -n "${VIDEO_SOURCE_CHOICE}" ]] ; then
+        _lookup_video_source "${VIDEO_SOURCE_CHOICE}"
+    else
+        _report -q "Which video source are you testing?"
+        PS3="Select a video source: "
+        select VIDEO_SOURCE_CHOICE in "${VIDEO_SOURCE_OPTIONS[@]}" ; do
+            _lookup_video_source "${VIDEO_SOURCE_CHOICE}"
+            [[ "${?}" -eq 0 ]] && break
+        done
+    fi
+
+    if [[ "${STANDARD_CHOICE}" && -n "${STANDARD_CHOICE}" ]] ; then
+        _lookup_standard "${STANDARD_CHOICE}"
+    else
+        _report -q "Which television standard are you testing?"
+        PS3="Select a television standard: "
+        select STANDARD_CHOICE in "${STANDARD_OPTIONS[@]}" ; do
+            _lookup_standard "${STANDARD_CHOICE}"
+            [[ "${?}" -eq 0 ]] && break
+        done
+    fi
+
+    if [[ "${AUDIO_SOURCE_CHOICE}" && -n "${AUDIO_SOURCE_CHOICE}" ]] ; then
+        _lookup_audio_source "${AUDIO_SOURCE_CHOICE}"
+    else
+        _report -q "Which audio source are you testing?"
+        PS3="Select an audio source: "
+        select AUDIO_SOURCE_CHOICE in "${AUDIO_SOURCE_OPTIONS[@]}" ; do
+            _lookup_audio_source "${AUDIO_SOURCE_CHOICE}"
+            [[ "${?}" -eq 0 ]] && break
+        done
+    fi
+    _duration_check
+    if [[ -n "${DURATION}" ]] ; then
+        DUR_SECONDS=$(bc <<< "${DURATION} * 60")
+        DURATION=(-t "${DUR_SECONDS}")
+    fi
+fi
+
+# set up playout options
+_get_decklink_output
+VIDEO_OPTS=(-f lavfi -i "${VIDEO_SOURCE}"=s="${FRAME_SIZE}":r="${FRAME_RATE}")
+DECKLINK_OPTS=(-f decklink)
+DECKLINK_OPTS+=(-c:v v210)
+DECKLINK_OPTS+=(-c:a pcm_s16le)
+DECKLINK_OPTS+=(-ar 48000)
+DECKLINK_OPTS+=(-ac 2)
+if [[ -n "${DURATION}" ]] ; then
+    MIDDLE_OPTS+=(-t "${DUR_SECONDS}")
+fi
+if [[ "${RUNTYPE}" = "audio" ]] ; then
+    AUDIO_MODE_VOPTS="if(lt(mod(t\,4)\,1)\,0.1*sin(1000*2*PI*t)\,0)|if(lt(mod(t+2\,4)\,1)\,0.1*sin(1000*2*PI*t)\,0):s=48000:c=stereo[a];color=color=black:s=720x486:r=30000/1001,drawtext=fontfile=/Library/Fonts/Courier\ New.ttf:text=Left:fontcolor=white:enable=lt(mod(t\,4)\,1),drawtext=fontfile=/Library/Fonts/Courier\ New.ttf:text=Right:fontcolor=white:enable=lt(mod(t+2\,4)\,1)[b];[a]showvolume=r=30000/1001,scale=720x250[a1];[b][a1]overlay=0:486-250,format=yuv422p,setfield=bff"
+    AUDIO_MODE_AOPTS="if(lt(mod(t\,4)\,1)\,0.1*sin(1000*2*PI*t)\,0)|if(lt(mod(t+2\,4)\,1)\,0.1*sin(1000*2*PI*t)\,0):s=48000:c=stereo,aformat=sample_fmts=s32:sample_rates=48000:channel_layouts=stereo"
+fi
+
+# playback process
+_report -d "Press q or ctrl+c to end playback."
+
+if [[ "${RUNTYPE}" = "ntsc" ]] ; then
+    "${FFMPEG_DECKLINK}" -f lavfi -i "smptebars=s=720x486:r=30000/1001" \
+    -f lavfi -i sine -vf setfield=bff "${DECKLINK_OPTS[@]}" "${DECKLINK_OUTPUT}"
+elif [[ "${RUNTYPE}" = "pal" ]] ; then
+    "${FFMPEG_DECKLINK}" -f lavfi -i "smptebars=s=720x576:r=25000/1000" \
+    -f lavfi -i sine -vf setfield=tff "${DECKLINK_OPTS[@]}" "${DECKLINK_OUTPUT}"
+elif [[ "${RUNTYPE}" = "audio" ]] ; then
+    "${FFMPEG_DECKLINK}" -f lavfi -i aevalsrc="${AUDIO_MODE_VOPTS}" -f lavfi -i aevalsrc="${AUDIO_MODE_AOPTS}" -map "1:a" -map "0:v" "${DECKLINK_OPTS[@]}" "${DECKLINK_OUTPUT}"
+elif [[ "${RUNTYPE}" = "file" ]] ; then
+    "${FFMPEG_DECKLINK}" -i "${TESTFILE}" -f decklink -pix_fmt uyvy422 -c:a pcm_s16le -ar 48000 -ac 2 "${DECKLINK_OUTPUT}"
+elif [[ "${RUNTYPE}" = "local" ]] || [[ "${RUNTYPE}" = "edit" ]] ; then
+    "${FFMPEG_DECKLINK}" "${VIDEO_OPTS[@]}" "${AUDIO_OPTS[@]}" "${MIDDLE_OPTS[@]}" "${DECKLINK_OPTS[@]}" "${DECKLINK_OUTPUT}"
+fi
+exit 0
