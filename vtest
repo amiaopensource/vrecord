@@ -9,7 +9,7 @@ CONFIG_FILE="${HOME}/.${SCRIPTNAME}.conf"
 unset PASHUAINSTALL
 unset VERSION
 if [[ $(dirname "$(command -v "${0}")") = "/usr/local/bin" ]] ; then
-    VERSION=$(TMP=$(brew info vplay | grep ".*\*$" | grep -Eo "/vplay/.* \(") ; echo "${TMP:7:(${#TMP}-9)}")
+    VERSION=$(TMP=$(brew info vtest | grep ".*\*$" | grep -Eo "/vtest/.* \(") ; echo "${TMP:7:(${#TMP}-9)}")
 fi
 BREW_PREFIX=$(brew --prefix ffmpegdecklink)
 FFMPEG_DECKLINK=("${BREW_PREFIX}/bin/ffmpeg-dl")
@@ -39,7 +39,7 @@ Usage: ${SCRIPTNAME} [ -n | -p | -a | -l | -e | -f | -h ] optionaltestfile
   -p    pipe PAL SMPTE bars + sine wave tone through output device
   -a    pipe audio test for left and right channels through output device
   -l    pipe a local combination of video and audio test sources through
-          output device (chooses the most recent combination stored in vplay -e)
+          output device (chooses the most recent combination stored in vtest -e)
   -e    edit the local combination of video and audio sources
   -f    play optionaltestfile through output device (must be in format
           compatible with your BlackMagic device)*
@@ -361,12 +361,12 @@ DURATION.option = 10
 cb.type=cancelbutton
 "
 
-# list of selections for each vplay option
+# list of selections for each vtest option
 VIDEO_SOURCE_OPTIONS=("testsrc" "testsrc2" "yuvtestsrc" "rgbtestsrc" "quit")
 STANDARD_OPTIONS=("SD: NTSC (720x486, 30000/1001 fps)" "SD: PAL (720x576, 25000/1000 fps)" "HD: 1080p 25 fps (1920x1080, 25000/1000 fps)" "HD: 1080p 29.97 fps (1920x1080, 30000/1001 fps)" "HD: 1080p 30 fps (1920x1080, 30000/1000 fps)" "HD: 1080p 50 fps (1920x1080, 50000/1000 fps)" "HD: 1080i 50 fps (1920x1080, 25000/1000 fps)" "HD: 1080p 59.94 fps (1920x1080, 60000/1001 fps)" "HD: 1080i 59.94 fps (1920x1080, 30000/1001 fps)" "HD: 1080p 60 fps (1920x1080, 60000/1001 fps)" "quit")
 AUDIO_SOURCE_OPTIONS=("Stereo sine wave, 1000 Hz" "Stereo sine wave (L, 1000 Hz) and cosine wave (R, 440 Hz)" "Mono sine wave, 1000 Hz" "quit")
 
-# comments to be printed to vplay config file
+# comments to be printed to vtest config file
 CONFIG_COMMENT="# Set each value to empty quotes (like \"\") to prompt during run, or set to a provided option."
 VIDEO_SOURCE_CHOICE_COMMENT="#Set VIDEO_SOURCE_CHOICE to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${VIDEO_SOURCE_OPTIONS[@]}")"
 STANDARD_CHOICE_COMMENT="#Set STANDARD_CHOICE to one of these valid options or leave blank to request each run: $(printf "\"%s\" " "${STANDARD_CHOICE_OPTIONS[@]}")"
