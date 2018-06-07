@@ -317,7 +317,7 @@ Vrecord will then prompt you to make selections for video capture and proceed to
 
 ## Help and Issues
 
-###Testing Your Equipment
+### Testing Your Equipment
 
 If you want to test and adjust your monitor without a test tape, whether to avoid overuse of a deck or because you don't have a test tape, you can pipe preset bars and tone, a local combination of test sources, or your own test file through your BlackMagic card.
 
@@ -354,7 +354,7 @@ This test file must be in a format (frame size/frame rate combination) compatibl
 
 To see this options in the command line interface, run `vtest -h`.
 
-###Other issues
+### Other issues
 
 If you are stuck and want to see vrecord's help menu run:
 ```
