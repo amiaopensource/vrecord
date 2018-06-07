@@ -34,7 +34,7 @@ without having to play a test tape.
 Dependencies: amiaopensource/amiaos/ffmpegdecklink --with-sdl2
   --with-freetype --with-openjpeg
 
-Usage: ${SCRIPTNAME} [ -n | -p | -a | -l | -e | -f | -h ] optionaltestfile
+Usage: ${SCRIPTNAME} [ -n | -p | -a | -l | -e | -f optionaltestfile | -h ]
   -n    pipe NTSC SMPTE bars + sine wave tone through output device
   -p    pipe PAL SMPTE bars + sine wave tone through output device
   -a    pipe audio test for left and right channels through output device
