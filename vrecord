@@ -481,7 +481,6 @@ _lookup_container(){
             ;;
         "Matroska")
             EXTENSION="mkv"
-            MIDDLEOPTIONS+=(-f_strict unofficial)
             FORMAT="matroska"
             ;;
         "AVI")
