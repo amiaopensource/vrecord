@@ -660,12 +660,12 @@ _set_up_drawtext(){
  " > /tmp/drawtext.txt
 
     echo -e "
- 
- 
- 
- 
- 
- 
+
+
+
+
+
+
 
 
 
@@ -944,7 +944,7 @@ STANDARD_CHOICE.default = ${STANDARD_CHOICE}
 STANDARD_CHOICE.option = ${UNDECLAREDOPTION}
 STANDARD_CHOICE.option = NTSC
 STANDARD_CHOICE.option = PAL
-# qctools xml 
+# qctools xml
 QCTOOLSXML_CHOICE.x = 660
 QCTOOLSXML_CHOICE.y = 317
 QCTOOLSXML_CHOICE.type = radiobutton
@@ -954,7 +954,7 @@ QCTOOLSXML_CHOICE.option = ${UNDECLAREDOPTION}
 QCTOOLSXML_CHOICE.option = Yes, after recording
 QCTOOLSXML_CHOICE.option = Yes, concurrent with recording
 QCTOOLSXML_CHOICE.option = No
-# frame md5 
+# frame md5
 FRAMEMD5_CHOICE.x = 660
 FRAMEMD5_CHOICE.y = 230
 FRAMEMD5_CHOICE.type = radiobutton
@@ -1408,7 +1408,7 @@ elif [[ "${FRAMEMD5_CHOICE}" = "No" ]] ; then
     FRAMES_DECODED=$(cat "${LOGDIR}/${ID}"_ffmpeg_*.log | grep -w "frames decoded" | awk '{print $10}' | grep -m 1 [0-9])
     if [[ "${FRAMES_ENCODED}" -lt $((FRAMES_DECODED-1)) ]] ; then
         FRAMES_DISCREPANCY=$((FRAMES_DECODED-FRAMES_ENCODED))
-        cowsay "$(_report -w "WARNING: There were presentation timestamp discontinuities found in the framemd5s. This error may indicate frames dropped by FFmpeg or vrecord. The file may have sync issues.")" 
+        cowsay "$(_report -w "WARNING: There were presentation timestamp discontinuities found in the framemd5s. This error may indicate frames dropped by FFmpeg or vrecord. The file may have sync issues.")"
         _writeingestlog "ffmpeg_missing_frames" "${FRAMES_DISCREPANCY}"
     else
         _writeingestlog "ffmpeg_missing_frames" "None"
