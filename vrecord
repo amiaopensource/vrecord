@@ -1213,12 +1213,6 @@ if [[ ! -d "${LOGDIR}" ]] ; then
     fi
 fi
 
-if [[ -f "${DIR}/${ID}${SUFFIX}.${EXTENSION}" ]] ; then
-    _report -w "A file called ${DIR}/${ID}.${EXTENSION} already exists."
-    _report -w "Exiting to avoid overwriting that file."
-    exit
-fi
-
 if [[ "${CONTAINER_CHOICE}" && "${CONTAINER_CHOICE}" != "${UNDECLAREDOPTION}" ]] ; then
     _lookup_container "${CONTAINER_CHOICE}"
 else
@@ -1242,6 +1236,11 @@ else
 fi
 
 VRECORD_OUTPUT="${DIR}/${ID}${SUFFIX}.${EXTENSION}"
+if [[ -f "${VRECORD_OUTPUT}" ]] ; then
+    _report -w "A file called ${VRECORD_OUTPUT} already exists."
+    _report -w "Exiting to avoid overwriting that file."
+    exit
+fi
 
 if [[ "${QCTOOLSXML_CHOICE}" != "${UNDECLAREDOPTION}" && "${QCTOOLSXML_CHOICE}" != "Yes" ]] ; then
     echo ""
