@@ -1190,8 +1190,15 @@ while [[ "${GUI}" = 1 ]] && [[ "${RUNTYPE}" != "record" ]] ; do
 done
 
 # record mode
-_report -q -n "Enter Identifier: "
-read ID
+while [[ -z "${ID}" ]] ; do
+    _report -q -n "Enter ${AHEM} Identifier: "
+    read ID
+    if [[ "${ID}" = "q" ]] ; then
+        _report -w "Interpretting 'q' to quit."
+        exit 1
+    fi
+    AHEM="a (non-blank)"
+done
 if [[ ! -d "${DIR}" ]] ; then
     _report -q -n "Enter Directory: "
     read DIR
