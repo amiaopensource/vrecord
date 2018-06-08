@@ -1303,6 +1303,7 @@ read
 
 # create log of vrecord decisions
 INGESTLOG="${LOGDIR}/${ID}_capture_options.log"
+QCXML="${LOGDIR}/${ID}${SUFFIX}.${EXTENSION}.qctools.xml.gz"
 touch "${INGESTLOG}"
 _writeingestlog "computer_name" "$(uname -n)"
 _writeingestlog "user_name" "$(whoami)"
@@ -1343,7 +1344,7 @@ if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
         "${EXTRAOUTPUTS[@]}" -map 0 -c copy -f nut - | \
         if [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]] ; then
             tee >(mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -) | \
-                qcli -i - -o "${LOGDIR}/${ID}${SUFFIX}.${EXTENSION}.qctools.xml.gz"
+                qcli -i - -o "${QCXML}"
         else
             mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -
         fi
@@ -1360,7 +1361,7 @@ else
                 -v info -hide_banner -stats -autoexit -i - \
                 -window_title "${WINDOW_NAME}" \
                 -vf "${PLAYBACKFILTER}") | \
-                qcli -i - -o "${LOGDIR}/${ID}${SUFFIX}.${EXTENSION}.qctools.xml.gz"
+                qcli -i - -o "${QCXML}"
         else
             "${FFPLAY_DECKLINK[@]}" \
                 -v info -hide_banner -stats -autoexit -i - \
@@ -1374,10 +1375,9 @@ trap _cleanup SIGHUP SIGINT SIGTERM
 
 # qc tools process
 if [[ "${QCTOOLSXML_CHOICE}" = "Yes, after recording" ]] ; then
-    qcli -i "${LOGDIR}/${ID}${SUFFIX}.${EXTENSION}" -o "${LOGDIR}/${ID}${SUFFIX}.${EXTENSION}.qctools.xml.gz"
+    qcli -i "${LOGDIR}/${ID}${SUFFIX}.${EXTENSION}" -o "${QCXML}"
 fi
 if [[ "${QCTOOLSXML_CHOICE}" != "No" ]] ; then
-    QCXML="${LOGDIR}/${ID}${SUFFIX}.${EXTENSION}.qctools.xml.gz"
     _report -d "Vrecord is analyzing your video file. Please be patient."
     if [[ -s "${QCXML}" ]] ; then
         if [[ "${PIXEL_FORMAT}" = "yuv422p10" ]] ; then
