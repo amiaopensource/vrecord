@@ -1276,7 +1276,7 @@ fi
 
 _duration_check
 if [[ -n "${DURATION}" ]] ; then
-    DUR_SECONDS=$(bc <<< "${DURATION} * 60")
+    DUR_SECONDS=$(bc <<< "${DURATION} * 60" | sed "s/^\./0./")
     INPUTOPTIONS=(-t "${DUR_SECONDS}")
 fi
 
