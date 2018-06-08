@@ -108,6 +108,11 @@ _run(){
     fi
 }
 
+_cleanup(){
+    _report -wt "Vrecord is being stopped at $(_get_iso8601), noting this in the capture log."
+    _writeingestlog "exit status" "vrecord was forced to quit early at $(_get_iso8601). Some processing may be incomplete."
+}
+
 # command-line options to set media id and original variables
 OPTIND=1
 while getopts ":herpaxg" opt ; do
@@ -1355,6 +1360,7 @@ else
 fi
 
 _writeingestlog "datetime_end" "$(_get_iso8601)"
+trap _cleanup SIGHUP SIGINT SIGTERM
 
 # qc tools process
 if [[ "${QCTOOLSXML_CHOICE}" = "Yes, after recording" ]] ; then
