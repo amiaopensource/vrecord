@@ -400,7 +400,7 @@ _passthrough_mode(){
     if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
         _check_mpv
         "${FFMPEG_DECKLINK}" -v info -nostats "${GRAB_DECKLINK[@]}" 2> /tmp/vrecord_input.log \
-        -map 0 -c copy -f nut - | \
+        "${PIPE_DECKLINK[@]}" | \
         mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -
     else
         "${FFPLAY_DECKLINK}" -v info -nostats "${GRAB_DECKLINK[@]}" 2> /tmp/vrecord_input.log \
@@ -428,7 +428,7 @@ _audiopassthrough_mode(){
 [abcde1][xx]overlay=10:10[vo]"
     echo "ESC quit" > ~/.config/mpv/input.conf
     _check_mpv
-    "${FFMPEG_DECKLINK[@]}" -v info -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_DECKLINK[@]}" -map 0 -c copy -f nut - 2> /tmp/vrecord_input.log | \
+    "${FFMPEG_DECKLINK[@]}" -v info -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_DECKLINK[@]}" "${PIPE_DECKLINK[@]}" 2> /tmp/vrecord_input.log | \
         mpv - --title="${WINDOW_NAME}" -lavfi-complex "${PLAYBACKFILTER}"
     _gui_return
 }
@@ -1166,6 +1166,7 @@ GRAB_DECKLINK+=(-audio_depth 32)
 GRAB_DECKLINK+=(-raw_format "${PIXEL_FORMAT}")
 GRAB_DECKLINK+=(-i "${FIRST_DECKLINK_INPUT}")
 PIPE_DECKLINK=(-c copy)
+PIPE_DECKLINK+=(-map 0)
 PIPE_DECKLINK+=(-f nut)
 PIPE_DECKLINK+=(-)
 WINDOW_NAME="mode:${RUNTYPE} - video:'${VIDEO_INPUT_CHOICE}' audio:'${AUDIO_INPUT_CHOICE}' - to end recording press q, esc, or close video window"
@@ -1342,7 +1343,7 @@ if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
         -metadata:s:v:0 encoder="${CODECNAME}" "${MIDDLEOPTIONS[@]}" -c:a pcm_s24le \
         -filter_complex "[0:v:0]${RECORDINGFILTER}; ${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" \
         -f "${FORMAT}" "${VRECORD_OUTPUT}" \
-        "${EXTRAOUTPUTS[@]}" -map 0 -c copy -f nut - | \
+        "${EXTRAOUTPUTS[@]}" "${PIPE_DECKLINK[@]}" | \
         if [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]] ; then
             tee >(mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -) | \
                 qcli -i - -o "${QCXML}"
@@ -1356,7 +1357,7 @@ else
         -metadata:s:v:0 encoder="${CODECNAME}" "${MIDDLEOPTIONS[@]}" -c:a pcm_s24le \
         -filter_complex "[0:v:0]${RECORDINGFILTER}; ${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" \
         -f "${FORMAT}" "${VRECORD_OUTPUT}" \
-        "${EXTRAOUTPUTS[@]}" -map 0 -c copy -f nut - | \
+        "${EXTRAOUTPUTS[@]}" "${PIPE_DECKLINK[@]}" | \
         if [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]] ; then
             tee >("${FFPLAY_DECKLINK[@]}" \
                 -v info -hide_banner -stats -autoexit -i - \
