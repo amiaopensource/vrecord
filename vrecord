@@ -1168,6 +1168,8 @@ GRAB_DECKLINK+=(-i "${FIRST_DECKLINK_INPUT}")
 PIPE_DECKLINK=(-c copy)
 PIPE_DECKLINK+=(-map 0)
 PIPE_DECKLINK+=(-f nut)
+PIPE_DECKLINK+=(-syncpoints none)
+PIPE_DECKLINK+=(-write_index 0)
 PIPE_DECKLINK+=(-)
 WINDOW_NAME="mode:${RUNTYPE} - video:'${VIDEO_INPUT_CHOICE}' audio:'${AUDIO_INPUT_CHOICE}' - to end recording press q, esc, or close video window"
 
