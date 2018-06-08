@@ -1241,6 +1241,8 @@ else
     done
 fi
 
+VRECORD_OUTPUT="${DIR}/${ID}${SUFFIX}.${EXTENSION}"
+
 if [[ "${QCTOOLSXML_CHOICE}" != "${UNDECLAREDOPTION}" && "${QCTOOLSXML_CHOICE}" != "Yes" ]] ; then
     echo ""
 else
@@ -1340,7 +1342,7 @@ if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
         -v info -nostdin -nostats "${INPUTOPTIONS[@]}" "${GRAB_DECKLINK[@]}" \
         -metadata:s:v:0 encoder="${CODECNAME}" "${MIDDLEOPTIONS[@]}" -c:a pcm_s24le \
         -filter_complex "[0:v:0]${RECORDINGFILTER}; ${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" \
-        -f "${FORMAT}" "${DIR}/${ID}${SUFFIX}.${EXTENSION}" \
+        -f "${FORMAT}" "${VRECORD_OUTPUT}" \
         "${EXTRAOUTPUTS[@]}" -map 0 -c copy -f nut - | \
         if [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]] ; then
             tee >(mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -) | \
@@ -1354,7 +1356,7 @@ else
         -v info -nostdin -nostats "${INPUTOPTIONS[@]}" "${GRAB_DECKLINK[@]}" \
         -metadata:s:v:0 encoder="${CODECNAME}" "${MIDDLEOPTIONS[@]}" -c:a pcm_s24le \
         -filter_complex "[0:v:0]${RECORDINGFILTER}; ${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" \
-        -f "${FORMAT}" "${DIR}/${ID}${SUFFIX}.${EXTENSION}" \
+        -f "${FORMAT}" "${VRECORD_OUTPUT}" \
         "${EXTRAOUTPUTS[@]}" -map 0 -c copy -f nut - | \
         if [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]] ; then
             tee >("${FFPLAY_DECKLINK[@]}" \
@@ -1447,37 +1449,37 @@ fi
 # policy checks with mediaconch
 if [[ "${VIDEO_CODEC_CHOICE}" = "Uncompressed Video" ]] ; then
     _report -d "Checking file conformance against uncompressed video policy..."
-    STATUS=$(mediaconch -fx -p "${SCRIPTDIR}/vrecord_policy_uncompressed.xml" "${DIR}/${ID}${SUFFIX}.${EXTENSION}" | xmlstarlet sel -N mc="https://mediaarea.net/mediaconch" -t -v mc:MediaConch/mc:media/mc:policy/@outcome -n)
+    STATUS=$(mediaconch -fx -p "${SCRIPTDIR}/vrecord_policy_uncompressed.xml" "${VRECORD_OUTPUT}" | xmlstarlet sel -N mc="https://mediaarea.net/mediaconch" -t -v mc:MediaConch/mc:media/mc:policy/@outcome -n)
     if [[ "$STATUS" = "pass" ]] ; then
         _report -dt "File passed policy check for uncompressed video."
     elif [[ "$STATUS" = "fail" ]] ; then
         _report -wt "File did not pass vrecord policy check for uncompressed video and may not conform to digital preservation standards. Try another file?"
-        mediaconch -fx -p "${SCRIPTDIR}/vrecord_policy_uncompressed.xml" "${DIR}/${ID}${SUFFIX}.${EXTENSION}" | xmlstarlet fo > "${DIR}/${ID}${SUFFIX}_mediaconchreport.xml"
+        mediaconch -fx -p "${SCRIPTDIR}/vrecord_policy_uncompressed.xml" "${VRECORD_OUTPUT}" | xmlstarlet fo > "${DIR}/${ID}${SUFFIX}_mediaconchreport.xml"
         _report -wt "See ${DIR}/${ID}${SUFFIX}_mediaconchreport.xml for a full MediaConch policy report."
     else
-        mediaconch -p "${SCRIPTDIR}/vrecord_policy_uncompressed.xml" "${DIR}/${ID}${SUFFIX}.${EXTENSION}"
+        mediaconch -p "${SCRIPTDIR}/vrecord_policy_uncompressed.xml" "${VRECORD_OUTPUT}"
     fi
 elif [[ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" ]] ; then
     _report -d "Checking file conformance against FFV1 video policy..."
-    STATUS=$(mediaconch -fx -p "${SCRIPTDIR}/vrecord_policy_ffv1.xml" "${DIR}/${ID}${SUFFIX}.${EXTENSION}" | xmlstarlet sel -N mc="https://mediaarea.net/mediaconch" -t -v mc:MediaConch/mc:media/mc:policy/@outcome -n)
+    STATUS=$(mediaconch -fx -p "${SCRIPTDIR}/vrecord_policy_ffv1.xml" "${VRECORD_OUTPUT}" | xmlstarlet sel -N mc="https://mediaarea.net/mediaconch" -t -v mc:MediaConch/mc:media/mc:policy/@outcome -n)
     if [[ "${STATUS}" = "pass" ]] ; then
         _report -dt "File passed policy check for FFV1 video."
     elif [[ "$STATUS" = "fail" ]] ; then
         _report -wt "File did not pass vrecord policy check for FFV1 video and may not conform to digital preservation standards. Try another file?"
-        mediaconch -fx -p "${SCRIPTDIR}/vrecord_policy_ffv1.xml" "${DIR}/${ID}${SUFFIX}.${EXTENSION}" | xmlstarlet fo > "${DIR}/${ID}${SUFFIX}_mediaconchreport.xml"
+        mediaconch -fx -p "${SCRIPTDIR}/vrecord_policy_ffv1.xml" "${VRECORD_OUTPUT}" | xmlstarlet fo > "${DIR}/${ID}${SUFFIX}_mediaconchreport.xml"
         _report -wt "See ${DIR}/${ID}${SUFFIX}_mediaconchreport.xml for a full MediaConch policy report."
     else
-        mediaconch -p "${SCRIPTDIR}/vrecord_policy_ffv1.xml" "${DIR}/${ID}${SUFFIX}.${EXTENSION}"
+        mediaconch -p "${SCRIPTDIR}/vrecord_policy_ffv1.xml" "${VRECORD_OUTPUT}"
     fi
 fi
 
 # embed logs in Matroska files
 if [[ "${CONTAINER_CHOICE}" = "Matroska" ]] && [[ "${EMBED_LOGS_CHOICE}" = "Yes" ]] ; then
     _report -d "Vrecord is attaching logs to your Matroska file:"
-    mkvpropedit "${DIR}/${ID}${SUFFIX}.${EXTENSION}" --attachment-description "Capture options selected by user during vrecord process" --add-attachment "${INGESTLOG}"
-    mkvpropedit "${DIR}/${ID}${SUFFIX}.${EXTENSION}" --attachment-description "Full FFmpeg output from vrecord capture process" --add-attachment "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}"
+    mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "Capture options selected by user during vrecord process" --add-attachment "${INGESTLOG}"
+    mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "Full FFmpeg output from vrecord capture process" --add-attachment "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}"
     if [[ "${QCTOOLSXML_CHOICE}" = "Yes" ]] ; then
-        mkvpropedit "${DIR}/${ID}${SUFFIX}.${EXTENSION}" --attachment-description "QCTools report from vrecord capture process (zipped XML)" --add-attachment "${QCXML}"
+        mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "QCTools report from vrecord capture process (zipped XML)" --add-attachment "${QCXML}"
     fi
     _report -d "Vrecord is done attaching logs to your Matroska file!"
 fi
