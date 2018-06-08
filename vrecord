@@ -113,6 +113,14 @@ _cleanup(){
     _writeingestlog "exit status" "vrecord was forced to quit early at $(_get_iso8601). Some processing may be incomplete."
 }
 
+_check_mpv(){
+    if ! mpv > /dev/null ; then
+        mpv
+        _report -wt "mpv doesn't appear to be running correctly. Try 'brew reinstall mpv'."
+        exit 1
+    fi
+}
+
 # command-line options to set media id and original variables
 OPTIND=1
 while getopts ":herpaxg" opt ; do
@@ -390,6 +398,7 @@ EOF
 # passthrough and audiopassthrough modes
 _passthrough_mode(){
     if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
+        _check_mpv
         "${FFMPEG_DECKLINK}" -v info -nostats "${GRAB_DECKLINK[@]}" 2> /tmp/vrecord_input.log \
         -map 0 -c copy -f nut - | \
         mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -
@@ -418,6 +427,7 @@ _audiopassthrough_mode(){
 [abc1][de1]hstack[abcde1],\
 [abcde1][xx]overlay=10:10[vo]"
     echo "ESC quit" > ~/.config/mpv/input.conf
+    _check_mpv
     "${FFMPEG_DECKLINK[@]}" -v info -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_DECKLINK[@]}" -map 0 -c copy -f nut - 2> /tmp/vrecord_input.log | \
         mpv - --title="${WINDOW_NAME}" -lavfi-complex "${PLAYBACKFILTER}"
     _gui_return
@@ -1323,6 +1333,7 @@ _report -d "Close the playback window to stop recording."
 
 # vrecord process!
 if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
+    _check_mpv
     _run "${FFMPEG_DECKLINK[@]}" \
         2> >(tee "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}" /tmp/vrecord_input.log >/dev/null) \
         -v info -nostdin -nostats "${INPUTOPTIONS[@]}" "${GRAB_DECKLINK[@]}" \
