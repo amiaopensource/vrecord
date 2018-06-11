@@ -9,7 +9,7 @@ CONFIG_FILE="${HOME}/.${SCRIPTNAME}.conf"
 unset PASHUAINSTALL
 unset VERSION
 if [[ $(dirname "$(command -v "${0}")") = "/usr/local/bin" ]] ; then
-    VERSION=$(TMP=$(brew info vtest | grep ".*\*$" | grep -Eo "/vtest/.* \(") ; echo "${TMP:7:(${#TMP}-9)}")
+    VERSION=$(TMP=$(brew info vrecord | grep ".*\*$" | grep -Eo "/vrecord/.* \(") ; echo "${TMP:7:(${#TMP}-9)}")
 fi
 BREW_PREFIX=$(brew --prefix ffmpegdecklink)
 FFMPEG_DECKLINK=("${BREW_PREFIX}/bin/ffmpeg-dl")
