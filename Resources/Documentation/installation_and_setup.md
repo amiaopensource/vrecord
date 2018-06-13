@@ -2,7 +2,7 @@
 
 If you use macOS, you can easily install vrecord using a package manager called Homebrew. To install Homebrew, follow [these instructions](https://brew.sh/).
 
-To install vrecord, run the following two commands in a [Terminal window](https://en.wikipedia.org/wiki/Terminal_%28manOS%29):
+To install vrecord, run the following two commands in a [Terminal window](https://en.wikipedia.org/wiki/Terminal_%28macOS%29):
 ```
 brew tap amiaopensource/amiaos
 brew install vrecord
