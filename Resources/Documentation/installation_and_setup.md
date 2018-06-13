@@ -2,7 +2,7 @@
 
 If you use macOS, you can easily install vrecord using a package manager called Homebrew. To install Homebrew, follow [these instructions](https://brew.sh/).
 
-To install vrecord, run the following two commands in a [Terminal window](https://en.wikipedia.org/wiki/Terminal_%28OS_X%29):
+To install vrecord, run the following two commands in a [Terminal window](https://en.wikipedia.org/wiki/Terminal_%28manOS%29):
 ```
 brew tap amiaopensource/amiaos
 brew install vrecord
@@ -42,7 +42,7 @@ In macOS, open System Preferences and click on the icon for Blackmagic Design. I
 
 Open up the Blackmagic Design preferences and click on the "Settings" tab. Select your input and output from the dropdown menu depending on what cables you have connected to the capture device. 
 
-Once your capture device is set up you can start vrecord by simply opening up a [Terminal window](https://en.wikipedia.org/wiki/Terminal_%28OS_X%29) and typing 
+Once your capture device is set up you can start vrecord by simply opening up a [Terminal window](https://en.wikipedia.org/wiki/Terminal_%28macOS%29) and typing 
 ```
 vrecord 
 ```
