@@ -115,17 +115,3 @@ Next, check to make sure vrecord produced the correct files. These are:
 1. A QCTools XML file, if you chose to create it (filename.qctools.xml.gz)
 
 Scroll through the video file to make sure it is complete; in other words, you've captured the entire tape. If all these files exist and the video file looks complete you can move on to further QC.
-
-## Troubleshooting
-
-**Q: I ran `vrecord -p` and no video is showing up in the vrecord window!**
-
-A: Check to make sure all of your cables are routed properly. Also check macOS System Preferences to make sure that the Black Magic capture device is set up properly. If you are using SDI for your input on vrecord, the output of the Blackmagic should be set to SDI.
-
-**Q: My tape finished early, how do I stop vrecord?**
-
-A: Simply close the vrecord window and the program will automatically stop. You should then examine your video file to make sure it's complete.
-
-## License
-
-<a rel="license" href="https://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png"></a><br>Vrecord is licensed under a <a rel="license" href="https://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
