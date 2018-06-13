@@ -56,10 +56,6 @@ Error while decoding stream #0:0: Invalid data found when processing input
 
 You can safely ignore this warning, it's just FFmpeg complaining that it didn't receive a full frame of video when vrecord stopped.
 
-#### Sync Issues with FFmpeg 4.0 and qcli
-
-As of May 2018, [electing](settings.md) to create QCTools XML **after** capture is highly recommended. Creating the QCTools XML at the same time as the transfer has been found to generate sync errors, apparently as a result of a conflict between two of vrecord's dependencies, FFmpeg 4.0 and qcli; see [discussion](https://github.com/amiaopensource/vrecord/issues/310). 
-
 ### Common Questions
 
 **Q: I ran `vrecord -p` and no video is showing up in the vrecord window!**
