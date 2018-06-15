@@ -9,7 +9,7 @@ CONFIG_FILE="${HOME}/.${SCRIPTNAME}.conf"
 unset PASHUAINSTALL
 unset VERSION
 if [[ $(dirname "$(command -v "${0}")") = "/usr/local/bin" ]] ; then
-    VERSION=$(TMP=$(brew info vtest | grep ".*\*$" | grep -Eo "/vtest/.* \(") ; echo "${TMP:7:(${#TMP}-9)}")
+    VERSION=$(TMP=$(brew info vrecord | grep ".*\*$" | grep -Eo "/vrecord/.* \(") ; echo "${TMP:9:(${#TMP}-11)}")
 fi
 BREW_PREFIX=$(brew --prefix ffmpegdecklink)
 FFMPEG_DECKLINK=("${BREW_PREFIX}/bin/ffmpeg-dl")
@@ -134,7 +134,7 @@ _pashua_run() {
         fi
     done
     if [[ ! "${PASHUAPATH}" ]] ; then
-        echo "Error: Pashua is used to edit vrecord options but is not found."
+        echo "Error: Pashua is used to edit vtest options but is not found."
         if [[ -z "${PASHUAINSTALL}" ]] ; then
             echo "Attempting to run: brew cask install pashua"
             if [[ "${PASHUAINSTALL}" != "Y" ]] ; then
