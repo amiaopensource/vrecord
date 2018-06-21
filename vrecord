@@ -475,6 +475,9 @@ _lookup_video_input(){
 _lookup_audio_input(){
     case "${1}" in
         "Analog")                  AUDIO_INPUT="analog" ;;
+        "Analog RCA")              AUDIO_INPUT="analog_rca" ;;
+        "Analog XLR")              AUDIO_INPUT="analog_xlr" ;;
+        "Microphone")              AUDIO_INPUT="microphone" ;;
         "SDI Embedded Audio")      AUDIO_INPUT="embedded" ;;
         "Digital Audio (AES/EBU)") AUDIO_INPUT="aes_ebu" ;;
         "quit")                    _report -d "Bye then" ; exit 0 ;;
@@ -897,6 +900,9 @@ AUDIO_INPUT_CHOICE.label = Select Audio Input
 AUDIO_INPUT_CHOICE.default = ${AUDIO_INPUT_CHOICE}
 AUDIO_INPUT_CHOICE.option = ${UNDECLAREDOPTION}
 AUDIO_INPUT_CHOICE.option = Analog
+AUDIO_INPUT_CHOICE.option = Analog RCA
+AUDIO_INPUT_CHOICE.option = Analog XLR
+AUDIO_INPUT_CHOICE.option = Microphone
 AUDIO_INPUT_CHOICE.option = SDI Embedded Audio
 AUDIO_INPUT_CHOICE.option = Digital Audio (AES/EBU)
 # recording file format
@@ -1027,7 +1033,7 @@ WARNING.default = WARNING: Do not use this option unless required
 
 # list of selections for each vrecord option
 VIDEO_INPUT_OPTIONS=("Composite" "SDI" "Component" "S-Video" "quit")
-AUDIO_INPUT_OPTIONS=("Analog" "SDI Embedded Audio" "Digital Audio (AES/EBU)" "quit")
+AUDIO_INPUT_OPTIONS=("Analog" "Analog RCA" "Analog XLR" "Microphone" "SDI Embedded Audio" "Digital Audio (AES/EBU)" "quit")
 CONTAINER_OPTIONS=("QuickTime" "Matroska" "AVI" "MXF" "quit")
 VIDEO_CODEC_OPTIONS=("Uncompressed Video" "FFV1 version 3" "JPEG2000" "ProRes" "quit")
 VIDEO_BITDEPTH_OPTIONS=("10 bit" "8 bit" "quit")
