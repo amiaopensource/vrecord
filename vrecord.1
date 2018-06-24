@@ -1,8 +1,8 @@
-.TH vrecord 1 "https://github.com/amiaopensource/vrecord" "2018\-02\-08" "AMIA Open Source"
+.TH vrecord 1 "https://github\.com/amiaopensource/vrecord" "2018\-06\-11" "AMIA Open Source"
 .SH NAME
 vrecord \- An Open\-Source Video Capture Tool for Archivists
 .SH SYNOPSIS
-.B vrecord [\-g | \-e | \-r | \-p | \-a | \-x | \-h]
+\fBvrecord\fR [\fB\-g\fR | \fB\-e\fR | \fB\-r\fR | \fB\-p\fR | \fB\-a\fR | \fB\-x\fR | \fB\-h\fR]
 .SH DESCRIPTION
 Vrecord is open-source software for capturing a video signal and turning it into a digital file\. Its purpose is to make videotape digitization or transfer easier\. Vrecord can capture analog and digital signals through a variety of inputs and can create digital video files in a variety of formats and codecs\. Vrecord has been designed with needs of audiovisual archivists in mind\.
 .PP
@@ -10,34 +10,25 @@ Currently vrecord only supports Blackmagic Design capture cards with the Blackma
 .SH OPTIONS
 .TP
 .BR \-g
-Running vrecord in
-.B GUI Mode
-opens a window that allows you to access any of vrecord's other modes (Record, Passthrough, Audio Passthrough and Edit) via a friendly GUI\. Useful if calling Vrecord via an executable file\.
+Running vrecord in \fBGUI Mode\fR opens a window that allows you to access any of vrecord's other modes (Record, Passthrough, Audio Passthrough and Edit) via a friendly GUI\. Useful if calling vrecord via an executable file\.
 .TP
 .BR \-e
-Running vrecord in
-.B Edit Mode
-opens a GUI window that allows you to change your recording options and then start digitizing a tape\.
+Running vrecord in \fBEdit Mode\fR opens a GUI window that allows you to change your recording options and then start digitizing a tape\.
 .TP
 .BR \-r
-.B Record Mode
-enables recording of a signal\. This is the default mode\.
+\fBRecord Mode\fR enables recording of a signal\. This is the default mode\.
 .TP
 .BR \-p
-.B Passthrough Mode
-means that the vrecord window will appear with video feeds and scopes, but the incoming video signal will not be recorded to a file\. Passthrough mode is best used for tasks like testing equipment or setting up a tape to bars before actually recording\. When you are finished using passthrough mode simply close the vrecord window\.
+\fBPassthrough Mode\fR means that the vrecord window will appear with video feeds and scopes, but the incoming video signal will not be recorded to a file\. Passthrough mode is best used for tasks like testing equipment or setting up a tape to bars before actually recording\. When you are finished using passthrough mode simply close the vrecord window\.
 .TP
 .BR \-a
-.B Audio Passthrough Mode
-is the same as Passthrough Mode with the addition of audio bars to monitor levels\. It can be used to check audio track layout and confirm input levels before starting a transfer\. Currently Audio Passthrough Mode does not support the Visual + Numerical view option\.
+\fBAudio Passthrough Mode\fR is the same as Passthrough Mode with the addition of audio bars to monitor levels\. It can be used to check audio track layout and confirm input levels before starting a transfer\. Currently Audio Passthrough Mode does not support the Visual + Numerical view option\.
 .TP
 .BR \-x
-.B Clear Configuration:
-Use if you would like to clear all options set in the configuration file\.
+\fBClear Configuration:\fR Use if you would like to clear all options set in the configuration file\.
 .TP
 .BR \-h
-.B Help:
-Displays basic usage information\.
+\fBHelp:\fR Displays basic usage information\.
 .SH KNOWN QUIRKS
 .SS Timing of Recording
 When you start recording there may be several seconds of delay before the vrecord window actually appears\. But don't worry, once you've pressed enter, vrecord is already capturing the signal and encoding it into a file\.
