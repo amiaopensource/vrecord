@@ -19,7 +19,10 @@
                 <policy type="and" name="Is it PAL?">
                     <description>The PAL matrix coefficients value is reported differently depending on container. This test validates for Matroska</description>
                     <rule name="PAL FrameRate 25.000?" value="FrameRate" tracktype="Video" operator="=">25.000</rule>
+                    <policy type="or" name="Are the matrix coefficients BT.470 System B, BT.470 System G?">
                     <rule name="Are the matrix coefficients BT.470 System B, BT.470 System G?" value="matrix_coefficients" tracktype="Video" operator="=">BT.470 System B, BT.470 System G</rule>
+                        <rule name="Are the matrix coefficients BT.470 System B/G?" value="matrix_coefficients" tracktype="Video" operator="=">BT.470 System B/G</rule>
+                    </policy>
                 </policy>
             </policy>
             <policy type="and" name="Has Matroska finished writing?">
