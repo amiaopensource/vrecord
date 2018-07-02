@@ -1170,17 +1170,17 @@ _set_up_drawtext
 if [[ -n "${ALT_INPUT}" ]] ; then
     GRAB_DECKLINK=(-i "${ALT_INPUT}")
 else
-_get_decklink_inputs
-GRAB_DECKLINK=(-f decklink)
-GRAB_DECKLINK+=(-draw_bars 0)
-GRAB_DECKLINK+=(-audio_input "${AUDIO_INPUT}")
-GRAB_DECKLINK+=(-video_input "${VIDEO_INPUT}")
-GRAB_DECKLINK+=(-format_code "${STANDARD}")
-GRAB_DECKLINK+=(-channels 8)
-GRAB_DECKLINK+=(-audio_depth 32)
-GRAB_DECKLINK+=(-raw_format "${PIXEL_FORMAT}")
-GRAB_DECKLINK+=("${EXTRAINPUTOPTIONS[@]}")
-GRAB_DECKLINK+=(-i "${FIRST_DECKLINK_INPUT}")
+    _get_decklink_inputs
+    GRAB_DECKLINK=(-f decklink)
+    GRAB_DECKLINK+=(-draw_bars 0)
+    GRAB_DECKLINK+=(-audio_input "${AUDIO_INPUT}")
+    GRAB_DECKLINK+=(-video_input "${VIDEO_INPUT}")
+    GRAB_DECKLINK+=(-format_code "${STANDARD}")
+    GRAB_DECKLINK+=(-channels 8)
+    GRAB_DECKLINK+=(-audio_depth 32)
+    GRAB_DECKLINK+=(-raw_format "${PIXEL_FORMAT}")
+    GRAB_DECKLINK+=("${EXTRAINPUTOPTIONS[@]}")
+    GRAB_DECKLINK+=(-i "${FIRST_DECKLINK_INPUT}")
 fi
 PIPE_DECKLINK=(-c copy)
 PIPE_DECKLINK+=(-map 0)
