@@ -69,6 +69,8 @@ Advanced options
       For example \"vrecord -i '-loglevel trace'\" would force an ffmpeg
       logging level that is usually unaccessible via vrecord preferences.
   -O  Provide a string of output options for the recording ffmpeg to use.
+  -i  Provide a file as an input to vrecord, rather than using the
+      decklink device. For testing without a decklink device.
 
 See also the man page: man ${SCRIPTNAME}
 EOF
@@ -129,7 +131,7 @@ _check_mpv(){
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":herpaxgI:O:" opt ; do
+while getopts ":herpaxgI:O:i:" opt ; do
     case "${opt}" in
         h) _usage ; exit 0 ;;
         e) RUNTYPE="edit" ;;
@@ -140,6 +142,7 @@ while getopts ":herpaxgI:O:" opt ; do
         g) RUNTYPE="GUI" ; GUI=1 ;;
         I) EXTRAINPUTOPTIONS=(${OPTARG}) ;;
         O) EXTRAOUTPUTOPTIONS=(${OPTARG}) ;;
+        i) ALT_INPUT="${OPTARG}" ;;
         *) _report -w "Error: bad option -${OPTARG}" ; _usage ; exit 1 ;;
     esac
 done
@@ -1164,17 +1167,21 @@ MIDDLEOPTIONS+=(${EXTRAOUTPUTOPTIONS[@]})
 
 # set up input and playback
 _set_up_drawtext
-_get_decklink_inputs
-GRAB_DECKLINK=(-f decklink)
-GRAB_DECKLINK+=(-draw_bars 0)
-GRAB_DECKLINK+=(-audio_input "${AUDIO_INPUT}")
-GRAB_DECKLINK+=(-video_input "${VIDEO_INPUT}")
-GRAB_DECKLINK+=(-format_code "${STANDARD}")
-GRAB_DECKLINK+=(-channels 8)
-GRAB_DECKLINK+=(-audio_depth 32)
-GRAB_DECKLINK+=(-raw_format "${PIXEL_FORMAT}")
-GRAB_DECKLINK+=("${EXTRAINPUTOPTIONS[@]}")
-GRAB_DECKLINK+=(-i "${FIRST_DECKLINK_INPUT}")
+if [[ -n "${ALT_INPUT}" ]] ; then
+    GRAB_DECKLINK=(-i "${ALT_INPUT}")
+else
+    _get_decklink_inputs
+    GRAB_DECKLINK=(-f decklink)
+    GRAB_DECKLINK+=(-draw_bars 0)
+    GRAB_DECKLINK+=(-audio_input "${AUDIO_INPUT}")
+    GRAB_DECKLINK+=(-video_input "${VIDEO_INPUT}")
+    GRAB_DECKLINK+=(-format_code "${STANDARD}")
+    GRAB_DECKLINK+=(-channels 8)
+    GRAB_DECKLINK+=(-audio_depth 32)
+    GRAB_DECKLINK+=(-raw_format "${PIXEL_FORMAT}")
+    GRAB_DECKLINK+=("${EXTRAINPUTOPTIONS[@]}")
+    GRAB_DECKLINK+=(-i "${FIRST_DECKLINK_INPUT}")
+fi
 PIPE_DECKLINK=(-c copy)
 PIPE_DECKLINK+=(-map 0)
 PIPE_DECKLINK+=(-f nut)
