@@ -50,7 +50,7 @@ interactive script and will create 10 or 8-bit video files.
 Dependencies: cowsay, amiaopensource/amiaos/ffmpegdecklink --with-sdl2
   --with-freetype --with-openjpeg, mkvtoolnix, mpv, qcli and xmlstarlet
 
-Usage: ${SCRIPTNAME} [ -g | -e | -r | -p | -a | -x | -h ]
+Usage: ${SCRIPTNAME} [ -g | -e | -r | -p | -a | -x | -v | -h ]
   -g  use the GUI
   -e  edit the configuration file before recording
   -r  enable record mode [default]
@@ -62,6 +62,9 @@ Usage: ${SCRIPTNAME} [ -g | -e | -r | -p | -a | -x | -h ]
       left on too long.
   -x  reset the configuration: this will replace the default configuration
       file at '${CONFIG_FILE}' with an empty one.
+  -v  Run ffmpeg with '-loglevel debug'. Using this option creates a very
+      large log file, so avoid using this option with 'Visual + Numerical'
+      or any playback option that display the log as part of the view.
   -h  display this help menu
   
 Advanced options
@@ -131,7 +134,7 @@ _check_mpv(){
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":herpaxgI:O:i:" opt ; do
+while getopts ":herpaxgvI:O:i:" opt ; do
     case "${opt}" in
         h) _usage ; exit 0 ;;
         e) RUNTYPE="edit" ;;
@@ -140,6 +143,7 @@ while getopts ":herpaxgI:O:i:" opt ; do
         a) RUNTYPE="audiopassthrough" ;;
         x) RUNTYPE="reset" ;;
         g) RUNTYPE="GUI" ; GUI=1 ;;
+        v) VERBOSE="true" ;;
         I) EXTRAINPUTOPTIONS=(${OPTARG}) ;;
         O) EXTRAOUTPUTOPTIONS=(${OPTARG}) ;;
         i) ALT_INPUT="${OPTARG}" ;;
@@ -410,7 +414,7 @@ EOF
 _passthrough_mode(){
     if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
         _check_mpv
-        "${FFMPEG_DECKLINK}" -v info -nostats "${GRAB_DECKLINK[@]}" 2> /tmp/vrecord_input.log \
+        "${FFMPEG_DECKLINK}" -nostats "${GRAB_DECKLINK[@]}" 2> /tmp/vrecord_input.log \
         "${PIPE_DECKLINK[@]}" | \
         mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -
     else
@@ -439,7 +443,7 @@ _audiopassthrough_mode(){
 [abcde1][xx]overlay=10:10[vo]"
     echo "ESC quit" > ~/.config/mpv/input.conf
     _check_mpv
-    "${FFMPEG_DECKLINK[@]}" -v info -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_DECKLINK[@]}" "${PIPE_DECKLINK[@]}" 2> /tmp/vrecord_input.log | \
+    "${FFMPEG_DECKLINK[@]}" -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_DECKLINK[@]}" "${PIPE_DECKLINK[@]}" 2> /tmp/vrecord_input.log | \
         mpv - --title="${WINDOW_NAME}" -lavfi-complex "${PLAYBACKFILTER}"
     _gui_return
 }
@@ -1167,11 +1171,17 @@ MIDDLEOPTIONS+=(${EXTRAOUTPUTOPTIONS[@]})
 
 # set up input and playback
 _set_up_drawtext
+if [[ "$VERBOSE" == "true" ]] ; then
+    GRAB_DECKLINK=(-loglevel debug)
+    _report -wt "When running vrecord in verbose mode, avoid using Visual + Numberical option."
+else
+    GRAB_DECKLINK=(-loglevel info)
+fi
 if [[ -n "${ALT_INPUT}" ]] ; then
-    GRAB_DECKLINK=(-i "${ALT_INPUT}")
+    GRAB_DECKLINK+=(-i "${ALT_INPUT}")
 else
     _get_decklink_inputs
-    GRAB_DECKLINK=(-f decklink)
+    GRAB_DECKLINK+=(-f decklink)
     GRAB_DECKLINK+=(-draw_bars 0)
     GRAB_DECKLINK+=(-audio_input "${AUDIO_INPUT}")
     GRAB_DECKLINK+=(-video_input "${VIDEO_INPUT}")
@@ -1365,7 +1375,7 @@ if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
     _check_mpv
     _run "${FFMPEG_DECKLINK[@]}" \
         2> >(tee "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}" /tmp/vrecord_input.log >/dev/null) \
-        -v info -nostdin -nostats "${INPUTOPTIONS[@]}" "${GRAB_DECKLINK[@]}" \
+        -nostdin -nostats "${INPUTOPTIONS[@]}" "${GRAB_DECKLINK[@]}" \
         -metadata:s:v:0 encoder="${CODECNAME}" "${MIDDLEOPTIONS[@]}" -c:a pcm_s24le \
         -filter_complex "[0:v:0]${RECORDINGFILTER}; ${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" \
         -f "${FORMAT}" "${VRECORD_OUTPUT}" \
@@ -1379,7 +1389,7 @@ if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
 else
     _run "${FFMPEG_DECKLINK[@]}" \
         2> >(tee "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}" /tmp/vrecord_input.log >/dev/null) \
-        -v info -nostdin -nostats "${INPUTOPTIONS[@]}" "${GRAB_DECKLINK[@]}" \
+        -nostdin -nostats "${INPUTOPTIONS[@]}" "${GRAB_DECKLINK[@]}" \
         -metadata:s:v:0 encoder="${CODECNAME}" "${MIDDLEOPTIONS[@]}" -c:a pcm_s24le \
         -filter_complex "[0:v:0]${RECORDINGFILTER}; ${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" \
         -f "${FORMAT}" "${VRECORD_OUTPUT}" \
