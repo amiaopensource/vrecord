@@ -63,6 +63,12 @@ Usage: ${SCRIPTNAME} [ -g | -e | -r | -p | -a | -x | -h ]
   -x  reset the configuration: this will replace the default configuration
       file at '${CONFIG_FILE}' with an empty one.
   -h  display this help menu
+  
+Advanced options
+  -I  Provide a string of input options for the recording ffmpeg to use.
+      For example \"vrecord -i '-loglevel trace'\" would force an ffmpeg
+      logging level that is usually unaccessible via vrecord preferences.
+  -O  Provide a string of output options for the recording ffmpeg to use.
 
 See also the man page: man ${SCRIPTNAME}
 EOF
@@ -123,7 +129,7 @@ _check_mpv(){
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":herpaxg" opt ; do
+while getopts ":herpaxgI:O:" opt ; do
     case "${opt}" in
         h) _usage ; exit 0 ;;
         e) RUNTYPE="edit" ;;
@@ -132,6 +138,8 @@ while getopts ":herpaxg" opt ; do
         a) RUNTYPE="audiopassthrough" ;;
         x) RUNTYPE="reset" ;;
         g) RUNTYPE="GUI" ; GUI=1 ;;
+        I) EXTRAINPUTOPTIONS=(${OPTARG}) ;;
+        O) EXTRAOUTPUTOPTIONS=(${OPTARG}) ;;
         *) _report -w "Error: bad option -${OPTARG}" ; _usage ; exit 1 ;;
     esac
 done
@@ -1152,6 +1160,7 @@ else
     MIDDLEOPTIONS+=(-color_range mpeg)
 fi
 MIDDLEOPTIONS+=(-metadata creation_time=now)
+MIDDLEOPTIONS+=(${EXTRAOUTPUTOPTIONS[@]})
 
 # set up input and playback
 _set_up_drawtext
@@ -1164,6 +1173,7 @@ GRAB_DECKLINK+=(-format_code "${STANDARD}")
 GRAB_DECKLINK+=(-channels 8)
 GRAB_DECKLINK+=(-audio_depth 32)
 GRAB_DECKLINK+=(-raw_format "${PIXEL_FORMAT}")
+GRAB_DECKLINK+=("${EXTRAINPUTOPTIONS[@]}")
 GRAB_DECKLINK+=(-i "${FIRST_DECKLINK_INPUT}")
 PIPE_DECKLINK=(-c copy)
 PIPE_DECKLINK+=(-map 0)
