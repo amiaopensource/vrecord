@@ -103,7 +103,7 @@ _report(){
             n) ECHOOPT="-n" ;;                           # to avoid line breaks after echo
         esac
     done
-    shift "$((OPTIND-1))"
+    shift ((OPTIND-1))
     MESSAGE="${1}"
     echo ${ECHOOPT} "${COLOR}${STARTMESSAGE[@]}${MESSAGE}${NC}"
 }
@@ -150,7 +150,7 @@ while getopts ":herpaxgvI:O:i:" opt ; do
         *) _report -w "Error: bad option -${OPTARG}" ; _usage ; exit 1 ;;
     esac
 done
-shift "$((OPTIND-1))"
+shift ((OPTIND-1))
 
 if [[ -f "${CONFIG_FILE}" ]] ; then
     . "${CONFIG_FILE}"
