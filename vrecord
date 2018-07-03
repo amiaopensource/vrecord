@@ -572,54 +572,39 @@ _writeingestlog(){
     fi
 }
 
-# set vrecord options as specified by user
-_lookup_video_input(){
+# decipher vrecord options as specified by user
+_lookup_choice(){
+    case "${2}" in
+        "quit"|"Quit"|"QUIT"|"q"|"Q") _report -dt "Bye." ; exit ;;
+    esac
     case "${1}" in
+        # video inputs
         "Composite") VIDEO_INPUT="composite" ;;
         "SDI")       VIDEO_INPUT="sdi" ;;
         "Component") VIDEO_INPUT="component" ;;
         "S-Video")   VIDEO_INPUT="s_video" ;;
-        "quit")      _report -d "Bye then" ; exit 0 ;;
-        *)           _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
-    esac
-}
 
-_lookup_audio_input(){
-    case "${1}" in
+        # audio inputs
         "Analog")                  AUDIO_INPUT="analog" ;;
         "SDI Embedded Audio")      AUDIO_INPUT="embedded" ;;
         "Digital Audio (AES/EBU)") AUDIO_INPUT="aes_ebu" ;;
-        "quit")                    _report -d "Bye then" ; exit 0 ;;
-        *)                         _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
-    esac
-}
 
-_lookup_container(){
-    case "${1}" in
+        # container
         "QuickTime")
             EXTENSION="mov"
             MIDDLEOPTIONS+=(-movflags write_colr)
-            FORMAT="mov"
-            ;;
+            FORMAT="mov" ;;
         "Matroska")
             EXTENSION="mkv"
-            FORMAT="matroska"
-            ;;
+            FORMAT="matroska" ;;
         "AVI")
             EXTENSION="avi"
-            FORMAT="avi"
-            ;;
+            FORMAT="avi" ;;
         "MXF")
             EXTENSION="mxf"
-            FORMAT="mxf"
-            ;;
-        "quit") _report -d "Bye then" ; exit 0 ;;
-        *) _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
-    esac
-}
+            FORMAT="mxf" ;;
 
-_lookup_video_codec(){
-    case "${1}" in
+        # video codec
         "Uncompressed Video")
             if [[ "${PIXEL_FORMAT}" = "yuv422p10" ]] ; then
                 CODECNAME="Uncompressed 10-bit 4:2:2"
@@ -627,119 +612,163 @@ _lookup_video_codec(){
             elif [[ "${PIXEL_FORMAT}" = "uyvy422" ]] ; then
                 CODECNAME="Uncompressed 8-bit 4:2:2"
                 MIDDLEOPTIONS+=(-c:v rawvideo -pix_fmt uyvy422 -tag:v 2vuy)
-            fi
-            ;;
+            fi ;;
         "FFV1 version 3")
             CODECNAME="FFV1 version 3"
             MIDDLEOPTIONS+=(-c:v ffv1 -level 3 -g 1 -slices 16 -slicecrc 1)
-            SUFFIX="_ffv1"
-            ;;
+            SUFFIX="_ffv1" ;;
         "JPEG2000")
             CODECNAME="JPEG2000"
             MIDDLEOPTIONS+=(-c:v libopenjpeg)
-            SUFFIX="_j2k"
-            ;;
+            SUFFIX="_j2k" ;;
         "ProRes")
             CODECNAME="Apple ProRes 422"
             MIDDLEOPTIONS+=(-c:v prores_ks -flags +ilme+ildct)
-            SUFFIX="_prores"
-            ;;
-        "quit") _report -d "Bye then" ; exit 0 ;;
-        *) _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
-    esac
-}
-
-_lookup_pixel_format(){
-    case "${1}" in
+            SUFFIX="_prores" ;;
+        # video pixel format and bit depth
         "10 bit") PIXEL_FORMAT="yuv422p10" ;;
         "8 bit")  PIXEL_FORMAT="uyvy422" ;;
-        "quit")   _report -d "Bye then" ; exit 0 ;;
-        *)        _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
-    esac
-}
 
-_lookup_audio_mapping(){
-    case "${1}" in
+        # audio mappings
         "2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, Channels 3 & 4 -> 2nd Track Stereo)")
             AUDIOMAP="[0:a:0]pan=stereo| c0=c0 | c1=${PHASE_VALUE}c1[stereo1];[0:a:0]pan=stereo| c0=c2 | c1=c3[stereo2]"
-            MAP1V="[stereo1]"
-            MAP2V="[stereo2]"
-            ;;
+            MAP1V="[stereo1]" ; AUDIO_CHANNEL_MAP+=(-map "${MAP1V}")
+            MAP2V="[stereo2]" ; AUDIO_CHANNEL_MAP+=(-map "${MAP2V}") ;;
         "1 Stereo Track (From Channels 1 & 2)")
             AUDIOMAP="[0:a:0]pan=stereo| c0=c0 | c1=${PHASE_VALUE}c1[stereo1]"
-            MAP1V="[stereo1]"
-            MAP2V=""
-            ;;
+            MAP1V="[stereo1]" ; AUDIO_CHANNEL_MAP+=(-map "${MAP1V}")
+            MAP2V="" ;;
         "1 Stereo Track (From Channels 3 & 4)")
             AUDIOMAP="[0:a:0]pan=stereo| c0=c2 | c1=${PHASE_VALUE}c3[stereo1]"
-            MAP1V="[stereo1]"
-            MAP2V=""
-            ;;
+            MAP1V="[stereo1]" ; AUDIO_CHANNEL_MAP+=(-map "${MAP1V}")
+            MAP2V="" ;;
         "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono")
             AUDIOMAP="[0:a:0]pan=mono| c0=c0[mono1];[0:a:0]pan=mono| c0=${PHASE_VALUE}c1[mono2]"
-            MAP1V="[mono1]"
-            MAP2V="[mono2]"
-            ;;
+            MAP1V="[mono1]" ; AUDIO_CHANNEL_MAP+=(-map "${MAP1V}")
+            MAP2V="[mono2]" ; AUDIO_CHANNEL_MAP+=(-map "${MAP2V}") ;;
         "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono")
             AUDIOMAP="[0:a:0]pan=mono| c0=${PHASE_VALUE}c1[mono1];[0:a:0]pan=mono| c0=c0[mono2]"
-            MAP1V="[mono1]"
-            MAP2V="[mono2]"
-            ;;
+            MAP1V="[mono1]" ; AUDIO_CHANNEL_MAP+=(-map "${MAP1V}")
+            MAP2V="[mono2]" ; AUDIO_CHANNEL_MAP+=(-map "${MAP2V}") ;;
         "Channel 1 -> Single Track Mono")
             AUDIOMAP="[0:a:0]pan=mono| c0=c0[mono1]"
-            MAP1V="[mono1]"
-            ;;
+            MAP1V="[mono1]" ; AUDIO_CHANNEL_MAP+=(-map "${MAP1V}") ;;
         "Channel 2 -> Single Track Mono")
             AUDIOMAP="[0:a:0]pan=mono| c0=c1[mono1]"
-            MAP1V="[mono1]"
-            ;;
-        "quit") _report -d "Bye then" ; exit 0 ;;
-        *) _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
-    esac
-    if [[ -n "${MAP1V}" ]] ; then
-        AUDIO_CHANNEL_MAP+=(-map "${MAP1V}")
-    fi
-    if [[ -n "${MAP2V}" ]] ; then
-        AUDIO_CHANNEL_MAP+=(-map "${MAP2V}")
-    fi
-}
+            MAP1V="[mono1]" ; AUDIO_CHANNEL_MAP+=(-map "${MAP1V}") ;;
 
-_lookup_standard(){
-    case "${1}" in
+        # video standard
         "NTSC")
             STANDARD="ntsc"
             DECKLINK_FPS="30000/1001"
             RECORDINGFILTER="setfield=bff,setsar=40/27,setdar=4/3"
             MIDDLEOPTIONS+=(-color_primaries smpte170m)
             MIDDLEOPTIONS+=(-color_trc bt709)
-            MIDDLEOPTIONS+=(-colorspace smpte170m)
-            ;;
+            MIDDLEOPTIONS+=(-colorspace smpte170m) ;;
         "PAL")
             STANDARD="pal "
             DECKLINK_FPS="25000/1000"
             RECORDINGFILTER="setfield=tff,setsar=16/15,setdar=4/3"
             MIDDLEOPTIONS+=(-color_primaries bt470bg)
             MIDDLEOPTIONS+=(-color_trc bt709)
-            MIDDLEOPTIONS+=(-colorspace bt470bg)
-            ;;
-        "quit") _report -d "Bye then" ; exit 0 ;;
-        *) _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
-    esac
-}
+            MIDDLEOPTIONS+=(-colorspace bt470bg) ;;
 
-_lookup_qctoolsxml(){
-    case "${1}" in
-        "Yes, after recording"|"Yes, concurrent with recording"|"No") ;;
-        "quit") _report -d "Bye then" ; exit 0 ;;
-        *) _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
-    esac
-}
+        # playback views
+        "Quality Control View (mpv)") MEDIA_PLAYER_CHOICE="mpv" ;;
+        "Broadcast Range Visual")
+            PLAYBACKFILTER="\
+split=5[a][b][c][d][e];\
+[b]field=top[b1];\
+[c]field=bottom[c1];\
+[b1]${WAVEFORM_FILTER}[b2];\
+[c1]${WAVEFORM_FILTER}[c2];\
+[a][b2][c2]vstack=inputs=3,format=yuv422p[abc1];\
+[d]${VECTORSCOPE_FILTER}[d1];\
+[e]signalstats=out=brng,scale=512:ih[e1];\
+[e1][d1]vstack[de1];\
+[abc1][de1]hstack" ;;
+        "Full Range Visual")
+            PLAYBACKFILTER="\
+split=5[a][b][c][d][e];\
+[b]field=top[b1];\
+[c]field=bottom[c1];\
+[b1]${WAVEFORM_FILTER}[b2];\
+[c1]${WAVEFORM_FILTER}[c2];\
+[a][b2][c2]vstack=inputs=3,format=yuv422p[abc1];\
+[d]${VECTORSCOPE_FILTER}[d1];\
+[e]format=yuv444p,pseudocolor=if(between(1\,val\,amax)+between(val\,254\,amax)\,65\,-1):if(between(1\,val\,amax)+between(val\,254\,amax)\,100\,-1):if(between(1\,val\,amax)+between(val\,254\,amax)\,212\,-1),scale=512:ih[e1];\
+[e1][d1]vstack[de1];\
+[abc1][de1]hstack" ;;
+      "Visual + Numerical")
+          PLAYBACKFILTER="\
+split=7[a][b][c][d][e][f][g];\
+[b]field=top[b1];\
+[c]field=bottom[c1];\
+[b1]${WAVEFORM_FILTER}[b2];\
+[c1]${WAVEFORM_FILTER}[c2];\
+[a][b2][c2]vstack=inputs=3,format=yuv422p[abc1];\
+[d]${VECTORSCOPE_FILTER}[d1];\
+[e]signalstats=out=brng,scale=512:ih[e1];\
+[e1][d1]vstack[de1];\
+[f]signalstats=stat=brng+vrep+tout,format=yuv422p,geq=lum=60:cb=128:cr=128,\
+scale=180:ih+512,setsar=1/1,\
+drawtext=fontcolor=white:fontsize=22:\
+fontfile=${DEFAULTFONT}:textfile=/tmp/drawtext.txt,\
+drawtext=fontcolor=white:fontsize=17:\
+fontfile=${DEFAULTFONT}:textfile=/tmp/drawtext2.txt,\
+drawtext=fontcolor=white:fontsize=52:\
+fontfile=${DEFAULTFONT}:textfile=/tmp/drawtext3.txt[f1];\
+[f1][abc1][de1]hstack=inputs=3[abcdef1];\
+[g]scale=iw+512+180:82,format=yuv422p,geq=lum=60:cb=128:cr=128,drawtext=fontcolor=white:fontsize=22:\
+fontfile=${DEFAULTFONT}:textfile=/tmp/vrecord_input.log:\
+reload=1:y=82-th[g1];\
+[abcdef1][g1]vstack" ;;
+      "Color Matrix")
+          HUE=20
+          SAT=0.3
+          PLAYBACKFILTER="\
+scale=iw/4:ih/4,\
+split=9[x][hm][hp][sm][sp][hmsm][hmsp][hpsm][hpsp];\
+[hm]hue=h=-${HUE}[hm1];\
+[hp]hue=h=${HUE}[hp1];\
+[sm]hue=s=1-${SAT}[sm1];\
+[sp]hue=s=1+${SAT}[sp1];\
+[hmsm]hue=h=-${HUE}:s=1-${SAT}[hmsm1];\
+[hmsp]hue=h=-${HUE}:s=1+${SAT}[hmsp1];\
+[hpsm]hue=h=${HUE}:s=1-${SAT}[hpsm1];\
+[hpsp]hue=h=${HUE}:s=1+${SAT}[hpsp1];\
+[hpsm1][hp1][hpsp1]hstack=3[top];\
+[sm1][x][sp1]hstack=3[mid];\
+[hmsm1][hm1][hmsp1]hstack=3[bottom];\
+[top][mid][bottom]vstack=3" ;;
+      "Bit Planes")
+          if [[ "${PIXEL_FORMAT}" == "uyvy422" ]] ; then
+              BITS=8
+              SPLIT="8[b0][b1][b2][b3][b4][b5][b6][b7]"
+              STACK="[b0c][b1c][b2c][b3c][b4c][b5c][b6c][b7c]hstack=8,format=yuv444p,drawgrid=w=iw/8:h=ih:t=2:c=green@0.5"
+          elif [[ "${PIXEL_FORMAT}" == "yuv422p10" ]] ; then
+              BITS=10
+              SPLIT="10[b0][b1][b2][b3][b4][b5][b6][b7][b8][b9]"
+              STACK="\
+[b8]bitplanenoise=bitplane=2,crop=iw/10:ih:(iw/10)*8:0,lutyuv=u=(maxval/2):v=(maxval/2):y=bitand(val\\,pow(2\\,10-9))*pow(2\\,9),pad=iw:ih+64:0:64,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.0.2}:y=0:fontcolor=white:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.1.2}:y=20:fontcolor=white:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.2.2}:y=40:fontcolor=white:fontsize=20[b8c];\
+[b9]bitplanenoise=bitplane=1,crop=iw/10:ih:(iw/10)*9:0,lutyuv=u=(maxval/2):v=(maxval/2):y=bitand(val\\,pow(2\\,10-10))*pow(2\\,10),pad=iw:ih+64:0:64,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.0.1}:y=0:fontcolor=silver:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.1.1}:y=20:fontcolor=silver:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.2.1}:y=40:fontcolor=silver:fontsize=20[b9c];\
+[b0c][b1c][b2c][b3c][b4c][b5c][b6c][b7c][b8c][b9c]hstack=10,format=yuv444p,drawgrid=w=iw/10:h=ih:t=2:c=green@0.5"
+          fi
+          PLAYBACKFILTER="\
+format=yuv420p10le|yuv422p10le|yuv444p10le|yuv440p10le,split=${SPLIT};\
+[b0]bitplanenoise=bitplane=10,crop=iw/${BITS}:ih:(iw/${BITS})*0:0,lutyuv=u=(maxval/2):v=(maxval/2):y=bitand(val\\,pow(2\\,10-1))*pow(2\\,1),pad=iw:ih+64:0:64,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.0.10}:y=0:fontcolor=white:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.1.10}:y=20:fontcolor=white:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.2.10}:y=40:fontcolor=white:fontsize=20[b0c];\
+[b1]bitplanenoise=bitplane=9,crop=iw/${BITS}:ih:(iw/${BITS})*1:0,lutyuv=u=(maxval/2):v=(maxval/2):y=bitand(val\\,pow(2\\,10-2))*pow(2\\,2),pad=iw:ih+64:0:64,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.0.9}:y=0:fontcolor=silver:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.1.9}:y=20:fontcolor=silver:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.2.9}:y=40:fontcolor=silver:fontsize=20[b1c];\
+[b2]bitplanenoise=bitplane=8,crop=iw/${BITS}:ih:(iw/${BITS})*2:0,lutyuv=u=(maxval/2):v=(maxval/2):y=bitand(val\\,pow(2\\,10-3))*pow(2\\,3),pad=iw:ih+64:0:64,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.0.8}:y=0:fontcolor=white:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.1.8}:y=20:fontcolor=white:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.2.8}:y=40:fontcolor=white:fontsize=20[b2c];\
+[b3]bitplanenoise=bitplane=7,crop=iw/${BITS}:ih:(iw/${BITS})*3:0,lutyuv=u=(maxval/2):v=(maxval/2):y=bitand(val\\,pow(2\\,10-4))*pow(2\\,4),pad=iw:ih+64:0:64,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.0.7}:y=0:fontcolor=silver:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.1.7}:y=20:fontcolor=silver:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.2.7}:y=40:fontcolor=silver:fontsize=20[b3c];\
+[b4]bitplanenoise=bitplane=6,crop=iw/${BITS}:ih:(iw/${BITS})*4:0,lutyuv=u=(maxval/2):v=(maxval/2):y=bitand(val\\,pow(2\\,10-5))*pow(2\\,5),pad=iw:ih+64:0:64,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.0.6}:y=0:fontcolor=white:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.1.6}:y=20:fontcolor=white:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.2.6}:y=40:fontcolor=white:fontsize=20[b4c];\
+[b5]bitplanenoise=bitplane=5,crop=iw/${BITS}:ih:(iw/${BITS})*5:0,lutyuv=u=(maxval/2):v=(maxval/2):y=bitand(val\\,pow(2\\,10-6))*pow(2\\,6),pad=iw:ih+64:0:64,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.0.5}:y=0:fontcolor=silver:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.1.5}:y=20:fontcolor=silver:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.2.5}:y=40:fontcolor=silver:fontsize=20[b5c];\
+[b6]bitplanenoise=bitplane=4,crop=iw/${BITS}:ih:(iw/${BITS})*6:0,lutyuv=u=(maxval/2):v=(maxval/2):y=bitand(val\\,pow(2\\,10-7))*pow(2\\,7),pad=iw:ih+64:0:64,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.0.4}:y=0:fontcolor=white:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.1.4}:y=20:fontcolor=white:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.2.4}:y=40:fontcolor=white:fontsize=20[b6c];\
+[b7]bitplanenoise=bitplane=3,crop=iw/${BITS}:ih:(iw/${BITS})*7:0,lutyuv=u=(maxval/2):v=(maxval/2):y=bitand(val\\,pow(2\\,10-8))*pow(2\\,8),pad=iw:ih+64:0:64,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.0.3}:y=0:fontcolor=silver:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.1.3}:y=20:fontcolor=silver:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.2.3}:y=40:fontcolor=silver:fontsize=20[b7c];\
+${STACK}" ;;
 
-_yes_or_no(){
-    case "${1}" in
-        "Yes"|"No") ;;
-        "quit") _report -d "Bye then" ; exit 0 ;;
-        *) _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
+        # others
+        "Yes"|"Yes, after recording"|"Yes, concurrent with recording"|"No") ;;
+        *)           _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
     esac
 }
 
@@ -857,122 +886,19 @@ drawbox=w=9:h=9:t=1:x=224-3:y=512-304-5:c=sienna@0.8,\
 drawgrid=w=32:h=32:t=1:c=white@0.1,\
 drawgrid=w=256:h=256:t=1:c=white@0.2"
 
-_lookup_playbackview(){
-    case "${1}" in
-        "Quality Control View (mpv)")
-            MEDIA_PLAYER_CHOICE="mpv"
-            ;;
-        "Broadcast Range Visual")
-            PLAYBACKFILTER="\
-split=5[a][b][c][d][e];\
-[b]field=top[b1];\
-[c]field=bottom[c1];\
-[b1]${WAVEFORM_FILTER}[b2];\
-[c1]${WAVEFORM_FILTER}[c2];\
-[a][b2][c2]vstack=inputs=3,format=yuv422p[abc1];\
-[d]${VECTORSCOPE_FILTER}[d1];\
-[e]signalstats=out=brng,scale=512:ih[e1];\
-[e1][d1]vstack[de1];\
-[abc1][de1]hstack"
-            ;;
-        "Full Range Visual")
-            PLAYBACKFILTER="\
-split=5[a][b][c][d][e];\
-[b]field=top[b1];\
-[c]field=bottom[c1];\
-[b1]${WAVEFORM_FILTER}[b2];\
-[c1]${WAVEFORM_FILTER}[c2];\
-[a][b2][c2]vstack=inputs=3,format=yuv422p[abc1];\
-[d]${VECTORSCOPE_FILTER}[d1];\
-[e]format=yuv444p,pseudocolor=if(between(1\,val\,amax)+between(val\,254\,amax)\,65\,-1):if(between(1\,val\,amax)+between(val\,254\,amax)\,100\,-1):if(between(1\,val\,amax)+between(val\,254\,amax)\,212\,-1),scale=512:ih[e1];\
-[e1][d1]vstack[de1];\
-[abc1][de1]hstack"
-          ;;
-      "Visual + Numerical")
-          PLAYBACKFILTER="\
-split=7[a][b][c][d][e][f][g];\
-[b]field=top[b1];\
-[c]field=bottom[c1];\
-[b1]${WAVEFORM_FILTER}[b2];\
-[c1]${WAVEFORM_FILTER}[c2];\
-[a][b2][c2]vstack=inputs=3,format=yuv422p[abc1];\
-[d]${VECTORSCOPE_FILTER}[d1];\
-[e]signalstats=out=brng,scale=512:ih[e1];\
-[e1][d1]vstack[de1];\
-[f]signalstats=stat=brng+vrep+tout,format=yuv422p,geq=lum=60:cb=128:cr=128,\
-scale=180:ih+512,setsar=1/1,\
-drawtext=fontcolor=white:fontsize=22:\
-fontfile=${DEFAULTFONT}:textfile=/tmp/drawtext.txt,\
-drawtext=fontcolor=white:fontsize=17:\
-fontfile=${DEFAULTFONT}:textfile=/tmp/drawtext2.txt,\
-drawtext=fontcolor=white:fontsize=52:\
-fontfile=${DEFAULTFONT}:textfile=/tmp/drawtext3.txt[f1];\
-[f1][abc1][de1]hstack=inputs=3[abcdef1];\
-[g]scale=iw+512+180:82,format=yuv422p,geq=lum=60:cb=128:cr=128,drawtext=fontcolor=white:fontsize=22:\
-fontfile=${DEFAULTFONT}:textfile=/tmp/vrecord_input.log:\
-reload=1:y=82-th[g1];\
-[abcdef1][g1]vstack"
-            ;;
-      "Color Matrix")
-          HUE=20
-          SAT=0.3
-          PLAYBACKFILTER="\
-scale=iw/4:ih/4,\
-split=9[x][hm][hp][sm][sp][hmsm][hmsp][hpsm][hpsp];\
-[hm]hue=h=-${HUE}[hm1];\
-[hp]hue=h=${HUE}[hp1];\
-[sm]hue=s=1-${SAT}[sm1];\
-[sp]hue=s=1+${SAT}[sp1];\
-[hmsm]hue=h=-${HUE}:s=1-${SAT}[hmsm1];\
-[hmsp]hue=h=-${HUE}:s=1+${SAT}[hmsp1];\
-[hpsm]hue=h=${HUE}:s=1-${SAT}[hpsm1];\
-[hpsp]hue=h=${HUE}:s=1+${SAT}[hpsp1];\
-[hpsm1][hp1][hpsp1]hstack=3[top];\
-[sm1][x][sp1]hstack=3[mid];\
-[hmsm1][hm1][hmsp1]hstack=3[bottom];\
-[top][mid][bottom]vstack=3"
-           ;;
-      "Bit Planes")
-          if [[ "${PIXEL_FORMAT}" == "uyvy422" ]] ; then
-              BITS=8
-              SPLIT="8[b0][b1][b2][b3][b4][b5][b6][b7]"
-              STACK="[b0c][b1c][b2c][b3c][b4c][b5c][b6c][b7c]hstack=8,format=yuv444p,drawgrid=w=iw/8:h=ih:t=2:c=green@0.5"
-          elif [[ "${PIXEL_FORMAT}" == "yuv422p10" ]] ; then
-              BITS=10
-              SPLIT="10[b0][b1][b2][b3][b4][b5][b6][b7][b8][b9]"
-              STACK="\
-[b8]bitplanenoise=bitplane=2,crop=iw/10:ih:(iw/10)*8:0,lutyuv=u=(maxval/2):v=(maxval/2):y=bitand(val\\,pow(2\\,10-9))*pow(2\\,9),pad=iw:ih+64:0:64,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.0.2}:y=0:fontcolor=white:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.1.2}:y=20:fontcolor=white:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.2.2}:y=40:fontcolor=white:fontsize=20[b8c];\
-[b9]bitplanenoise=bitplane=1,crop=iw/10:ih:(iw/10)*9:0,lutyuv=u=(maxval/2):v=(maxval/2):y=bitand(val\\,pow(2\\,10-10))*pow(2\\,10),pad=iw:ih+64:0:64,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.0.1}:y=0:fontcolor=silver:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.1.1}:y=20:fontcolor=silver:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.2.1}:y=40:fontcolor=silver:fontsize=20[b9c];\
-[b0c][b1c][b2c][b3c][b4c][b5c][b6c][b7c][b8c][b9c]hstack=10,format=yuv444p,drawgrid=w=iw/10:h=ih:t=2:c=green@0.5"
-          fi
-          PLAYBACKFILTER="\
-format=yuv420p10le|yuv422p10le|yuv444p10le|yuv440p10le,split=${SPLIT};\
-[b0]bitplanenoise=bitplane=10,crop=iw/${BITS}:ih:(iw/${BITS})*0:0,lutyuv=u=(maxval/2):v=(maxval/2):y=bitand(val\\,pow(2\\,10-1))*pow(2\\,1),pad=iw:ih+64:0:64,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.0.10}:y=0:fontcolor=white:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.1.10}:y=20:fontcolor=white:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.2.10}:y=40:fontcolor=white:fontsize=20[b0c];\
-[b1]bitplanenoise=bitplane=9,crop=iw/${BITS}:ih:(iw/${BITS})*1:0,lutyuv=u=(maxval/2):v=(maxval/2):y=bitand(val\\,pow(2\\,10-2))*pow(2\\,2),pad=iw:ih+64:0:64,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.0.9}:y=0:fontcolor=silver:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.1.9}:y=20:fontcolor=silver:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.2.9}:y=40:fontcolor=silver:fontsize=20[b1c];\
-[b2]bitplanenoise=bitplane=8,crop=iw/${BITS}:ih:(iw/${BITS})*2:0,lutyuv=u=(maxval/2):v=(maxval/2):y=bitand(val\\,pow(2\\,10-3))*pow(2\\,3),pad=iw:ih+64:0:64,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.0.8}:y=0:fontcolor=white:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.1.8}:y=20:fontcolor=white:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.2.8}:y=40:fontcolor=white:fontsize=20[b2c];\
-[b3]bitplanenoise=bitplane=7,crop=iw/${BITS}:ih:(iw/${BITS})*3:0,lutyuv=u=(maxval/2):v=(maxval/2):y=bitand(val\\,pow(2\\,10-4))*pow(2\\,4),pad=iw:ih+64:0:64,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.0.7}:y=0:fontcolor=silver:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.1.7}:y=20:fontcolor=silver:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.2.7}:y=40:fontcolor=silver:fontsize=20[b3c];\
-[b4]bitplanenoise=bitplane=6,crop=iw/${BITS}:ih:(iw/${BITS})*4:0,lutyuv=u=(maxval/2):v=(maxval/2):y=bitand(val\\,pow(2\\,10-5))*pow(2\\,5),pad=iw:ih+64:0:64,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.0.6}:y=0:fontcolor=white:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.1.6}:y=20:fontcolor=white:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.2.6}:y=40:fontcolor=white:fontsize=20[b4c];\
-[b5]bitplanenoise=bitplane=5,crop=iw/${BITS}:ih:(iw/${BITS})*5:0,lutyuv=u=(maxval/2):v=(maxval/2):y=bitand(val\\,pow(2\\,10-6))*pow(2\\,6),pad=iw:ih+64:0:64,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.0.5}:y=0:fontcolor=silver:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.1.5}:y=20:fontcolor=silver:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.2.5}:y=40:fontcolor=silver:fontsize=20[b5c];\
-[b6]bitplanenoise=bitplane=4,crop=iw/${BITS}:ih:(iw/${BITS})*6:0,lutyuv=u=(maxval/2):v=(maxval/2):y=bitand(val\\,pow(2\\,10-7))*pow(2\\,7),pad=iw:ih+64:0:64,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.0.4}:y=0:fontcolor=white:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.1.4}:y=20:fontcolor=white:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.2.4}:y=40:fontcolor=white:fontsize=20[b6c];\
-[b7]bitplanenoise=bitplane=3,crop=iw/${BITS}:ih:(iw/${BITS})*7:0,lutyuv=u=(maxval/2):v=(maxval/2):y=bitand(val\\,pow(2\\,10-8))*pow(2\\,8),pad=iw:ih+64:0:64,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.0.3}:y=0:fontcolor=silver:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.1.3}:y=20:fontcolor=silver:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.2.3}:y=40:fontcolor=silver:fontsize=20[b7c];\
-${STACK}" ;;
-        "quit") _report -d "Bye then" ; exit 0 ;;
-        *) _report -w "Error: Not a valid option, select a valid number or [q] to quit." ; return 1 ;;
-    esac
-}
-
 # list of selections for each vrecord option
-VIDEO_INPUT_OPTIONS=("Composite" "SDI" "Component" "S-Video" "quit")
-AUDIO_INPUT_OPTIONS=("Analog" "SDI Embedded Audio" "Digital Audio (AES/EBU)" "quit")
-CONTAINER_OPTIONS=("QuickTime" "Matroska" "AVI" "MXF" "quit")
-VIDEO_CODEC_OPTIONS=("Uncompressed Video" "FFV1 version 3" "JPEG2000" "ProRes" "quit")
-VIDEO_BITDEPTH_OPTIONS=("10 bit" "8 bit" "quit")
-CHANNEL_MAPPING_OPTIONS=("2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, Channels 3 & 4 -> 2nd Track Stereo)" "1 Stereo Track (From Channels 1 & 2)" "1 Stereo Track (From Channels 3 & 4)" "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono" "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono" "Channel 1 -> Single Track Mono" "Channel 2 -> Single Track Mono" "quit")
-STANDARD_OPTIONS=("NTSC" "PAL" "quit")
-QCTOOLSXML_OPTIONS=("Yes, after recording" "Yes, concurrent with recording" "No" "quit")
-FRAMEMD5_OPTIONS=("Yes" "No" "quit")
-EMBED_LOGS_OPTIONS=("Yes" "No" "quit")
-PLAYBACKVIEW_OPTIONS=("Quality Control View (mpv)" "Broadcast Range Visual" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes" "quit")
+VIDEO_INPUT_OPTIONS=("Composite" "SDI" "Component" "S-Video")
+AUDIO_INPUT_OPTIONS=("Analog" "SDI Embedded Audio" "Digital Audio (AES/EBU)")
+CONTAINER_OPTIONS=("QuickTime" "Matroska" "AVI" "MXF")
+VIDEO_CODEC_OPTIONS=("Uncompressed Video" "FFV1 version 3" "JPEG2000" "ProRes" )
+VIDEO_BITDEPTH_OPTIONS=("10 bit" "8 bit")
+CHANNEL_MAPPING_OPTIONS=("2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, Channels 3 & 4 -> 2nd Track Stereo)" "1 Stereo Track (From Channels 1 & 2)" "1 Stereo Track (From Channels 3 & 4)" "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono" "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono" "Channel 1 -> Single Track Mono" "Channel 2 -> Single Track Mono")
+STANDARD_OPTIONS=("NTSC" "PAL")
+QCTOOLSXML_OPTIONS=("Yes, after recording" "Yes, concurrent with recording" "No")
+FRAMEMD5_OPTIONS=("Yes" "No")
+EMBED_LOGS_OPTIONS=("Yes" "No")
+DURATION_OPTIONS=(23 33 63 93)
+PLAYBACKVIEW_OPTIONS=("Quality Control View (mpv)" "Broadcast Range Visual" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes")
 
 # comments to be printed to vrecord config file; must be commented (start with #)
 CONFIG_COMMENT="# Set each value to empty quotes (like \"\") to prompt during run, or set to a provided option."
@@ -1018,67 +944,67 @@ fi
 
 # terminal dialog for undeclared options (needed to set up passthrough modes)
 if [[ "${VIDEO_INPUT_CHOICE}" && "${VIDEO_INPUT_CHOICE}" != "${UNDECLAREDOPTION}" ]] ; then
-    _lookup_video_input "${VIDEO_INPUT_CHOICE}"
+    _lookup_choice "${VIDEO_INPUT_CHOICE}"
 else
     _report -q "Which video input are you using?"
     PS3="Select a video input: "
     select VIDEO_INPUT_CHOICE in "${VIDEO_INPUT_OPTIONS[@]}" ; do
-        _lookup_video_input "${VIDEO_INPUT_CHOICE}"
+        _lookup_choice "${VIDEO_INPUT_CHOICE}" "${REPLY}"
         [[ "${?}" -eq 0 ]] && break
     done
 fi
 
 if [[ "${AUDIO_INPUT_CHOICE}" && "${AUDIO_INPUT_CHOICE}" != "${UNDECLAREDOPTION}" ]] ; then
-    _lookup_audio_input "${AUDIO_INPUT_CHOICE}"
+    _lookup_choice "${AUDIO_INPUT_CHOICE}"
 else
     _report -q "Which audio input are you using?"
     PS3="Select an audio input: "
     select AUDIO_INPUT_CHOICE in "${AUDIO_INPUT_OPTIONS[@]}" ; do
-        _lookup_audio_input "${AUDIO_INPUT_CHOICE}"
+        _lookup_choice "${AUDIO_INPUT_CHOICE}" "${REPLY}"
         [[ "${?}" -eq 0 ]] && break
     done
 fi
 
 if [[ "${VIDEO_BIT_DEPTH_CHOICE}" && "${VIDEO_BIT_DEPTH_CHOICE}" != "${UNDECLAREDOPTION}" ]] ; then
-    _lookup_pixel_format "${VIDEO_BIT_DEPTH_CHOICE}"
+    _lookup_choice "${VIDEO_BIT_DEPTH_CHOICE}"
 else
     _report -q "Which video bit depth?"
     PS3="Select a video bit depth: "
     select VIDEO_BIT_DEPTH_CHOICE in "${VIDEO_BITDEPTH_OPTIONS[@]}" ; do
-        _lookup_pixel_format "${VIDEO_BIT_DEPTH_CHOICE}"
+        _lookup_choice "${VIDEO_BIT_DEPTH_CHOICE}" "${REPLY}"
         [[ "${?}" -eq 0 ]] && break
     done
 fi
 
 if [[ "${AUDIO_MAPPING_CHOICE}" && "${AUDIO_MAPPING_CHOICE}" != "${UNDECLAREDOPTION}" ]] ; then
-    _lookup_audio_mapping "${AUDIO_MAPPING_CHOICE}"
+    _lookup_choice "${AUDIO_MAPPING_CHOICE}"
 else
     _report -q "Which audio mapping?"
     PS3="Select an audio mapping: "
     select AUDIO_MAPPING_CHOICE in "${CHANNEL_MAPPING_OPTIONS[@]}" ; do
-        _lookup_audio_mapping "${AUDIO_MAPPING_CHOICE}"
+        _lookup_choice "${AUDIO_MAPPING_CHOICE}" "${REPLY}"
         [[ "${?}" -eq 0 ]] && break
     done
 fi
 
 if [[ "${STANDARD_CHOICE}" && "${STANDARD_CHOICE}" != "${UNDECLAREDOPTION}" ]] ; then
-    _lookup_standard "${STANDARD_CHOICE}"
+    _lookup_choice "${STANDARD_CHOICE}"
 else
     _report -q "Which television STANDARD?"
     PS3="Select a television STANDARD: "
     select STANDARD_CHOICE in "${STANDARD_OPTIONS[@]}" ; do
-        _lookup_standard "${STANDARD_CHOICE}"
+        _lookup_choice "${STANDARD_CHOICE}" "${REPLY}"
         [[ "${?}" -eq 0 ]] && break
     done
 fi
 
 if [[ "${PLAYBACKVIEW_CHOICE}" && "${PLAYBACKVIEW_CHOICE}" != "${UNDECLAREDOPTION}" ]] ; then
-    _lookup_playbackview "${PLAYBACKVIEW_CHOICE}"
+    _lookup_choice "${PLAYBACKVIEW_CHOICE}"
 else
     _report -q "Which playback view?"
     PS3="Select a playback view: "
     select PLAYBACKVIEW_CHOICE in "${PLAYBACKVIEW_OPTIONS[@]}" ; do
-        _lookup_playbackview "${PLAYBACKVIEW_CHOICE}"
+        _lookup_choice "${PLAYBACKVIEW_CHOICE}" "${REPLY}"
         [[ "${?}" -eq 0 ]] && break
     done
 fi
@@ -1172,23 +1098,23 @@ if [[ ! -d "${LOGDIR}" ]] ; then
 fi
 
 if [[ "${CONTAINER_CHOICE}" && "${CONTAINER_CHOICE}" != "${UNDECLAREDOPTION}" ]] ; then
-    _lookup_container "${CONTAINER_CHOICE}"
+    _lookup_choice "${CONTAINER_CHOICE}"
 else
     _report -q "Which audiovisual container format?"
     PS3="Select a container format: "
     select CONTAINER_CHOICE in "${CONTAINER_OPTIONS[@]}" ; do
-        _lookup_container "${CONTAINER_CHOICE}"
+        _lookup_choice "${CONTAINER_CHOICE}" "${REPLY}"
         [[ "${?}" -eq 0 ]] && break
     done
 fi
 
 if [[ "${VIDEO_CODEC_CHOICE}" && "${VIDEO_CODEC_CHOICE}" != "${UNDECLAREDOPTION}" ]] ; then
-    _lookup_video_codec "${VIDEO_CODEC_CHOICE}"
+    _lookup_choice "${VIDEO_CODEC_CHOICE}"
 else
     _report -q "Which video codec?"
     PS3="Select a video codec: "
     select VIDEO_CODEC_CHOICE in "${VIDEO_CODEC_OPTIONS[@]}" ; do
-        _lookup_video_codec "${VIDEO_CODEC_CHOICE}"
+        _lookup_choice "${VIDEO_CODEC_CHOICE}" "${REPLY}"
         [[ "${?}" -eq 0 ]] && break
     done
 fi
@@ -1206,7 +1132,7 @@ else
     _report -q "Create QCTools XML?"
     PS3="Select an option: "
     select QCTOOLSXML_CHOICE in "${QCTOOLSXML_OPTIONS[@]}" ; do
-        _lookup_qctoolsxml "${QCTOOLSXML_CHOICE}"
+        _lookup_choice "${QCTOOLSXML_CHOICE}" "${REPLY}"
         [[ "${?}" -eq 0 ]] && break
     done
 fi
@@ -1222,7 +1148,7 @@ else
     _report -q "Create frame-level MD5 checksums?"
     PS3="Select an option: "
     select FRAMEMD5_CHOICE in "${FRAMEMD5_OPTIONS[@]}" ; do
-        _yes_or_no "${FRAMEMD5_CHOICE}"
+        _lookup_choice "${FRAMEMD5_CHOICE}" "${REPLY}"
         [[ "${?}" -eq 0 ]] && break
     done
 fi
@@ -1237,7 +1163,7 @@ elif [[ "${EMBED_LOGS_CHOICE}" = "${UNDECLAREDOPTION}" ]] && [[ "${CONTAINER_CHO
     _report -q "Embed logs in Matroska file?"
     PS3="Select an option: "
     select EMBED_LOGS_CHOICE in "${EMBED_LOGS_OPTIONS[@]}" ; do
-        _yes_or_no "${EMBED_LOGS_CHOICE}"
+        _lookup_choice "${EMBED_LOGS_CHOICE}" "${REPLY}"
         [[ "${?}" -eq 0 ]] && break
     done
 fi
