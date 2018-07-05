@@ -9,8 +9,10 @@ CONFIG_FILE="${HOME}/.${SCRIPTNAME}.conf"
 unset VERSION
 if [[ $(dirname "$(command -v "${0}")") = "/usr/local/bin" ]] ; then
     VERSION=$(TMP=$(brew info vrecord | grep ".*\*$" | grep -Eo "/vrecord/.* \(") ; echo "${TMP:9:(${#TMP}-11)}")
+    LOGO_PATH="/usr/local/Cellar/vrecord/${VERSION}/vrecord_logo.png"
+else
+    LOGO_PATH="${SCRIPTDIR}/vrecord_logo.png"
 fi
-LOGO_PATH="/usr/local/Cellar/vrecord/${VERSION}"
 unset INPUTOPTIONS
 unset MIDDLEOPTIONS
 unset SUFFIX
@@ -322,7 +324,7 @@ _master_gui(){
     PASHUA_CONFIGFILE=$(/usr/bin/mktemp /tmp/pashua_XXXXXXXXX)
     {
         _construct_pashua_id \*                     transparency=0.95       title="Welcome to Vrecord!"
-        _construct_pashua_id VRECORD_LOGO           x=0 y=75 type=image     path="${LOGO_PATH}"/vrecord_logo.png
+        _construct_pashua_id VRECORD_LOGO           x=0 y=75 type=image     path="${LOGO_PATH}"
         _construct_pashua_id REC_BUTTON             x=15 y=35 type=button   label="Record"
         _construct_pashua_id PASS_BUTTON            x=170 y=35 type=button  label="Passthrough"
         _construct_pashua_id AUDIO_BUTTON           x=335 y=35 type=button  label="Audio Check"
