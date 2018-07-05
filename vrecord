@@ -913,77 +913,35 @@ if [[ "${INVERT_PHASE}" = 1 ]] ; then
     PHASE_VALUE="-1*"
 fi
 
-# terminal dialog for undeclared options (needed to set up passthrough modes)
-if [[ "${VIDEO_INPUT_CHOICE}" && "${VIDEO_INPUT_CHOICE}" != "${UNDECLAREDOPTION}" ]] ; then
-    _lookup_choice "${VIDEO_INPUT_CHOICE}"
-else
-    _report -q "Which video input are you using?"
-    PS3="Select a video input: "
-    select VIDEO_INPUT_CHOICE in "${VIDEO_INPUT_OPTIONS[@]}" ; do
-        _lookup_choice "${VIDEO_INPUT_CHOICE}" "${REPLY}"
-        [[ "${?}" -eq 0 ]] && break
-    done
-fi
+_review_option(){
+    SELECTED="${1}"
+    QUERY="${2}"
+    shift 2
+    CHOICES=("${@}")
+    if [[ "${SELECTED}" && "${SELECTED}" != "${UNDECLAREDOPTION}" ]] ; then
+        _lookup_choice "${SELECTED}"
+    else
+        _report -q "${QUERY}"
+        PS3="Select an option or 'q' to quit: "
+        select OPTION in "${CHOICES[@]}" ; do
+            _lookup_choice "${OPTION}" "${REPLY}"
+            [[ "${?}" -eq 0 ]] && break
+        done
+    fi
+}
 
-if [[ "${AUDIO_INPUT_CHOICE}" && "${AUDIO_INPUT_CHOICE}" != "${UNDECLAREDOPTION}" ]] ; then
-    _lookup_choice "${AUDIO_INPUT_CHOICE}"
-else
-    _report -q "Which audio input are you using?"
-    PS3="Select an audio input: "
-    select AUDIO_INPUT_CHOICE in "${AUDIO_INPUT_OPTIONS[@]}" ; do
-        _lookup_choice "${AUDIO_INPUT_CHOICE}" "${REPLY}"
-        [[ "${?}" -eq 0 ]] && break
-    done
-fi
-
-if [[ "${VIDEO_BIT_DEPTH_CHOICE}" && "${VIDEO_BIT_DEPTH_CHOICE}" != "${UNDECLAREDOPTION}" ]] ; then
-    _lookup_choice "${VIDEO_BIT_DEPTH_CHOICE}"
-else
-    _report -q "Which video bit depth?"
-    PS3="Select a video bit depth: "
-    select VIDEO_BIT_DEPTH_CHOICE in "${VIDEO_BITDEPTH_OPTIONS[@]}" ; do
-        _lookup_choice "${VIDEO_BIT_DEPTH_CHOICE}" "${REPLY}"
-        [[ "${?}" -eq 0 ]] && break
-    done
-fi
-
-if [[ "${AUDIO_MAPPING_CHOICE}" && "${AUDIO_MAPPING_CHOICE}" != "${UNDECLAREDOPTION}" ]] ; then
-    _lookup_choice "${AUDIO_MAPPING_CHOICE}"
-else
-    _report -q "Which audio mapping?"
-    PS3="Select an audio mapping: "
-    select AUDIO_MAPPING_CHOICE in "${CHANNEL_MAPPING_OPTIONS[@]}" ; do
-        _lookup_choice "${AUDIO_MAPPING_CHOICE}" "${REPLY}"
-        [[ "${?}" -eq 0 ]] && break
-    done
-fi
-
-if [[ "${STANDARD_CHOICE}" && "${STANDARD_CHOICE}" != "${UNDECLAREDOPTION}" ]] ; then
-    _lookup_choice "${STANDARD_CHOICE}"
-else
-    _report -q "Which television STANDARD?"
-    PS3="Select a television STANDARD: "
-    select STANDARD_CHOICE in "${STANDARD_OPTIONS[@]}" ; do
-        _lookup_choice "${STANDARD_CHOICE}" "${REPLY}"
-        [[ "${?}" -eq 0 ]] && break
-    done
-fi
-
-if [[ "${PLAYBACKVIEW_CHOICE}" && "${PLAYBACKVIEW_CHOICE}" != "${UNDECLAREDOPTION}" ]] ; then
-    _lookup_choice "${PLAYBACKVIEW_CHOICE}"
-else
-    _report -q "Which playback view?"
-    PS3="Select a playback view: "
-    select PLAYBACKVIEW_CHOICE in "${PLAYBACKVIEW_OPTIONS[@]}" ; do
-        _lookup_choice "${PLAYBACKVIEW_CHOICE}" "${REPLY}"
-        [[ "${?}" -eq 0 ]] && break
-    done
-fi
-if [[ "${PLAYBACKVIEW_CHOICE}" = "Full Range Visual" ]] ; then
+_review_option "${VIDEO_INPUT_CHOICE}" "Which video input are you using?" "${VIDEO_INPUT_OPTIONS[@]}"
+_review_option "${AUDIO_INPUT_CHOICE}" "Which audio input are you using?" "${AUDIO_INPUT_OPTIONS[@]}"
+_review_option "${VIDEO_BIT_DEPTH_CHOICE}" "Which video bit depth?" "${VIDEO_BITDEPTH_OPTIONS[@]}"
+_review_option "${AUDIO_MAPPING_CHOICE}" "Which audio mapping?" "${CHANNEL_MAPPING_OPTIONS[@]}"
+_review_option "${STANDARD_CHOICE}" "Which television STANDARD?" "${STANDARD_OPTIONS[@]}"
+_review_option "${PLAYBACKVIEW_CHOICE}" "Which playback view?" "${PLAYBACKVIEW_OPTIONS[@]}"
+if [[ "${OPTION}" = "Full Range Visual" ]] ; then
     MIDDLEOPTIONS+=(-color_range jpeg)
 else
     MIDDLEOPTIONS+=(-color_range mpeg)
 fi
+
 MIDDLEOPTIONS+=(-metadata creation_time=now)
 MIDDLEOPTIONS+=(${EXTRAOUTPUTOPTIONS[@]})
 
@@ -1068,27 +1026,8 @@ if [[ ! -d "${LOGDIR}" ]] ; then
     fi
 fi
 
-if [[ "${CONTAINER_CHOICE}" && "${CONTAINER_CHOICE}" != "${UNDECLAREDOPTION}" ]] ; then
-    _lookup_choice "${CONTAINER_CHOICE}"
-else
-    _report -q "Which audiovisual container format?"
-    PS3="Select a container format: "
-    select CONTAINER_CHOICE in "${CONTAINER_OPTIONS[@]}" ; do
-        _lookup_choice "${CONTAINER_CHOICE}" "${REPLY}"
-        [[ "${?}" -eq 0 ]] && break
-    done
-fi
-
-if [[ "${VIDEO_CODEC_CHOICE}" && "${VIDEO_CODEC_CHOICE}" != "${UNDECLAREDOPTION}" ]] ; then
-    _lookup_choice "${VIDEO_CODEC_CHOICE}"
-else
-    _report -q "Which video codec?"
-    PS3="Select a video codec: "
-    select VIDEO_CODEC_CHOICE in "${VIDEO_CODEC_OPTIONS[@]}" ; do
-        _lookup_choice "${VIDEO_CODEC_CHOICE}" "${REPLY}"
-        [[ "${?}" -eq 0 ]] && break
-    done
-fi
+_review_option "${CONTAINER_CHOICE}" "Which audiovisual container format?" "${CONTAINER_OPTIONS[@]}"
+_review_option "${VIDEO_CODEC_CHOICE}" "Which video codec?" "${VIDEO_CODEC_OPTIONS[@]}"
 
 VRECORD_OUTPUT="${DIR}/${ID}${SUFFIX}.${EXTENSION}"
 if [[ -f "${VRECORD_OUTPUT}" ]] ; then
@@ -1097,47 +1036,18 @@ if [[ -f "${VRECORD_OUTPUT}" ]] ; then
     exit
 fi
 
-if [[ "${QCTOOLSXML_CHOICE}" != "${UNDECLAREDOPTION}" && "${QCTOOLSXML_CHOICE}" != "Yes" ]] ; then
-    echo ""
-else
-    _report -q "Create QCTools XML?"
-    PS3="Select an option: "
-    select QCTOOLSXML_CHOICE in "${QCTOOLSXML_OPTIONS[@]}" ; do
-        _lookup_choice "${QCTOOLSXML_CHOICE}" "${REPLY}"
-        [[ "${?}" -eq 0 ]] && break
-    done
-fi
-if [[ "${QCTOOLSXML_CHOICE}" != "No" && ! "$(command -v qcli)" ]] ; then
+_review_option "${QCTOOLSXML_CHOICE}" "Create QCTools XML?" "${QCTOOLSXML_OPTIONS[@]}"
+if [[ "${OPTION}" != "No" && ! "$(command -v qcli)" ]] ; then
     _report -w "Please install qcli to use the qctools reporting option."
     _report -w "Such as \`brew install qcli\`."
     exit 1
 fi
-
-if [[ "${FRAMEMD5_CHOICE}" != "${UNDECLAREDOPTION}" ]] ; then
-    echo ""
-else
-    _report -q "Create frame-level MD5 checksums?"
-    PS3="Select an option: "
-    select FRAMEMD5_CHOICE in "${FRAMEMD5_OPTIONS[@]}" ; do
-        _lookup_choice "${FRAMEMD5_CHOICE}" "${REPLY}"
-        [[ "${?}" -eq 0 ]] && break
-    done
-fi
-if [[ "${FRAMEMD5_CHOICE}" = "Yes" ]] ; then
+_review_option "${FRAMEMD5_CHOICE}" "Create frame-level MD5 checksums?" "${FRAMEMD5_OPTIONS[@]}"
+if [[ "${OPTION}" = "Yes" ]] ; then
     FRAMEMD5NAME="${LOGDIR}/${ID}${SUFFIX}.framemd5"
     EXTRAOUTPUTS=(-an -f framemd5 "${FRAMEMD5NAME}")
 fi
-
-if [[ "${EMBED_LOGS_CHOICE}" != "${UNDECLAREDOPTION}" ]] ; then
-    echo ""
-elif [[ "${EMBED_LOGS_CHOICE}" = "${UNDECLAREDOPTION}" ]] && [[ "${CONTAINER_CHOICE}" = "Matroska" ]] ; then
-    _report -q "Embed logs in Matroska file?"
-    PS3="Select an option: "
-    select EMBED_LOGS_CHOICE in "${EMBED_LOGS_OPTIONS[@]}" ; do
-        _lookup_choice "${EMBED_LOGS_CHOICE}" "${REPLY}"
-        [[ "${?}" -eq 0 ]] && break
-    done
-fi
+_review_option "${EMBED_LOGS_CHOICE}" "Embed logs in Matroska file?" "${EMBED_LOGS_OPTIONS[@]}"
 
 _duration_check
 if [[ -n "${DURATION}" ]] ; then
