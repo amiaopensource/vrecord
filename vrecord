@@ -1143,7 +1143,7 @@ trap _cleanup SIGHUP SIGINT SIGTERM
 
 # qc tools process
 if [[ "${QCTOOLSXML_CHOICE}" = "Yes, after recording" ]] ; then
-    qcli -i "${LOGDIR}/${ID}${SUFFIX}.${EXTENSION}" -o "${QCXML}"
+    qcli -i "${VRECORD_OUTPUT}" -o "${QCXML}"
 fi
 if [[ "${QCTOOLSXML_CHOICE}" != "No" ]] ; then
     _report -d "Vrecord is analyzing your video file. Please be patient."
