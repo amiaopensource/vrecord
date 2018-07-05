@@ -410,54 +410,14 @@ _edit_mode(){
         fi
         echo ""
         # write config file
-        cat > "${CONFIG_FILE}" << EOF
-#${SCRIPTNAME} config file
-${CONFIG_COMMENT}
-${VIDEO_INPUT_CHOICE_COMMENT}
-VIDEO_INPUT_CHOICE="${VIDEO_INPUT_CHOICE}"
-
-${AUDIO_INPUT_CHOICE_COMMENT}
-AUDIO_INPUT_CHOICE="${AUDIO_INPUT_CHOICE}"
-
-${CONTAINER_CHOICE_COMMENT}
-CONTAINER_CHOICE="${CONTAINER_CHOICE}"
-
-${VIDEO_CODEC_CHOICE_COMMENT}
-VIDEO_CODEC_CHOICE="${VIDEO_CODEC_CHOICE}"
-
-${VIDEO_BIT_DEPTH_CHOICE_COMMENT}
-VIDEO_BIT_DEPTH_CHOICE="${VIDEO_BIT_DEPTH_CHOICE}"
-
-${AUDIO_MAPPING_CHOICE_COMMENT}
-AUDIO_MAPPING_CHOICE="${AUDIO_MAPPING_CHOICE}"
-
-${STANDARD_CHOICE_COMMENT}
-STANDARD_CHOICE="${STANDARD_CHOICE}"
-
-${QCTOOLSXML_CHOICE_COMMENT}
-QCTOOLSXML_CHOICE="${QCTOOLSXML_CHOICE}"
-
-${FRAMEMD5_CHOICE_COMMENT}
-FRAMEMD5_CHOICE="${FRAMEMD5_CHOICE}"
-
-${EMBED_LOGS_CHOICE_COMMENT}
-EMBED_LOGS_CHOICE="${EMBED_LOGS_CHOICE}"
-
-${PLAYBACKVIEW_CHOICE_COMMENT}
-PLAYBACKVIEW_CHOICE="${PLAYBACKVIEW_CHOICE}"
-
-${DIR_COMMENT}
-DIR="${DIR}"
-LOGDIR="${LOGDIR}"
-
-INVERT_PHASE="${INVERT_PHASE}"
-
-${DURATION_COMMENT}
-DURATION="${DURATION}"
-
-${TECHNICIAN_COMMENT}
-TECHNICIAN="${TECHNICIAN}"
-EOF
+        {
+            echo "# Set these variables to a valid option or leave as empty quotes (like \"\") to request each run."
+            for COMMENT_LINE in VIDEO_INPUT_CHOICE AUDIO_INPUT_CHOICE CONTAINER_CHOICE VIDEO_CODEC_CHOICE \
+            VIDEO_BIT_DEPTH_CHOICE AUDIO_MAPPING_CHOICE STANDARD_CHOICE QCTOOLSXML_CHOICE FRAMEMD5_CHOICE \
+            EMBED_LOGS_CHOICE PLAYBACKVIEW_CHOICE DIR LOGDIR INVERT_PHASE DURATION TECHNICIAN ; do
+                echo "${COMMENT_LINE}=\"${!COMMENT_LINE}\""
+            done
+        } > "${CONFIG_FILE}"
         . "${CONFIG_FILE}"
     else
         _report -d "Editing of preferences was canceled by the user."
@@ -870,23 +830,6 @@ FRAMEMD5_OPTIONS=("Yes" "No")
 EMBED_LOGS_OPTIONS=("Yes" "No")
 DURATION_OPTIONS=(23 33 63 93)
 PLAYBACKVIEW_OPTIONS=("Quality Control View (mpv)" "Broadcast Range Visual" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes")
-
-# comments to be printed to vrecord config file; must be commented (start with #)
-CONFIG_COMMENT="# Set each value to empty quotes (like \"\") to prompt during run, or set to a provided option."
-DIR_COMMENT="#Set dir to the preferred recording directory or leave blank to request each run:"
-VIDEO_INPUT_CHOICE_COMMENT="# Set VIDEO_INPUT_CHOICE to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${VIDEO_INPUT_OPTIONS[@]}")"
-AUDIO_INPUT_CHOICE_COMMENT="#Set AUDIO_INPUT_CHOICE to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${AUDIO_INPUT_OPTIONS[@]}")"
-CONTAINER_CHOICE_COMMENT="#Set CONTAINER_CHOICE to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${CONTAINER_OPTIONS[@]}")"
-VIDEO_CODEC_CHOICE_COMMENT="#Set VIDEO_CODEC_CHOICE to one of these valid options or leave blank to request each run: $(printf "\"%s\" " "${VIDEO_CODEC_OPTIONS[@]}")"
-VIDEO_BIT_DEPTH_CHOICE_COMMENT="#Set VIDEO_BIT_DEPTH_CHOICE to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${VIDEO_BITDEPTH_OPTIONS[@]}")"
-AUDIO_MAPPING_CHOICE_COMMENT="#Set AUDIO_MAPPING_CHOICE to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${CHANNEL_MAPPING_OPTIONS[@]}")"
-STANDARD_CHOICE_COMMENT="#Set STANDARD_CHOICE to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${STANDARD_OPTIONS[@]}")"
-QCTOOLSXML_CHOICE_COMMENT="#Set QCTOOLSXML_CHOICE to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${QCTOOLSXML_OPTIONS[@]}")"
-FRAMEMD5_CHOICE_COMMENT="#Set FRAMEMD5_CHOICE to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${FRAMEMD5_OPTIONS[@]}")"
-EMBED_LOGS_CHOICE_COMMENT="#Set embed_choice to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${EMBED_LOGS_OPTIONS[@]}")"
-PLAYBACKVIEW_CHOICE_COMMENT="#Set PLAYBACKVIEW_CHOICE to one of these valid options or leave blank to request each run:  $(printf "\"%s\" " "${PLAYBACKVIEW_OPTIONS[@]}")"
-DURATION_COMMENT="#Set the recording time as a number (integer or decimal) in minutes."
-TECHNICIAN_COMMENT="#Enter the name of the person digitizing this tape."
 
 # GUI mode + CLI reset, edit modes
 if [[ "${RUNTYPE}" = "GUI" ]] ; then
