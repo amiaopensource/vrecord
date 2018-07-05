@@ -1088,7 +1088,7 @@ _writeingestlog "STANDARD_CHOICE" "${STANDARD_CHOICE}"
 _writeingestlog "QCTOOLSXML_CHOICE" "${QCTOOLSXML_CHOICE}"
 _writeingestlog "FRAMEMD5_CHOICE" "${FRAMEMD5_CHOICE}"
 _writeingestlog "EMBED_LOGS_CHOICE" "${EMBED_LOGS_CHOICE}"
-_writeingestlog "FILE_PATH" "${DIR}/${ID}.${EXTENSION}"
+_writeingestlog "FILE_PATH" "${VRECORD_OUTPUT}"
 if [[ -z "${TECHNICIAN}" ]] ; then
     _writeingestlog "TECHNICIAN" "N/A"
 else
