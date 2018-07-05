@@ -1062,7 +1062,7 @@ if [[ -z "${TECHNICIAN}" ]] ; then
     read TECHNICIAN
 fi
 
-_report -d "Summary: ${PIXEL_FORMAT} bit ${CODECNAME} ${CONTAINER_CHOICE} file from ${STANDARD_CHOICE} ${VIDEO_INPUT_CHOICE} ${AUDIO_INPUT_CHOICE}. Frame MD5s=${FRAMEMD5_CHOICE}, QCTools XML=${QCTOOLSXML_CHOICE}, and Technician=${TECHNICIAN}. Inputs recorded to ${DIR}/${ID}${SUFFIX}.${EXTENSION} and Auxiliary Files created in ${LOGDIR}"
+_report -d "Summary: ${PIXEL_FORMAT} bit ${CODECNAME} ${CONTAINER_CHOICE} file from ${STANDARD_CHOICE} ${VIDEO_INPUT_CHOICE} ${AUDIO_INPUT_CHOICE}. Frame MD5s=${FRAMEMD5_CHOICE}, QCTools XML=${QCTOOLSXML_CHOICE}, and Technician=${TECHNICIAN}. Inputs recorded to ${VRECORD_OUTPUT} and Auxiliary Files created in ${LOGDIR}"
 if [[ "${INVERT_PHASE}" = 1 ]] ; then
     echo -e " \033[101mWARNING: Option to invert phase of second audio channel has been selected\033[0m"
 fi
