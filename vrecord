@@ -1048,7 +1048,7 @@ if [[ "${OPTION}" = "Yes" ]] ; then
     EXTRAOUTPUTS=(-an -f framemd5 "${FRAMEMD5NAME}")
 fi
 if [[ "${FORMAT}" = "matroska" ]] ; then
-_review_option "${EMBED_LOGS_CHOICE}" "Embed logs in Matroska file?" "${EMBED_LOGS_OPTIONS[@]}"
+    _review_option "${EMBED_LOGS_CHOICE}" "Embed logs in Matroska file?" "${EMBED_LOGS_OPTIONS[@]}"
 fi
 
 _duration_check
