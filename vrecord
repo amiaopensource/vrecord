@@ -349,6 +349,9 @@ _master_gui(){
     # db = default button, set to exit
     elif [[ "${db}" = 1 ]] ; then
         echo "Exiting Vrecord. Goodbye!" && exit 0
+    else
+        # catch instance when the window is closed with no button pressed
+        echo "Exiting Vrecord. Goodbye!" && exit 0
     fi
     if [[ -f "${PASHUA_CONFIGFILE}" ]] ; then
         rm "${PASHUA_CONFIGFILE}"
