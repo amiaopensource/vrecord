@@ -319,52 +319,18 @@ _pashua_run() {
 
 # GUI dialog to set vrecord runtypes
 _master_gui(){
-    GUI_CONF="
-# Set transparency: 0 is transparent, 1 is opaque
-*.transparency=0.95
-# Set window title
-*.title = Welcome to Vrecord!
-# logo
-VRECORD_LOGO.type = image
-VRECORD_LOGO.path = "${LOGO_PATH}"/vrecord_logo.png
-VRECORD_LOGO.x = 0
-VRECORD_LOGO.y = 75
-# Record
-REC_BUTTON.type = button
-REC_BUTTON.label = Record
-REC_BUTTON.x = 15
-REC_BUTTON.y = 35
-# Passthrough
-PASS_BUTTON.type = button
-PASS_BUTTON.label = Passthrough
-PASS_BUTTON.x = 170
-PASS_BUTTON.y = 35
-# Audio Check
-AUDIO_BUTTON.type = button
-AUDIO_BUTTON.label = Audio Check
-AUDIO_BUTTON.x = 335
-AUDIO_BUTTON.y = 35
-# Edit Settings
-EDIT_BUTTON.type = button
-EDIT_BUTTON.label = Edit Settings
-EDIT_BUTTON.x = 495
-EDIT_BUTTON.y = 35
-# Documentation
-DOCUMENTATION_BUTTON.type = button
-DOCUMENTATION_BUTTON.label = Documentation
-DOCUMENTATION_BUTTON.x = 800
-DOCUMENTATION_BUTTON.y = 35
-# Help
-HELP_BUTTON.type = button
-HELP_BUTTON.label = Help
-HELP_BUTTON.x = 675
-HELP_BUTTON.y = 35
-db.type = defaultbutton
-db.label = Exit
-"
-
     PASHUA_CONFIGFILE=$(/usr/bin/mktemp /tmp/pashua_XXXXXXXXX)
-    echo "${GUI_CONF}" > "${PASHUA_CONFIGFILE}"
+    {
+        _construct_pashua_id \*                     transparency=0.95       title="Welcome to Vrecord!"
+        _construct_pashua_id VRECORD_LOGO           x=0 y=75 type=image     path="${LOGO_PATH}"/vrecord_logo.png
+        _construct_pashua_id REC_BUTTON             x=15 y=35 type=button   label="Record"
+        _construct_pashua_id PASS_BUTTON            x=170 y=35 type=button  label="Passthrough"
+        _construct_pashua_id AUDIO_BUTTON           x=335 y=35 type=button  label="Audio Check"
+        _construct_pashua_id EDIT_BUTTON            x=495 y=35 type=button  label="Edit Settings"
+        _construct_pashua_id DOCUMENTATION_BUTTON   x=800 y=35 type=button  label="Documentation"
+        _construct_pashua_id HELP_BUTTON            x=675 y=35 type=button  label="Help"
+        _construct_pashua_id db                     type=defaultbutton      label="Exit"
+    } > "${PASHUA_CONFIGFILE}"
     _pashua_run
     if [[ "${REC_BUTTON}" = 1 ]] ; then
         RUNTYPE="record"
