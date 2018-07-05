@@ -857,12 +857,14 @@ if [[ "${INVERT_PHASE}" = 1 ]] ; then
 fi
 
 _review_option(){
-    SELECTED="${1}"
+    VALUE_NAME="${1}"
+    SELECTED="${!1}"
     QUERY="${2}"
     shift 2
     CHOICES=("${@}")
     if [[ "${SELECTED}" && "${SELECTED}" != "${UNDECLAREDOPTION}" ]] ; then
         _lookup_choice "${SELECTED}"
+        LOG_OF_OPTIONS+="${VALUE_NAME}: ${SELECTED}\n"
     else
         _report -q "${QUERY}"
         PS3="Select an option or 'q' to quit: "
@@ -870,15 +872,17 @@ _review_option(){
             _lookup_choice "${OPTION}" "${REPLY}"
             [[ "${?}" -eq 0 ]] && break
         done
+        export "${VALUE_NAME}"="${OPTION}"
+        LOG_OF_OPTIONS+="${VALUE_NAME}: ${OPTION}\n"
     fi
 }
 
-_review_option "${VIDEO_INPUT_CHOICE}" "Which video input are you using?" "${VIDEO_INPUT_OPTIONS[@]}"
-_review_option "${AUDIO_INPUT_CHOICE}" "Which audio input are you using?" "${AUDIO_INPUT_OPTIONS[@]}"
-_review_option "${VIDEO_BIT_DEPTH_CHOICE}" "Which video bit depth?" "${VIDEO_BITDEPTH_OPTIONS[@]}"
-_review_option "${AUDIO_MAPPING_CHOICE}" "Which audio mapping?" "${CHANNEL_MAPPING_OPTIONS[@]}"
-_review_option "${STANDARD_CHOICE}" "Which television STANDARD?" "${STANDARD_OPTIONS[@]}"
-_review_option "${PLAYBACKVIEW_CHOICE}" "Which playback view?" "${PLAYBACKVIEW_OPTIONS[@]}"
+_review_option "VIDEO_INPUT_CHOICE" "Which video input are you using?" "${VIDEO_INPUT_OPTIONS[@]}"
+_review_option "AUDIO_INPUT_CHOICE" "Which audio input are you using?" "${AUDIO_INPUT_OPTIONS[@]}"
+_review_option "VIDEO_BIT_DEPTH_CHOICE" "Which video bit depth?" "${VIDEO_BITDEPTH_OPTIONS[@]}"
+_review_option "AUDIO_MAPPING_CHOICE" "Which audio mapping?" "${CHANNEL_MAPPING_OPTIONS[@]}"
+_review_option "STANDARD_CHOICE" "Which television STANDARD?" "${STANDARD_OPTIONS[@]}"
+_review_option "PLAYBACKVIEW_CHOICE" "Which playback view?" "${PLAYBACKVIEW_OPTIONS[@]}"
 if [[ "${OPTION}" = "Full Range Visual" ]] ; then
     MIDDLEOPTIONS+=(-color_range jpeg)
 else
@@ -917,7 +921,7 @@ PIPE_DECKLINK+=(-f nut)
 PIPE_DECKLINK+=(-syncpoints none -f_strict experimental)
 PIPE_DECKLINK+=(-write_index 0)
 PIPE_DECKLINK+=(-)
-WINDOW_NAME="mode:${RUNTYPE} - video:'${VIDEO_INPUT_CHOICE}' audio:'${AUDIO_INPUT_CHOICE}' - to end recording press q, esc, or close video window"
+WINDOW_NAME="mode:${RUNTYPE} - video:'${VIDEO_INPUT}' audio:'${AUDIO_INPUT}' - to end recording press q, esc, or close video window"
 
 # CLI passthrough and audiopassthrough modes
 if [[ "${RUNTYPE}" = "passthrough" ]] ; then
@@ -969,8 +973,8 @@ if [[ ! -d "${LOGDIR}" ]] ; then
     fi
 fi
 
-_review_option "${CONTAINER_CHOICE}" "Which audiovisual container format?" "${CONTAINER_OPTIONS[@]}"
-_review_option "${VIDEO_CODEC_CHOICE}" "Which video codec?" "${VIDEO_CODEC_OPTIONS[@]}"
+_review_option "CONTAINER_CHOICE" "Which audiovisual container format?" "${CONTAINER_OPTIONS[@]}"
+_review_option "VIDEO_CODEC_CHOICE" "Which video codec?" "${VIDEO_CODEC_OPTIONS[@]}"
 
 VRECORD_OUTPUT="${DIR}/${ID}${SUFFIX}.${EXTENSION}"
 if [[ -f "${VRECORD_OUTPUT}" ]] ; then
@@ -979,19 +983,19 @@ if [[ -f "${VRECORD_OUTPUT}" ]] ; then
     exit
 fi
 
-_review_option "${QCTOOLSXML_CHOICE}" "Create QCTools XML?" "${QCTOOLSXML_OPTIONS[@]}"
+_review_option "QCTOOLSXML_CHOICE" "Create QCTools XML?" "${QCTOOLSXML_OPTIONS[@]}"
 if [[ "${OPTION}" != "No" && ! "$(command -v qcli)" ]] ; then
     _report -w "Please install qcli to use the qctools reporting option."
     _report -w "Such as \`brew install qcli\`."
     exit 1
 fi
-_review_option "${FRAMEMD5_CHOICE}" "Create frame-level MD5 checksums?" "${FRAMEMD5_OPTIONS[@]}"
+_review_option "FRAMEMD5_CHOICE" "Create frame-level MD5 checksums?" "${FRAMEMD5_OPTIONS[@]}"
 if [[ "${OPTION}" = "Yes" ]] ; then
     FRAMEMD5NAME="${LOGDIR}/${ID}${SUFFIX}.framemd5"
     EXTRAOUTPUTS=(-an -f framemd5 "${FRAMEMD5NAME}")
 fi
 if [[ "${FORMAT}" = "matroska" ]] ; then
-    _review_option "${EMBED_LOGS_CHOICE}" "Embed logs in Matroska file?" "${EMBED_LOGS_OPTIONS[@]}"
+    _review_option "EMBED_LOGS_CHOICE" "Embed logs in Matroska file?" "${EMBED_LOGS_OPTIONS[@]}"
 fi
 
 _duration_check
@@ -1005,7 +1009,7 @@ if [[ -z "${TECHNICIAN}" ]] ; then
     read TECHNICIAN
 fi
 
-_report -d "Summary: ${PIXEL_FORMAT} bit ${CODECNAME} ${CONTAINER_CHOICE} file from ${STANDARD_CHOICE} ${VIDEO_INPUT_CHOICE} ${AUDIO_INPUT_CHOICE}. Frame MD5s=${FRAMEMD5_CHOICE}, QCTools XML=${QCTOOLSXML_CHOICE}, and Technician=${TECHNICIAN}. Inputs recorded to ${VRECORD_OUTPUT} and Auxiliary Files created in ${LOGDIR}"
+_report -d "Summary: ${CODECNAME}/${FORMAT} ${PIXEL_FORMAT} file from ${STANDARD} ${VIDEO_INPUT} ${AUDIO_INPUT}. Frame MD5s=${FRAMEMD5_CHOICE}, QCTools XML=${QCTOOLSXML_CHOICE}, and Technician=${TECHNICIAN}. Inputs recorded to ${VRECORD_OUTPUT} and Auxiliary Files created in ${LOGDIR}"
 if [[ "${INVERT_PHASE}" = 1 ]] ; then
     echo -e " \033[101mWARNING: Option to invert phase of second audio channel has been selected\033[0m"
 fi
@@ -1021,17 +1025,8 @@ _writeingestlog "user_name" "$(whoami)"
 _writeingestlog "operating_system_VERSION" "$(uname -v)"
 _writeingestlog "vrecord version" "${VERSION}"
 _writeingestlog "datetime_start" "$(_get_iso8601)"
-_writeingestlog "VIDEO_INPUT" "${VIDEO_INPUT_CHOICE}"
-_writeingestlog "AUDIO_INPUT" "${AUDIO_INPUT_CHOICE}"
-_writeingestlog "CONTAINER" "${CONTAINER_CHOICE}"
-_writeingestlog "CODECNAME" "${CODECNAME}"
-_writeingestlog "VIDEO_BIT_DEPTH" "${PIXEL_FORMAT}"
-_writeingestlog "AUDIO_MAPPING_CHOICE" "${AUDIO_MAPPING_CHOICE}"
-_writeingestlog "STANDARD_CHOICE" "${STANDARD_CHOICE}"
-_writeingestlog "QCTOOLSXML_CHOICE" "${QCTOOLSXML_CHOICE}"
-_writeingestlog "FRAMEMD5_CHOICE" "${FRAMEMD5_CHOICE}"
-_writeingestlog "EMBED_LOGS_CHOICE" "${EMBED_LOGS_CHOICE}"
 _writeingestlog "FILE_PATH" "${VRECORD_OUTPUT}"
+echo -e "${LOG_OF_OPTIONS}" >> "${INGESTLOG}"
 if [[ -z "${TECHNICIAN}" ]] ; then
     _writeingestlog "TECHNICIAN" "N/A"
 else
