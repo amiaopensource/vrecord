@@ -484,7 +484,8 @@ _duration_check(){
 _writeingestlog(){
     if [[ "${INGESTLOG}" ]] ; then
         KEY="${1}"
-        VALUE="${2}"
+        shift
+        VALUE="${@}"
         # need to add yaml style escaping
         echo "${KEY}: ${VALUE}" >> "${INGESTLOG}"
     else
