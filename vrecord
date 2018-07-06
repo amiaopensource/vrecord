@@ -110,17 +110,6 @@ _report(){
     echo ${ECHOOPT} "${COLOR}${STARTMESSAGE[@]}${MESSAGE}${NC}"
 }
 
-_run(){
-    RUN_ERR=""
-    "${@}"
-    _writeingestlog "FFmpeg command" "${*}"
-    RUN_ERR="${?}"
-    if [[ "${RUN_ERR}" != 0 ]] ; then
-        _report -wts "Error: Running: \"${*}\" gave an Error Code - ${RUN_ERR}"
-        _writeingestlog "Error" "Running: \"${*}\" gave an Error Code - ${RUN_ERR}"
-    fi
-}
-
 _cleanup(){
     _report -wt "Vrecord is being stopped at $(_get_iso8601), noting this in the capture log."
     _writeingestlog "exit status" "vrecord was forced to quit early at $(_get_iso8601). Some processing may be incomplete."
@@ -1039,15 +1028,19 @@ fi
 _report -d "Close the playback window to stop recording."
 
 # vrecord process!
+RECORD_COMMAND=("${FFMPEG_DECKLINK[@]}")
+RECORD_COMMAND+=(-nostdin -nostats "${INPUTOPTIONS[@]}" "${GRAB_DECKLINK[@]}")
+RECORD_COMMAND+=(-metadata:s:v:0 encoder="${CODECNAME}" "${MIDDLEOPTIONS[@]}" -c:a pcm_s24le)
+RECORD_COMMAND+=(-filter_complex "[0:v:0]${RECORDINGFILTER}; ${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}")
+RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
+RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}" "${PIPE_DECKLINK[@]}")
+_writeingestlog "FFmpeg command" "${RECORD_COMMAND[@]}"
+
 if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
     _check_mpv
-    _run "${FFMPEG_DECKLINK[@]}" \
+    "${RECORD_COMMAND[@]}" \
         2> >(tee "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}" /tmp/vrecord_input.log >/dev/null) \
-        -nostdin -nostats "${INPUTOPTIONS[@]}" "${GRAB_DECKLINK[@]}" \
-        -metadata:s:v:0 encoder="${CODECNAME}" "${MIDDLEOPTIONS[@]}" -c:a pcm_s24le \
-        -filter_complex "[0:v:0]${RECORDINGFILTER}; ${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" \
-        -f "${FORMAT}" "${VRECORD_OUTPUT}" \
-        "${EXTRAOUTPUTS[@]}" "${PIPE_DECKLINK[@]}" | \
+        | \
         if [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]] ; then
             tee >(mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -) | \
                 qcli -i - -o "${QCXML}"
@@ -1055,13 +1048,9 @@ if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
             mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -
         fi
 else
-    _run "${FFMPEG_DECKLINK[@]}" \
+    "${RECORD_COMMAND[@]}" \
         2> >(tee "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}" /tmp/vrecord_input.log >/dev/null) \
-        -nostdin -nostats "${INPUTOPTIONS[@]}" "${GRAB_DECKLINK[@]}" \
-        -metadata:s:v:0 encoder="${CODECNAME}" "${MIDDLEOPTIONS[@]}" -c:a pcm_s24le \
-        -filter_complex "[0:v:0]${RECORDINGFILTER}; ${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" \
-        -f "${FORMAT}" "${VRECORD_OUTPUT}" \
-        "${EXTRAOUTPUTS[@]}" "${PIPE_DECKLINK[@]}" | \
+        | \
         if [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]] ; then
             tee >("${FFPLAY_DECKLINK[@]}" \
                 -v info -hide_banner -stats -autoexit -i - \
@@ -1074,6 +1063,17 @@ else
                 -window_title "${WINDOW_NAME}" \
                 -vf "${PLAYBACKFILTER}"
         fi
+fi
+# capture errors from components of recording pipe
+P1_ERR="${PIPESTATUS[0]}"
+P2_ERR="${PIPESTATUS[1]}"
+P3_ERR="${PIPESTATUS[2]}"
+
+if [[ "$P1_ERR" != "0" ]] ; then
+    _report -wts "Error: Running: ${RECORD_COMMAND[@]} gave an Error Code - ${P1_ERR}"
+    _report -w "Consider reporting this or asking for help at https://github.com/amiaopensource/vrecord/issues"
+    _writeingestlog "FFmpeg command Error" "${P1_ERR}"
+    exit 1
 fi
 
 _writeingestlog "datetime_end" "$(_get_iso8601)"
