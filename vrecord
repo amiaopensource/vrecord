@@ -702,14 +702,14 @@ _lookup_choice(){
         "NTSC")
             STANDARD="ntsc"
             DECKLINK_FPS="30000/1001"
-            RECORDINGFILTER="setfield=bff,setsar=40/27,setdar=4/3"
+            RECORDINGFILTER="setsar=40/27,setdar=4/3"
             MIDDLEOPTIONS+=(-color_primaries smpte170m)
             MIDDLEOPTIONS+=(-color_trc bt709)
             MIDDLEOPTIONS+=(-colorspace smpte170m) ;;
         "PAL")
             STANDARD="pal "
             DECKLINK_FPS="25000/1000"
-            RECORDINGFILTER="setfield=tff,setsar=16/15,setdar=4/3"
+            RECORDINGFILTER="setsar=16/15,setdar=4/3"
             MIDDLEOPTIONS+=(-color_primaries bt470bg)
             MIDDLEOPTIONS+=(-color_trc bt709)
             MIDDLEOPTIONS+=(-colorspace bt470bg) ;;
