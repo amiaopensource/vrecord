@@ -572,6 +572,71 @@ _writeingestlog(){
     fi
 }
 
+# create a png of qc data graphs for quick assessment
+_qcgraphimage(){
+    # get audio data
+    qctools_CONFIGFILE_A="$(/usr/bin/mktemp /tmp/astats_A_XXXXXXXXX).csv"
+    gzcat "$1" | perl -nle 'print if not m{lavfi.(?!astats.1.Min_level|astats.1.Max_level|astats.1.Peak_level)}' | xml select -t -m "//ffprobe:ffprobe/frames/frame[@media_type='audio']" \
+       -v "@pkt_pts_time" -o " " \
+       -v "tag[@key='lavfi.astats.1.Max_level']/@value" -o " " \
+       -v "tag[@key='lavfi.astats.1.Min_level']/@value" -o " " \
+       -v "tag[@key='lavfi.astats.1.Peak_level']/@value" -n > "${qctools_CONFIGFILE_A}"
+    # get video data
+    qctools_CONFIGFILE_V="$(/usr/bin/mktemp /tmp/signalstats_V_XXXXXXXXX).csv"
+    gzcat "$1" | perl -nle 'print if not m{lavfi.(?!signalstats.BRNG|signalstats.TOUT|signalstats.SATMAX|signalstats.SATHIGH|signalstats.SATLOW|signalstats.SATMIN|ssim.Y|ssim.U|ssim.V)}' | xml select -t -m "//ffprobe:ffprobe/frames/frame[@media_type='video']" \
+       -v "@pkt_pts_time" -o " " \
+       -v "tag[@key='lavfi.signalstats.TOUT']/@value" -o " " \
+       -v "tag[@key='lavfi.signalstats.BRNG']/@value" -o " " \
+       -v "tag[@key='lavfi.signalstats.SATMAX']/@value" -o " " \
+       -v "tag[@key='lavfi.signalstats.SATHIGH']/@value" -o " " \
+       -v "tag[@key='lavfi.signalstats.SATLOW']/@value" -o " " \
+       -v "tag[@key='lavfi.signalstats.SATMIN']/@value" -o " " \
+       -v "tag[@key='lavfi.ssim.Y']/@value" -o " " \
+       -v "tag[@key='lavfi.ssim.U']/@value" -o " " \
+       -v "tag[@key='lavfi.ssim.V']/@value" -n > "${qctools_CONFIGFILE_V}"
+
+
+    echo "set terminal png size 1920, 1080
+    set output '${LOGDIR}/${ID}_QCTools_graphs.png'
+    set multiplot layout 6, 1 title 'QC Data'
+    set style line 11 lc rgb '#808080' lt 1
+    set border 2 back ls 11
+    set xtics border
+    set ytics border
+    set grid x
+    set grid y
+    set lmargin 10
+    set rmargin 20
+    set colorbox vertical back size .01,.03
+    set key rmargin center reverse samplen 0 spacing 1 
+    set yrange [-2147483648.:2147483648.]
+    unset yrange
+    set palette defined (-0.8'#ff0000',-0.6'#ffa500',-0.4'#a0ff20',-0.2'#00ff00',0'#006400',0.2'#00ff00',0.4'#a0ff20',.6'#ffa500',0.8'#ff0000')
+    set cbrange [-2147483648.:2147483648.]
+    set style fill solid
+    plot '${qctools_CONFIGFILE_A}' using 1:2:2 with boxes palette title 'Max level', '' using 1:3:3 with boxes palette title 'Min level'
+    unset cbrange
+    set yrange [-70:0]
+    set cbrange [0:-70.]
+    plot '' using 1:4:4 with lines palette title 'Peak Level (dB)'
+    unset yrange
+    unset cbrange
+    set cbrange [-.03:.03 ]
+    plot '${qctools_CONFIGFILE_V}' using 1:3:3 with boxes palette title '% outside of Broadcast Range' 
+    unset yrange
+    plot '' using 1:2 with lines title '% of Temporal OUTliers'
+    unset yrange
+    set key rmargin center reverse samplen 1 spacing 1 
+    set style line 1 linecolor '#f03232'
+    set style line 2 linecolor '#00ff7f'
+    set style line 3 linecolor '#ff8040'
+    set style line 4 linecolor '#ff1493'
+    set style line 5 linecolor '#9400d3'
+    plot '' using 1:4 with lines ls 1 title 'SatMax', '' using 1:5 with lines ls 3 title 'SatHIGH', '' using 1:6 with lines ls 2 title 'SatLOW', '' using 1:7 with lines ls 4 title 'SatMIN'
+    plot '' using 1:8 with lines ls 5 title 'SSIM-Y', '' using 1:9 with lines ls 2 title 'SSIM-U', '' using 1:10 with lines ls 3 title 'SSIM-V'
+    " | gnuplot
+}
+
 # decipher vrecord options as specified by user
 _lookup_choice(){
     case "${2}" in
@@ -1286,6 +1351,8 @@ if [[ "${QCTOOLSXML_CHOICE}" != "No" ]] ; then
     if [[ "${BRNG_OUTLIERS}" -gt "${BRNG_OUTLIER_THRSHLD}" ]] ; then
         cowsay "$(_report -w "WARNING: Your video file contains ${BRNG_OUTLIERS} frames with pixels out of broadcast range.")"
     fi
+    _report -d "Vrecord is generating graphs from the QCTools data. One moment please."
+    _qcgraphimage "${QCXML}"
     _report -d "QCTools analysis is complete."
 fi
 
