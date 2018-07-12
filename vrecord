@@ -235,6 +235,7 @@ while getopts ":herpaxgvI:O:i:" opt ; do
         I) EXTRAINPUTOPTIONS=(${OPTARG}) ;;
         O) EXTRAOUTPUTOPTIONS=(${OPTARG}) ;;
         i) ALT_INPUT="${OPTARG}" ;;
+        :) _report -w "Option -${OPTARG} requires an argument" ; _usage ; exit 1 ;;
         *) _report -w "Error: bad option -${OPTARG}" ; _usage ; exit 1 ;;
     esac
 done
