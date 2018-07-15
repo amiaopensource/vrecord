@@ -886,7 +886,7 @@ MIDDLEOPTIONS+=(${EXTRAOUTPUTOPTIONS[@]})
 _set_up_drawtext
 if [[ "$VERBOSE" == "true" ]] ; then
     GRAB_DECKLINK=(-loglevel debug)
-    _report -wt "When running vrecord in verbose mode, avoid using Visual + Numberical option."
+    _report -wt "When running vrecord in verbose mode, avoid using Visual + Numerical option."
 else
     GRAB_DECKLINK=(-loglevel info)
 fi
@@ -936,7 +936,7 @@ while [[ -z "${ID}" ]] ; do
     _report -q -n "Enter ${AHEM} Identifier: "
     read ID
     if [[ "${ID}" = "q" ]] ; then
-        _report -w "Interpretting 'q' to quit."
+        _report -w "Interpreting 'q' to quit."
         exit 1
     fi
     AHEM="a (non-blank)"
