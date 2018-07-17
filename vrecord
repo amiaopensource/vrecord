@@ -855,6 +855,7 @@ _review_option(){
     if [[ "${SELECTED}" && "${SELECTED}" != "${UNDECLAREDOPTION}" ]] ; then
         _lookup_choice "${SELECTED}"
         LOG_OF_OPTIONS+="${VALUE_NAME}: ${SELECTED}\n"
+        OPTION="${SELECTED}"
     else
         _report -q "${QUERY}"
         PS3="Select an option or 'q' to quit: "
