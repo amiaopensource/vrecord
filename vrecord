@@ -584,14 +584,12 @@ _qcgraphimage(){
        -v "tag[@key='lavfi.aphasemeter.phase']/@value" -n > "${qctools_CONFIGFILE_A}"
     # get video data
     qctools_CONFIGFILE_V="$(/usr/bin/mktemp /tmp/signalstats_V_XXXXXXXXX).csv"
-    gzcat "$1" | perl -nle 'print if not m{lavfi.(?!signalstats.BRNG|signalstats.TOUT|signalstats.SATMAX|signalstats.SATHIGH|signalstats.SATLOW|signalstats.SATMIN|ssim.Y|ssim.U|ssim.V)}' | xml select -t -m "//ffprobe:ffprobe/frames/frame[@media_type='video']" \
+    gzcat "$1" | perl -nle 'print if not m{lavfi.(?!signalstats.BRNG|signalstats.TOUT|signalstats.SATMAX|signalstats.SATAVG|ssim.Y|ssim.U|ssim.V)}' | xml select -t -m "//ffprobe:ffprobe/frames/frame[@media_type='video']" \
        -v "@pkt_pts_time" -o " " \
        -v "tag[@key='lavfi.signalstats.TOUT']/@value" -o " " \
        -v "tag[@key='lavfi.signalstats.BRNG']/@value" -o " " \
        -v "tag[@key='lavfi.signalstats.SATMAX']/@value" -o " " \
-       -v "tag[@key='lavfi.signalstats.SATHIGH']/@value" -o " " \
-       -v "tag[@key='lavfi.signalstats.SATLOW']/@value" -o " " \
-       -v "tag[@key='lavfi.signalstats.SATMIN']/@value" -o " " \
+       -v "tag[@key='lavfi.signalstats.SATAVG']/@value" -o " " \
        -v "tag[@key='lavfi.ssim.Y']/@value" -o " " \
        -v "tag[@key='lavfi.ssim.U']/@value" -o " " \
        -v "tag[@key='lavfi.ssim.V']/@value" -n > "${qctools_CONFIGFILE_V}"
@@ -599,15 +597,15 @@ _qcgraphimage(){
     # determine SATURATION scale
     VBitdepth="$(gzcat "$1" | perl -nle 'print if not m{<frame|</frame|<tag}' | xml sel -t -v "//stream[@codec_type='video']/@pix_fmt" -n
     )"
-        if [[ "${VBitdepth}" = "uyvy422" ]] || [[ "${VBitdepth}" = "yuv422p" ]] ; then
+    if [[ "${VBitdepth}" = "uyvy422" ]] || [[ "${VBitdepth}" = "yuv422p" ]] ; then
             SATpalette="(0'#a0a0a0',20'#bebebe',44.35'#c8c800',80'#a0ff20',88.7'#00ff00',103.45'#006400',108.2'#00ff00',113.2'#a0ff20',118.2'#ffa500',124'#ff0000')"
             SATcbrange="[0:124]"
             SATyrange="[0:183]"
-        elif [[ "${VBitdepth}" = "yuv422p10le" ]] ; then
+    elif [[ "${VBitdepth}" = "yuv422p10le" ]] ; then
             SATpalette="(0'#a0a0a0',80'#bebebe',177.4'#c8c800',322'#a0ff20',354.8'#00ff00',413.8'#006400',433.46'#00ff00',453.13'#a0ff20',472.8'#ffa500',496'#ff0000')"
             SATcbrange="[0:496]"
             SATyrange="[0:725]"
-        fi
+    fi
 
     echo "set terminal jpeg size 1920, 1080 
     set output '${LOGDIR}/${ID}_QC_output_graphs.jpeg'
