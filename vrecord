@@ -494,6 +494,108 @@ _writeingestlog(){
     fi
 }
 
+# create a png of qc data graphs for quick assessment
+_qcgraphimage(){
+    # get audio data
+    qctools_CONFIGFILE_A="$(/usr/bin/mktemp /tmp/astats_A_XXXXXXXXX).csv"
+    gzcat "$1" | perl -nle 'print if not m{lavfi.(?!astats.Overall.Min_level|astats.Overall.Max_level|astats.Overall.Peak_level|aphasemeter.phase)}' | xml select -t -m "//ffprobe:ffprobe/frames/frame[@media_type='audio']" \
+       -v "@pkt_pts_time" -o " " \
+       -v "tag[@key='lavfi.astats.Overall.Max_level']/@value" -o " " \
+       -v "tag[@key='lavfi.astats.Overall.Min_level']/@value" -o " " \
+       -v "tag[@key='lavfi.astats.Overall.Peak_level']/@value" -o " " \
+       -v "tag[@key='lavfi.aphasemeter.phase']/@value" -n > "${qctools_CONFIGFILE_A}"
+    # get video data
+    qctools_CONFIGFILE_V="$(/usr/bin/mktemp /tmp/signalstats_V_XXXXXXXXX).csv"
+    gzcat "$1" | perl -nle 'print if not m{lavfi.(?!signalstats.BRNG|signalstats.TOUT|signalstats.SATMAX|signalstats.SATAVG|ssim.Y|ssim.U|ssim.V)}' | xml select -t -m "//ffprobe:ffprobe/frames/frame[@media_type='video']" \
+       -v "@pkt_pts_time" -o " " \
+       -v "tag[@key='lavfi.signalstats.TOUT']/@value" -o " " \
+       -v "tag[@key='lavfi.signalstats.BRNG']/@value" -o " " \
+       -v "tag[@key='lavfi.signalstats.SATMAX']/@value" -o " " \
+       -v "tag[@key='lavfi.signalstats.SATAVG']/@value" -o " " \
+       -v "tag[@key='lavfi.ssim.Y']/@value" -o " " \
+       -v "tag[@key='lavfi.ssim.U']/@value" -o " " \
+       -v "tag[@key='lavfi.ssim.V']/@value" -n > "${qctools_CONFIGFILE_V}"
+
+    # determine SATURATION scale
+    VBitdepth="$(gzcat "$1" | perl -nle 'print if not m{<frame|</frame|<tag}' | xml sel -t -v "//stream[@codec_type='video']/@pix_fmt" -n
+    )"
+    if [[ "${VBitdepth}" = "uyvy422" ]] || [[ "${VBitdepth}" = "yuv422p" ]] ; then
+            SATpalette="(0'#a0a0a0',20'#bebebe',44.35'#c8c800',80'#a0ff20',88.7'#00ff00',103.45'#006400',108.2'#00ff00',113.2'#a0ff20',118.2'#ffa500',124'#ff0000')"
+            SATcbrange="[0:124]"
+            SATyrange="[0:183]"
+    elif [[ "${VBitdepth}" = "yuv422p10le" ]] ; then
+            SATpalette="(0'#a0a0a0',80'#bebebe',177.4'#c8c800',322'#a0ff20',354.8'#00ff00',413.8'#006400',433.46'#00ff00',453.13'#a0ff20',472.8'#ffa500',496'#ff0000')"
+            SATcbrange="[0:496]"
+            SATyrange="[0:725]"
+    fi
+
+    echo "set terminal jpeg size 1920, 1080 
+    set output '${LOGDIR}/${ID}_QC_output_graphs.jpeg'
+    set term jpeg font 'times,12'
+    set multiplot layout 7, 1 title '${ID} QC Data' margins screen .05,.93, .05, .93 spacing screen 0, char .7
+    set style line 11 lc rgb '#808080' lt 1
+    set border 15 back ls 11
+    set format x '%tH:%tM:%.1tS' time
+    set format x2 '%tH:%tM:%.1tS' time
+    set x2tics border out nomirror
+    set xtics border mirror in scale 1.5,.7 format '' 
+    set ytics border out nomirror 
+    set grid y
+    set grid x
+    set grid mxtics
+    set colorbox vertical back user origin graph 1.02,0 size char 1,6 
+    set key inside right top reverse samplen .00 
+    set yrange [-2147483648.:2147483648.]
+    set palette model RGB defined (-0.8'#ff0000',-0.6'#ffa500',-0.4'#a0ff20',-0.2'#00ff00',0'#006400',0.2'#00ff00',0.4'#a0ff20',.6'#ffa500',0.8'#ff0000') maxcolors 128
+    set cbrange [-2147483648.:2147483648.]
+    set style fill solid
+    plot '${qctools_CONFIGFILE_A}' using 1:2:2 with boxes palette title 'Max Level', '' using 1:3:3 with boxes palette title 'Min Level'
+    unset cbrange
+    unset x2tics
+    set yrange [-70:0]
+    set cbrange [0:-50.] 
+    set palette model RGB defined (-50'#006400',-35'#00ff00',-15'#a0ff20',-5'#ffa500',-0.5'#ff0000') maxcolors 128
+    set style line 15 linecolor palette lw 4
+    plot '' using 1:4:4 with lines ls 15 title 'Peak Level (dB)'
+    unset yrange
+    unset cbrange
+    set palette model RGB defined (-0.8'#ff0000',-0.6'#ffa500',-0.4'#a0ff20',0'#00ff00',1'#006400') maxcolors 128
+    set cbrange [-0.8:1]
+    set yrange [-1:1]
+    set style line 25 linecolor palette lw 4
+    plot '' using 1:5:5 with lines ls 25 title 'Audio Phase'
+    unset yrange
+    unset cbrange
+    set palette model RGB defined (0'#006400',0.01'#00ff00',0.02'#a0ff20',.04'#ffa500',0.05'#ff0000') maxcolors 128
+    set cbrange [0:.03]
+    set yrange [0:.1]
+    plot '${qctools_CONFIGFILE_V}' using 1:3:3 with boxes palette title '% Outside of Broadcast Range' 
+    unset yrange
+    set style line 10 linecolor '#804080' lw 2
+    plot '' using 1:2 with lines ls 10 title '% Temporal OUTliers'
+    unset yrange
+    unset cbrange
+    set style line 1 linecolor '#f03232' lw 2
+    set style line 2 linecolor '#006400' lw 2
+    set style line 3 linecolor '#00ff00' lw 2
+    set style line 4 linecolor '#f03232' lw 2
+    set style line 5 linecolor '#000000' lw 2
+    set style line 6 linecolor '#00008b' lw 2
+    set yrange ${SATyrange}
+    set palette model RGB defined ${SATpalette} maxcolors 128
+    set cbrange ${SATcbrange}
+    plot '' using 1:4:4 with boxes palette title 'SatMax', '' using 1:5 with lines ls 5 title 'SatAvg'
+    unset yrange
+    unset cbrange
+    unset xtics
+    unset key
+    set key at graph 1.07,.8 noreverse samplen 1  
+    set x2tics border mirror in scale 1.5,.7 format '' 
+    set xtics border out nomirror format '%tH:%tM:%.1tS' time
+    plot '' using 1:6 with lines ls 5 title 'SSIM-Y', '' using 1:7 with lines ls 2 title 'SSIM-U', '' using 1:8 with lines ls 6 title 'SSIM-V'
+    " | gnuplot
+}
+
 # decipher vrecord options as specified by user
 _lookup_choice(){
     case "${2}" in
@@ -1046,7 +1148,7 @@ if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
         | \
         if [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]] ; then
             tee >(mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -) | \
-                qcli -i - -o "${QCXML}"
+                qcli -f signalstats+aphasemeter+astats+ssim -i - -o "${QCXML}"
         else
             mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -
         fi
@@ -1059,7 +1161,7 @@ else
                 -v info -hide_banner -stats -autoexit -i - \
                 -window_title "${WINDOW_NAME}" \
                 -vf "${PLAYBACKFILTER}") | \
-                qcli -i - -o "${QCXML}"
+                qcli -f signalstats+aphasemeter+astats+ssim -i - -o "${QCXML}"
         else
             "${FFPLAY_DECKLINK[@]}" \
                 -v info -hide_banner -stats -autoexit -i - \
@@ -1086,7 +1188,7 @@ trap _cleanup SIGHUP SIGINT SIGTERM
 
 # qc tools process
 if [[ "${QCTOOLSXML_CHOICE}" = "Yes, after recording" ]] ; then
-    qcli -i "${VRECORD_OUTPUT}" -o "${QCXML}"
+    qcli -f signalstats+aphasemeter+astats+ssim -i "${VRECORD_OUTPUT}" -o "${QCXML}"
 fi
 if [[ "${QCTOOLSXML_CHOICE}" != "No" ]] ; then
     _report -d "Vrecord is analyzing your video file. Please be patient."
@@ -1100,6 +1202,8 @@ if [[ "${QCTOOLSXML_CHOICE}" != "No" ]] ; then
         BRNG_OUTLIERS=$(gzcat "${QCXML}" | perl -nle 'print if not m{lavfi.(?!signalstats.BRNG)}' | xml sel -t -v "count(//tag[@key='lavfi.signalstats.BRNG'][@value>=0.03])" -n)
         AUDIO_PEAK=$(gzcat "${QCXML}" | grep lavfi.astats.Overall.Peak_level | cut -d '"' -f 4 | sort -n | tail -n 1)
         _writeingestlog "Peak Volume is (dB)" "${AUDIO_PEAK}"
+        _report -d "Vrecord is generating graphs from the QCTools data. One moment please."
+        _qcgraphimage "${QCXML}"
     else
         _report -w "qctools XML ${QCXML} is empty or does not exist!"
     fi
