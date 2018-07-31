@@ -1202,8 +1202,10 @@ if [[ "${QCTOOLSXML_CHOICE}" != "No" ]] ; then
         BRNG_OUTLIERS=$(gzcat "${QCXML}" | perl -nle 'print if not m{lavfi.(?!signalstats.BRNG)}' | xml sel -t -v "count(//tag[@key='lavfi.signalstats.BRNG'][@value>=0.03])" -n)
         AUDIO_PEAK=$(gzcat "${QCXML}" | grep lavfi.astats.Overall.Peak_level | cut -d '"' -f 4 | sort -n | tail -n 1)
         _writeingestlog "Peak Volume is (dB)" "${AUDIO_PEAK}"
-        _report -d "Vrecord is generating graphs from the QCTools data. One moment please."
-        _qcgraphimage "${QCXML}"
+        if [[ $(which gnuplot) ]] ; then
+            _report -d "Vrecord is generating graphs from the QCTools data. One moment please."
+            _qcgraphimage "${QCXML}"
+        fi
     else
         _report -w "qctools XML ${QCXML} is empty or does not exist!"
     fi
