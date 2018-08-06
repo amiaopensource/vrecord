@@ -1,4 +1,4 @@
-.TH vrecord 1 "https://github.com/amiaopensource/vrecord" "2018\-06\-11" "AMIA Open Source"
+.TH vrecord 1 "https://github.com/amiaopensource/vrecord" "2018\-07\-31" "AMIA Open Source"
 .SH NAME
 vrecord \- An Open\-Source Video Capture Tool for Archivists
 .SH SYNOPSIS
@@ -8,7 +8,7 @@ Vrecord is open-source software for capturing a video signal and turning it into
 .PP
 Currently vrecord only supports Blackmagic Design capture cards with the Blackmagic driver installed.
 .SH OPTIONS
-.TP
+.TP 4
 .BR \-g
 Running vrecord in \fBGUI Mode\fR opens a window that allows you to access any of vrecord's other modes (Record, Passthrough, Audio Passthrough and Edit) via a friendly GUI. Useful if calling vrecord via an executable file.
 .TP
@@ -29,12 +29,15 @@ Running vrecord in \fBEdit Mode\fR opens a GUI window that allows you to change 
 .TP
 .BR \-h
 \fBHelp:\fR Displays basic usage information.
-.SH KNOWN QUIRKS
-.SS Timing of Recording
-When you start recording there may be several seconds of delay before the vrecord window actually appears. But don't worry, once you've pressed enter, vrecord is already capturing the signal and encoding it into a file.
-.PP
-If you are watching the videotape output on a separate monitor and the video feeds on vrecord appear to be slightly behind the monitor, don't panic; all of your video has still been captured.
-.SS FFmpeg Error Message
-At the end of recording you may see an FFmpeg warning about invalid data. It is safe to ignore this as it has no effect on your digitized file.
+.SH ADVANCED OPTIONS
+.TP 4
+.BR \-I
+Provide a string of input options for the recording ffmpeg to use. For example "vrecord -i '-loglevel trace'" would force an ffmpeg logging level that is usually unaccessible via vrecord preferences.
+.TP
+.BR \-O
+Provide a string of output options for the recording ffmpeg to use.
+.TP
+.BR \-i
+Provide a file as an input to vrecord, rather than using the decklink device. For testing without a decklink device.
 .SH LICENSE
 Vrecord is licensed under a Creative Commons Attribution 4.0 International License.
