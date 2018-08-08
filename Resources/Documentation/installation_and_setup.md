@@ -14,6 +14,13 @@ Alternatively, you can run the following command:
 brew install amiaopensource/amiaos/vrecord
 ```
 
+Gnuplot is the program that vrecord uses to generate the jpeg of the QC graphs. It must be installed separately due to a conflicting dependency on a newer version of lua. You will be prompted to install by running the following command:
+```
+brew install gnuplot --without-lua
+```
+
+(This will install gnuplot without lua and allow vrecord to produce an image of the QC graphs along with the qctools report)
+
 Once vrecord has been successfully installed, you can update it to the latest release by first running:
 ```
 brew update
