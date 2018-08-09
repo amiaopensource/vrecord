@@ -107,17 +107,17 @@ You may also see a warning that says "packet too small." You can safely ignore t
 Next, check to make sure vrecord produced the correct files. These are:
 
 1. The video file itself 
-1. Bmdcapture log (filename_bmdcapture.log)
-1. FFmpeg log (filename\_ffmpeg\_date_time.log)
-1. FFplay log (filename\_ffplay\_date_time.log)
+1. Bmdcapture log (filename\_bmdcapture.log)
+1. FFmpeg log (filename\_ffmpeg\_date\_time.log)
+1. FFplay log (filename\_ffplay\_date\_time.log)
 1. Frame MD5 file (filename.framemd5) if you chose to record frame MD5s, which you should do
-1. A capture options log (filename\_capture_options.log)
+1. A capture options log (filename\_capture\_options.log)
 1. A QCTools XML file, if you chose to create it (filename.qctools.xml.gz)
-1. An image file of QC graphs (filename\_QC\_output_graphs.jpeg) if you chose to create the QCTools XML file
+1. An image file of QC graphs (filename\_QC\_output\_graphs.jpeg) if you chose to create the QCTools XML file
 
 Scroll through the video file to make sure it is complete; in other words, you've captured the entire tape. If all these files exist and the video file looks complete you can move on to further QC.
 
-###QC Graphs
+### QC Graphs
 Vrecord can now create an image that contains seven graphs of the data collected during the QCTools analysis. These graphs include the min/max audio levels, the peak audio levels the audio phase, the percentage outside of broadcast range, percentage of temporal outliers, the saturation levels (avg and max), and the structural similarity metric (Y,U,V). These characteristics are plotted and colored to highlight values that fall outside acceptable ranges. This feature was introduced to help with the rapid assessment of a recording immediately after it has been generated. The characteristics selected and the highlighted values are intended to clearly illustrate the general success or failure of a recording without the need for additional QC. For example, if a recording is far too loud or the blacks are too dark, that will be immediately apparent and the recording can be redone without having to be extensively reviewed.   
 
 Version 2 introduces the following updates: 
