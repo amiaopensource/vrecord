@@ -110,7 +110,7 @@ _report(){
     echo ${ECHOOPT} "${COLOR}${STARTMESSAGE[@]}${MESSAGE}${NC}"
 }
 
-_parse_diskutil_report(){
+_parse_report(){
     KEY="${1}"
     REPORT="${2}"
     echo "${REPORT}" | grep "^[ ]*${KEY}:" | cut -d : -f 2- | awk '{$1=$1;print}'
@@ -1139,19 +1139,19 @@ _writeingestlog "datetime_start" "$(_get_iso8601)"
 
 MOUNT_PATH="$(df -Ph "${DIR}" | tail -n 1 | awk '{print $6}')"
 VOLUME_INFO="$(diskutil info "${MOUNT_PATH}")"
-PART_OF_WHOLE="/dev/$(_parse_diskutil_report "Part of Whole" "${VOLUME_INFO}")"
+PART_OF_WHOLE="/dev/$(_parse_report "Part of Whole" "${VOLUME_INFO}")"
 CAPTURE_DEVICE_INFO="$(diskutil info "${PART_OF_WHOLE}")"
 
-_writeingestlog "capture_device_node" "$(_parse_diskutil_report "Device Node" "${CAPTURE_DEVICE_INFO}")"
-_writeingestlog "capture_device_protocol" "$(_parse_diskutil_report "Protocol" "${CAPTURE_DEVICE_INFO}")"
-_writeingestlog "capture_device_name" "$(_parse_diskutil_report "Device / Media Name" "${CAPTURE_DEVICE_INFO}")"
-_writeingestlog "capture_device_block_size" "$(_parse_diskutil_report "Device Block Size" "${CAPTURE_DEVICE_INFO}")"
-_writeingestlog "capture_device_location" "$(_parse_diskutil_report "Device Location" "${CAPTURE_DEVICE_INFO}")"
-_writeingestlog "capture_device_partition_type" "$(_parse_diskutil_report "Partition Type" "${VOLUME_INFO}")"
-_writeingestlog "capture_device_partition_name" "$(_parse_diskutil_report "Name (User Visible)" "${VOLUME_INFO}")"
-_writeingestlog "capture_device_volume_uuid" "$(_parse_diskutil_report "Volume UUID" "${VOLUME_INFO}")"
-_writeingestlog "capture_device_volume_available" "$(_parse_diskutil_report "Volume Available Space" "${VOLUME_INFO}")"
-_writeingestlog "capture_device_volume_total" "$(_parse_diskutil_report "Volume Total Space" "${VOLUME_INFO}")"
+_writeingestlog "capture_device_node" "$(_parse_report "Device Node" "${CAPTURE_DEVICE_INFO}")"
+_writeingestlog "capture_device_protocol" "$(_parse_report "Protocol" "${CAPTURE_DEVICE_INFO}")"
+_writeingestlog "capture_device_name" "$(_parse_report "Device / Media Name" "${CAPTURE_DEVICE_INFO}")"
+_writeingestlog "capture_device_block_size" "$(_parse_report "Device Block Size" "${CAPTURE_DEVICE_INFO}")"
+_writeingestlog "capture_device_location" "$(_parse_report "Device Location" "${CAPTURE_DEVICE_INFO}")"
+_writeingestlog "capture_device_partition_type" "$(_parse_report "Partition Type" "${VOLUME_INFO}")"
+_writeingestlog "capture_device_partition_name" "$(_parse_report "Name (User Visible)" "${VOLUME_INFO}")"
+_writeingestlog "capture_device_volume_uuid" "$(_parse_report "Volume UUID" "${VOLUME_INFO}")"
+_writeingestlog "capture_device_volume_available" "$(_parse_report "Volume Available Space" "${VOLUME_INFO}")"
+_writeingestlog "capture_device_volume_total" "$(_parse_report "Volume Total Space" "${VOLUME_INFO}")"
 
 _writeingestlog "FILE_PATH" "${VRECORD_OUTPUT}"
 echo -e "${LOG_OF_OPTIONS}" >> "${INGESTLOG}"
