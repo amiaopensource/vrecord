@@ -218,6 +218,14 @@ _construct_pashua_id INVERT_PHASE       x=410 y=0 type=checkbox \
                                         default="${INVERT_PHASE}"
 _construct_pashua_id WARNING            x=350 y=0 type=text \
                                         default="WARNING: Do not use this option unless required"
+_construct_pashua_id LOG_CAPTURE_CONFIG_CHOICE     x=660 y=55 type=radiobutton \
+                                        label="Report capture configuration" \
+                                        tooltip="select whether capture configuration device information will be recorded in the logs. Requires configuration selection" \
+                                        default="${LOG_CAPTURE_CONFIG_CHOICE}" \
+                                        "${LOG_CAPTURE_CONFIG_OPTIONS[@]}"
+_construct_pashua_id SELECT_CAPTURE_CONFIG x=710 y=68 type=button \
+                                        label="Set Configuration..."
+  
 }
 
 # command-line options to set media id and original variables
@@ -348,6 +356,91 @@ _master_gui(){
     fi
 }
 
+# GUI for capture configuration
+_capture_config_gui(){
+    
+    CC_PROFILE_DIR_Default="$HOME/"Vrecord\ Capture\ Profiles""
+
+    
+    _construct_capture_config_gui(){
+        _construct_pashua_id \*                         transparency=0.95 title="Capture Configuration" \
+                                                        x=200 y=100
+        _construct_pashua_id cb                         type=cancelbutton label="Cancel" tooltip="Closes this window without returning the values entered"
+        _construct_pashua_id db                         type=defaultbutton label="Ok"
+        _construct_pashua_id CC_INTRO                   x=20 y=480 type=text width=500 \
+                                                        text="Input information about your capture configuration"
+        _construct_pashua_id CC_PROFILE_DIR             x=20 y=440 type=openbrowser filetype=directory width=400 \
+                                                        default="${CC_PROFILE_DIR_Default}" \
+                                                        mandatory=Yes
+                                                        label="Select a capture profile directory."
+        _construct_pashua_id CC_PROFILE_NAME            x=20 y=370 type=textbox height=30 width=400 \
+                                                        label="Enter the name of the capture configuration profile (Example: Umatic1)" \
+                                                        mandatory=Yes
+        _construct_pashua_id CC_DECK_MAKE               x=20 y=300 type=textbox height=30 \
+                                                        label="Deck Make" text="Enter Deck Make"
+        _construct_pashua_id CC_DECK_MODEL              x=20 y=235 type=textbox height=30 \
+                                                        label="Deck Model" text="Enter Deck Model"
+        _construct_pashua_id CC_DECK_Serial             x=20 y=155 type=textbox height=30 \
+                                                        label="Deck Serial Number" text="Enter Serial Number"
+        _construct_pashua_id CC_TBC_MAKE                x=340 y=300 type=textbox height=30 \
+                                                        label="TBC Make" text="Enter TBC Make"
+        _construct_pashua_id CC_TBC_MODEL               x=340 y=235 type=textbox height=30 \
+                                                        label="TBC Model" text="Enter TBC Model"
+        _construct_pashua_id CC_TBC_Serial              x=340 y=155 type=textbox height=30 \
+                                                        label="TBC Serial Number" text="Enter TBC Serial Number"
+        _construct_pashua_id CC_ADC_MAKE                x=670 y=300 type=textbox height=30 \
+                                                        label="Analog-Digial Converter Make" text="Enter Analog-Digial Converter Make"
+        _construct_pashua_id CC_ADC_Model               x=670 y=235 type=textbox height=30 \
+                                                        text="Enter Analog-Digial Converter Model" label="Analog-Digial Converter Model" 
+        _construct_pashua_id CC_ADC_Serial              x=670 y=155 type=textbox height=30 \
+                                                        label="Analog-Digial Converter Serial Number" text="Enter Analog-Digial Converter Serial Number"
+        _construct_pashua_id CC_NOTES                   x=50 y=20 type=textbox height=100 width=400 \
+                                                        label="Notes:"
+    }
+        _construct_capture_config_gui > "${PASHUA_CONFIGFILE}"
+        _pashua_run
+
+        if [[ "${cb}" = 0 ]] ; then
+
+            if  [[ ! -d "${CC_PROFILE_DIR}" ]] ; then
+                CC_PROFILE_DIR="${CC_PROFILE_DIR_Default}"
+                if [[ ! -d "${CC_PROFILE_DIR_Default}" ]] ; then
+                    mkdir "${CC_PROFILE_DIR_Default}" 
+                    CC_PROFILE_DIR="${CC_PROFILE_DIR_Default}"
+                fi
+            fi
+            
+        CAPTURE_CONFIGURATION_PROFILE=""$(echo ${CC_PROFILE_DIR})"/"$(echo ${CC_PROFILE_NAME})""
+            
+            echo
+            echo "path is "$(echo ${CC_PROFILE_DIR} | sed 's/ /\\\ /g')""
+            echo "name is ${CC_PROFILE_NAME}"
+            echo "profile is "$(echo "${CAPTURE_CONFIGURATION_PROFILE}" | sed 's/ /\\\ /g')" .txt"
+            echo
+
+            {
+                echo "# Set these variables to a valid option or leave as empty quotes (like \"\") to request each run."
+                for COMMENT_LINE in CC_PROFILE_DIR CC_PROFILE_NAME CC_DECK_MAKE CC_DECK_MODEL CC_DECK_Serial \
+                CC_TBC_MAKE CC_TBC_MODEL CC_TBC_Serial CC_ADC_MAKE CC_ADC_Model CC_ADC_Serial CC_NOTES ; do
+                    echo "${COMMENT_LINE}=\"${!COMMENT_LINE}\""
+                done
+                echo "Profile Name: ${CC_PROFILE_NAME}"
+                echo "Profile Path "$(echo "${CAPTURE_CONFIGURATION_PROFILE}" | sed 's/ /\\\ /g')".txt"
+            } > "${CAPTURE_CONFIGURATION_PROFILE}".txt
+            
+            rm "${PASHUA_CONFIGFILE}"
+            _edit_mode
+            
+        else rm "${PASHUA_CONFIGFILE}"
+            _edit_mode
+             
+        fi
+        if [[ -e "${PASHUA_CONFIGFILE}" ]] ; then
+            rm "${PASHUA_CONFIGFILE}"
+        fi
+        
+}
+
 # relaunch GUI in GUI mode/exit script in terminal mode
 _gui_return(){
     if [[ "${GUI}" = 1 ]] ; then
@@ -384,6 +477,8 @@ _edit_mode(){
         echo "  QCTOOLSXML_CHOICE = ${QCTOOLSXML_CHOICE}"
         echo "  FRAMEMD5_CHOICE = ${FRAMEMD5_CHOICE}"
         echo "  EMBED_LOGS_CHOICE = ${EMBED_LOGS_CHOICE}"
+        echo "  LOG_CAPTURE_CONFIG_CHOICE = ${LOG_CAPTURE_CONFIG_CHOICE}"
+        echo "  SELECT_CAPTURE_CONFIG = ${SELECT_CAPTURE_CONFIG}"
         echo "  PLAYBACKVIEW_CHOICE = ${PLAYBACKVIEW_CHOICE}"
         echo "  DURATION = ${DURATION}"
         echo "  TECHNICIAN = ${TECHNICIAN}"
@@ -404,15 +499,21 @@ _edit_mode(){
             echo "# Set these variables to a valid option or leave as empty quotes (like \"\") to request each run."
             for COMMENT_LINE in VIDEO_INPUT_CHOICE AUDIO_INPUT_CHOICE CONTAINER_CHOICE VIDEO_CODEC_CHOICE \
             VIDEO_BIT_DEPTH_CHOICE AUDIO_MAPPING_CHOICE STANDARD_CHOICE QCTOOLSXML_CHOICE FRAMEMD5_CHOICE \
-            EMBED_LOGS_CHOICE PLAYBACKVIEW_CHOICE DIR LOGDIR INVERT_PHASE DURATION TECHNICIAN ; do
+            EMBED_LOGS_CHOICE PLAYBACKVIEW_CHOICE LOG_CAPTURE_CONFIG_CHOICE DIR LOGDIR INVERT_PHASE DURATION TECHNICIAN ; do
                 echo "${COMMENT_LINE}=\"${!COMMENT_LINE}\""
             done
         } > "${CONFIG_FILE}"
-        . "${CONFIG_FILE}"
+            cat "${CAPTURE_CONFIGURATION_PROFILE}".txt >> "${CONFIG_FILE}"
+            . "${CONFIG_FILE}"
+
     else
         _report -d "Editing of preferences was canceled by the user."
     fi
-    if [[ "${GUI}" = 1 ]] ; then
+    if [[ "${SELECT_CAPTURE_CONFIG}" = 1 ]] ; then
+        SELECT_CAPTURE_CONFIG=0
+        _capture_config_gui
+        
+    elif [[ "${GUI}" = 1 ]] ; then
         _master_gui
     else
         RUNTYPE="record"
@@ -932,6 +1033,7 @@ STANDARD_OPTIONS=("NTSC" "PAL")
 QCTOOLSXML_OPTIONS=("Yes, after recording" "Yes, concurrent with recording" "No")
 FRAMEMD5_OPTIONS=("Yes" "No")
 EMBED_LOGS_OPTIONS=("Yes" "No")
+LOG_CAPTURE_CONFIG_OPTIONS=("Yes" "No")
 DURATION_OPTIONS=(23 33 63 93)
 PLAYBACKVIEW_OPTIONS=("Quality Control View (mpv)" "Broadcast Range Visual" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes")
 
