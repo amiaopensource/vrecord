@@ -1154,6 +1154,11 @@ _writeingestlog "capture_device_volume_available" "$(_parse_report "Volume Avail
 _writeingestlog "capture_device_volume_total" "$(_parse_report "Volume Total Space" "${VOLUME_INFO}")"
 
 _writeingestlog "FILE_PATH" "${VRECORD_OUTPUT}"
+
+DECKLINK_DRIVER_PLIST=/Library/Extensions/DeckLink_Driver.kext/Contents/Info.plist
+_writeingestlog "video_card_driver_version" "$(defaults read "${DECKLINK_DRIVER_PLIST}" CFBundleVersion)"
+_writeingestlog "video_card_name" "${FIRST_DECKLINK_INPUT}"
+
 echo -e "${LOG_OF_OPTIONS}" >> "${INGESTLOG}"
 if [[ -z "${TECHNICIAN}" ]] ; then
     _writeingestlog "TECHNICIAN" "N/A"
