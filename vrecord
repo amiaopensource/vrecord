@@ -389,11 +389,11 @@ _capture_config_gui(){
         _construct_pashua_id CC_TBC_Serial              x=340 y=155 type=textbox height=30 \
                                                         label="TBC Serial Number" text="Enter TBC Serial Number"
         _construct_pashua_id CC_ADC_MAKE                x=670 y=300 type=textbox height=30 \
-                                                        label="Analog-Digial Converter Make" text="Enter Analog-Digial Converter Make"
+                                                        label="Analog-Digital Converter Make" text="Enter Analog-Digital Converter Make"
         _construct_pashua_id CC_ADC_Model               x=670 y=235 type=textbox height=30 \
-                                                        text="Enter Analog-Digial Converter Model" label="Analog-Digial Converter Model" 
+                                                        text="Enter Analog-Digital Converter Model" label="Analog-Digital Converter Model" 
         _construct_pashua_id CC_ADC_Serial              x=670 y=155 type=textbox height=30 \
-                                                        label="Analog-Digial Converter Serial Number" text="Enter Analog-Digial Converter Serial Number"
+                                                        label="Analog-Digital Converter Serial Number" text="Enter Analog-Digital Converter Serial Number"
         _construct_pashua_id CC_NOTES                   x=50 y=20 type=textbox height=100 width=400 \
                                                         label="Notes:"
     }
