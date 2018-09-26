@@ -713,6 +713,7 @@ _lookup_choice(){
             MIDDLEOPTIONS+=(-colorspace bt470bg) ;;
 
         # playback views
+        "Unfiltered") PLAYBACKFILTER="" ;;
         "Quality Control View (mpv)") MEDIA_PLAYER_CHOICE="mpv" ;;
         "Broadcast Range Visual")
             PLAYBACKFILTER="\
@@ -937,7 +938,7 @@ QCTOOLSXML_OPTIONS=("Yes, after recording" "Yes, concurrent with recording" "No"
 FRAMEMD5_OPTIONS=("Yes" "No")
 EMBED_LOGS_OPTIONS=("Yes" "No")
 DURATION_OPTIONS=(23 33 63 93)
-PLAYBACKVIEW_OPTIONS=("Quality Control View (mpv)" "Broadcast Range Visual" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes")
+PLAYBACKVIEW_OPTIONS=("Unfiltered" "Quality Control View (mpv)" "Broadcast Range Visual" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes")
 
 # GUI mode + CLI reset, edit modes
 if [[ "${RUNTYPE}" = "GUI" ]] ; then
@@ -1043,7 +1044,9 @@ else
 fi
 FFPLAY_OPTIONS+=(-hide_banner)
 FFPLAY_OPTIONS+=(-window_title "${WINDOW_NAME}")
-FFPLAY_OPTIONS+=(-vf "${PLAYBACKFILTER}")
+if [[ ! -z "${PLAYBACKFILTER}" ]] ; then
+    FFPLAY_OPTIONS+=(-vf "${PLAYBACKFILTER}")
+fi
 
 # CLI passthrough and audiopassthrough modes
 if [[ "${RUNTYPE}" = "passthrough" ]] ; then
