@@ -442,9 +442,7 @@ _passthrough_mode(){
         "${PIPE_DECKLINK[@]}" | \
         mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -
     else
-        "${FFPLAY_DECKLINK}" -v info -nostats "${GRAB_DECKLINK[@]}" 2> /tmp/vrecord_input.log \
-        -window_title "${WINDOW_NAME}" \
-        -vf "${PLAYBACKFILTER}"
+        "${FFPLAY_DECKLINK}" "${FFPLAY_OPTIONS[@]}" 2> /tmp/vrecord_input.log
     fi
     _gui_return
 }
@@ -1034,6 +1032,19 @@ PIPE_DECKLINK+=(-write_index 0)
 PIPE_DECKLINK+=(-)
 WINDOW_NAME="mode:${RUNTYPE} - video:'${VIDEO_INPUT}' audio:'${AUDIO_INPUT}' - to end recording press q, esc, or close video window"
 
+FFPLAY_OPTIONS=(-v info)
+FFPLAY_OPTIONS+=(-hide_banner)
+FFPLAY_OPTIONS+=(-stats)
+FFPLAY_OPTIONS+=(-autoexit)
+if [[ "${RUNTYPE}" = "passthrough" ]] ; then
+    FFPLAY_OPTIONS+=("${GRAB_DECKLINK[@]}")
+else
+    FFPLAY_OPTIONS+=(-i -)
+fi
+FFPLAY_OPTIONS+=(-hide_banner)
+FFPLAY_OPTIONS+=(-window_title "${WINDOW_NAME}")
+FFPLAY_OPTIONS+=(-vf "${PLAYBACKFILTER}")
+
 # CLI passthrough and audiopassthrough modes
 if [[ "${RUNTYPE}" = "passthrough" ]] ; then
     _passthrough_mode
@@ -1205,16 +1216,10 @@ else
         2> >(tee "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}" /tmp/vrecord_input.log >/dev/null) \
         | \
         if [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]] ; then
-            tee >("${FFPLAY_DECKLINK[@]}" \
-                -v info -hide_banner -stats -autoexit -i - \
-                -window_title "${WINDOW_NAME}" \
-                -vf "${PLAYBACKFILTER}") | \
+            tee >("${FFPLAY_DECKLINK[@]}" "${FFPLAY_OPTIONS[@]}") | \
                 qcli -f signalstats+aphasemeter+astats+ssim -i - -o "${QCXML}"
         else
-            "${FFPLAY_DECKLINK[@]}" \
-                -v info -hide_banner -stats -autoexit -i - \
-                -window_title "${WINDOW_NAME}" \
-                -vf "${PLAYBACKFILTER}"
+            "${FFPLAY_DECKLINK[@]}" "${FFPLAY_OPTIONS[@]}"
         fi
 fi
 # capture errors from components of recording pipe
