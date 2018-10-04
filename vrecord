@@ -1040,7 +1040,6 @@ if [[ "${RUNTYPE}" = "passthrough" ]] ; then
 else
     FFPLAY_OPTIONS+=(-i -)
 fi
-FFPLAY_OPTIONS+=(-hide_banner)
 FFPLAY_OPTIONS+=(-window_title "${WINDOW_NAME}")
 if [[ ! -z "${PLAYBACKFILTER}" ]] ; then
     FFPLAY_OPTIONS+=(-vf "${PLAYBACKFILTER}")
