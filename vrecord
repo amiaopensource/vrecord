@@ -154,50 +154,50 @@ _construct_pashua_conf(){
 _construct_pashua_id \*                 transparency=0.95 title="vrecord configuration"
 _construct_pashua_id INTRO              x=20 y=480 type=text width=500 \
                                         text="Set file recording options. Leave the option as \"${UNDECLAREDOPTION}\" to be prompted later."
-_construct_pashua_id DIR                x=20 y=440 type=openbrowser filetype=directory width=400 \
+_construct_pashua_id DIR                x=20 y=430 type=openbrowser filetype=directory width=400 \
                                         default="${DIR}" \
                                         label="Select a recording directory."
-_construct_pashua_id LOGDIR             x=20 y=395 type=openbrowser filetype=directory width=400 \
+_construct_pashua_id LOGDIR             x=20 y=385 type=openbrowser filetype=directory width=400 \
                                         default="${LOGDIR}" \
                                         label="Select a directory for auxiliary files (leave blank to match the recording directory)." \
                                         tooltip="select the directory for automatically generated logs and checksums"
-_construct_pashua_id VIDEO_INPUT_CHOICE x=20 y=280 type=radiobutton \
+_construct_pashua_id VIDEO_INPUT_CHOICE x=20 y=260 type=radiobutton \
                                         default="${VIDEO_INPUT_CHOICE}" \
                                         label="Select Video Input" \
                                         "${VIDEO_INPUT_OPTIONS[@]}"
-_construct_pashua_id AUDIO_INPUT_CHOICE x=20 y=150 type=radiobutton \
+_construct_pashua_id AUDIO_INPUT_CHOICE x=20 y=140 type=radiobutton \
                                         label="Select Audio Input" \
                                         default="${AUDIO_INPUT_CHOICE}" \
                                         "${AUDIO_INPUT_OPTIONS[@]}"
-_construct_pashua_id CONTAINER_CHOICE   x=170 y=280 type=radiobutton \
+_construct_pashua_id CONTAINER_CHOICE   x=170 y=260 type=radiobutton \
                                         label="Select File Format" \
                                         default="${CONTAINER_CHOICE}" \
                                         "${CONTAINER_OPTIONS[@]}"
-_construct_pashua_id VIDEO_CODEC_CHOICE x=300 y=280 type=radiobutton \
+_construct_pashua_id VIDEO_CODEC_CHOICE x=300 y=260 type=radiobutton \
                                         label="Select Codec for Video" \
                                         default="${VIDEO_CODEC_CHOICE}" \
                                         "${VIDEO_CODEC_OPTIONS[@]}"
-_construct_pashua_id VIDEO_BIT_DEPTH_CHOICE   x=470 y=317 type=radiobutton \
+_construct_pashua_id VIDEO_BIT_DEPTH_CHOICE   x=470 y=297 type=radiobutton \
                                         label="Select Video Bit Depth" \
                                         default="${VIDEO_BIT_DEPTH_CHOICE}" \
                                         "${VIDEO_BITDEPTH_OPTIONS[@]}"
-_construct_pashua_id AUDIO_MAPPING_CHOICE     x=200 y=200 type=popup \
+_construct_pashua_id AUDIO_MAPPING_CHOICE     x=200 y=190 type=popup \
                                         label="Select Audio Channel Mapping" \
                                         default="${AUDIO_MAPPING_CHOICE}" \
                                         "${CHANNEL_MAPPING_OPTIONS[@]}"
-_construct_pashua_id STANDARD_CHOICE    x=470 y=230 type=radiobutton \
+_construct_pashua_id STANDARD_CHOICE    x=470 y=210 type=radiobutton \
                                         label="Select Television Standard" \
                                         default="${STANDARD_CHOICE}" \
                                         "${STANDARD_OPTIONS[@]}"
-_construct_pashua_id QCTOOLSXML_CHOICE  x=660 y=317 type=radiobutton \
+_construct_pashua_id QCTOOLSXML_CHOICE  x=660 y=367 type=radiobutton \
                                         label="Create QCTools XML?" \
                                         default="${QCTOOLSXML_CHOICE}" \
                                         "${QCTOOLSXML_OPTIONS[@]}"
-_construct_pashua_id FRAMEMD5_CHOICE    x=660 y=230 type=radiobutton \
+_construct_pashua_id FRAMEMD5_CHOICE    x=660 y=280 type=radiobutton \
                                         label="Create frame-level MD5 checksums? (recommended)" \
                                         default="${FRAMEMD5_CHOICE}" \
                                         "${FRAMEMD5_OPTIONS[@]}"
-_construct_pashua_id EMBED_LOGS_CHOICE  x=660 y=143 type=radiobutton \
+_construct_pashua_id EMBED_LOGS_CHOICE  x=660 y=193 type=radiobutton \
                                         label="Embed digitization logs in video file? (Matroska only)" \
                                         default="${EMBED_LOGS_CHOICE}" \
                                         "${EMBED_LOGS_OPTIONS[@]}"
@@ -218,14 +218,16 @@ _construct_pashua_id INVERT_PHASE       x=410 y=0 type=checkbox \
                                         default="${INVERT_PHASE}"
 _construct_pashua_id WARNING            x=350 y=0 type=text \
                                         default="WARNING: Do not use this option unless required"
-_construct_pashua_id LOG_CAPTURE_CONFIG_CHOICE     x=660 y=55 type=radiobutton \
+_construct_pashua_id LOG_CAPTURE_CONFIG_CHOICE     x=660 y=110 type=radiobutton \
                                         label="Report capture configuration" \
                                         tooltip="select whether capture configuration device information will be recorded in the logs. Requires configuration selection" \
                                         default="${LOG_CAPTURE_CONFIG_CHOICE}" \
                                         "${LOG_CAPTURE_CONFIG_OPTIONS[@]}"
-_construct_pashua_id SELECT_CAPTURE_CONFIG x=710 y=68 type=button \
-                                        label="Set Configuration..."
-  
+_construct_pashua_id SELECT_CAPTURE_CONFIG_CHOICE x=660 y=68 type=openbrowser filetype=txt width=400 \
+                                        default="${SELECT_CAPTURE_CONFIG_CHOICE}" \
+                                        label="Select Configuration..."
+_construct_pashua_id CREATE_CAPTURE_CONFIG x=660 y=41 type=button \
+                                        label="Create a new configuration..."
 }
 
 # command-line options to set media id and original variables
@@ -358,10 +360,7 @@ _master_gui(){
 
 # GUI for capture configuration
 _capture_config_gui(){
-    
     CC_PROFILE_DIR_Default="$HOME/"Vrecord\ Capture\ Profiles""
-
-    
     _construct_capture_config_gui(){
         _construct_pashua_id \*                         transparency=0.95 title="Capture Configuration" \
                                                         x=200 y=100
@@ -369,76 +368,76 @@ _capture_config_gui(){
         _construct_pashua_id db                         type=defaultbutton label="Ok"
         _construct_pashua_id CC_INTRO                   x=20 y=480 type=text width=500 \
                                                         text="Input information about your capture configuration"
-        _construct_pashua_id CC_PROFILE_DIR             x=20 y=440 type=openbrowser filetype=directory width=400 \
+        _construct_pashua_id CC_PROFILE_DIR             x=20 y=420 type=openbrowser filetype=directory width=400 \
                                                         default="${CC_PROFILE_DIR_Default}" \
+                                                        label="Select a capture profile directory" \
                                                         mandatory=Yes
-                                                        label="Select a capture profile directory."
-        _construct_pashua_id CC_PROFILE_NAME            x=20 y=370 type=textbox height=30 width=400 \
+        _construct_pashua_id CC_PROFILE_NAME            x=20 y=350 type=textbox height=30 width=400 \
                                                         label="Enter the name of the capture configuration profile (Example: Umatic1)" \
                                                         mandatory=Yes
-        _construct_pashua_id CC_DECK_MAKE               x=20 y=300 type=textbox height=30 \
+        _construct_pashua_id CC_DECK_MAKE               x=20 y=280 type=textbox height=30 \
                                                         label="Deck Make" text="Enter Deck Make"
-        _construct_pashua_id CC_DECK_MODEL              x=20 y=235 type=textbox height=30 \
+        _construct_pashua_id CC_DECK_MODEL              x=20 y=215 type=textbox height=30 \
                                                         label="Deck Model" text="Enter Deck Model"
-        _construct_pashua_id CC_DECK_Serial             x=20 y=155 type=textbox height=30 \
+        _construct_pashua_id CC_DECK_Serial             x=20 y=150 type=textbox height=30 \
                                                         label="Deck Serial Number" text="Enter Serial Number"
-        _construct_pashua_id CC_TBC_MAKE                x=340 y=300 type=textbox height=30 \
+        _construct_pashua_id CC_TBC_MAKE                x=340 y=280 type=textbox height=30 \
                                                         label="TBC Make" text="Enter TBC Make"
-        _construct_pashua_id CC_TBC_MODEL               x=340 y=235 type=textbox height=30 \
+        _construct_pashua_id CC_TBC_MODEL               x=340 y=215 type=textbox height=30 \
                                                         label="TBC Model" text="Enter TBC Model"
-        _construct_pashua_id CC_TBC_Serial              x=340 y=155 type=textbox height=30 \
+        _construct_pashua_id CC_TBC_Serial              x=340 y=150 type=textbox height=30 \
                                                         label="TBC Serial Number" text="Enter TBC Serial Number"
-        _construct_pashua_id CC_ADC_MAKE                x=670 y=300 type=textbox height=30 \
+        _construct_pashua_id CC_ADC_MAKE                x=670 y=280 type=textbox height=30 \
                                                         label="Analog-Digital Converter Make" text="Enter Analog-Digital Converter Make"
-        _construct_pashua_id CC_ADC_Model               x=670 y=235 type=textbox height=30 \
+        _construct_pashua_id CC_ADC_Model               x=670 y=215 type=textbox height=30 \
                                                         text="Enter Analog-Digital Converter Model" label="Analog-Digital Converter Model" 
-        _construct_pashua_id CC_ADC_Serial              x=670 y=155 type=textbox height=30 \
+        _construct_pashua_id CC_ADC_Serial              x=670 y=150 type=textbox height=30 \
                                                         label="Analog-Digital Converter Serial Number" text="Enter Analog-Digital Converter Serial Number"
-        _construct_pashua_id CC_NOTES                   x=50 y=20 type=textbox height=100 width=400 \
+        _construct_pashua_id CC_NOTES                   x=20 y=15 type=textbox height=90 width=500 \
                                                         label="Notes:"
-    }
-        _construct_capture_config_gui > "${PASHUA_CONFIGFILE}"
-        _pashua_run
+}
 
-        if [[ "${cb}" = 0 ]] ; then
+_construct_capture_config_gui > "${PASHUA_CONFIGFILE}"
+_pashua_run
 
-            if  [[ ! -d "${CC_PROFILE_DIR}" ]] ; then
-                CC_PROFILE_DIR="${CC_PROFILE_DIR_Default}"
-                if [[ ! -d "${CC_PROFILE_DIR_Default}" ]] ; then
-                    mkdir "${CC_PROFILE_DIR_Default}" 
-                    CC_PROFILE_DIR="${CC_PROFILE_DIR_Default}"
-                fi
-            fi
-            
-        CAPTURE_CONFIGURATION_PROFILE=""$(echo ${CC_PROFILE_DIR})"/"$(echo ${CC_PROFILE_NAME})""
-            
-            echo
-            echo "path is "$(echo ${CC_PROFILE_DIR} | sed 's/ /\\\ /g')""
-            echo "name is ${CC_PROFILE_NAME}"
-            echo "profile is "$(echo "${CAPTURE_CONFIGURATION_PROFILE}" | sed 's/ /\\\ /g')" .txt"
-            echo
+if [[ "${cb}" = 0 ]] ; then
 
-            {
-                echo "# Set these variables to a valid option or leave as empty quotes (like \"\") to request each run."
-                for COMMENT_LINE in CC_PROFILE_DIR CC_PROFILE_NAME CC_DECK_MAKE CC_DECK_MODEL CC_DECK_Serial \
-                CC_TBC_MAKE CC_TBC_MODEL CC_TBC_Serial CC_ADC_MAKE CC_ADC_Model CC_ADC_Serial CC_NOTES ; do
-                    echo "${COMMENT_LINE}=\"${!COMMENT_LINE}\""
-                done
-                echo "Profile Name: ${CC_PROFILE_NAME}"
-                echo "Profile Path "$(echo "${CAPTURE_CONFIGURATION_PROFILE}" | sed 's/ /\\\ /g')".txt"
-            } > "${CAPTURE_CONFIGURATION_PROFILE}".txt
-            
-            rm "${PASHUA_CONFIGFILE}"
-            _edit_mode
-            
-        else rm "${PASHUA_CONFIGFILE}"
-            _edit_mode
-             
+    if  [[ ! -d "${CC_PROFILE_DIR}" ]] ; then
+        CC_PROFILE_DIR="${CC_PROFILE_DIR_Default}"
+        if [[ ! -d "${CC_PROFILE_DIR_Default}" ]] ; then
+            mkdir "${CC_PROFILE_DIR_Default}" 
+            CC_PROFILE_DIR="${CC_PROFILE_DIR_Default}"
         fi
-        if [[ -e "${PASHUA_CONFIGFILE}" ]] ; then
-            rm "${PASHUA_CONFIGFILE}"
-        fi
-        
+fi
+
+CAPTURE_CONFIGURATION_PROFILE=""$(echo ${CC_PROFILE_DIR})"/"$(echo ${CC_PROFILE_NAME})""
+
+    echo
+    echo "path is "$(echo ${CC_PROFILE_DIR} | sed 's/ /\\\ /g')""
+    echo "name is ${CC_PROFILE_NAME}"
+    echo "profile is "$(echo "${CAPTURE_CONFIGURATION_PROFILE}" | sed 's/ /\\\ /g')" .txt"
+    echo
+
+{
+    echo "# Set these variables to a valid option or leave as empty quotes (like \"\") to request each run."
+    for COMMENT_LINE in CC_PROFILE_DIR CC_PROFILE_NAME CC_DECK_MAKE CC_DECK_MODEL CC_DECK_Serial \
+    CC_TBC_MAKE CC_TBC_MODEL CC_TBC_Serial CC_ADC_MAKE CC_ADC_Model CC_ADC_Serial CC_NOTES ; do
+        echo "${COMMENT_LINE}=\"${!COMMENT_LINE}\""
+    done
+    echo "Profile Name: ${CC_PROFILE_NAME}"
+    echo "Profile Path "$(echo "${CAPTURE_CONFIGURATION_PROFILE}" | sed 's/ /\\\ /g')".txt"
+} > "${CAPTURE_CONFIGURATION_PROFILE}".txt
+
+rm "${PASHUA_CONFIGFILE}"
+_edit_mode
+
+else rm "${PASHUA_CONFIGFILE}"
+    _edit_mode
+
+fi
+if [[ -e "${PASHUA_CONFIGFILE}" ]] ; then
+    rm "${PASHUA_CONFIGFILE}"
+fi
 }
 
 # relaunch GUI in GUI mode/exit script in terminal mode
@@ -478,7 +477,8 @@ _edit_mode(){
         echo "  FRAMEMD5_CHOICE = ${FRAMEMD5_CHOICE}"
         echo "  EMBED_LOGS_CHOICE = ${EMBED_LOGS_CHOICE}"
         echo "  LOG_CAPTURE_CONFIG_CHOICE = ${LOG_CAPTURE_CONFIG_CHOICE}"
-        echo "  SELECT_CAPTURE_CONFIG = ${SELECT_CAPTURE_CONFIG}"
+        echo "  SELECT_CAPTURE_CONFIG_CHOICE = ${SELECT_CAPTURE_CONFIG_CHOICE}"
+        echo "  CREATE_CAPTURE_CONFIG = ${CREATE_CAPTURE_CONFIG}"
         echo "  PLAYBACKVIEW_CHOICE = ${PLAYBACKVIEW_CHOICE}"
         echo "  DURATION = ${DURATION}"
         echo "  TECHNICIAN = ${TECHNICIAN}"
@@ -499,20 +499,24 @@ _edit_mode(){
             echo "# Set these variables to a valid option or leave as empty quotes (like \"\") to request each run."
             for COMMENT_LINE in VIDEO_INPUT_CHOICE AUDIO_INPUT_CHOICE CONTAINER_CHOICE VIDEO_CODEC_CHOICE \
             VIDEO_BIT_DEPTH_CHOICE AUDIO_MAPPING_CHOICE STANDARD_CHOICE QCTOOLSXML_CHOICE FRAMEMD5_CHOICE \
-            EMBED_LOGS_CHOICE PLAYBACKVIEW_CHOICE LOG_CAPTURE_CONFIG_CHOICE DIR LOGDIR INVERT_PHASE DURATION TECHNICIAN ; do
+            EMBED_LOGS_CHOICE PLAYBACKVIEW_CHOICE LOG_CAPTURE_CONFIG_CHOICE SELECT_CAPTURE_CONFIG_CHOICE DIR LOGDIR INVERT_PHASE DURATION TECHNICIAN ; do
                 echo "${COMMENT_LINE}=\"${!COMMENT_LINE}\""
             done
         } > "${CONFIG_FILE}"
-            cat "${CAPTURE_CONFIGURATION_PROFILE}".txt >> "${CONFIG_FILE}"
-            . "${CONFIG_FILE}"
+        cat "${CAPTURE_CONFIGURATION_PROFILE}".txt >> "${CONFIG_FILE}"
+        . "${CONFIG_FILE}"
 
+
+    if [[ "${LOG_CAPTURE_CONFIG_CHOICE}" = "Yes" && -z "${SELECT_CAPTURE_CONFIG_CHOICE}" ]] ; then
+        _report -w "Capture configuration log was indicated but not selected."
+        exit 1
+    fi
     else
         _report -d "Editing of preferences was canceled by the user."
     fi
-    if [[ "${SELECT_CAPTURE_CONFIG}" = 1 ]] ; then
-        SELECT_CAPTURE_CONFIG=0
+    if [[ "${CREATE_CAPTURE_CONFIG}" = 1 ]] ; then
+        CREATE_CAPTURE_CONFIG=0
         _capture_config_gui
-        
     elif [[ "${GUI}" = 1 ]] ; then
         _master_gui
     else
@@ -1090,6 +1094,7 @@ _review_option "VIDEO_BIT_DEPTH_CHOICE" "Which video bit depth?" "${VIDEO_BITDEP
 _review_option "AUDIO_MAPPING_CHOICE" "Which audio mapping?" "${CHANNEL_MAPPING_OPTIONS[@]}"
 _review_option "STANDARD_CHOICE" "Which television STANDARD?" "${STANDARD_OPTIONS[@]}"
 _review_option "PLAYBACKVIEW_CHOICE" "Which playback view?" "${PLAYBACKVIEW_OPTIONS[@]}"
+_review_option "LOG_CAPTURE_CONFIG_CHOICE" "Which capture configuration?" "${LOG_CAPTURE_CONFIG_CHOICE[@]}"
 if [[ "${OPTION}" = "Full Range Visual" ]] ; then
     MIDDLEOPTIONS+=(-color_range jpeg)
 else
@@ -1190,6 +1195,11 @@ if [[ -f "${VRECORD_OUTPUT}" ]] ; then
     exit
 fi
 
+if [[ "${LOG_CAPTURE_CONFIG_CHOICE}" = "Yes" && -z "${SELECT_CAPTURE_CONFIG_CHOICE}" ]] ; then
+    _report -w "Capture configuration log was indicated but not selected."
+    exit 1
+fi
+
 _review_option "QCTOOLSXML_CHOICE" "Create QCTools XML?" "${QCTOOLSXML_OPTIONS[@]}"
 if [[ "${OPTION}" != "No" && ! "$(command -v qcli)" ]] ; then
     _report -w "Please install qcli to use the qctools reporting option."
@@ -1241,6 +1251,10 @@ else
 fi
 if [[ "${INVERT_PHASE}" = 1 ]] ; then
     _writeingestlog "INVERT_PHASE" "Yes"
+fi
+if [[ "${LOG_CAPTURE_CONFIG_CHOICE}" = "Yes" ]] ; then
+    _writeingestlog "capture_configuration_profile" "${SELECT_CAPTURE_CONFIG_CHOICE}"
+    grep -v "^#" "${SELECT_CAPTURE_CONFIG_CHOICE}" >> "${INGESTLOG}"
 fi
 
 _report -d "Close the playback window to stop recording."
