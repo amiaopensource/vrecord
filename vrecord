@@ -1051,9 +1051,9 @@ else
 fi
 PIPE_DECKLINK=(-c copy)
 PIPE_DECKLINK+=(-map 0)
-PIPE_DECKLINK+=(-f nut)
-PIPE_DECKLINK+=(-syncpoints none -f_strict experimental)
-PIPE_DECKLINK+=(-write_index 0)
+PIPE_DECKLINK+=(-f matroska)
+PIPE_DECKLINK+=(-write_crc32 0)
+PIPE_DECKLINK+=(-live true)
 PIPE_DECKLINK+=(-)
 WINDOW_NAME="mode:${RUNTYPE} - video:'${VIDEO_INPUT}' audio:'${AUDIO_INPUT}' - to end recording press q, esc, or close video window"
 
