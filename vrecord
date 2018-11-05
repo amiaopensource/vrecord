@@ -1070,6 +1070,7 @@ FFPLAY_OPTIONS+=(-window_title "${WINDOW_NAME}")
 if [[ ! -z "${PLAYBACKFILTER}" ]] ; then
     FFPLAY_OPTIONS+=(-vf "${PLAYBACKFILTER}")
 fi
+FFPLAY_OPTIONS+=(-af "channelmap=0|1:stereo")
 
 # CLI passthrough and audiopassthrough modes
 if [[ "${RUNTYPE}" = "passthrough" ]] ; then
