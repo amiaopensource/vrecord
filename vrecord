@@ -31,6 +31,7 @@ BRNG_OUTLIER_THRSHLD=14
 BREW_PREFIX=$(brew --prefix ffmpegdecklink 2>/dev/null)
 FFMPEG_DECKLINK=("${BREW_PREFIX}/bin/ffmpeg-dl")
 FFPLAY_DECKLINK=("${BREW_PREFIX}/bin/ffplay-dl")
+FFPROBE_DECKLINK=("${BREW_PREFIX}/bin/ffprobe-dl")
 MPVOPTS=(--no-osc)
 MPVOPTS+=(--load-scripts=no)
 MPVOPTS+=(--script "${SCRIPTDIR}/qcview.lua")
@@ -428,6 +429,9 @@ _edit_mode(){
     fi
     if [[ "${GUI}" = 1 ]] ; then
         _master_gui
+    elif [[ "${TIMECODE_SCAN}" = 1 ]] ; then
+        _report -dt "Scanning each supported type of timecode."
+        RUNTYPE="passthrough"
     else
         RUNTYPE="record"
         open /Applications/Utilities/Terminal.app
@@ -1048,6 +1052,18 @@ else
     GRAB_DECKLINK+=(-raw_format "${PIXEL_FORMAT}")
     GRAB_DECKLINK+=("${EXTRAINPUTOPTIONS[@]}")
     GRAB_DECKLINK+=(-i "${FIRST_DECKLINK_INPUT}")
+fi
+
+if [[ "${TIMECODE_SCAN}" = 1 ]] ; then
+    for timecode_type in "${TIMECODE_OPTIONS[@]}" ; do
+        tc_value="$("${FFPROBE_DECKLINK[@]}" "${GRAB_DECKLINK[@]}" -timecode_format "${timecode_type}" -show_entries stream_tags=timecode -of default=nw=1:nk=1 2>/dev/null)"
+        if [[ -z "${tc_value}" ]] ; then
+            tc_value="none"
+        fi
+        echo "${timecode_type}: ${tc_value}"
+    done
+    "${0}" -e
+    exit
 fi
 PIPE_DECKLINK=(-c copy)
 PIPE_DECKLINK+=(-map 0)
