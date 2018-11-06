@@ -760,26 +760,26 @@ split=5[a][b][c][d][e];\
 [a1][b2][c2][e1][d1]xstack=inputs=5:layout=0_0|0_h0|0_h0+h1|w0_0|w0_h0" ;;
       "Visual + Numerical")
           PLAYBACKFILTER="\
-split=7[a][b][c][d][e][f][g];\
+split=6[a][b][c][d][e][f];\
 [a]copy${TIMECODE_OVERLAY}[a1];\
 [b]field=top[b1];\
 [c]field=bottom[c1];\
 [b1]${WAVEFORM_FILTER}[b2];\
 [c1]${WAVEFORM_FILTER}[c2];\
 [d]${VECTORSCOPE_FILTER}[d1];\
-[e]signalstats=out=brng,scale=512:ih[e1];\
-[f]signalstats=stat=brng+vrep+tout,format=yuv422p,geq=lum=60:cb=128:cr=128,\
+[e]signalstats=out=brng:stat=brng+vrep+tout,scale=512:ih,split[e1][e2];\
+[e2]format=yuv422p,geq=lum=60:cb=128:cr=128,\
 scale=180:ih+512,setsar=1/1,\
 drawtext=fontcolor=white:fontsize=22:\
 fontfile=${DEFAULTFONT}:textfile=/tmp/drawtext.txt,\
 drawtext=fontcolor=white:fontsize=17:\
 fontfile=${DEFAULTFONT}:textfile=/tmp/drawtext2.txt,\
 drawtext=fontcolor=white:fontsize=52:\
-fontfile=${DEFAULTFONT}:textfile=/tmp/drawtext3.txt[f1];\
-[g]scale=iw+512+180:82,format=yuv422p,geq=lum=60:cb=128:cr=128,drawtext=fontcolor=white:fontsize=22:\
+fontfile=${DEFAULTFONT}:textfile=/tmp/drawtext3.txt[e3];\
+[f]scale=iw+512+180:82,format=yuv422p,geq=lum=60:cb=128:cr=128,drawtext=fontcolor=white:fontsize=22:\
 fontfile=${DEFAULTFONT}:textfile=/tmp/vrecord_input.log:\
-reload=1:y=82-th[g1];\
-[f1][a1][b2][c2][e1][d1][g1]xstack=inputs=7:layout=0_0|w0_0|w0_h1|w0_h1+h2|w0+w1_0|w0+w1_h1|0_h0" ;;
+reload=1:y=82-th[f1];\
+[e3][a1][b2][c2][e1][d1][f1]xstack=inputs=7:layout=0_0|w0_0|w0_h1|w0_h1+h2|w0+w1_0|w0+w1_h1|0_h0" ;;
       "Color Matrix")
           HUE=20
           SAT=0.3
