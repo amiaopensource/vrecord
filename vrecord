@@ -469,11 +469,9 @@ _audiopassthrough_mode(){
 [c]field=bottom[c1],\
 [b1]${WAVEFORM_FILTER}[b2],\
 [c1]${WAVEFORM_FILTER}[c2],\
-[a][b2][c2]vstack=inputs=3,format=yuv422p[abc1],\
 [d]${VECTORSCOPE_FILTER}[d1],\
 [e]signalstats=out=brng,scale=512:ih[e1],\
-[e1][d1]vstack[de1],\
-[abc1][de1]hstack[abcde1],\
+[a][b2][c2][e1][d1]xstack=inputs=5:layout=0_0|0_h0|0_h0+h1|w0_0|w0_h0[abcde1],\
 [abcde1][xx]overlay=10:10[vo]"
     echo "ESC quit" > ~/.config/mpv/input.conf
     _check_mpv
@@ -746,11 +744,9 @@ split=5[a][b][c][d][e];\
 [c]field=bottom[c1];\
 [b1]${WAVEFORM_FILTER}[b2];\
 [c1]${WAVEFORM_FILTER}[c2];\
-[a1][b2][c2]vstack=inputs=3,format=yuv422p[abc1];\
 [d]${VECTORSCOPE_FILTER}[d1];\
 [e]signalstats=out=brng,scale=512:ih[e1];\
-[e1][d1]vstack[de1];\
-[abc1][de1]hstack" ;;
+[a1][b2][c2][e1][d1]xstack=inputs=5:layout=0_0|0_h0|0_h0+h1|w0_0|w0_h0" ;;
         "Full Range Visual")
             PLAYBACKFILTER="\
 split=5[a][b][c][d][e];\
@@ -759,11 +755,9 @@ split=5[a][b][c][d][e];\
 [c]field=bottom[c1];\
 [b1]${WAVEFORM_FILTER}[b2];\
 [c1]${WAVEFORM_FILTER}[c2];\
-[a1][b2][c2]vstack=inputs=3,format=yuv422p[abc1];\
 [d]${VECTORSCOPE_FILTER}[d1];\
 [e]format=yuv444p,pseudocolor=if(between(1\,val\,amax)+between(val\,254\,amax)\,65\,-1):if(between(1\,val\,amax)+between(val\,254\,amax)\,100\,-1):if(between(1\,val\,amax)+between(val\,254\,amax)\,212\,-1),scale=512:ih[e1];\
-[e1][d1]vstack[de1];\
-[abc1][de1]hstack" ;;
+[a1][b2][c2][e1][d1]xstack=inputs=5:layout=0_0|0_h0|0_h0+h1|w0_0|w0_h0" ;;
       "Visual + Numerical")
           PLAYBACKFILTER="\
 split=7[a][b][c][d][e][f][g];\
@@ -772,10 +766,8 @@ split=7[a][b][c][d][e][f][g];\
 [c]field=bottom[c1];\
 [b1]${WAVEFORM_FILTER}[b2];\
 [c1]${WAVEFORM_FILTER}[c2];\
-[a1][b2][c2]vstack=inputs=3,format=yuv422p[abc1];\
 [d]${VECTORSCOPE_FILTER}[d1];\
 [e]signalstats=out=brng,scale=512:ih[e1];\
-[e1][d1]vstack[de1];\
 [f]signalstats=stat=brng+vrep+tout,format=yuv422p,geq=lum=60:cb=128:cr=128,\
 scale=180:ih+512,setsar=1/1,\
 drawtext=fontcolor=white:fontsize=22:\
@@ -784,11 +776,10 @@ drawtext=fontcolor=white:fontsize=17:\
 fontfile=${DEFAULTFONT}:textfile=/tmp/drawtext2.txt,\
 drawtext=fontcolor=white:fontsize=52:\
 fontfile=${DEFAULTFONT}:textfile=/tmp/drawtext3.txt[f1];\
-[f1][abc1][de1]hstack=inputs=3[abcdef1];\
 [g]scale=iw+512+180:82,format=yuv422p,geq=lum=60:cb=128:cr=128,drawtext=fontcolor=white:fontsize=22:\
 fontfile=${DEFAULTFONT}:textfile=/tmp/vrecord_input.log:\
 reload=1:y=82-th[g1];\
-[abcdef1][g1]vstack" ;;
+[f1][a1][b2][c2][e1][d1][g1]xstack=inputs=7:layout=0_0|w0_0|w0_h1|w0_h1+h2|w0+w1_0|w0+w1_h1|0_h0" ;;
       "Color Matrix")
           HUE=20
           SAT=0.3
@@ -803,10 +794,7 @@ split=9[x][hm][hp][sm][sp][hmsm][hmsp][hpsm][hpsp];\
 [hmsp]hue=h=-${HUE}:s=1+${SAT}[hmsp1];\
 [hpsm]hue=h=${HUE}:s=1-${SAT}[hpsm1];\
 [hpsp]hue=h=${HUE}:s=1+${SAT}[hpsp1];\
-[hpsm1][hp1][hpsp1]hstack=3[top];\
-[sm1][x][sp1]hstack=3[mid];\
-[hmsm1][hm1][hmsp1]hstack=3[bottom];\
-[top][mid][bottom]vstack=3" ;;
+[hpsm1][hp1][hpsp1][sm1][x][sp1][hmsm1][hm1][hmsp1]xstack=inputs=9:layout=0_0|0_h0|0_h0+h1|w0_0|w0_h0|w0_h0+h1|w0+w1_0|w0+w1_h0|w0+w1_h0+h1" ;;
       "Bit Planes")
           if [[ "${PIXEL_FORMAT}" == "uyvy422" ]] ; then
               BITS=8
