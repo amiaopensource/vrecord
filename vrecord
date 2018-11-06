@@ -39,7 +39,7 @@ MPVOPTS+=(--really-quiet)
 
 if [[ "$("${FFMPEG_DECKLINK[@]}" -version 2>&1 | grep "Library not loaded" >/dev/null)" || ! -f "${FFMPEG_DECKLINK}" || ! -f "${FFPLAY_DECKLINK}" ]] ; then
     echo "Please reinstall 'ffmpeg-dl':"
-    echo "  brew reinstall amiaopensource/amiaos/ffmpegdecklink --with-sdl2 --with-freetype --with-openjpeg"
+    echo "  brew reinstall amiaopensource/amiaos/ffmpegdecklink"
     echo "Exiting."
     exit 1
 fi
@@ -51,8 +51,8 @@ ${SCRIPTNAME} ${VERSION}
 ${SCRIPTNAME} will record a file via the Blackmagic SDK and ffmpeg. It is an
 interactive script and will create 10 or 8-bit video files.
 
-Dependencies: cowsay, amiaopensource/amiaos/ffmpegdecklink --with-sdl2
-  --with-freetype --with-openjpeg, mkvtoolnix, mpv, qcli and xmlstarlet
+Dependencies: cowsay, amiaopensource/amiaos/ffmpegdecklink, mkvtoolnix, mpv,
+  qcli and xmlstarlet
 
 Usage: ${SCRIPTNAME} [ -g | -e | -r | -p | -a | -x | -v | -h ]
   -g  use the GUI
