@@ -1096,13 +1096,13 @@ done
 
 # record mode
 while [[ -z "${ID}" ]] ; do
-    _report -q -n "Enter ${AHEM} Identifier: "
+    _report -q -n "Enter ${AHEM}Identifier: "
     read ID
     if [[ "${ID}" = "q" ]] ; then
         _report -w "Interpreting 'q' to quit."
         exit 1
     fi
-    AHEM="a (non-blank)"
+    AHEM="a (non-blank) "
 done
 if [[ ! -d "${DIR}" ]] ; then
     _report -q -n "Enter Directory: "
