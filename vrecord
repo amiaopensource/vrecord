@@ -20,6 +20,7 @@ unset DURATION
 unset TECHNICIAN
 RUNTYPE="record"
 CAPTURELOGSUFFIX="_ffmpeg_decklink_input.log"
+TIMECODELOGSUFFIX="_frame_timecodes.txt"
 unset PASHUAINSTALL
 unset EXTRAOUTPUTS
 UNDECLAREDOPTION="Undeclared"
@@ -30,6 +31,7 @@ BRNG_OUTLIER_THRSHLD=14
 BREW_PREFIX=$(brew --prefix ffmpegdecklink 2>/dev/null)
 FFMPEG_DECKLINK=("${BREW_PREFIX}/bin/ffmpeg-dl")
 FFPLAY_DECKLINK=("${BREW_PREFIX}/bin/ffplay-dl")
+FFPROBE_DECKLINK=("${BREW_PREFIX}/bin/ffprobe-dl")
 MPVOPTS=(--no-osc)
 MPVOPTS+=(--load-scripts=no)
 MPVOPTS+=(--script "${SCRIPTDIR}/qcview.lua")
@@ -110,6 +112,12 @@ _report(){
     echo ${ECHOOPT} "${COLOR}${STARTMESSAGE[@]}${MESSAGE}${NC}"
 }
 
+_parse_report(){
+    KEY="${1}"
+    REPORT="${2}"
+    echo "${REPORT}" | grep "^[ ]*${KEY}:" | cut -d : -f 2- | awk '{$1=$1;print}'
+}
+
 _cleanup(){
     _report -wt "Vrecord is being stopped at $(_get_iso8601), noting this in the capture log."
     _writeingestlog "exit status" "vrecord was forced to quit early at $(_get_iso8601). Some processing may be incomplete."
@@ -185,6 +193,12 @@ _construct_pashua_id AUDIO_MAPPING_CHOICE     x=200 y=190 type=popup \
                                         label="Select Audio Channel Mapping" \
                                         default="${AUDIO_MAPPING_CHOICE}" \
                                         "${CHANNEL_MAPPING_OPTIONS[@]}"
+_construct_pashua_id TIMECODE_CHOICE    x=200 y=150 type=popup \
+                                        label="Select timecode format" \
+                                        default="${TIMECODE_CHOICE}" \
+                                        "${TIMECODE_OPTIONS[@]}"
+_construct_pashua_id TIMECODE_SCAN      x=200 y=120 type=button \
+                                        label="Scan timecode formats"
 _construct_pashua_id STANDARD_CHOICE    x=470 y=210 type=radiobutton \
                                         label="Select Television Standard" \
                                         default="${STANDARD_CHOICE}" \
@@ -472,6 +486,7 @@ _edit_mode(){
         echo "  VIDEO_CODEC_CHOICE = ${VIDEO_CODEC_CHOICE}"
         echo "  VIDEO_BIT_DEPTH_CHOICE = ${VIDEO_BIT_DEPTH_CHOICE}"
         echo "  AUDIO_MAPPING_CHOICE = ${AUDIO_MAPPING_CHOICE}"
+        echo "  TIMECODE_CHOICE = ${TIMECODE_CHOICE}"
         echo "  STANDARD_CHOICE = ${STANDARD_CHOICE}"
         echo "  QCTOOLSXML_CHOICE = ${QCTOOLSXML_CHOICE}"
         echo "  FRAMEMD5_CHOICE = ${FRAMEMD5_CHOICE}"
@@ -498,7 +513,7 @@ _edit_mode(){
         {
             echo "# Set these variables to a valid option or leave as empty quotes (like \"\") to request each run."
             for COMMENT_LINE in VIDEO_INPUT_CHOICE AUDIO_INPUT_CHOICE CONTAINER_CHOICE VIDEO_CODEC_CHOICE \
-            VIDEO_BIT_DEPTH_CHOICE AUDIO_MAPPING_CHOICE STANDARD_CHOICE QCTOOLSXML_CHOICE FRAMEMD5_CHOICE \
+            VIDEO_BIT_DEPTH_CHOICE AUDIO_MAPPING_CHOICE TIMECODE_CHOICE STANDARD_CHOICE QCTOOLSXML_CHOICE FRAMEMD5_CHOICE \
             EMBED_LOGS_CHOICE PLAYBACKVIEW_CHOICE LOG_CAPTURE_CONFIG_CHOICE SELECT_CAPTURE_CONFIG_CHOICE DIR LOGDIR INVERT_PHASE DURATION TECHNICIAN ; do
                 echo "${COMMENT_LINE}=\"${!COMMENT_LINE}\""
             done
@@ -519,6 +534,9 @@ _edit_mode(){
         _capture_config_gui
     elif [[ "${GUI}" = 1 ]] ; then
         _master_gui
+    elif [[ "${TIMECODE_SCAN}" = 1 ]] ; then
+        _report -dt "Scanning each supported type of timecode."
+        RUNTYPE="passthrough"
     else
         RUNTYPE="record"
         open /Applications/Utilities/Terminal.app
@@ -541,9 +559,7 @@ _passthrough_mode(){
         "${PIPE_DECKLINK[@]}" | \
         mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -
     else
-        "${FFPLAY_DECKLINK}" -v info -nostats "${GRAB_DECKLINK[@]}" 2> /tmp/vrecord_input.log \
-        -window_title "${WINDOW_NAME}" \
-        -vf "${PLAYBACKFILTER}"
+        "${FFPLAY_DECKLINK}" "${FFPLAY_OPTIONS[@]}" 2> /tmp/vrecord_input.log
     fi
     _gui_return
 }
@@ -772,57 +788,70 @@ _lookup_choice(){
         # audio mappings
         "2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, Channels 3 & 4 -> 2nd Track Stereo)")
             AUDIOMAP="[0:a:0]pan=stereo| c0=c0 | c1=${PHASE_VALUE}c1[stereo1];[0:a:0]pan=stereo| c0=c2 | c1=c3[stereo2]"
-            MAP1V="[stereo1]" ; AUDIO_CHANNEL_MAP+=(-map "${MAP1V}")
-            MAP2V="[stereo2]" ; AUDIO_CHANNEL_MAP+=(-map "${MAP2V}") ;;
+            AUDIO_CHANNEL_MAP+=(-map "[stereo1]")
+            AUDIO_CHANNEL_MAP+=(-map "[stereo2]") ;;
         "1 Stereo Track (From Channels 1 & 2)")
             AUDIOMAP="[0:a:0]pan=stereo| c0=c0 | c1=${PHASE_VALUE}c1[stereo1]"
-            MAP1V="[stereo1]" ; AUDIO_CHANNEL_MAP+=(-map "${MAP1V}")
-            MAP2V="" ;;
+            AUDIO_CHANNEL_MAP+=(-map "[stereo1]") ;;
         "1 Stereo Track (From Channels 3 & 4)")
             AUDIOMAP="[0:a:0]pan=stereo| c0=c2 | c1=${PHASE_VALUE}c3[stereo1]"
-            MAP1V="[stereo1]" ; AUDIO_CHANNEL_MAP+=(-map "${MAP1V}")
-            MAP2V="" ;;
+            AUDIO_CHANNEL_MAP+=(-map "[stereo1]") ;;
         "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono")
             AUDIOMAP="[0:a:0]pan=mono| c0=c0[mono1];[0:a:0]pan=mono| c0=${PHASE_VALUE}c1[mono2]"
-            MAP1V="[mono1]" ; AUDIO_CHANNEL_MAP+=(-map "${MAP1V}")
-            MAP2V="[mono2]" ; AUDIO_CHANNEL_MAP+=(-map "${MAP2V}") ;;
+            AUDIO_CHANNEL_MAP+=(-map "[mono1]")
+            AUDIO_CHANNEL_MAP+=(-map "[mono2]") ;;
         "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono")
             AUDIOMAP="[0:a:0]pan=mono| c0=${PHASE_VALUE}c1[mono1];[0:a:0]pan=mono| c0=c0[mono2]"
-            MAP1V="[mono1]" ; AUDIO_CHANNEL_MAP+=(-map "${MAP1V}")
-            MAP2V="[mono2]" ; AUDIO_CHANNEL_MAP+=(-map "${MAP2V}") ;;
+            AUDIO_CHANNEL_MAP+=(-map "[mono1]")
+            AUDIO_CHANNEL_MAP+=(-map "[mono2]") ;;
         "Channel 1 -> Single Track Mono")
             AUDIOMAP="[0:a:0]pan=mono| c0=c0[mono1]"
-            MAP1V="[mono1]" ; AUDIO_CHANNEL_MAP+=(-map "${MAP1V}") ;;
+            AUDIO_CHANNEL_MAP+=(-map "[mono1]") ;;
         "Channel 2 -> Single Track Mono")
             AUDIOMAP="[0:a:0]pan=mono| c0=c1[mono1]"
-            MAP1V="[mono1]" ; AUDIO_CHANNEL_MAP+=(-map "${MAP1V}") ;;
-
+            AUDIO_CHANNEL_MAP+=(-map "[mono1]") ;;
+        # timecode options
+        "none"|"rp188vitc"|"rp188vitc2"|"rp188ltc"|"rp188any"|"vitc"|"vitc2"|"serial")
+            TC_TYPE="${1}"
+            EXTRAINPUTOPTIONS+=(-timecode_format "${TC_TYPE}")
+            MIDDLEOPTIONS+=(-map_metadata 0:s:v:0)
+            if [[ "${TC_TYPE}" != "none" ]] ; then
+                if [[ "${RUNTYPE}" = "passthrough" ]] ; then
+                TIMECODE_OVERLAY=",drawtext=fontfile=${DEFAULTFONT}:x=(w-text_w)*0.5:y=(h-text_h)*0.75:fontcolor=white:box=1:boxcolor=gray@0.7:boxborderw=4:fontsize=22:shadowx=1:shadowy=1:text=%{metadata\\\:timecode\\\:no ${TC_TYPE} timecode}"
+                fi
+                TC_TMP=$(/usr/bin/mktemp /tmp/timecode_XXXXXXXXX)
+                TC_WRITE=",metadata=mode=print:file=${TC_TMP}"
+            fi
+            declare TC_TYPE "${TC_TYPE}"
+            ;;
         # video standard
         "NTSC")
             STANDARD="ntsc"
             DECKLINK_FPS="30000/1001"
-            RECORDINGFILTER="setfield=bff,setsar=40/27,setdar=4/3"
+            RECORDINGFILTER="setsar=40/27,setdar=4/3"
             MIDDLEOPTIONS+=(-color_primaries smpte170m)
             MIDDLEOPTIONS+=(-color_trc bt709)
             MIDDLEOPTIONS+=(-colorspace smpte170m) ;;
         "PAL")
             STANDARD="pal "
             DECKLINK_FPS="25000/1000"
-            RECORDINGFILTER="setfield=tff,setsar=16/15,setdar=4/3"
+            RECORDINGFILTER="setsar=16/15,setdar=4/3"
             MIDDLEOPTIONS+=(-color_primaries bt470bg)
             MIDDLEOPTIONS+=(-color_trc bt709)
             MIDDLEOPTIONS+=(-colorspace bt470bg) ;;
 
         # playback views
+        "Unfiltered") PLAYBACKFILTER="" ;;
         "Quality Control View (mpv)") MEDIA_PLAYER_CHOICE="mpv" ;;
         "Broadcast Range Visual")
             PLAYBACKFILTER="\
 split=5[a][b][c][d][e];\
+[a]copy${TIMECODE_OVERLAY}[a1];\
 [b]field=top[b1];\
 [c]field=bottom[c1];\
 [b1]${WAVEFORM_FILTER}[b2];\
 [c1]${WAVEFORM_FILTER}[c2];\
-[a][b2][c2]vstack=inputs=3,format=yuv422p[abc1];\
+[a1][b2][c2]vstack=inputs=3,format=yuv422p[abc1];\
 [d]${VECTORSCOPE_FILTER}[d1];\
 [e]signalstats=out=brng,scale=512:ih[e1];\
 [e1][d1]vstack[de1];\
@@ -830,11 +859,12 @@ split=5[a][b][c][d][e];\
         "Full Range Visual")
             PLAYBACKFILTER="\
 split=5[a][b][c][d][e];\
+[a]copy${TIMECODE_OVERLAY}[a1];\
 [b]field=top[b1];\
 [c]field=bottom[c1];\
 [b1]${WAVEFORM_FILTER}[b2];\
 [c1]${WAVEFORM_FILTER}[c2];\
-[a][b2][c2]vstack=inputs=3,format=yuv422p[abc1];\
+[a1][b2][c2]vstack=inputs=3,format=yuv422p[abc1];\
 [d]${VECTORSCOPE_FILTER}[d1];\
 [e]format=yuv444p,pseudocolor=if(between(1\,val\,amax)+between(val\,254\,amax)\,65\,-1):if(between(1\,val\,amax)+between(val\,254\,amax)\,100\,-1):if(between(1\,val\,amax)+between(val\,254\,amax)\,212\,-1),scale=512:ih[e1];\
 [e1][d1]vstack[de1];\
@@ -842,11 +872,12 @@ split=5[a][b][c][d][e];\
       "Visual + Numerical")
           PLAYBACKFILTER="\
 split=7[a][b][c][d][e][f][g];\
+[a]copy${TIMECODE_OVERLAY}[a1];\
 [b]field=top[b1];\
 [c]field=bottom[c1];\
 [b1]${WAVEFORM_FILTER}[b2];\
 [c1]${WAVEFORM_FILTER}[c2];\
-[a][b2][c2]vstack=inputs=3,format=yuv422p[abc1];\
+[a1][b2][c2]vstack=inputs=3,format=yuv422p[abc1];\
 [d]${VECTORSCOPE_FILTER}[d1];\
 [e]signalstats=out=brng,scale=512:ih[e1];\
 [e1][d1]vstack[de1];\
@@ -916,8 +947,8 @@ _frames_to_hhmmss(){
     H=$(echo "${i} / (60 * 60 * ${DECKLINK_FPS})" | bc)
     M=$(echo "(${i} - (${H}*60 * 60 * ${DECKLINK_FPS})) / (60 * ${DECKLINK_FPS})" | bc)
     S="$(echo "scale=3;(${i} - (${H}*60 * 60 * ${DECKLINK_FPS})-($M*60*${DECKLINK_FPS})) / (${DECKLINK_FPS})" | bc)"
-    Ss=$(echo "${S}" | cut -d. -f1)
-    Sm=$(echo "${S}" | cut -d. -f2)
+    Ss=$(echo "${S}" | cut -d. -f1 | bc)
+    Sm=$(echo "${S}" | cut -d. -f2 | bc)
     printf "%02d:%02d:%02d.%03d\n" "${H}" "${M}" "${Ss}" "${Sm}"
 }
 
@@ -1033,13 +1064,14 @@ CONTAINER_OPTIONS=("QuickTime" "Matroska" "AVI" "MXF")
 VIDEO_CODEC_OPTIONS=("Uncompressed Video" "FFV1 version 3" "JPEG2000" "ProRes" )
 VIDEO_BITDEPTH_OPTIONS=("10 bit" "8 bit")
 CHANNEL_MAPPING_OPTIONS=("2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, Channels 3 & 4 -> 2nd Track Stereo)" "1 Stereo Track (From Channels 1 & 2)" "1 Stereo Track (From Channels 3 & 4)" "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono" "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono" "Channel 1 -> Single Track Mono" "Channel 2 -> Single Track Mono")
+TIMECODE_OPTIONS=("none" "rp188vitc" "rp188vitc2" "rp188ltc" "rp188any" "vitc" "vitc2" "serial")
 STANDARD_OPTIONS=("NTSC" "PAL")
 QCTOOLSXML_OPTIONS=("Yes, after recording" "Yes, concurrent with recording" "No")
 FRAMEMD5_OPTIONS=("Yes" "No")
 EMBED_LOGS_OPTIONS=("Yes" "No")
 LOG_CAPTURE_CONFIG_OPTIONS=("Yes" "No")
 DURATION_OPTIONS=(23 33 63 93)
-PLAYBACKVIEW_OPTIONS=("Quality Control View (mpv)" "Broadcast Range Visual" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes")
+PLAYBACKVIEW_OPTIONS=("Unfiltered" "Quality Control View (mpv)" "Broadcast Range Visual" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes")
 
 # GUI mode + CLI reset, edit modes
 if [[ "${RUNTYPE}" = "GUI" ]] ; then
@@ -1092,6 +1124,7 @@ _review_option "VIDEO_INPUT_CHOICE" "Which video input are you using?" "${VIDEO_
 _review_option "AUDIO_INPUT_CHOICE" "Which audio input are you using?" "${AUDIO_INPUT_OPTIONS[@]}"
 _review_option "VIDEO_BIT_DEPTH_CHOICE" "Which video bit depth?" "${VIDEO_BITDEPTH_OPTIONS[@]}"
 _review_option "AUDIO_MAPPING_CHOICE" "Which audio mapping?" "${CHANNEL_MAPPING_OPTIONS[@]}"
+_review_option "TIMECODE_CHOICE" "Which timecode format?" "${TIMECODE_OPTIONS[@]}"
 _review_option "STANDARD_CHOICE" "Which television STANDARD?" "${STANDARD_OPTIONS[@]}"
 _review_option "PLAYBACKVIEW_CHOICE" "Which playback view?" "${PLAYBACKVIEW_OPTIONS[@]}"
 _review_option "LOG_CAPTURE_CONFIG_CHOICE" "Which capture configuration?" "${LOG_CAPTURE_CONFIG_CHOICE[@]}"
@@ -1127,13 +1160,40 @@ else
     GRAB_DECKLINK+=("${EXTRAINPUTOPTIONS[@]}")
     GRAB_DECKLINK+=(-i "${FIRST_DECKLINK_INPUT}")
 fi
+
+if [[ "${TIMECODE_SCAN}" = 1 ]] ; then
+    for timecode_type in "${TIMECODE_OPTIONS[@]}" ; do
+        tc_value="$("${FFPROBE_DECKLINK[@]}" "${GRAB_DECKLINK[@]}" -timecode_format "${timecode_type}" -show_entries stream_tags=timecode -of default=nw=1:nk=1 2>/dev/null)"
+        if [[ -z "${tc_value}" ]] ; then
+            tc_value="none"
+        fi
+        echo "${timecode_type}: ${tc_value}"
+    done
+    "${0}" -e
+    exit
+fi
 PIPE_DECKLINK=(-c copy)
 PIPE_DECKLINK+=(-map 0)
-PIPE_DECKLINK+=(-f nut)
-PIPE_DECKLINK+=(-syncpoints none -f_strict experimental)
-PIPE_DECKLINK+=(-write_index 0)
+PIPE_DECKLINK+=(-f matroska)
+PIPE_DECKLINK+=(-write_crc32 0)
+PIPE_DECKLINK+=(-live true)
 PIPE_DECKLINK+=(-)
 WINDOW_NAME="mode:${RUNTYPE} - video:'${VIDEO_INPUT}' audio:'${AUDIO_INPUT}' - to end recording press q, esc, or close video window"
+
+FFPLAY_OPTIONS=(-v info)
+FFPLAY_OPTIONS+=(-hide_banner)
+FFPLAY_OPTIONS+=(-stats)
+FFPLAY_OPTIONS+=(-autoexit)
+if [[ "${RUNTYPE}" = "passthrough" ]] ; then
+    FFPLAY_OPTIONS+=("${GRAB_DECKLINK[@]}")
+else
+    FFPLAY_OPTIONS+=(-i -)
+fi
+FFPLAY_OPTIONS+=(-window_title "${WINDOW_NAME}")
+if [[ ! -z "${PLAYBACKFILTER}" ]] ; then
+    FFPLAY_OPTIONS+=(-vf "${PLAYBACKFILTER}")
+fi
+FFPLAY_OPTIONS+=(-af "channelmap=0|1:stereo")
 
 # CLI passthrough and audiopassthrough modes
 if [[ "${RUNTYPE}" = "passthrough" ]] ; then
@@ -1218,7 +1278,7 @@ fi
 _duration_check
 if [[ -n "${DURATION}" ]] ; then
     DUR_SECONDS=$(bc <<< "${DURATION} * 60" | sed "s/^\./0./")
-    INPUTOPTIONS=(-t "${DUR_SECONDS}")
+    INPUTOPTIONS+=(-t "${DUR_SECONDS}")
 fi
 
 if [[ -z "${TECHNICIAN}" ]] ; then
@@ -1237,12 +1297,43 @@ read
 INGESTLOG="${LOGDIR}/${ID}_capture_options.log"
 QCXML="${LOGDIR}/${ID}${SUFFIX}.${EXTENSION}.qctools.xml.gz"
 touch "${INGESTLOG}"
+HARDWARE_REPORT=$(system_profiler SPHardwareDataType)
 _writeingestlog "computer_name" "$(uname -n)"
+_writeingestlog "computer_model_name" "$(_parse_report "Model Name" "${HARDWARE_REPORT}")"
+_writeingestlog "computer_model_id" "$(_parse_report "Model Identifier" "${HARDWARE_REPORT}")"
+_writeingestlog "computer_processor_name" "$(_parse_report "Processor Name" "${HARDWARE_REPORT}")"
+_writeingestlog "computer_processor_speed" "$(_parse_report "Processor Speed" "${HARDWARE_REPORT}")"
+_writeingestlog "computer_processor_count" "$(_parse_report "Number of Processors" "${HARDWARE_REPORT}")"
+_writeingestlog "computer_cores" "$(_parse_report "Total Number of Cores" "${HARDWARE_REPORT}")"
+_writeingestlog "computer_memory" "$(_parse_report "Memory" "${HARDWARE_REPORT}")"
+_writeingestlog "computer_serial" "$(_parse_report "Serial Number (system)" "${HARDWARE_REPORT}")"
 _writeingestlog "user_name" "$(whoami)"
 _writeingestlog "operating_system_VERSION" "$(uname -v)"
 _writeingestlog "vrecord version" "${VERSION}"
 _writeingestlog "datetime_start" "$(_get_iso8601)"
+
+MOUNT_PATH="$(df -Ph "${DIR}" | tail -n 1 | awk '{print $6}')"
+VOLUME_INFO="$(diskutil info "${MOUNT_PATH}")"
+PART_OF_WHOLE="/dev/$(_parse_report "Part of Whole" "${VOLUME_INFO}")"
+CAPTURE_DEVICE_INFO="$(diskutil info "${PART_OF_WHOLE}")"
+
+_writeingestlog "capture_device_node" "$(_parse_report "Device Node" "${CAPTURE_DEVICE_INFO}")"
+_writeingestlog "capture_device_protocol" "$(_parse_report "Protocol" "${CAPTURE_DEVICE_INFO}")"
+_writeingestlog "capture_device_name" "$(_parse_report "Device / Media Name" "${CAPTURE_DEVICE_INFO}")"
+_writeingestlog "capture_device_block_size" "$(_parse_report "Device Block Size" "${CAPTURE_DEVICE_INFO}")"
+_writeingestlog "capture_device_location" "$(_parse_report "Device Location" "${CAPTURE_DEVICE_INFO}")"
+_writeingestlog "capture_device_partition_type" "$(_parse_report "Partition Type" "${VOLUME_INFO}")"
+_writeingestlog "capture_device_partition_name" "$(_parse_report "Name (User Visible)" "${VOLUME_INFO}")"
+_writeingestlog "capture_device_volume_uuid" "$(_parse_report "Volume UUID" "${VOLUME_INFO}")"
+_writeingestlog "capture_device_volume_available" "$(_parse_report "Volume Available Space" "${VOLUME_INFO}")"
+_writeingestlog "capture_device_volume_total" "$(_parse_report "Volume Total Space" "${VOLUME_INFO}")"
+
 _writeingestlog "FILE_PATH" "${VRECORD_OUTPUT}"
+
+DECKLINK_DRIVER_PLIST=/Library/Extensions/DeckLink_Driver.kext/Contents/Info.plist
+_writeingestlog "video_card_driver_version" "$(defaults read "${DECKLINK_DRIVER_PLIST}" CFBundleVersion)"
+_writeingestlog "video_card_name" "${FIRST_DECKLINK_INPUT}"
+
 echo -e "${LOG_OF_OPTIONS}" >> "${INGESTLOG}"
 if [[ -z "${TECHNICIAN}" ]] ; then
     _writeingestlog "TECHNICIAN" "N/A"
@@ -1263,7 +1354,7 @@ _report -d "Close the playback window to stop recording."
 RECORD_COMMAND=("${FFMPEG_DECKLINK[@]}")
 RECORD_COMMAND+=(-nostdin -nostats "${INPUTOPTIONS[@]}" "${GRAB_DECKLINK[@]}")
 RECORD_COMMAND+=(-metadata:s:v:0 encoder="${CODECNAME}" "${MIDDLEOPTIONS[@]}" -c:a pcm_s24le)
-RECORD_COMMAND+=(-filter_complex "[0:v:0]${RECORDINGFILTER}; ${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}")
+RECORD_COMMAND+=(-filter_complex "[0:v:0]${RECORDINGFILTER}${TC_WRITE}; ${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}")
 RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
 RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}" "${PIPE_DECKLINK[@]}")
 _writeingestlog "FFmpeg command" "${RECORD_COMMAND[@]}"
@@ -1284,16 +1375,10 @@ else
         2> >(tee "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}" /tmp/vrecord_input.log >/dev/null) \
         | \
         if [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]] ; then
-            tee >("${FFPLAY_DECKLINK[@]}" \
-                -v info -hide_banner -stats -autoexit -i - \
-                -window_title "${WINDOW_NAME}" \
-                -vf "${PLAYBACKFILTER}") | \
+            tee >("${FFPLAY_DECKLINK[@]}" "${FFPLAY_OPTIONS[@]}") | \
                 qcli -f signalstats+aphasemeter+astats+ssim -i - -o "${QCXML}"
         else
-            "${FFPLAY_DECKLINK[@]}" \
-                -v info -hide_banner -stats -autoexit -i - \
-                -window_title "${WINDOW_NAME}" \
-                -vf "${PLAYBACKFILTER}"
+            "${FFPLAY_DECKLINK[@]}" "${FFPLAY_OPTIONS[@]}"
         fi
 fi
 # capture errors from components of recording pipe
@@ -1308,6 +1393,11 @@ if [[ ! -f "${VRECORD_OUTPUT}" ]] ; then
         _writeingestlog "FFmpeg command Error" "${P1_ERR}"
         exit 1
     fi
+fi
+
+if [[ -f "${TC_TMP}" ]] ; then
+    echo "TC TYPE $TC_TYPE"
+    mv "${TC_TMP}" "${LOGDIR}/${ID}_${TC_TYPE}${TIMECODELOGSUFFIX}"
 fi
 
 _writeingestlog "datetime_end" "$(_get_iso8601)"

@@ -85,7 +85,7 @@ _report(){
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":npalef:h" opt ; do
+while getopts ":hnpalef:" opt ; do
     case "${opt}" in
         h) _usage ; exit 0 ;;
         n) RUNTYPE="ntsc" ;;
@@ -93,7 +93,7 @@ while getopts ":npalef:h" opt ; do
         a) RUNTYPE="audio" ;;
         l) RUNTYPE="local" ;;
         e) RUNTYPE="edit" ;;
-        f) RUNTYPE="file" && TESTFILE="${OPTARG}";;
+        f) RUNTYPE="file" && TESTFILE="${OPTARG}" ;;
         *) _report -w "Error: bad option -${OPTARG}" ; _usage ; exit 1 ;;
     esac
 done
