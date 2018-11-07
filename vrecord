@@ -468,7 +468,7 @@ _audiopassthrough_mode(){
 [b]field=top,${WAVEFORM_FILTER}[b1],\
 [c]field=bottom,${WAVEFORM_FILTER}[c1],\
 [d]${VECTORSCOPE_FILTER}[d1],\
-[e]signalstats=out=brng,scale=512:ih[e1],\
+[e]scale=512:ih,signalstats=out=brng[e1],\
 [a][b1][c1][e1][d1]xstack=inputs=5:layout=0_0|0_h0|0_h0+h1|w0_0|w0_h0[abcde1],\
 [abcde1][xx]overlay=10:10[vo]"
     echo "ESC quit" > ~/.config/mpv/input.conf
@@ -741,7 +741,7 @@ split=5[a][b][c][d][e];\
 [b]field=top,${WAVEFORM_FILTER}[b1];\
 [c]field=bottom,${WAVEFORM_FILTER}[c1];\
 [d]${VECTORSCOPE_FILTER}[d1];\
-[e]signalstats=out=brng,scale=512:ih[e1];\
+[e]scale=512:ih,signalstats=out=brng[e1];\
 [a1][b1][c1][e1][d1]xstack=inputs=5:layout=0_0|0_h0|0_h0+h1|w0_0|w0_h0" ;;
         "Full Range Visual")
             PLAYBACKFILTER="\
