@@ -33,6 +33,15 @@ All of options in the vrecord GUI (which appears when running `vrecord -e`) or o
 * "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono" — For capturing videotapes with audio recorded on Channel 1 only. Vrecord will capture the audio from Channel 1 and create a mono track. 
 * "Channel 2 -> 1st Mono, Channel 1 -> 2nd Track Mono" — For capturing videotapes with with audio recorded on Channel 2 only. Vrecord will take the audio from Channel 2 and place it in a Channel 1 mono track. 
 
+**Select timecode format** - vrecord now offers limited timecode support by (1) storing a correct first timecode value within your file, and (2) creating a sidecar .txt that will contain the timecode values, continuous or not, for all video frames. If you are uncertain about the type of historical timecode recorded on your tape, the "Scan timecode formats" button located below this drop-down menu will test your tape and provide useful information. The options for timecode include:
+* rp188vitc
+* rp188vitc2
+* rp188ltc
+* rp188any
+* vitc
+* vitc2
+* serial
+
 **Select standard** — Select the television standard of the tape you are digitizing. Currently vrecord only supports NTSC and PAL.
 
 **Select view** — Select the display you want to see as you digitize your tape. See [Video Capture Views](#video-capture-views) below for more details.
