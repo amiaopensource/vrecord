@@ -215,11 +215,15 @@ _construct_pashua_id EMBED_LOGS_CHOICE  x=660 y=143 type=radiobutton \
                                         label="Embed digitization logs in video file? (Matroska only)" \
                                         default="${EMBED_LOGS_CHOICE}" \
                                         "${EMBED_LOGS_OPTIONS[@]}"
-_construct_pashua_id PLAYBACKVIEW_CHOICE      x=20 y=3 type=popup \
-                                        label="Select View" \
+_construct_pashua_id PLAYBACKVIEW_CHOICE      x=20 y=0 type=popup \
+                                        label="Select View (for recording)" \
                                         default="${PLAYBACKVIEW_CHOICE}" \
                                         "${PLAYBACKVIEW_OPTIONS[@]}"
 _construct_pashua_id DURATION           x=20 y=60 type=combobox \
+_construct_pashua_id PLAYBACKVIEW_CHOICE_PASS x=20 y=40 type=popup \
+                                        label="Select View (for passthrough)" \
+                                        default="${PLAYBACKVIEW_CHOICE_PASS}" \
+                                        "${PLAYBACKVIEW_OPTIONS[@]}"
                                         label="Set recording time (integer or decimal) in minutes." \
                                         tooltip="Leave blank for indefinite recording time" \
                                         default="${DURATION}" \
@@ -400,6 +404,7 @@ _edit_mode(){
         echo "  FRAMEMD5_CHOICE = ${FRAMEMD5_CHOICE}"
         echo "  EMBED_LOGS_CHOICE = ${EMBED_LOGS_CHOICE}"
         echo "  PLAYBACKVIEW_CHOICE = ${PLAYBACKVIEW_CHOICE}"
+        echo "  PLAYBACKVIEW_CHOICE_PASS = ${PLAYBACKVIEW_CHOICE_PASS}"
         echo "  DURATION = ${DURATION}"
         echo "  TECHNICIAN = ${TECHNICIAN}"
         if [[ "${INVERT_PHASE}" = 1 ]] ; then
@@ -419,7 +424,7 @@ _edit_mode(){
             echo "# Set these variables to a valid option or leave as empty quotes (like \"\") to request each run."
             for COMMENT_LINE in VIDEO_INPUT_CHOICE AUDIO_INPUT_CHOICE CONTAINER_CHOICE VIDEO_CODEC_CHOICE \
             VIDEO_BIT_DEPTH_CHOICE AUDIO_MAPPING_CHOICE TIMECODE_CHOICE STANDARD_CHOICE QCTOOLSXML_CHOICE FRAMEMD5_CHOICE \
-            EMBED_LOGS_CHOICE PLAYBACKVIEW_CHOICE DIR LOGDIR INVERT_PHASE DURATION TECHNICIAN ; do
+            EMBED_LOGS_CHOICE PLAYBACKVIEW_CHOICE PLAYBACKVIEW_CHOICE_PASS DIR LOGDIR INVERT_PHASE DURATION TECHNICIAN ; do
                 echo "${COMMENT_LINE}=\"${!COMMENT_LINE}\""
             done
         } > "${CONFIG_FILE}"
@@ -1000,7 +1005,11 @@ _review_option "VIDEO_BIT_DEPTH_CHOICE" "Which video bit depth?" "${VIDEO_BITDEP
 _review_option "AUDIO_MAPPING_CHOICE" "Which audio mapping?" "${CHANNEL_MAPPING_OPTIONS[@]}"
 _review_option "TIMECODE_CHOICE" "Which timecode format?" "${TIMECODE_OPTIONS[@]}"
 _review_option "STANDARD_CHOICE" "Which television STANDARD?" "${STANDARD_OPTIONS[@]}"
-_review_option "PLAYBACKVIEW_CHOICE" "Which playback view?" "${PLAYBACKVIEW_OPTIONS[@]}"
+if [[ "${RUNTYPE}" = "passthrough" ]] && [[ -n "${PLAYBACKVIEW_CHOICE_PASS}" ]] && [[ "${PLAYBACKVIEW_CHOICE_PASS}" != "Undeclared" ]] ; then
+  _review_option "PLAYBACKVIEW_CHOICE_PASS" "Which playback view?" "${PLAYBACKVIEW_OPTIONS[@]}"
+else
+  _review_option "PLAYBACKVIEW_CHOICE" "Which playback view?" "${PLAYBACKVIEW_OPTIONS[@]}"
+fi
 if [[ "${OPTION}" = "Full Range Visual" ]] ; then
     MIDDLEOPTIONS+=(-color_range jpeg)
 else
