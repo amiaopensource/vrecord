@@ -1250,7 +1250,7 @@ P1_ERR="${PIPESTATUS[0]}"
 P2_ERR="${PIPESTATUS[1]}"
 P3_ERR="${PIPESTATUS[2]}"
 
-if [[ ! -f "${VRECORD_OUTPUT}" ]] ; then
+if [[ ! -s "${VRECORD_OUTPUT}" ]] ; then
     if [[ "$P1_ERR" != "0" ]] ; then
         _report -wts "Error: Running: ${RECORD_COMMAND[@]} gave an Error Code - ${P1_ERR}"
         _report -w "Consider reporting this or asking for help at https://github.com/amiaopensource/vrecord/issues"
