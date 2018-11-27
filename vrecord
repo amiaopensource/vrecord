@@ -450,11 +450,11 @@ _edit_mode(){
 _passthrough_mode(){
     if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
         _check_mpv
-        "${FFMPEG_DECKLINK}" -nostats "${GRAB_DECKLINK[@]}" 2> /tmp/vrecord_input.log \
+        "${FFMPEG_DECKLINK}" -nostats "${GRAB_DECKLINK[@]}" 2> >(tee /tmp/vrecord_input.log 1>&2) \
         "${PIPE_DECKLINK[@]}" | \
         mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -
     else
-        "${FFPLAY_DECKLINK}" "${FFPLAY_OPTIONS[@]}" 2> /tmp/vrecord_input.log
+        "${FFPLAY_DECKLINK}" "${FFPLAY_OPTIONS[@]}" 2> >(tee /tmp/vrecord_input.log 1>&2)
     fi
     _gui_return
 }
@@ -1226,7 +1226,7 @@ _writeingestlog "FFmpeg command" "${RECORD_COMMAND[@]}"
 if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
     _check_mpv
     "${RECORD_COMMAND[@]}" \
-        2> >(tee "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}" /tmp/vrecord_input.log >/dev/null) \
+        2> >(tee "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}" /tmp/vrecord_input.log 1>&2) \
         | \
         if [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]] ; then
             tee >(mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -) | \
@@ -1236,7 +1236,7 @@ if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
         fi
 else
     "${RECORD_COMMAND[@]}" \
-        2> >(tee "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}" /tmp/vrecord_input.log >/dev/null) \
+        2> >(tee "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}" /tmp/vrecord_input.log 1>&2) \
         | \
         if [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]] ; then
             tee >("${FFPLAY_DECKLINK[@]}" "${FFPLAY_OPTIONS[@]}") | \
