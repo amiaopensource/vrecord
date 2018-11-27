@@ -197,7 +197,7 @@ _construct_pashua_id TIMECODE_CHOICE    x=200 y=150 type=popup \
                                         label="Select timecode format" \
                                         default="${TIMECODE_CHOICE}" \
                                         "${TIMECODE_OPTIONS[@]}"
-_construct_pashua_id TIMECODE_SCAN      x=200 y=120 type=button \
+_construct_pashua_id TIMECODE_SCAN      x=200 y=124 type=button \
                                         label="Scan timecode formats"
 _construct_pashua_id STANDARD_CHOICE    x=470 y=230 type=radiobutton \
                                         label="Select Television Standard" \
@@ -219,11 +219,11 @@ _construct_pashua_id PLAYBACKVIEW_CHOICE      x=20 y=0 type=popup \
                                         label="Select View (for recording)" \
                                         default="${PLAYBACKVIEW_CHOICE}" \
                                         "${PLAYBACKVIEW_OPTIONS[@]}"
-_construct_pashua_id DURATION           x=20 y=60 type=combobox \
 _construct_pashua_id PLAYBACKVIEW_CHOICE_PASS x=20 y=40 type=popup \
                                         label="Select View (for passthrough)" \
                                         default="${PLAYBACKVIEW_CHOICE_PASS}" \
                                         "${PLAYBACKVIEW_OPTIONS[@]}"
+_construct_pashua_id DURATION           x=20 y=80 type=combobox \
                                         label="Set recording time (integer or decimal) in minutes." \
                                         tooltip="Leave blank for indefinite recording time" \
                                         default="${DURATION}" \
