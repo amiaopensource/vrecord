@@ -1257,6 +1257,16 @@ if [[ ! -s "${VRECORD_OUTPUT}" ]] ; then
         _writeingestlog "FFmpeg command Error" "${P1_ERR}"
         exit 1
     fi
+    if [[ "$P2_ERR" != "0" && ! -z "$P2_ERR" ]] ; then
+        _report -wts "Error: The second component of vrecording recording process gave an Error Code - ${P2_ERR}"
+        _report -w "Consider reporting this or asking for help at https://github.com/amiaopensource/vrecord/issues"
+        _writeingestlog "vrecord command Error (P2)" "${P2_ERR}"
+    fi
+    if [[ "$P3_ERR" != "0" && ! -z "$P3_ERR" ]] ; then
+        _report -wts "Error: The third component of vrecording recording process gave an Error Code - ${P3_ERR}"
+        _report -w "Consider reporting this or asking for help at https://github.com/amiaopensource/vrecord/issues"
+        _writeingestlog "vrecord command Error (P3)" "${P3_ERR}"
+    fi
 fi
 
 if [[ -f "${TC_TMP}" ]] ; then
