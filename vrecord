@@ -1260,7 +1260,6 @@ if [[ ! -f "${VRECORD_OUTPUT}" ]] ; then
 fi
 
 if [[ -f "${TC_TMP}" ]] ; then
-    echo "TC TYPE $TC_TYPE"
     mv "${TC_TMP}" "${LOGDIR}/${ID}_${TC_TYPE}${TIMECODELOGSUFFIX}"
 fi
 
