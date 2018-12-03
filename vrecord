@@ -29,15 +29,15 @@ SAT_OUTLIER_THRSHLD=14
 AUD_OUTLIER_THRSHLD=10
 BRNG_OUTLIER_THRSHLD=14
 BREW_PREFIX=$(brew --prefix ffmpegdecklink 2>/dev/null)
-FFMPEG_DECKLINK=("${BREW_PREFIX}/bin/ffmpeg-dl")
-FFPLAY_DECKLINK=("${BREW_PREFIX}/bin/ffplay-dl")
-FFPROBE_DECKLINK=("${BREW_PREFIX}/bin/ffprobe-dl")
+FFMPEG_DECKLINK="${BREW_PREFIX}/bin/ffmpeg-dl"
+FFPLAY_DECKLINK="${BREW_PREFIX}/bin/ffplay-dl"
+FFPROBE_DECKLINK="${BREW_PREFIX}/bin/ffprobe-dl"
 MPVOPTS=(--no-osc)
 MPVOPTS+=(--load-scripts=no)
 MPVOPTS+=(--script "${SCRIPTDIR}/qcview.lua")
 MPVOPTS+=(--really-quiet)
 
-if [[ "$("${FFMPEG_DECKLINK[@]}" -version 2>&1 | grep "Library not loaded" >/dev/null)" || ! -f "${FFMPEG_DECKLINK}" || ! -f "${FFPLAY_DECKLINK}" ]] ; then
+if [[ "$("${FFMPEG_DECKLINK}" -version 2>&1 | grep "Library not loaded" >/dev/null)" || ! -f "${FFMPEG_DECKLINK}" || ! -f "${FFPLAY_DECKLINK}" ]] ; then
     echo "Please reinstall 'ffmpeg-dl':"
     echo "  brew reinstall amiaopensource/amiaos/ffmpegdecklink"
     echo "Exiting."
@@ -269,10 +269,10 @@ fi
 
 # local functions
 _get_decklink_inputs(){
-    DECKLINK_INPUTS=$("${FFMPEG_DECKLINK[@]}" -f decklink -list_devices 1 -i dummy 2>&1 | grep -o "^\[decklink[^\]*][^']*'.*" | cut -d "'" -f2- | sed "s/'$//g")
+    DECKLINK_INPUTS=$("${FFMPEG_DECKLINK}" -f decklink -list_devices 1 -i dummy 2>&1 | grep -o "^\[decklink[^\]*][^']*'.*" | cut -d "'" -f2- | sed "s/'$//g")
     if [[ -z "${DECKLINK_INPUTS}" ]] ; then
         _report -w "No decklink inputs were found. Running \`${FFMPEG_DECKLINK} -hide_banner -f decklink -list_devices 1 -i dummy\` results in:"
-        DECKLINK_RESULT=$("${FFMPEG_DECKLINK[@]}" -hide_banner -f decklink -list_devices 1 -i dummy)
+        DECKLINK_RESULT=$("${FFMPEG_DECKLINK}" -hide_banner -f decklink -list_devices 1 -i dummy)
         echo "${DECKLINK_RESULT}"
         _report -w "Please check connections and drivers and try again."
         exit 1
@@ -478,7 +478,7 @@ _audiopassthrough_mode(){
 [abcde1][xx]overlay=10:10[vo]"
     echo "ESC quit" > ~/.config/mpv/input.conf
     _check_mpv
-    "${FFMPEG_DECKLINK[@]}" -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_DECKLINK[@]}" "${PIPE_DECKLINK[@]}" 2> /tmp/vrecord_input.log | \
+    "${FFMPEG_DECKLINK}" -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_DECKLINK[@]}" "${PIPE_DECKLINK[@]}" 2> /tmp/vrecord_input.log | \
         mpv - --title="${WINDOW_NAME}" -lavfi-complex "${PLAYBACKFILTER}"
     _gui_return
 }
@@ -1045,7 +1045,7 @@ fi
 
 if [[ "${TIMECODE_SCAN}" = 1 ]] ; then
     for timecode_type in "${TIMECODE_OPTIONS[@]}" ; do
-        tc_value="$("${FFPROBE_DECKLINK[@]}" "${GRAB_DECKLINK[@]}" -timecode_format "${timecode_type}" -show_entries stream_tags=timecode -of default=nw=1:nk=1 2>/dev/null)"
+        tc_value="$("${FFPROBE_DECKLINK}" "${GRAB_DECKLINK[@]}" -timecode_format "${timecode_type}" -show_entries stream_tags=timecode -of default=nw=1:nk=1 2>/dev/null)"
         if [[ -z "${tc_value}" ]] ; then
             tc_value="none"
         fi
@@ -1224,7 +1224,7 @@ fi
 _report -d "Close the playback window to stop recording."
 
 # vrecord process!
-RECORD_COMMAND=("${FFMPEG_DECKLINK[@]}")
+RECORD_COMMAND=("${FFMPEG_DECKLINK}")
 RECORD_COMMAND+=(-nostdin -nostats "${INPUTOPTIONS[@]}" "${GRAB_DECKLINK[@]}")
 RECORD_COMMAND+=(-metadata:s:v:0 encoder="${CODECNAME}" "${MIDDLEOPTIONS[@]}" -c:a pcm_s24le)
 RECORD_COMMAND+=(-filter_complex "[0:v:0]${RECORDINGFILTER}${TC_WRITE}; ${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}")
@@ -1248,10 +1248,10 @@ else
         2> >(tee "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}" /tmp/vrecord_input.log 1>&2) \
         | \
         if [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]] ; then
-            tee >("${FFPLAY_DECKLINK[@]}" "${FFPLAY_OPTIONS[@]}") | \
+            tee >("${FFPLAY_DECKLINK}" "${FFPLAY_OPTIONS[@]}") | \
                 qcli -f signalstats+aphasemeter+astats+ssim -i - -o "${QCXML}"
         else
-            "${FFPLAY_DECKLINK[@]}" "${FFPLAY_OPTIONS[@]}"
+            "${FFPLAY_DECKLINK}" "${FFPLAY_OPTIONS[@]}"
         fi
 fi
 # capture errors from components of recording pipe
@@ -1259,17 +1259,26 @@ P1_ERR="${PIPESTATUS[0]}"
 P2_ERR="${PIPESTATUS[1]}"
 P3_ERR="${PIPESTATUS[2]}"
 
-if [[ ! -f "${VRECORD_OUTPUT}" ]] ; then
+if [[ ! -s "${VRECORD_OUTPUT}" ]] ; then
     if [[ "$P1_ERR" != "0" ]] ; then
         _report -wts "Error: Running: ${RECORD_COMMAND[@]} gave an Error Code - ${P1_ERR}"
         _report -w "Consider reporting this or asking for help at https://github.com/amiaopensource/vrecord/issues"
         _writeingestlog "FFmpeg command Error" "${P1_ERR}"
         exit 1
     fi
+    if [[ "$P2_ERR" != "0" && ! -z "$P2_ERR" ]] ; then
+        _report -wts "Error: The second component of vrecording recording process gave an Error Code - ${P2_ERR}"
+        _report -w "Consider reporting this or asking for help at https://github.com/amiaopensource/vrecord/issues"
+        _writeingestlog "vrecord command Error (P2)" "${P2_ERR}"
+    fi
+    if [[ "$P3_ERR" != "0" && ! -z "$P3_ERR" ]] ; then
+        _report -wts "Error: The third component of vrecording recording process gave an Error Code - ${P3_ERR}"
+        _report -w "Consider reporting this or asking for help at https://github.com/amiaopensource/vrecord/issues"
+        _writeingestlog "vrecord command Error (P3)" "${P3_ERR}"
+    fi
 fi
 
 if [[ -f "${TC_TMP}" ]] ; then
-    echo "TC TYPE $TC_TYPE"
     mv "${TC_TMP}" "${LOGDIR}/${ID}_${TC_TYPE}${TIMECODELOGSUFFIX}"
 fi
 
