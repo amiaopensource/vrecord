@@ -483,49 +483,63 @@ _edit_prefs() {
   esac
 }
 
-# GUI dialog to set vrecord runtypes
-_master_gui(){
-    PASHUA_CONFIGFILE=$(/usr/bin/mktemp /tmp/pashua_XXXXXXXXX)
-    {
-        _construct_pashua_id \*                     transparency=0.95       title="Welcome to Vrecord!"
-        _construct_pashua_id VRECORD_LOGO           x=0 y=75 type=image     path="${LOGO_PATH}"
-        _construct_pashua_id REC_BUTTON             x=15 y=35 type=button   label="Record"
-        _construct_pashua_id PASS_BUTTON            x=170 y=35 type=button  label="Passthrough"
-        _construct_pashua_id AUDIO_BUTTON           x=335 y=35 type=button  label="Audio Check"
-        _construct_pashua_id EDIT_BUTTON            x=495 y=35 type=button  label="Edit Settings"
-        _construct_pashua_id DOCUMENTATION_BUTTON   x=800 y=35 type=button  label="Documentation"
-        _construct_pashua_id HELP_BUTTON            x=675 y=35 type=button  label="Help"
-        _construct_pashua_id db                     type=defaultbutton      label="Exit"
-    } > "${PASHUA_CONFIGFILE}"
-    _pashua_run
-    if [[ "${REC_BUTTON}" = 1 ]] ; then
-        RUNTYPE="record"
-    elif [[ "${PASS_BUTTON}" = 1 ]] ; then
-        RUNTYPE="passthrough"
-    elif [[ "${AUDIO_BUTTON}" = 1 ]] ; then
-        RUNTYPE="audiopassthrough"
-    elif [[ "${EDIT_BUTTON}" = 1 ]] ; then
-        RUNTYPE="edit"
-    elif [[ "${HELP_BUTTON}" = 1 ]] ; then
-        echo -n -e "\033]0;PRESS Q TO EXIT\007" && man vrecord && echo -n -e "\033]0;\007" && _master_gui
-    elif [[ "${DOCUMENTATION_BUTTON}" = 1 ]] ; then
-        open https://github.com/amiaopensource/vrecord#vrecord-documentation && _master_gui
-    # db = default button, set to exit
-    elif [[ "${db}" = 1 ]] ; then
-        echo "Exiting Vrecord. Goodbye!" && exit 0
-    else
-        # catch instance when the window is closed with no button pressed
-        echo "Exiting Vrecord. Goodbye!" && exit 0
-    fi
-    if [[ -f "${PASHUA_CONFIGFILE}" ]] ; then
-        rm "${PASHUA_CONFIGFILE}"
-    fi
+_home_gui(){
+  export HOME_DIALOG="
+   <window title=\"Welcome to Vrecord!\">
+     <vbox>
+       <vbox>
+        <hbox>
+          <button>
+            <label>Record</label>
+            <input file>Resources/vrecord logo.png</input>
+            <action type=\"exit\">record</action>
+          </button>
+          <button>
+            <label>Passthrough</label>
+            <input file>Resources/vrecord logo playback.png</input>
+            <action type=\"exit\">passthrough</action>
+          </button>
+          <button>
+            <label>Audio Check</label>
+            <input file>Resources/vrecord logo audio.png</input>
+            <action type=\"exit\">audiopassthrough</action>
+          </button>
+        </hbox>
+        <hbox>
+          <button>
+            <label>Edit Settings</label>
+            <input file>Resources/vrecord logo edit.png</input>
+            <action type=\"exit\">edit</action>
+          </button>
+          <button>
+            <label>Help</label>
+            <input file>Resources/vrecord logo help.png</input>
+            <action>man vrecord</action>
+          </button>
+          <button>
+            <label>Documentation</label>
+            <input file>Resources/vrecord logo documentation.png</input>
+            <action>open https://github.com/amiaopensource/vrecord#vrecord-documentation</action>
+          </button>
+        </hbox>
+      </vbox>
+      <hbox>
+       <button cancel></button>
+      </hbox>
+     </vbox>
+   </window>"
+
+  RUNTYPE=$(gtkdialog --center --program=HOME_DIALOG | grep "^EXIT=" | cut -d= -f2 | sed 's/"//g')
+
+  if [[ "${RUNTYPE}" == "Cancel" ]] ; then
+      echo "Exiting Vrecord. Goodbye!" && exit 0
+  fi
 }
 
 # relaunch GUI in GUI mode/exit script in terminal mode
 _gui_return(){
     if [[ "${GUI}" = 1 ]] ; then
-        _master_gui
+        _home_gui
     else
         exit 0
     fi
@@ -589,7 +603,7 @@ _edit_mode(){
         _report -d "Editing of preferences was canceled by the user."
     fi
     if [[ "${GUI}" = 1 ]] ; then
-        _master_gui
+        _home_gui
     elif [[ "${TIMECODE_SCAN}" = 1 ]] ; then
         _report -dt "Scanning each supported type of timecode."
         RUNTYPE="passthrough"
@@ -1110,7 +1124,7 @@ PLAYBACKVIEW_OPTIONS=("Unfiltered" "Quality Control View (mpv)" "Broadcast Range
 
 # GUI mode + CLI reset, edit modes
 if [[ "${RUNTYPE}" = "GUI" ]] ; then
-    _master_gui
+    _home_gui
 fi
 if [[ "${RUNTYPE}" = "reset" ]] ; then
     _report -q -n "Resetting the configuration will clear ${CONFIG_FILE}. Please enter [Y] to confirm: "
