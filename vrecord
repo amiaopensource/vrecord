@@ -320,7 +320,6 @@ _edit_prefs() {
                 <combobox>
                     <variable>DURATION</variable>
                     $(_expand_list2items "${DURATION_OPTIONS[@]}")
-                    <default>\"${DURATION}\"</default>
                 </combobox>
             </vbox>
             <vbox>
@@ -346,6 +345,20 @@ _edit_prefs() {
             <entry accept=\"directory\">
                 <variable>DIR</variable>
                 <default>\"${DIR}\"</default>
+            </entry>
+            <button>
+                <input file stock=\"gtk-open\"></input>
+                <variable>FILE_BROWSE_DIRECTORY</variable>
+                <action type=\"fileselect\">DIR</action>
+            </button>
+        </hbox>
+        <hbox>
+            <text>
+                <label>Select a directory for auxiliary files (leave blank to match the recording directory).</label>
+            </text>
+            <entry accept=\"directory\">
+                <variable>LOGDIR</variable>
+                <default>\"${LOGDIR}\"</default>
             </entry>
             <button>
                 <input file stock=\"gtk-open\"></input>
