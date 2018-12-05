@@ -21,7 +21,6 @@ unset TECHNICIAN
 RUNTYPE="record"
 CAPTURELOGSUFFIX="_ffmpeg_decklink_input.log"
 TIMECODELOGSUFFIX="_frame_timecodes.txt"
-unset PASHUAINSTALL
 unset EXTRAOUTPUTS
 UNDECLAREDOPTION="Undeclared"
 DEFAULTFONT="/Library/Fonts/Andale Mono.ttf"
@@ -131,113 +130,6 @@ _check_mpv(){
     fi
 }
 
-_construct_pashua_id(){
-  # this function requires the first argument to be the pashua identifier
-  # all subsequent arguments should be pairs of pashua attributes and pashua values
-  # if a set of options is needed, place it as the last argument with no attribute
-  # for example:
-  # DOC_TYPE_OPTS=(Documented Undocumented)
-  # _construct_pashua_id DOC_TYPE x=10 y=10 type=radiobutton "${DOC_TYPE_OPTS[@]}"
-  PASHUA_IDENTIFIER="${1}"
-  shift
-  while [ "${*}" != "" ] ; do
-    
-    if [[ "${1}" != *"="* ]] ; then
-      OPTION_ARRAY=("${@}")
-      echo "${PASHUA_IDENTIFIER}.option = ${UNDECLAREDOPTION}"
-      for PASHUA_OPTION in "${OPTION_ARRAY[@]}" ; do
-          echo "${PASHUA_IDENTIFIER}.option = ${PASHUA_OPTION}"
-      done
-      shift "${#OPTION_ARRAY[@]}"
-    else
-      PASHUA_ATTRIBUTE="${1%%=*}"
-      PASHUA_VALUE="${1#*=}"
-      echo "${PASHUA_IDENTIFIER}.${PASHUA_ATTRIBUTE} = ${PASHUA_VALUE}"
-    fi
-    shift
-  done
-}
-
-_construct_pashua_conf(){
-_construct_pashua_id \*                 transparency=0.95 title="vrecord configuration"
-_construct_pashua_id INTRO              x=20 y=480 type=text width=500 \
-                                        text="Set file recording options. Leave the option as \"${UNDECLAREDOPTION}\" to be prompted later."
-_construct_pashua_id DIR                x=20 y=440 type=openbrowser filetype=directory width=400 \
-                                        default="${DIR}" \
-                                        label="Select a recording directory."
-_construct_pashua_id LOGDIR             x=20 y=395 type=openbrowser filetype=directory width=400 \
-                                        default="${LOGDIR}" \
-                                        label="Select a directory for auxiliary files (leave blank to match the recording directory)." \
-                                        tooltip="select the directory for automatically generated logs and checksums"
-_construct_pashua_id VIDEO_INPUT_CHOICE x=20 y=280 type=radiobutton \
-                                        default="${VIDEO_INPUT_CHOICE}" \
-                                        label="Select Video Input" \
-                                        "${VIDEO_INPUT_OPTIONS[@]}"
-_construct_pashua_id AUDIO_INPUT_CHOICE x=20 y=150 type=radiobutton \
-                                        label="Select Audio Input" \
-                                        default="${AUDIO_INPUT_CHOICE}" \
-                                        "${AUDIO_INPUT_OPTIONS[@]}"
-_construct_pashua_id CONTAINER_CHOICE   x=170 y=280 type=radiobutton \
-                                        label="Select File Format" \
-                                        default="${CONTAINER_CHOICE}" \
-                                        "${CONTAINER_OPTIONS[@]}"
-_construct_pashua_id VIDEO_CODEC_CHOICE x=300 y=280 type=radiobutton \
-                                        label="Select Codec for Video" \
-                                        default="${VIDEO_CODEC_CHOICE}" \
-                                        "${VIDEO_CODEC_OPTIONS[@]}"
-_construct_pashua_id VIDEO_BIT_DEPTH_CHOICE   x=470 y=317 type=radiobutton \
-                                        label="Select Video Bit Depth" \
-                                        default="${VIDEO_BIT_DEPTH_CHOICE}" \
-                                        "${VIDEO_BITDEPTH_OPTIONS[@]}"
-_construct_pashua_id AUDIO_MAPPING_CHOICE     x=200 y=200 type=popup \
-                                        label="Select Audio Channel Mapping" \
-                                        default="${AUDIO_MAPPING_CHOICE}" \
-                                        "${CHANNEL_MAPPING_OPTIONS[@]}"
-_construct_pashua_id TIMECODE_CHOICE    x=200 y=150 type=popup \
-                                        label="Select timecode format" \
-                                        default="${TIMECODE_CHOICE}" \
-                                        "${TIMECODE_OPTIONS[@]}"
-_construct_pashua_id TIMECODE_SCAN      x=200 y=124 type=button \
-                                        label="Scan timecode formats"
-_construct_pashua_id STANDARD_CHOICE    x=470 y=230 type=radiobutton \
-                                        label="Select Television Standard" \
-                                        default="${STANDARD_CHOICE}" \
-                                        "${STANDARD_OPTIONS[@]}"
-_construct_pashua_id QCTOOLSXML_CHOICE  x=660 y=317 type=radiobutton \
-                                        label="Create QCTools XML?" \
-                                        default="${QCTOOLSXML_CHOICE}" \
-                                        "${QCTOOLSXML_OPTIONS[@]}"
-_construct_pashua_id FRAMEMD5_CHOICE    x=660 y=230 type=radiobutton \
-                                        label="Create frame-level MD5 checksums? (recommended)" \
-                                        default="${FRAMEMD5_CHOICE}" \
-                                        "${FRAMEMD5_OPTIONS[@]}"
-_construct_pashua_id EMBED_LOGS_CHOICE  x=660 y=143 type=radiobutton \
-                                        label="Embed digitization logs in video file? (Matroska only)" \
-                                        default="${EMBED_LOGS_CHOICE}" \
-                                        "${EMBED_LOGS_OPTIONS[@]}"
-_construct_pashua_id PLAYBACKVIEW_CHOICE      x=20 y=0 type=popup \
-                                        label="Select View (for recording)" \
-                                        default="${PLAYBACKVIEW_CHOICE}" \
-                                        "${PLAYBACKVIEW_OPTIONS[@]}"
-_construct_pashua_id PLAYBACKVIEW_CHOICE_PASS x=20 y=40 type=popup \
-                                        label="Select View (for passthrough)" \
-                                        default="${PLAYBACKVIEW_CHOICE_PASS}" \
-                                        "${PLAYBACKVIEW_OPTIONS[@]}"
-_construct_pashua_id DURATION           x=20 y=80 type=combobox \
-                                        label="Set recording time (integer or decimal) in minutes." \
-                                        tooltip="Leave blank for indefinite recording time" \
-                                        default="${DURATION}" \
-                                        "${DURATION_OPTIONS[@]}"
-_construct_pashua_id TECHNICIAN         x=350 y=55 type=textbox height=30 \
-                                        label="Enter the name of the person digitizing this tape."
-_construct_pashua_id cb                 type=cancelbutton
-_construct_pashua_id INVERT_PHASE       x=410 y=0 type=checkbox \
-                                        label="Invert Second Channel of Audio" \
-                                        default="${INVERT_PHASE}"
-_construct_pashua_id WARNING            x=350 y=0 type=text \
-                                        default="WARNING: Do not use this option unless required"
-}
-
 # command-line options to set media id and original variables
 OPTIND=1
 while getopts ":herpaxgvI:O:i:" opt ; do
@@ -278,52 +170,6 @@ _get_decklink_inputs(){
         exit 1
     else
         FIRST_DECKLINK_INPUT="$(echo "${DECKLINK_INPUTS}" | head -n 1 )"
-    fi
-}
-
-_pashua_run() {
-    # Wrapper function for interfacing to Pashua. Written by Carsten
-    # Bluem <carsten@bluem.net> in 10/2003, modified in 12/2003 (including
-    # a code snippet contributed by Tor Sigurdsson), 08/2004 and 12/2004.
-    # Write config file
-
-    # Find Pashua binary. We do search both . and dirname "$0"
-    # , as in a doubleclickable application, cwd is /
-    # BTW, all these quotes below are necessary to handle paths
-    # containing spaces.
-    BUNDLEPATH="Pashua.app/Contents/MacOS/Pashua"
-    MYPATH=$(dirname "$0")
-    for SEARCHPATH in "${MYPATH}/Pashua" "${MYPATH}/${BUNDLEPATH}" "./${BUNDLEPATH}" \
-                      "/Applications/${BUNDLEPATH}" "${HOME}/Applications/${BUNDLEPATH}"
-    do
-        if [ -f "${SEARCHPATH}" -a -x "${SEARCHPATH}" ] ; then
-            PASHUAPATH="${SEARCHPATH}"
-            break
-        fi
-    done
-    if [[ ! "${PASHUAPATH}" ]] ; then
-        _report -w "Error: Pashua is used to edit vrecord options but is not found."
-        if [[ -z "${PASHUAINSTALL}" ]] ; then
-            _report -d "Attempting to run: brew cask install pashua"
-            if [[ "${PASHUAINSTALL}" != "Y" ]] ; then
-                brew cask install pashua
-                PASHUAINSTALL="Y"
-                _pashua_run
-            else
-                break 2
-            fi
-        fi
-    else
-        # Get result
-        RESULT=$("${PASHUAPATH}" "${PASHUA_CONFIGFILE}" | sed 's/ /;;;/g')
-        # Parse result
-        for LINE in ${RESULT} ; do
-            KEY=$(echo "${LINE}" | sed 's/^\([^=]*\)=.*$/\1/')
-            VALUE=$(echo "${LINE}" | sed 's/^[^=]*=\(.*\)$/\1/' | sed 's/;;;/ /g')
-            VARNAME="${KEY}"
-            VARVALUE="${VALUE}"
-            eval "${VARNAME}"='${VARVALUE}'
-        done
     fi
 }
 
@@ -578,10 +424,7 @@ _gui_return(){
 
 # edit mode
 _edit_mode(){
-    PASHUA_CONFIGFILE=$(/usr/bin/mktemp /tmp/pashua_XXXXXXXXX)
-    _construct_pashua_conf > "${PASHUA_CONFIGFILE}"
     _edit_prefs
-    rm "${PASHUA_CONFIGFILE}"
     # check that gtkdialog _edit_prefs was exited with OK button
     if [[ "${EXIT}" == "OK" ]] ; then
         _duration_check
