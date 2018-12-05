@@ -327,6 +327,144 @@ _pashua_run() {
     fi
 }
 
+_edit_prefs() {
+  _expand_list2items(){
+    LIST=( "$@" )
+    for i in "${LIST[@]}" ; do
+      echo "<item>${i}</item>"
+    done
+  }
+
+  [ -z $GTKDIALOG ] && GTKDIALOG=gtkdialog
+
+  MAIN_DIALOG="<window title=\"vrecord configuration\">
+  <vbox>
+    <text>
+      <label>Set file recording options. Leave the option as \"${UNDECLAREDOPTION}\" to be prompted later.</label>
+    </text>
+    <hbox>
+      <text>
+        <label>Capture card options</label>
+      </text>
+      <vbox>
+        <text>
+          <label>Select Video Input</label>
+        </text>
+        <list selection-mode=\"1\" selected-row=\"1\">
+          <variable>VIDEO_INPUT_CHOICE</variable>
+          $(_expand_list2items "${VIDEO_INPUT_OPTIONS[@]}")
+        </list>
+      </vbox>
+      <vbox>
+        <text>
+          <label>Select Audio Input</label>
+        </text>
+        <list selection-mode=\"1\" selected-row=\"1\">
+          <variable>AUDIO_INPUT_CHOICE</variable>
+          $(_expand_list2items "${AUDIO_INPUT_OPTIONS[@]}")
+        </list>
+      </vbox>
+      <vbox>
+        <text>
+          <label>Select Standard</label>
+        </text>
+        <list selection-mode=\"1\" selected-row=\"1\">
+          <variable>STANDARD_CHOICE</variable>
+          $(_expand_list2items "${STANDARD_OPTIONS[@]}")
+        </list>
+      </vbox>
+    </hbox>
+    <hbox>
+      <vbox>
+        <text>
+          <label>Select File Format</label>
+        </text>
+        <list selection-mode=\"1\" selected-row=\"1\">
+          <variable>CONTAINER_CHOICE</variable>
+          $(_expand_list2items "${CONTAINER_OPTIONS[@]}")
+        </list>
+      </vbox>
+      <vbox>
+        <text>
+          <label>Select Video Codec</label>
+        </text>
+        <list selection-mode=\"1\" selected-row=\"1\">
+          <variable>VIDEO_CODEC_CHOICE</variable>
+          $(_expand_list2items "${VIDEO_CODEC_OPTIONS[@]}")
+        </list>
+      </vbox>
+      <vbox>
+        <text>
+          <label>Select Video Bit Depth</label>
+        </text>
+        <list selection-mode=\"1\" selected-row=\"1\">
+          <variable>VIDEO_BIT_DEPTH_CHOICE</variable>
+          $(_expand_list2items "${VIDEO_BITDEPTH_OPTIONS[@]}")
+        </list>
+      </vbox>
+    </hbox>
+    <hbox>
+      <vbox>
+        <text>
+          <label>Create QCTools XML?</label>
+        </text>
+        <list selection-mode=\"1\" selected-row=\"1\">
+          <variable>QCTOOLSXML_CHOICE</variable>
+          $(_expand_list2items "${QCTOOLSXML_OPTIONS[@]}")
+        </list>
+      </vbox>
+      <vbox>
+        <text>
+          <label>Create frame-level MD5 checksums? (recommended)</label>
+        </text>
+        <list selection-mode=\"1\" selected-row=\"1\">
+          <variable>FRAMEMD5_CHOICE</variable>
+          $(_expand_list2items "${FRAMEMD5_OPTIONS[@]}")
+        </list>
+      </vbox>
+      <vbox>
+        <text>
+          <label>Embed digitization logs in video file? (Matroska only)</label>
+        </text>
+        <list selection-mode=\"1\" selected-row=\"1\">
+          <variable>EMBED_LOGS_CHOICE</variable>
+          $(_expand_list2items "${EMBED_LOGS_OPTIONS[@]}")
+        </list>
+      </vbox>
+    </hbox>
+    <hbox>
+      <text>
+        <label>Select a recording directory</label>
+      </text>
+      <entry accept=\"directory\">
+        <variable>DIR</variable>
+      </entry>
+      <button>
+        <input file stock=\"gtk-open\"></input>
+        <variable>FILE_BROWSE_DIRECTORY</variable>
+        <action type=\"fileselect\">DIR</action>
+      </button>
+    </hbox>
+    <vbox>
+      <hbox>
+        <button ok>
+          <variable>OKBUTTON</variable>
+        </button>
+        <button cancel>
+        </button>
+      </hbox>
+    </vbox>
+  </vbox>
+</window>"
+
+  export MAIN_DIALOG
+
+  case $1 in
+    -d | --dump) echo "$MAIN_DIALOG" ;;
+    *) $GTKDIALOG --program=MAIN_DIALOG ;;
+  esac
+}
+
 # GUI dialog to set vrecord runtypes
 _master_gui(){
     PASHUA_CONFIGFILE=$(/usr/bin/mktemp /tmp/pashua_XXXXXXXXX)
@@ -379,7 +517,7 @@ _gui_return(){
 _edit_mode(){
     PASHUA_CONFIGFILE=$(/usr/bin/mktemp /tmp/pashua_XXXXXXXXX)
     _construct_pashua_conf > "${PASHUA_CONFIGFILE}"
-    _pashua_run
+    _edit_prefs
     rm "${PASHUA_CONFIGFILE}"
     # cb = cancel button; default button is "OK"
     if [[ "${cb}" = 0 ]] ; then
