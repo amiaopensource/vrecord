@@ -22,7 +22,7 @@ RUNTYPE="record"
 CAPTURELOGSUFFIX="_ffmpeg_decklink_input.log"
 TIMECODELOGSUFFIX="_frame_timecodes.txt"
 unset EXTRAOUTPUTS
-UNDECLAREDOPTION="Undeclared"
+UNDECLAREDOPTION="Unselected"
 DEFAULTFONT="/Library/Fonts/Andale Mono.ttf"
 SAT_OUTLIER_THRSHLD=14
 AUD_OUTLIER_THRSHLD=10
@@ -202,7 +202,7 @@ _edit_prefs() {
   export MAIN_DIALOG="<window title=\"vrecord configuration\">
     <vbox>
         <text>
-            <label>Set file recording options. Leave the option as \"${UNDECLAREDOPTION}\" to be prompted later.</label>
+            <label>Set file recording options. Leave the option ${UNDECLAREDOPTION} to be prompted later.</label>
         </text>
         <hbox>
             <text>
@@ -228,6 +228,15 @@ _edit_prefs() {
             </vbox>
             <vbox>
                 <text>
+                    <label>Select Audio Channel Mapping</label>
+                </text>
+                <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${AUDIO_MAPPING_CHOICE}" "${CHANNEL_MAPPING_OPTIONS[@]}")\">
+                    <variable>AUDIO_MAPPING_CHOICE</variable>
+                    $(_expand_list2items "${CHANNEL_MAPPING_OPTIONS[@]}")
+                </list>
+            </vbox>
+            <vbox>
+                <text>
                     <label>Select Standard</label>
                 </text>
                 <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${STANDARD_CHOICE}" "${STANDARD_OPTIONS[@]}")\">
@@ -237,16 +246,6 @@ _edit_prefs() {
             </vbox>
         </hbox>
     <hbox>
-        <vbox>
-            <text>
-                <label>Set recordig time (integer or decimal) in minutes</label>
-            </text>
-            <combobox>
-                <variable>DURATION</variable>
-                $(_expand_list2items "${DURATION_OPTIONS[@]}")
-                <default>\"${DURATION}\"</default>
-            </combobox>
-        </vbox>
         <vbox>
             <text>
                 <label>Select File Format</label>
@@ -314,6 +313,16 @@ _edit_prefs() {
             </vbox>
         </hbox>
         <hbox>
+            <vbox>
+                <text>
+                    <label>Set recordig time (integer or decimal) in minutes</label>
+                </text>
+                <combobox>
+                    <variable>DURATION</variable>
+                    $(_expand_list2items "${DURATION_OPTIONS[@]}")
+                    <default>\"${DURATION}\"</default>
+                </combobox>
+            </vbox>
             <vbox>
                 <text>
                     <label>Enter the name of the person digitizing this tape.</label>
