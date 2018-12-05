@@ -315,7 +315,7 @@ _edit_prefs() {
         <hbox>
             <vbox>
                 <text>
-                    <label>Set recordig time (integer or decimal) in minutes</label>
+                    <label>Set recording time (integer or decimal) in minutes</label>
                 </text>
                 <combobox>
                     <variable>DURATION</variable>
