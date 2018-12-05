@@ -353,9 +353,7 @@ _edit_prefs() {
     fi
   }
 
-  [ -z $GTKDIALOG ] && GTKDIALOG=gtkdialog
-
-  MAIN_DIALOG="<window title=\"vrecord configuration\">
+  export MAIN_DIALOG="<window title=\"vrecord configuration\">
   <vbox>
       <text>
         <label>Set file recording options. Leave the option as \"${UNDECLAREDOPTION}\" to be prompted later.</label>
@@ -513,12 +511,7 @@ _edit_prefs() {
   </vbox>
 </window>"
 
-  export MAIN_DIALOG
-
-  case $1 in
-    -d | --dump) echo "$MAIN_DIALOG" ;;
-    *) $GTKDIALOG --program=MAIN_DIALOG ;;
-  esac
+    eval $(gtkdialog --center --program MAIN_DIALOG)
 }
 
 _home_gui(){
@@ -589,8 +582,8 @@ _edit_mode(){
     _construct_pashua_conf > "${PASHUA_CONFIGFILE}"
     _edit_prefs
     rm "${PASHUA_CONFIGFILE}"
-    # cb = cancel button; default button is "OK"
-    if [[ "${cb}" = 0 ]] ; then
+    # check that gtkdialog _edit_prefs was exited with OK button
+    if [[ "${EXIT}" == "OK" ]] ; then
         _duration_check
         # report back options
         if [[ -z "${LOGDIR}" ]] ; then
