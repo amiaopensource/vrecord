@@ -451,6 +451,32 @@ _edit_prefs() {
       </vbox>
     </hbox>
     <hbox>
+      <vbox>
+        <text>
+          <label>Enter the name of the person digitizing this tape.</label>
+        </text>
+        <entry>
+          <variable>TECHNICIAN</variable>
+        </entry>
+      </vbox>
+      <vbox>
+        <checkbox>
+          <label>Invert Second Channel of Audio (WARNING: Do not use this option unless required)</label>
+          <default>false</default>
+          <variable>INVERT_PHASE</variable>
+        </checkbox>
+      </vbox>
+      <vbox>
+        <text>
+          <label>Select View</label>
+        </text>
+        <list selection-mode=\"1\" selected-row=\"1\">
+          <variable>PLAYBACKVIEW_CHOICE</variable>
+          $(_expand_list2items "${PLAYBACKVIEW_OPTIONS[@]}")
+        </list>
+      </vbox>
+    </hbox>
+    <hbox>
       <text>
         <label>Select a recording directory</label>
       </text>
