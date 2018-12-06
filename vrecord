@@ -37,6 +37,16 @@ MPVOPTS+=(--load-scripts=no)
 MPVOPTS+=(--script "${SCRIPTDIR}/qcview.lua")
 MPVOPTS+=(--really-quiet)
 
+# Set variables for system differences
+if [[ "$(uname -s)" = "Darwin" ]] ; then
+    DEFAULTFONT='/Library/Fonts/Andale Mono.ttf'
+    HARDWARE_REPORT=$(system_profiler SPHardwareDataType)
+    CORE_COUNT="$(_parse_report "Total Number of Cores" "${HARDWARE_REPORT}")"
+else
+    DEFAULTFONT='/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf'
+    CORE_COUNT="$(nproc --all)"
+fi
+
 if [[ "$("${FFMPEG_DECKLINK}" -version 2>&1 | grep "Library not loaded" >/dev/null)" || ! -f "${FFMPEG_DECKLINK}" || ! -f "${FFPLAY_DECKLINK}" ]] ; then
     echo "Please reinstall 'ffmpeg-dl':"
     echo "  brew reinstall amiaopensource/amiaos/ffmpegdecklink"
@@ -998,9 +1008,6 @@ _review_option(){
         LOG_OF_OPTIONS+="${VALUE_NAME}: ${OPTION}\n"
     fi
 }
-
-HARDWARE_REPORT=$(system_profiler SPHardwareDataType)
-CORE_COUNT="$(_parse_report "Total Number of Cores" "${HARDWARE_REPORT}")"
 
 _review_option "VIDEO_INPUT_CHOICE" "Which video input are you using?" "${VIDEO_INPUT_OPTIONS[@]}"
 _review_option "AUDIO_INPUT_CHOICE" "Which audio input are you using?" "${AUDIO_INPUT_OPTIONS[@]}"
