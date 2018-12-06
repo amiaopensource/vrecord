@@ -22,7 +22,7 @@ RUNTYPE="record"
 CAPTURELOGSUFFIX="_ffmpeg_decklink_input.log"
 TIMECODELOGSUFFIX="_frame_timecodes.txt"
 unset EXTRAOUTPUTS
-UNDECLAREDOPTION="Unselected"
+UNDECLAREDOPTION="unselected"
 DEFAULTFONT="/Library/Fonts/Andale Mono.ttf"
 SAT_OUTLIER_THRSHLD=14
 AUD_OUTLIER_THRSHLD=10
@@ -247,6 +247,13 @@ _edit_prefs() {
         </hbox>
     <hbox>
         <vbox>
+            <checkbox>
+                <label>Embed digitization logs in video file (Matroska ONLY)</label>
+                <default>\"${EMBED_LOGS_CHOICE}\"</default>
+                <variable>EMBED_LOGS_CHOICE</variable>
+            </checkbox>
+        </vbox>
+        <vbox>
             <text>
                 <label>Select File Format</label>
             </text>
@@ -295,15 +302,6 @@ _edit_prefs() {
             </vbox>
             <vbox>
                 <text>
-                    <label>Embed digitization logs in video file? (Matroska only)</label>
-                </text>
-                <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${EMBED_LOGS_CHOICE}" "${EMBED_LOGS_OPTIONS[@]}")\">
-                    <variable>EMBED_LOGS_CHOICE</variable>
-                    $(_expand_list2items "${EMBED_LOGS_OPTIONS[@]}")
-                </list>
-            </vbox>
-            <vbox>
-                <text>
                     <label>Select View</label>
                 </text>
                 <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${PLAYBACKVIEW_CHOICE}" "${PLAYBACKVIEW_OPTIONS[@]}")\">
@@ -317,10 +315,10 @@ _edit_prefs() {
                 <text>
                     <label>Set recording time (integer or decimal) in minutes</label>
                 </text>
-                <combobox>
+                <entry activates_default=\"true\" tooltip-text=\"Suggested:23 33 63 93. Leave blank for indefinite recording time\">
+                    <default>\"${DURATION}\"</default>
                     <variable>DURATION</variable>
-                    $(_expand_list2items "${DURATION_OPTIONS[@]}")
-                </combobox>
+                </entry>
             </vbox>
             <vbox>
                 <text>
@@ -356,7 +354,7 @@ _edit_prefs() {
             <text>
                 <label>Select a directory for auxiliary files (leave blank to match the recording directory).</label>
             </text>
-            <entry accept=\"directory\">
+            <entry accept=\"directory\" tooltip-text=\"select the directory for automatically generated logs and checksums\">
                 <variable>LOGDIR</variable>
                 <default>\"${LOGDIR}\"</default>
             </entry>
