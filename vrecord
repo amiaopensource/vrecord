@@ -42,9 +42,13 @@ if [[ "$(uname -s)" = "Darwin" ]] ; then
     DEFAULTFONT='/Library/Fonts/Andale Mono.ttf'
     HARDWARE_REPORT=$(system_profiler SPHardwareDataType)
     CORE_COUNT="$(_parse_report "Total Number of Cores" "${HARDWARE_REPORT}")"
+    OPEN_COMMAND="open"
+    OPEN_TERMINAL_CMD="${OPEN_COMMAND} /Applications/Utilities/Terminal.app"
 elif [[ "$(uname -s)" = "Linux" ]] ; then
     DEFAULTFONT='/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf'
     CORE_COUNT="$(nproc --all)"
+    OPEN_COMMAND="xdg-open"
+    OPEN_TERMINAL_CMD="gnome-terminal"
 else
     echo 'Unsupported OS detected. Exiting.'
     exit 1
@@ -366,7 +370,7 @@ _master_gui(){
     elif [[ "${HELP_BUTTON}" = 1 ]] ; then
         echo -n -e "\033]0;PRESS Q TO EXIT\007" && man vrecord && echo -n -e "\033]0;\007" && _master_gui
     elif [[ "${DOCUMENTATION_BUTTON}" = 1 ]] ; then
-        open https://github.com/amiaopensource/vrecord#vrecord-documentation && _master_gui
+        "${OPEN_COMMAND}" https://github.com/amiaopensource/vrecord#vrecord-documentation && _master_gui
     # db = default button, set to exit
     elif [[ "${db}" = 1 ]] ; then
         echo "Exiting Vrecord. Goodbye!" && exit 0
@@ -452,7 +456,7 @@ _edit_mode(){
         RUNTYPE="passthrough"
     else
         RUNTYPE="record"
-        open /Applications/Utilities/Terminal.app
+        "${OPEN_TERMINAL_CMD}"
         _report -nd "Press [q] to quit, [p] to enter passthrough mode or any other key to proceed: "
         read AFTEREDITRESPONSE
         if [[ "${AFTEREDITRESPONSE}" = "q" ]] ; then
@@ -985,7 +989,7 @@ while [[ "${RUNTYPE}" = "edit" ]] ; do
     _edit_mode
 done
 
-open /Applications/Utilities/Terminal.app
+"${OPEN_TERMINAL_CMD}"
 if [[ "${INVERT_PHASE}" = 1 ]] ; then
     PHASE_VALUE="-1*"
 fi
