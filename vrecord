@@ -1133,8 +1133,7 @@ if [[ "${TIMECODE_SCAN}" = 1 ]] ; then
         fi
         echo "${timecode_type}: ${tc_value}"
     done
-    "${0}" -e
-    exit
+    _edit_prefs
 fi
 PIPE_DECKLINK=(-c copy)
 PIPE_DECKLINK+=(-map 0)
