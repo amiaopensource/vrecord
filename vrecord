@@ -252,6 +252,11 @@ _edit_prefs() {
                 <default>\"${EMBED_LOGS_CHOICE}\"</default>
                 <variable>EMBED_LOGS_CHOICE</variable>
             </checkbox>
+            <checkbox>
+                <label>Create frame-level MD5 checksums? (recommended)</label>
+                <default>\"${FRAMEMD5_CHOICE}\"</default>
+                <variable>FRAMEMD5_CHOICE</variable>
+            </checkbox>
         </vbox>
         <vbox>
             <text>
@@ -282,98 +287,112 @@ _edit_prefs() {
         </vbox>
     </hbox>
         <hbox>
-            <vbox>
-                <text>
-                    <label>Create QCTools XML?</label>
-                </text>
-                <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${QCTOOLSXML_CHOICE}" "${QCTOOLSXML_OPTIONS[@]}")\">
-                    <variable>QCTOOLSXML_CHOICE</variable>
-                    $(_expand_list2items "${QCTOOLSXML_OPTIONS[@]}")
-                </list>
-            </vbox>
-            <vbox>
-                <text>
-                    <label>Create frame-level MD5 checksums? (recommended)</label>
-                </text>
-                <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${FRAMEMD5_CHOICE}" "${FRAMEMD5_OPTIONS[@]}")\">
-                    <variable>FRAMEMD5_CHOICE</variable>
-                    $(_expand_list2items "${FRAMEMD5_OPTIONS[@]}")
-                </list>
-            </vbox>
-            <vbox>
-                <text>
-                    <label>Select View</label>
-                </text>
-                <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${PLAYBACKVIEW_CHOICE}" "${PLAYBACKVIEW_OPTIONS[@]}")\">
-                    <variable>PLAYBACKVIEW_CHOICE</variable>
-                    $(_expand_list2items "${PLAYBACKVIEW_OPTIONS[@]}")
-                </list>
-            </vbox>
-        </hbox>
-        <hbox>
-            <vbox>
-                <text>
-                    <label>Set recording time (integer or decimal) in minutes</label>
-                </text>
-                <entry activates_default=\"true\" tooltip-text=\"Suggested:23 33 63 93. Leave blank for indefinite recording time\">
-                    <default>\"${DURATION}\"</default>
-                    <variable>DURATION</variable>
-                </entry>
-            </vbox>
-            <vbox>
-                <text>
-                    <label>Enter the name of the person digitizing this tape.</label>
-                </text>
-                <entry>
-                    <variable>TECHNICIAN</variable>
-                </entry>
-            </vbox>
-            <vbox>
-                <checkbox>
-                    <label>Invert Second Channel of Audio (WARNING: Do not use this option unless required)</label>
-                    <default>false</default>
-                    <variable>INVERT_PHASE</variable>
-                </checkbox>
-            </vbox>
-        </hbox>
-        <hbox>
-            <text>
-                <label>Select a recording directory</label>
-            </text>
-            <entry accept=\"directory\">
-                <variable>DIR</variable>
-                <default>\"${DIR}\"</default>
-            </entry>
-            <button>
-                <input file stock=\"gtk-open\"></input>
-                <variable>FILE_BROWSE_DIRECTORY</variable>
-                <action type=\"fileselect\">DIR</action>
-            </button>
-        </hbox>
-        <hbox>
-            <text>
-                <label>Select a directory for auxiliary files (leave blank to match the recording directory).</label>
-            </text>
-            <entry accept=\"directory\" tooltip-text=\"select the directory for automatically generated logs and checksums\">
-                <variable>LOGDIR</variable>
-                <default>\"${LOGDIR}\"</default>
-            </entry>
-            <button>
-                <input file stock=\"gtk-open\"></input>
-                <variable>FILE_BROWSE_DIRECTORY</variable>
-                <action type=\"fileselect\">DIR</action>
-            </button>
-        </hbox>
         <vbox>
-            <hbox>
-                <button ok>
-                    <variable>OKBUTTON</variable>
-                </button>
-                <button cancel>
-                </button>
-            </hbox>
+            <text>
+                <label>Select timecode format</label>
+            </text>
+            <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${TIMECODE_CHOICE}" "${TIMECODE_OPTIONS[@]}")\">
+                <variable>TIMECODE_CHOICE</variable>
+                $(_expand_list2items "${TIMECODE_OPTIONS[@]}")
+            </list>
+            <button>
+                <label>Scan timecode formats</label>
+                <variable>TIMECODE_SCAN</variable>
+                <action type=\"run\">TIMECODE_SCAN</action>
+            </button> 
         </vbox>
+        <vbox>
+            <text>
+                <label>Create QCTools XML?</label>
+            </text>
+            <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${QCTOOLSXML_CHOICE}" "${QCTOOLSXML_OPTIONS[@]}")\">
+                <variable>QCTOOLSXML_CHOICE</variable>
+                $(_expand_list2items "${QCTOOLSXML_OPTIONS[@]}")
+            </list>
+        </vbox>
+        <vbox>
+            <text>
+                <label>Select View (for recording)</label>
+            </text>
+            <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${PLAYBACKVIEW_CHOICE}" "${PLAYBACKVIEW_OPTIONS[@]}")\">
+                <variable>PLAYBACKVIEW_CHOICE</variable>
+                $(_expand_list2items "${PLAYBACKVIEW_OPTIONS[@]}")
+            </list>
+        </vbox>
+        <vbox>
+            <text>
+                <label>Select View (for passthrough)</label>
+            </text>
+            <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${PLAYBACKVIEW_CHOICE_PASS}" "${PLAYBACKVIEW_OPTIONS[@]}")\">
+                <variable>PLAYBACKVIEW_CHOICE_PASS</variable>
+                $(_expand_list2items "${PLAYBACKVIEW_OPTIONS[@]}")
+            </list>
+        </vbox>
+    </hbox>
+    <hbox>
+        <vbox>
+            <text>
+                <label>Set recording time (integer or decimal) in minutes</label>
+            </text>
+            <entry activates_default=\"true\" tooltip-text=\"Suggested:23 33 63 93. Leave blank for indefinite recording time\">
+                <default>\"${DURATION}\"</default>
+                <variable>DURATION</variable>
+            </entry>
+        </vbox>
+        <vbox>
+            <text>
+                <label>Enter the name of the person digitizing this tape.</label>
+            </text>
+            <entry>
+                <variable>TECHNICIAN</variable>
+            </entry>
+        </vbox>
+        <vbox>
+            <checkbox>
+                <label>Invert Second Channel of Audio (WARNING: Do not use this option unless required)</label>
+                <default>false</default>
+                <variable>INVERT_PHASE</variable>
+            </checkbox>
+        </vbox>
+    </hbox>
+    <hbox>
+        <text>
+            <label>Select a recording directory</label>
+        </text>
+        <entry accept=\"directory\">
+            <variable>DIR</variable>
+            <default>\"${DIR}\"</default>
+        </entry>
+        <button>
+            <input file stock=\"gtk-open\"></input>
+            <variable>FILE_BROWSE_DIRECTORY</variable>
+            <action type=\"fileselect\">DIR</action>
+        </button>
+    </hbox>
+    <hbox>
+        <text>
+            <label>Select a directory for auxiliary files (leave blank to match the recording directory).</label>
+        </text>
+        <entry accept=\"directory\" tooltip-text=\"select the directory for automatically generated logs and checksums\">
+            <variable>LOGDIR</variable>
+            <default>\"${LOGDIR}\"</default>
+        </entry>
+        <button>
+            <input file stock=\"gtk-open\"></input>
+            <variable>FILE_BROWSE_DIRECTORY</variable>
+            <action type=\"fileselect\">DIR</action>
+        </button>
+    </hbox>
+    <vbox>
+        <hbox>
+            <button ok>
+                <variable>OKBUTTON</variable>
+            </button>
+            <button cancel>
+            </button>
+        </hbox>
     </vbox>
+</vbox>
 </window>"
 
     eval $(gtkdialog --center --program MAIN_DIALOG)
@@ -443,6 +462,7 @@ _gui_return(){
 # edit mode
 _edit_mode(){
     _edit_prefs
+    echo "ts is $TIMECODE_SCAN"
     # check that gtkdialog _edit_prefs was exited with OK button
     if [[ "${EXIT}" == "OK" ]] ; then
         _duration_check
