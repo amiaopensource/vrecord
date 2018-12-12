@@ -22,7 +22,7 @@ RUNTYPE="record"
 CAPTURELOGSUFFIX="_ffmpeg_decklink_input.log"
 TIMECODELOGSUFFIX="_frame_timecodes.txt"
 unset EXTRAOUTPUTS
-UNDECLAREDOPTION="unselected"
+UNSELECTEDOPTION="unselected"
 DEFAULTFONT="/Library/Fonts/Andale Mono.ttf"
 SAT_OUTLIER_THRSHLD=14
 AUD_OUTLIER_THRSHLD=10
@@ -202,7 +202,7 @@ _edit_prefs() {
   export MAIN_DIALOG="<window title=\"vrecord configuration\">
     <vbox>
         <text>
-            <label>Set file recording options. Leave the option ${UNDECLAREDOPTION} to be prompted later.</label>
+            <label>Set file recording options. Leave the option ${UNSELECTEDOPTION} to be prompted later.</label>
         </text>
         <hbox>
             <text>
@@ -1065,7 +1065,7 @@ _review_option(){
     QUERY="${2}"
     shift 2
     CHOICES=("${@}")
-    if [[ "${SELECTED}" && "${SELECTED}" != "${UNDECLAREDOPTION}" ]] ; then
+    if [[ "${SELECTED}" && "${SELECTED}" != "${UNSELECTEDOPTION}" ]] ; then
         _lookup_choice "${SELECTED}"
         LOG_OF_OPTIONS+="${VALUE_NAME}: ${SELECTED}\n"
         OPTION="${SELECTED}"
@@ -1087,7 +1087,7 @@ _review_option "VIDEO_BIT_DEPTH_CHOICE" "Which video bit depth?" "${VIDEO_BITDEP
 _review_option "AUDIO_MAPPING_CHOICE" "Which audio mapping?" "${CHANNEL_MAPPING_OPTIONS[@]}"
 _review_option "TIMECODE_CHOICE" "Which timecode format?" "${TIMECODE_OPTIONS[@]}"
 _review_option "STANDARD_CHOICE" "Which television STANDARD?" "${STANDARD_OPTIONS[@]}"
-if [[ "${RUNTYPE}" = "passthrough" ]] && [[ -n "${PLAYBACKVIEW_CHOICE_PASS}" ]] && [[ "${PLAYBACKVIEW_CHOICE_PASS}" != "Undeclared" ]] ; then
+if [[ "${RUNTYPE}" = "passthrough" ]] && [[ -n "${PLAYBACKVIEW_CHOICE_PASS}" ]] && [[ "${PLAYBACKVIEW_CHOICE_PASS}" != "Unselected" ]] ; then
   _review_option "PLAYBACKVIEW_CHOICE_PASS" "Which playback view?" "${PLAYBACKVIEW_OPTIONS[@]}"
 else
   _review_option "PLAYBACKVIEW_CHOICE" "Which playback view?" "${PLAYBACKVIEW_OPTIONS[@]}"
