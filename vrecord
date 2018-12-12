@@ -823,7 +823,7 @@ _lookup_choice(){
         "Quality Control View (mpv)") MEDIA_PLAYER_CHOICE="mpv" ;;
         "Broadcast Range Visual")
             PLAYBACKFILTER="\
-split=5[a][b][c][d][e];\
+${PLAYBACK_FILTER_ADJUSTMENT}split=5[a][b][c][d][e];\
 [a]copy${TIMECODE_OVERLAY}[a1];\
 [b]field=top,${WAVEFORM_FILTER}[b1];\
 [c]field=bottom,${WAVEFORM_FILTER}[c1];\
@@ -832,7 +832,7 @@ split=5[a][b][c][d][e];\
 [a1][b1][c1][e1][d1]xstack=inputs=5:layout=0_0|0_h0|0_h0+h1|w0_0|w0_h0" ;;
         "Full Range Visual")
             PLAYBACKFILTER="\
-split=5[a][b][c][d][e];\
+${PLAYBACK_FILTER_ADJUSTMENT}split=5[a][b][c][d][e];\
 [a]copy${TIMECODE_OVERLAY}[a1];\
 [b]field=top,${WAVEFORM_FILTER}[b1];\
 [c]field=bottom,${WAVEFORM_FILTER}[c1];\
@@ -841,7 +841,7 @@ split=5[a][b][c][d][e];\
 [a1][b1][c1][e1][d1]xstack=inputs=5:layout=0_0|0_h0|0_h0+h1|w0_0|w0_h0" ;;
       "Visual + Numerical")
           PLAYBACKFILTER="\
-split=6[a][b][c][d][e][f];\
+${PLAYBACK_FILTER_ADJUSTMENT}split=6[a][b][c][d][e][f];\
 [a]copy${TIMECODE_OVERLAY}[a1];\
 [b]field=top,${WAVEFORM_FILTER}[b1];\
 [c]field=bottom,${WAVEFORM_FILTER}[c1];\
@@ -863,7 +863,7 @@ reload=1:y=82-th[f1];\
           HUE=20
           SAT=0.3
           PLAYBACKFILTER="\
-scale=iw/4:ih/4,\
+${PLAYBACK_FILTER_ADJUSTMENT}scale=iw/4:ih/4,\
 split=9[x][hm][hp][sm][sp][hmsm][hmsp][hpsm][hpsp];\
 [hm]hue=h=-${HUE}[hm1];\
 [hp]hue=h=${HUE}[hp1];\
@@ -888,7 +888,7 @@ split=9[x][hm][hp][sm][sp][hmsm][hmsp][hpsm][hpsp];\
 [b0c][b1c][b2c][b3c][b4c][b5c][b6c][b7c][b8c][b9c]hstack=10,format=yuv444p,drawgrid=w=iw/10:h=ih:t=2:c=green@0.5"
           fi
           PLAYBACKFILTER="\
-format=yuv420p10le|yuv422p10le|yuv444p10le|yuv440p10le,split=${SPLIT};\
+${PLAYBACK_FILTER_ADJUSTMENT}format=yuv420p10le|yuv422p10le|yuv444p10le|yuv440p10le,split=${SPLIT};\
 [b0]bitplanenoise=bitplane=10,crop=iw/${BITS}:ih:(iw/${BITS})*0:0,lutyuv=u=(maxval/2):v=(maxval/2):y=bitand(val\\,pow(2\\,10-1))*pow(2\\,1),pad=iw:ih+64:0:64,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.0.10}:y=0:fontcolor=white:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.1.10}:y=20:fontcolor=white:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.2.10}:y=40:fontcolor=white:fontsize=20[b0c];\
 [b1]bitplanenoise=bitplane=9,crop=iw/${BITS}:ih:(iw/${BITS})*1:0,lutyuv=u=(maxval/2):v=(maxval/2):y=bitand(val\\,pow(2\\,10-2))*pow(2\\,2),pad=iw:ih+64:0:64,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.0.9}:y=0:fontcolor=silver:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.1.9}:y=20:fontcolor=silver:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.2.9}:y=40:fontcolor=silver:fontsize=20[b1c];\
 [b2]bitplanenoise=bitplane=8,crop=iw/${BITS}:ih:(iw/${BITS})*2:0,lutyuv=u=(maxval/2):v=(maxval/2):y=bitand(val\\,pow(2\\,10-3))*pow(2\\,3),pad=iw:ih+64:0:64,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.0.8}:y=0:fontcolor=white:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.1.8}:y=20:fontcolor=white:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.2.8}:y=40:fontcolor=white:fontsize=20[b2c];\
@@ -1081,12 +1081,19 @@ _review_option(){
     fi
 }
 
+HARDWARE_REPORT=$(system_profiler SPHardwareDataType)
+CORE_COUNT="$(_parse_report "Total Number of Cores" "${HARDWARE_REPORT}")"
+
 _review_option "VIDEO_INPUT_CHOICE" "Which video input are you using?" "${VIDEO_INPUT_OPTIONS[@]}"
 _review_option "AUDIO_INPUT_CHOICE" "Which audio input are you using?" "${AUDIO_INPUT_OPTIONS[@]}"
 _review_option "VIDEO_BIT_DEPTH_CHOICE" "Which video bit depth?" "${VIDEO_BITDEPTH_OPTIONS[@]}"
 _review_option "AUDIO_MAPPING_CHOICE" "Which audio mapping?" "${CHANNEL_MAPPING_OPTIONS[@]}"
 _review_option "TIMECODE_CHOICE" "Which timecode format?" "${TIMECODE_OPTIONS[@]}"
 _review_option "STANDARD_CHOICE" "Which television STANDARD?" "${STANDARD_OPTIONS[@]}"
+if [[ "${CORE_COUNT}" -le 2 && "${RUNTYPE}" = "record" ]] ; then
+    _report -w "Since this computer has only ${CORE_COUNT} cores, the playback will display only half of the frames to reduce CPU. This will not impact the recording."
+    PLAYBACK_FILTER_ADJUSTMENT="select=not(mod(n\,2)),"
+fi
 if [[ "${RUNTYPE}" = "passthrough" ]] && [[ -n "${PLAYBACKVIEW_CHOICE_PASS}" ]] && [[ "${PLAYBACKVIEW_CHOICE_PASS}" != "Unselected" ]] ; then
   _review_option "PLAYBACKVIEW_CHOICE_PASS" "Which playback view?" "${PLAYBACKVIEW_OPTIONS[@]}"
 else
@@ -1255,14 +1262,13 @@ read
 INGESTLOG="${LOGDIR}/${ID}_capture_options.log"
 QCXML="${LOGDIR}/${ID}${SUFFIX}.${EXTENSION}.qctools.xml.gz"
 touch "${INGESTLOG}"
-HARDWARE_REPORT=$(system_profiler SPHardwareDataType)
 _writeingestlog "computer_name" "$(uname -n)"
 _writeingestlog "computer_model_name" "$(_parse_report "Model Name" "${HARDWARE_REPORT}")"
 _writeingestlog "computer_model_id" "$(_parse_report "Model Identifier" "${HARDWARE_REPORT}")"
 _writeingestlog "computer_processor_name" "$(_parse_report "Processor Name" "${HARDWARE_REPORT}")"
 _writeingestlog "computer_processor_speed" "$(_parse_report "Processor Speed" "${HARDWARE_REPORT}")"
 _writeingestlog "computer_processor_count" "$(_parse_report "Number of Processors" "${HARDWARE_REPORT}")"
-_writeingestlog "computer_cores" "$(_parse_report "Total Number of Cores" "${HARDWARE_REPORT}")"
+_writeingestlog "computer_cores" "$CORE_COUNT"
 _writeingestlog "computer_memory" "$(_parse_report "Memory" "${HARDWARE_REPORT}")"
 _writeingestlog "computer_serial" "$(_parse_report "Serial Number (system)" "${HARDWARE_REPORT}")"
 _writeingestlog "user_name" "$(whoami)"
