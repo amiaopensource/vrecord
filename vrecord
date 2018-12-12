@@ -296,9 +296,9 @@ _edit_prefs() {
                 $(_expand_list2items "${TIMECODE_OPTIONS[@]}")
             </list>
             <button>
-                <label>Scan timecode formats</label>
-                <variable>TIMECODE_SCAN</variable>
-                <action>TIMECODE_SCAN</action>
+                <label>Scan timecode types</label>
+                <action>echo TIMECODE_SCAN=1</action>
+                <action type=\"exit\">TIMECODE_SCAN</action>
             </button> 
         </vbox>
         <vbox>
