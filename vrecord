@@ -42,9 +42,12 @@ if [[ "$(uname -s)" = "Darwin" ]] ; then
     DEFAULTFONT='/Library/Fonts/Andale Mono.ttf'
     HARDWARE_REPORT=$(system_profiler SPHardwareDataType)
     CORE_COUNT="$(_parse_report "Total Number of Cores" "${HARDWARE_REPORT}")"
-else
+elif [[ "$(uname -s)" = "Linux" ]] ; then
     DEFAULTFONT='/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf'
     CORE_COUNT="$(nproc --all)"
+else
+    echo 'Unsupported OS detected. Exiting.'
+    exit 1
 fi
 
 if [[ "$("${FFMPEG_DECKLINK}" -version 2>&1 | grep "Library not loaded" >/dev/null)" || ! -f "${FFMPEG_DECKLINK}" || ! -f "${FFPLAY_DECKLINK}" ]] ; then
