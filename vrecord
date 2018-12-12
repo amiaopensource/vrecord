@@ -298,7 +298,7 @@ _edit_prefs() {
             <button>
                 <label>Scan timecode formats</label>
                 <variable>TIMECODE_SCAN</variable>
-                <action type=\"run\">TIMECODE_SCAN</action>
+                <action>TIMECODE_SCAN</action>
             </button> 
         </vbox>
         <vbox>
