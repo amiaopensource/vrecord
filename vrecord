@@ -6,6 +6,7 @@
 SCRIPTNAME=$(basename "${0}")
 SCRIPTDIR=$(dirname "${0}")
 CONFIG_FILE="${HOME}/.${SCRIPTNAME}.conf"
+GTK_RECENT_DIR="${HOME}/.local/share"
 unset VERSION
 if [[ $(dirname "$(command -v "${0}")") = "/usr/local/bin" ]] ; then
     VERSION=$(TMP=$(brew info vrecord | grep ".*\*$" | grep -Eo "/vrecord/.* \(") ; echo "${TMP:9:(${#TMP}-11)}")
@@ -247,16 +248,22 @@ _edit_prefs() {
         </hbox>
     <hbox>
         <vbox>
-            <checkbox>
+            <text>
                 <label>Embed digitization logs in video file (Matroska ONLY)</label>
-                <default>\"${EMBED_LOGS_CHOICE}\"</default>
+            </text>
+            <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${EMBED_LOGS_CHOICE}" "${EMBED_LOGS_OPTIONS[@]}")\">
                 <variable>EMBED_LOGS_CHOICE</variable>
-            </checkbox>
-            <checkbox>
+                $(_expand_list2items "${EMBED_LOGS_OPTIONS[@]}")
+            </list>
+        </vbox>
+        <vbox>
+            <text>
                 <label>Create frame-level MD5 checksums? (recommended)</label>
-                <default>\"${FRAMEMD5_CHOICE}\"</default>
+            </text>
+            <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${FRAMEMD5_CHOICE}" "${FRAMEMD5_PPTIONS[@]}")\">
                 <variable>FRAMEMD5_CHOICE</variable>
-            </checkbox>
+                $(_expand_list2items "${FRAMEMD5_OPTIONS[@]}")
+            </list>
         </vbox>
         <vbox>
             <text>
@@ -365,7 +372,7 @@ _edit_prefs() {
         </entry>
         <button>
             <input file stock=\"gtk-open\"></input>
-            <variable>FILE_BROWSE_DIRECTORY</variable>
+            <variable>DIRBROWSE</variable>
             <action type=\"fileselect\">DIR</action>
         </button>
     </hbox>
@@ -379,8 +386,8 @@ _edit_prefs() {
         </entry>
         <button>
             <input file stock=\"gtk-open\"></input>
-            <variable>FILE_BROWSE_DIRECTORY</variable>
-            <action type=\"fileselect\">DIR</action>
+            <variable>LOGDIRBROWSE</variable>
+            <action type=\"fileselect\">LOGDIR</action>
         </button>
     </hbox>
     <vbox>
@@ -461,6 +468,9 @@ _gui_return(){
 
 # edit mode
 _edit_mode(){
+    if [[ ! -d "${GTK_RECENT_DIR}" ]] ; then
+        mkdir -p "${GTK_RECENT_DIR}"
+    fi
     _edit_prefs
     echo "ts is $TIMECODE_SCAN"
     # check that gtkdialog _edit_prefs was exited with OK button
