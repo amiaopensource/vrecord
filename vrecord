@@ -38,20 +38,21 @@ MPVOPTS+=(--script "${SCRIPTDIR}/qcview.lua")
 MPVOPTS+=(--really-quiet)
 
 # Set variables for system differences
-if [[ "$(uname -s)" = "Darwin" ]] ; then
+SYSTEM_TEST="$(uname -s)"
+if [[ "${SYSTEM_TEST}" = "Darwin" ]] ; then
     OS_TYPE="macOS"
     DEFAULTFONT='/Library/Fonts/Andale Mono.ttf'
     HARDWARE_REPORT=$(system_profiler SPHardwareDataType)
     CORE_COUNT="$(_parse_report "Total Number of Cores" "${HARDWARE_REPORT}")"
     OPEN_COMMAND="open"
-elif [[ "$(uname -s)" = "Linux" ]] ; then
+elif [[ "${SYSTEM_TEST}" = "Linux" ]] ; then
     OS_TYPE="linux"
     DEFAULTFONT='/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf'
     HARDWARE_REPORT=$(lscpu)
     CORE_COUNT="$(nproc --all)"
     OPEN_COMMAND="xdg-open"
 else
-    echo 'Unsupported OS detected. Exiting.'
+    echo "Unsupported OS, ${SYSTEM_TEST}, detected. Exiting."
     exit 1
 fi
 
@@ -1196,7 +1197,7 @@ QCXML="${LOGDIR}/${ID}${SUFFIX}.${EXTENSION}.qctools.xml.gz"
 touch "${INGESTLOG}"
 _writeingestlog "computer_name" "$(uname -n)"
 _writeingestlog "computer_model_name" "$(_parse_report "Model Name" "${HARDWARE_REPORT}")"
-if [[ OS_TYPE = "macOS" ]] ; then
+if [[ "${OS_TYPE}" = "macOS" ]] ; then
     _writeingestlog "computer_model_id" "$(_parse_report "Model Identifier" "${HARDWARE_REPORT}")"
     _writeingestlog "computer_processor_name" "$(_parse_report "Processor Name" "${HARDWARE_REPORT}")"
     _writeingestlog "computer_processor_speed" "$(_parse_report "Processor Speed" "${HARDWARE_REPORT}")"
@@ -1211,7 +1212,7 @@ _writeingestlog "vrecord version" "${VERSION}"
 _writeingestlog "datetime_start" "$(_get_iso8601)"
 
 MOUNT_PATH="$(df -Ph "${DIR}" | tail -n 1 | awk '{print $6}')"
-if [[ OS_TYPE = "macOS" ]] ; then
+if [[ "${OS_TYPE}" = "macOS" ]] ; then
     VOLUME_INFO="$(diskutil info "${MOUNT_PATH}")"
     PART_OF_WHOLE="/dev/$(_parse_report "Part of Whole" "${VOLUME_INFO}")"
     CAPTURE_DEVICE_INFO="$(diskutil info "${PART_OF_WHOLE}")"
