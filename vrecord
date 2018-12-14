@@ -36,25 +36,6 @@ MPVOPTS+=(--load-scripts=no)
 MPVOPTS+=(--script "${SCRIPTDIR}/qcview.lua")
 MPVOPTS+=(--really-quiet)
 
-# Set variables for system differences
-QUERY_OS_TYPE="$(uname -s)"
-if [[ "${QUERY_OS_TYPE}" = "Darwin" ]] ; then
-    OS_TYPE="macOS"
-    DEFAULTFONT="/Library/Fonts/Andale Mono.ttf"
-    HARDWARE_REPORT=$(system_profiler SPHardwareDataType)
-    CORE_COUNT="$(_parse_report "Total Number of Cores" "${HARDWARE_REPORT}")"
-    OPEN_COMMAND="open"
-elif [[ "${QUERY_OS_TYPE}" = "Linux" ]] ; then
-    OS_TYPE="linux"
-    DEFAULTFONT="/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf"
-    HARDWARE_REPORT=$(lscpu)
-    CORE_COUNT="$(nproc --all)"
-    OPEN_COMMAND="xdg-open"
-else
-    echo "Unsupported OS, ${QUERY_OS_TYPE}, detected. Exiting."
-    exit 1
-fi
-
 if [[ "$("${FFMPEG_DECKLINK}" -version 2>&1 | grep "Library not loaded" >/dev/null)" || ! -f "${FFMPEG_DECKLINK}" || ! -f "${FFPLAY_DECKLINK}" ]] ; then
     echo "Please reinstall 'ffmpeg-dl':"
     echo "  brew reinstall amiaopensource/amiaos/ffmpegdecklink"
@@ -148,6 +129,25 @@ _check_mpv(){
         exit 1
     fi
 }
+
+# Set variables for system differences
+QUERY_OS_TYPE="$(uname -s)"
+if [[ "${QUERY_OS_TYPE}" = "Darwin" ]] ; then
+    OS_TYPE="macOS"
+    DEFAULTFONT="/Library/Fonts/Andale Mono.ttf"
+    HARDWARE_REPORT=$(system_profiler SPHardwareDataType)
+    CORE_COUNT="$(_parse_report "Total Number of Cores" "${HARDWARE_REPORT}")"
+    OPEN_COMMAND="open"
+elif [[ "${QUERY_OS_TYPE}" = "Linux" ]] ; then
+    OS_TYPE="linux"
+    DEFAULTFONT="/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf"
+    HARDWARE_REPORT=$(lscpu)
+    CORE_COUNT="$(nproc --all)"
+    OPEN_COMMAND="xdg-open"
+else
+    echo "Unsupported OS, ${QUERY_OS_TYPE}, detected. Exiting."
+    exit 1
+fi
 
 # command-line options to set media id and original variables
 OPTIND=1
