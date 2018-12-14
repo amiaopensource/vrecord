@@ -24,7 +24,6 @@ CAPTURELOGSUFFIX="_ffmpeg_decklink_input.log"
 TIMECODELOGSUFFIX="_frame_timecodes.txt"
 unset EXTRAOUTPUTS
 UNSELECTEDOPTION="unselected"
-DEFAULTFONT="/Library/Fonts/Andale Mono.ttf"
 SAT_OUTLIER_THRSHLD=14
 AUD_OUTLIER_THRSHLD=10
 BRNG_OUTLIER_THRSHLD=14
@@ -38,21 +37,21 @@ MPVOPTS+=(--script "${SCRIPTDIR}/qcview.lua")
 MPVOPTS+=(--really-quiet)
 
 # Set variables for system differences
-SYSTEM_TEST="$(uname -s)"
-if [[ "${SYSTEM_TEST}" = "Darwin" ]] ; then
+QUERY_OS_TYPE="$(uname -s)"
+if [[ "${QUERY_OS_TYPE}" = "Darwin" ]] ; then
     OS_TYPE="macOS"
-    DEFAULTFONT='/Library/Fonts/Andale Mono.ttf'
+    DEFAULTFONT="/Library/Fonts/Andale Mono.ttf"
     HARDWARE_REPORT=$(system_profiler SPHardwareDataType)
     CORE_COUNT="$(_parse_report "Total Number of Cores" "${HARDWARE_REPORT}")"
     OPEN_COMMAND="open"
-elif [[ "${SYSTEM_TEST}" = "Linux" ]] ; then
+elif [[ "${QUERY_OS_TYPE}" = "Linux" ]] ; then
     OS_TYPE="linux"
-    DEFAULTFONT='/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf'
+    DEFAULTFONT="/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf"
     HARDWARE_REPORT=$(lscpu)
     CORE_COUNT="$(nproc --all)"
     OPEN_COMMAND="xdg-open"
 else
-    echo "Unsupported OS, ${SYSTEM_TEST}, detected. Exiting."
+    echo "Unsupported OS, ${QUERY_OS_TYPE}, detected. Exiting."
     exit 1
 fi
 
