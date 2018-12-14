@@ -6,6 +6,7 @@
 SCRIPTNAME=$(basename "${0}")
 SCRIPTDIR=$(dirname "${0}")
 CONFIG_FILE="${HOME}/.${SCRIPTNAME}.conf"
+GTK_RECENT_DIR="${HOME}/.local/share"
 unset VERSION
 if [[ $(dirname "$(command -v "${0}")") = "/usr/local/bin" ]] ; then
     VERSION=$(TMP=$(brew info vrecord | grep ".*\*$" | grep -Eo "/vrecord/.* \(") ; echo "${TMP:9:(${#TMP}-11)}")
@@ -21,9 +22,8 @@ unset TECHNICIAN
 RUNTYPE="record"
 CAPTURELOGSUFFIX="_ffmpeg_decklink_input.log"
 TIMECODELOGSUFFIX="_frame_timecodes.txt"
-unset PASHUAINSTALL
 unset EXTRAOUTPUTS
-UNDECLAREDOPTION="Undeclared"
+UNSELECTEDOPTION="unselected"
 DEFAULTFONT="/Library/Fonts/Andale Mono.ttf"
 SAT_OUTLIER_THRSHLD=14
 AUD_OUTLIER_THRSHLD=10
@@ -150,113 +150,6 @@ _check_mpv(){
     fi
 }
 
-_construct_pashua_id(){
-  # this function requires the first argument to be the pashua identifier
-  # all subsequent arguments should be pairs of pashua attributes and pashua values
-  # if a set of options is needed, place it as the last argument with no attribute
-  # for example:
-  # DOC_TYPE_OPTS=(Documented Undocumented)
-  # _construct_pashua_id DOC_TYPE x=10 y=10 type=radiobutton "${DOC_TYPE_OPTS[@]}"
-  PASHUA_IDENTIFIER="${1}"
-  shift
-  while [ "${*}" != "" ] ; do
-    
-    if [[ "${1}" != *"="* ]] ; then
-      OPTION_ARRAY=("${@}")
-      echo "${PASHUA_IDENTIFIER}.option = ${UNDECLAREDOPTION}"
-      for PASHUA_OPTION in "${OPTION_ARRAY[@]}" ; do
-          echo "${PASHUA_IDENTIFIER}.option = ${PASHUA_OPTION}"
-      done
-      shift "${#OPTION_ARRAY[@]}"
-    else
-      PASHUA_ATTRIBUTE="${1%%=*}"
-      PASHUA_VALUE="${1#*=}"
-      echo "${PASHUA_IDENTIFIER}.${PASHUA_ATTRIBUTE} = ${PASHUA_VALUE}"
-    fi
-    shift
-  done
-}
-
-_construct_pashua_conf(){
-_construct_pashua_id \*                 transparency=0.95 title="vrecord configuration"
-_construct_pashua_id INTRO              x=20 y=480 type=text width=500 \
-                                        text="Set file recording options. Leave the option as \"${UNDECLAREDOPTION}\" to be prompted later."
-_construct_pashua_id DIR                x=20 y=440 type=openbrowser filetype=directory width=400 \
-                                        default="${DIR}" \
-                                        label="Select a recording directory."
-_construct_pashua_id LOGDIR             x=20 y=395 type=openbrowser filetype=directory width=400 \
-                                        default="${LOGDIR}" \
-                                        label="Select a directory for auxiliary files (leave blank to match the recording directory)." \
-                                        tooltip="select the directory for automatically generated logs and checksums"
-_construct_pashua_id VIDEO_INPUT_CHOICE x=20 y=280 type=radiobutton \
-                                        default="${VIDEO_INPUT_CHOICE}" \
-                                        label="Select Video Input" \
-                                        "${VIDEO_INPUT_OPTIONS[@]}"
-_construct_pashua_id AUDIO_INPUT_CHOICE x=20 y=150 type=radiobutton \
-                                        label="Select Audio Input" \
-                                        default="${AUDIO_INPUT_CHOICE}" \
-                                        "${AUDIO_INPUT_OPTIONS[@]}"
-_construct_pashua_id CONTAINER_CHOICE   x=170 y=280 type=radiobutton \
-                                        label="Select File Format" \
-                                        default="${CONTAINER_CHOICE}" \
-                                        "${CONTAINER_OPTIONS[@]}"
-_construct_pashua_id VIDEO_CODEC_CHOICE x=300 y=280 type=radiobutton \
-                                        label="Select Codec for Video" \
-                                        default="${VIDEO_CODEC_CHOICE}" \
-                                        "${VIDEO_CODEC_OPTIONS[@]}"
-_construct_pashua_id VIDEO_BIT_DEPTH_CHOICE   x=470 y=317 type=radiobutton \
-                                        label="Select Video Bit Depth" \
-                                        default="${VIDEO_BIT_DEPTH_CHOICE}" \
-                                        "${VIDEO_BITDEPTH_OPTIONS[@]}"
-_construct_pashua_id AUDIO_MAPPING_CHOICE     x=200 y=200 type=popup \
-                                        label="Select Audio Channel Mapping" \
-                                        default="${AUDIO_MAPPING_CHOICE}" \
-                                        "${CHANNEL_MAPPING_OPTIONS[@]}"
-_construct_pashua_id TIMECODE_CHOICE    x=200 y=150 type=popup \
-                                        label="Select timecode format" \
-                                        default="${TIMECODE_CHOICE}" \
-                                        "${TIMECODE_OPTIONS[@]}"
-_construct_pashua_id TIMECODE_SCAN      x=200 y=124 type=button \
-                                        label="Scan timecode formats"
-_construct_pashua_id STANDARD_CHOICE    x=470 y=230 type=radiobutton \
-                                        label="Select Television Standard" \
-                                        default="${STANDARD_CHOICE}" \
-                                        "${STANDARD_OPTIONS[@]}"
-_construct_pashua_id QCTOOLSXML_CHOICE  x=660 y=317 type=radiobutton \
-                                        label="Create QCTools XML?" \
-                                        default="${QCTOOLSXML_CHOICE}" \
-                                        "${QCTOOLSXML_OPTIONS[@]}"
-_construct_pashua_id FRAMEMD5_CHOICE    x=660 y=230 type=radiobutton \
-                                        label="Create frame-level MD5 checksums? (recommended)" \
-                                        default="${FRAMEMD5_CHOICE}" \
-                                        "${FRAMEMD5_OPTIONS[@]}"
-_construct_pashua_id EMBED_LOGS_CHOICE  x=660 y=143 type=radiobutton \
-                                        label="Embed digitization logs in video file? (Matroska only)" \
-                                        default="${EMBED_LOGS_CHOICE}" \
-                                        "${EMBED_LOGS_OPTIONS[@]}"
-_construct_pashua_id PLAYBACKVIEW_CHOICE      x=20 y=0 type=popup \
-                                        label="Select View (for recording)" \
-                                        default="${PLAYBACKVIEW_CHOICE}" \
-                                        "${PLAYBACKVIEW_OPTIONS[@]}"
-_construct_pashua_id PLAYBACKVIEW_CHOICE_PASS x=20 y=40 type=popup \
-                                        label="Select View (for passthrough)" \
-                                        default="${PLAYBACKVIEW_CHOICE_PASS}" \
-                                        "${PLAYBACKVIEW_OPTIONS[@]}"
-_construct_pashua_id DURATION           x=20 y=80 type=combobox \
-                                        label="Set recording time (integer or decimal) in minutes." \
-                                        tooltip="Leave blank for indefinite recording time" \
-                                        default="${DURATION}" \
-                                        "${DURATION_OPTIONS[@]}"
-_construct_pashua_id TECHNICIAN         x=350 y=55 type=textbox height=30 \
-                                        label="Enter the name of the person digitizing this tape."
-_construct_pashua_id cb                 type=cancelbutton
-_construct_pashua_id INVERT_PHASE       x=410 y=0 type=checkbox \
-                                        label="Invert Second Channel of Audio" \
-                                        default="${INVERT_PHASE}"
-_construct_pashua_id WARNING            x=350 y=0 type=text \
-                                        default="WARNING: Do not use this option unless required"
-}
-
 # command-line options to set media id and original variables
 OPTIND=1
 while getopts ":herpaxgvI:O:i:" opt ; do
@@ -300,95 +193,293 @@ _get_decklink_inputs(){
     fi
 }
 
-_pashua_run() {
-    # Wrapper function for interfacing to Pashua. Written by Carsten
-    # Bluem <carsten@bluem.net> in 10/2003, modified in 12/2003 (including
-    # a code snippet contributed by Tor Sigurdsson), 08/2004 and 12/2004.
-    # Write config file
-
-    # Find Pashua binary. We do search both . and dirname "$0"
-    # , as in a doubleclickable application, cwd is /
-    # BTW, all these quotes below are necessary to handle paths
-    # containing spaces.
-    BUNDLEPATH="Pashua.app/Contents/MacOS/Pashua"
-    MYPATH=$(dirname "$0")
-    for SEARCHPATH in "${MYPATH}/Pashua" "${MYPATH}/${BUNDLEPATH}" "./${BUNDLEPATH}" \
-                      "/Applications/${BUNDLEPATH}" "${HOME}/Applications/${BUNDLEPATH}"
-    do
-        if [ -f "${SEARCHPATH}" -a -x "${SEARCHPATH}" ] ; then
-            PASHUAPATH="${SEARCHPATH}"
-            break
-        fi
+_edit_prefs() {
+  _expand_list2items(){
+    LIST=( "$@" )
+    for i in "${LIST[@]}" ; do
+      echo "<item>${i}</item>"
     done
-    if [[ ! "${PASHUAPATH}" ]] ; then
-        _report -w "Error: Pashua is used to edit vrecord options but is not found."
-        if [[ -z "${PASHUAINSTALL}" ]] ; then
-            _report -d "Attempting to run: brew cask install pashua"
-            if [[ "${PASHUAINSTALL}" != "Y" ]] ; then
-                brew cask install pashua
-                PASHUAINSTALL="Y"
-                _pashua_run
-            else
-                break 2
-            fi
-        fi
-    else
-        # Get result
-        RESULT=$("${PASHUAPATH}" "${PASHUA_CONFIGFILE}" | sed 's/ /;;;/g')
-        # Parse result
-        for LINE in ${RESULT} ; do
-            KEY=$(echo "${LINE}" | sed 's/^\([^=]*\)=.*$/\1/')
-            VALUE=$(echo "${LINE}" | sed 's/^[^=]*=\(.*\)$/\1/' | sed 's/;;;/ /g')
-            VARNAME="${KEY}"
-            VARVALUE="${VALUE}"
-            eval "${VARNAME}"='${VARVALUE}'
-        done
+  }
+  _get_index_of_value(){
+    # run with function, value to look for as first argument, and array to look in as 2nd argument, such function as
+    # _get_index_of_value "${VIDEO_INPUT_CHOICE}" "${VIDEO_INPUT_OPTIONS[@]}"
+    VALUE="${1}"
+    shift
+    LIST=( "$@" )
+    INDEX=0
+    MATCH=""
+    for ITEM in "${LIST[@]}" ; do
+      if [[ "${VALUE}" == "${ITEM}" ]] ; then
+        MATCH="$INDEX"
+      fi
+      (( ++INDEX ))
+    done
+    if [[ -n "${MATCH}" ]] ; then
+      echo -n "${MATCH}"
     fi
+  }
+
+  export MAIN_DIALOG="<window title=\"vrecord configuration\">
+    <vbox>
+        <text>
+            <label>Set file recording options. Leave the option ${UNSELECTEDOPTION} to be prompted later.</label>
+        </text>
+        <hbox>
+            <text>
+                <label>Capture card options</label>
+            </text>
+            <vbox>
+                <text>
+                    <label>Select Video Input</label>
+                </text>
+                <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${VIDEO_INPUT_CHOICE}" "${VIDEO_INPUT_OPTIONS[@]}")\">
+                    <variable>VIDEO_INPUT_CHOICE</variable>
+                    $(_expand_list2items "${VIDEO_INPUT_OPTIONS[@]}")
+                </list>
+            </vbox>
+            <vbox>
+                <text>
+                    <label>Select Audio Input</label>
+                </text>
+                <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${AUDIO_INPUT_CHOICE}" "${AUDIO_INPUT_OPTIONS[@]}")\">
+                    <variable>AUDIO_INPUT_CHOICE</variable>
+                    $(_expand_list2items "${AUDIO_INPUT_OPTIONS[@]}")
+                </list>
+            </vbox>
+            <vbox>
+                <text>
+                    <label>Select Audio Channel Mapping</label>
+                </text>
+                <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${AUDIO_MAPPING_CHOICE}" "${CHANNEL_MAPPING_OPTIONS[@]}")\">
+                    <variable>AUDIO_MAPPING_CHOICE</variable>
+                    $(_expand_list2items "${CHANNEL_MAPPING_OPTIONS[@]}")
+                </list>
+            </vbox>
+            <vbox>
+                <text>
+                    <label>Select Standard</label>
+                </text>
+                <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${STANDARD_CHOICE}" "${STANDARD_OPTIONS[@]}")\">
+                    <variable>STANDARD_CHOICE</variable>
+                    $(_expand_list2items "${STANDARD_OPTIONS[@]}")
+                </list>
+            </vbox>
+        </hbox>
+    <hbox>
+        <vbox>
+            <text>
+                <label>Embed digitization logs in video file (Matroska ONLY)</label>
+            </text>
+            <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${EMBED_LOGS_CHOICE}" "${EMBED_LOGS_OPTIONS[@]}")\">
+                <variable>EMBED_LOGS_CHOICE</variable>
+                $(_expand_list2items "${EMBED_LOGS_OPTIONS[@]}")
+            </list>
+        </vbox>
+        <vbox>
+            <text>
+                <label>Create frame-level MD5 checksums? (recommended)</label>
+            </text>
+            <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${FRAMEMD5_CHOICE}" "${FRAMEMD5_PPTIONS[@]}")\">
+                <variable>FRAMEMD5_CHOICE</variable>
+                $(_expand_list2items "${FRAMEMD5_OPTIONS[@]}")
+            </list>
+        </vbox>
+        <vbox>
+            <text>
+                <label>Select File Format</label>
+            </text>
+            <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${CONTAINER_CHOICE}" "${CONTAINER_OPTIONS[@]}")\">
+                <variable>CONTAINER_CHOICE</variable>
+                $(_expand_list2items "${CONTAINER_OPTIONS[@]}")
+            </list>
+        </vbox>
+        <vbox>
+            <text>
+                <label>Select Video Codec</label>
+            </text>
+            <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${VIDEO_CODEC_CHOICE}" "${VIDEO_CODEC_OPTIONS[@]}")\">
+                <variable>VIDEO_CODEC_CHOICE</variable>
+                $(_expand_list2items "${VIDEO_CODEC_OPTIONS[@]}")
+            </list>
+        </vbox>
+        <vbox>
+            <text>
+                <label>Select Video Bit Depth</label>
+            </text>
+            <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${VIDEO_BIT_DEPTH_CHOICE}" "${VIDEO_BITDEPTH_OPTIONS[@]}")\">
+                <variable>VIDEO_BIT_DEPTH_CHOICE</variable>
+                $(_expand_list2items "${VIDEO_BITDEPTH_OPTIONS[@]}")
+            </list>
+        </vbox>
+    </hbox>
+        <hbox>
+        <vbox>
+            <text>
+                <label>Select timecode format</label>
+            </text>
+            <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${TIMECODE_CHOICE}" "${TIMECODE_OPTIONS[@]}")\">
+                <variable>TIMECODE_CHOICE</variable>
+                $(_expand_list2items "${TIMECODE_OPTIONS[@]}")
+            </list>
+            <button>
+                <label>Scan timecode types</label>
+                <action>echo TIMECODE_SCAN=1</action>
+                <action type=\"exit\">TIMECODE_SCAN</action>
+            </button> 
+        </vbox>
+        <vbox>
+            <text>
+                <label>Create QCTools XML?</label>
+            </text>
+            <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${QCTOOLSXML_CHOICE}" "${QCTOOLSXML_OPTIONS[@]}")\">
+                <variable>QCTOOLSXML_CHOICE</variable>
+                $(_expand_list2items "${QCTOOLSXML_OPTIONS[@]}")
+            </list>
+        </vbox>
+        <vbox>
+            <text>
+                <label>Select View (for recording)</label>
+            </text>
+            <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${PLAYBACKVIEW_CHOICE}" "${PLAYBACKVIEW_OPTIONS[@]}")\">
+                <variable>PLAYBACKVIEW_CHOICE</variable>
+                $(_expand_list2items "${PLAYBACKVIEW_OPTIONS[@]}")
+            </list>
+        </vbox>
+        <vbox>
+            <text>
+                <label>Select View (for passthrough)</label>
+            </text>
+            <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${PLAYBACKVIEW_CHOICE_PASS}" "${PLAYBACKVIEW_OPTIONS[@]}")\">
+                <variable>PLAYBACKVIEW_CHOICE_PASS</variable>
+                $(_expand_list2items "${PLAYBACKVIEW_OPTIONS[@]}")
+            </list>
+        </vbox>
+    </hbox>
+    <hbox>
+        <vbox>
+            <text>
+                <label>Set recording time (integer or decimal) in minutes</label>
+            </text>
+            <entry activates_default=\"true\" tooltip-text=\"Suggested:23 33 63 93. Leave blank for indefinite recording time\">
+                <default>\"${DURATION}\"</default>
+                <variable>DURATION</variable>
+            </entry>
+        </vbox>
+        <vbox>
+            <text>
+                <label>Enter the name of the person digitizing this tape.</label>
+            </text>
+            <entry>
+                <variable>TECHNICIAN</variable>
+            </entry>
+        </vbox>
+        <vbox>
+            <checkbox>
+                <label>Invert Second Channel of Audio (WARNING: Do not use this option unless required)</label>
+                <default>false</default>
+                <variable>INVERT_PHASE</variable>
+            </checkbox>
+        </vbox>
+    </hbox>
+    <hbox>
+        <text>
+            <label>Select a recording directory</label>
+        </text>
+        <entry accept=\"directory\">
+            <variable>DIR</variable>
+            <default>\"${DIR}\"</default>
+        </entry>
+        <button>
+            <input file stock=\"gtk-open\"></input>
+            <variable>DIRBROWSE</variable>
+            <action type=\"fileselect\">DIR</action>
+        </button>
+    </hbox>
+    <hbox>
+        <text>
+            <label>Select a directory for auxiliary files (leave blank to match the recording directory).</label>
+        </text>
+        <entry accept=\"directory\" tooltip-text=\"select the directory for automatically generated logs and checksums\">
+            <variable>LOGDIR</variable>
+            <default>\"${LOGDIR}\"</default>
+        </entry>
+        <button>
+            <input file stock=\"gtk-open\"></input>
+            <variable>LOGDIRBROWSE</variable>
+            <action type=\"fileselect\">LOGDIR</action>
+        </button>
+    </hbox>
+    <vbox>
+        <hbox>
+            <button ok>
+                <variable>OKBUTTON</variable>
+            </button>
+            <button cancel>
+            </button>
+        </hbox>
+    </vbox>
+</vbox>
+</window>"
+
+    eval $(gtkdialog --center --program MAIN_DIALOG)
 }
 
-# GUI dialog to set vrecord runtypes
-_master_gui(){
-    PASHUA_CONFIGFILE=$(/usr/bin/mktemp /tmp/pashua_XXXXXXXXX)
-    {
-        _construct_pashua_id \*                     transparency=0.95       title="Welcome to Vrecord!"
-        _construct_pashua_id VRECORD_LOGO           x=0 y=75 type=image     path="${LOGO_PATH}"
-        _construct_pashua_id REC_BUTTON             x=15 y=35 type=button   label="Record"
-        _construct_pashua_id PASS_BUTTON            x=170 y=35 type=button  label="Passthrough"
-        _construct_pashua_id AUDIO_BUTTON           x=335 y=35 type=button  label="Audio Check"
-        _construct_pashua_id EDIT_BUTTON            x=495 y=35 type=button  label="Edit Settings"
-        _construct_pashua_id DOCUMENTATION_BUTTON   x=800 y=35 type=button  label="Documentation"
-        _construct_pashua_id HELP_BUTTON            x=675 y=35 type=button  label="Help"
-        _construct_pashua_id db                     type=defaultbutton      label="Exit"
-    } > "${PASHUA_CONFIGFILE}"
-    _pashua_run
-    if [[ "${REC_BUTTON}" = 1 ]] ; then
-        RUNTYPE="record"
-    elif [[ "${PASS_BUTTON}" = 1 ]] ; then
-        RUNTYPE="passthrough"
-    elif [[ "${AUDIO_BUTTON}" = 1 ]] ; then
-        RUNTYPE="audiopassthrough"
-    elif [[ "${EDIT_BUTTON}" = 1 ]] ; then
-        RUNTYPE="edit"
-    elif [[ "${HELP_BUTTON}" = 1 ]] ; then
-        echo -n -e "\033]0;PRESS Q TO EXIT\007" && man vrecord && echo -n -e "\033]0;\007" && _master_gui
-    elif [[ "${DOCUMENTATION_BUTTON}" = 1 ]] ; then
-        "${OPEN_COMMAND}" https://github.com/amiaopensource/vrecord#vrecord-documentation && _master_gui
-    # db = default button, set to exit
-    elif [[ "${db}" = 1 ]] ; then
-        echo "Exiting Vrecord. Goodbye!" && exit 0
-    else
-        # catch instance when the window is closed with no button pressed
-        echo "Exiting Vrecord. Goodbye!" && exit 0
-    fi
-    if [[ -f "${PASHUA_CONFIGFILE}" ]] ; then
-        rm "${PASHUA_CONFIGFILE}"
-    fi
+_home_gui(){
+  export HOME_DIALOG="<window title=\"Welcome to Vrecord!\">
+    <vbox>
+        <vbox>
+            <hbox>
+                <button>
+                    <label>Record</label>
+                    <input file>Resources/vrecord logo.png</input>
+                    <action type=\"exit\">record</action>
+                </button>
+                <button>
+                    <label>Passthrough</label>
+                    <input file>Resources/vrecord logo playback.png</input>
+                    <action type=\"exit\">passthrough</action>
+                </button>
+                <button>
+                    <label>Audio Check</label>
+                    <input file>Resources/vrecord logo audio.png</input>
+                    <action type=\"exit\">audiopassthrough</action>
+                </button>
+                </hbox>
+                <hbox>
+                <button>
+                    <label>Edit Settings</label>
+                    <input file>Resources/vrecord logo edit.png</input>
+                    <action type=\"exit\">edit</action>
+                </button>
+                <button>
+                    <label>Help</label>
+                    <input file>Resources/vrecord logo help.png</input>
+                    <action>man vrecord</action>
+                </button>
+                <button>
+                    <label>Documentation</label>
+                    <input file>Resources/vrecord logo documentation.png</input>
+                    <action>open https://github.com/amiaopensource/vrecord#vrecord-documentation</action>
+                </button>
+            </hbox>
+        </vbox>
+        <hbox>
+            <button cancel></button>
+        </hbox>
+    </vbox>
+</window>"
+
+  RUNTYPE=$(gtkdialog --center --program=HOME_DIALOG | grep "^EXIT=" | cut -d= -f2 | sed 's/"//g')
+
+  if [[ "${RUNTYPE}" == "Cancel" ]] ; then
+      echo "Exiting Vrecord. Goodbye!" && exit 0
+  fi
 }
 
 # relaunch GUI in GUI mode/exit script in terminal mode
 _gui_return(){
     if [[ "${GUI}" = 1 ]] ; then
-        _master_gui
+        _home_gui
     else
         exit 0
     fi
@@ -396,12 +487,13 @@ _gui_return(){
 
 # edit mode
 _edit_mode(){
-    PASHUA_CONFIGFILE=$(/usr/bin/mktemp /tmp/pashua_XXXXXXXXX)
-    _construct_pashua_conf > "${PASHUA_CONFIGFILE}"
-    _pashua_run
-    rm "${PASHUA_CONFIGFILE}"
-    # cb = cancel button; default button is "OK"
-    if [[ "${cb}" = 0 ]] ; then
+    if [[ ! -d "${GTK_RECENT_DIR}" ]] ; then
+        mkdir -p "${GTK_RECENT_DIR}"
+    fi
+    _edit_prefs
+    echo "ts is $TIMECODE_SCAN"
+    # check that gtkdialog _edit_prefs was exited with OK button
+    if [[ "${EXIT}" == "OK" ]] ; then
         _duration_check
         # report back options
         if [[ -z "${LOGDIR}" ]] ; then
@@ -452,7 +544,7 @@ _edit_mode(){
         _report -d "Editing of preferences was canceled by the user."
     fi
     if [[ "${GUI}" = 1 ]] ; then
-        _master_gui
+        _home_gui
     elif [[ "${TIMECODE_SCAN}" = 1 ]] ; then
         _report -dt "Scanning each supported type of timecode."
         RUNTYPE="passthrough"
@@ -972,7 +1064,7 @@ PLAYBACKVIEW_OPTIONS=("Unfiltered" "Quality Control View (mpv)" "Broadcast Range
 
 # GUI mode + CLI reset, edit modes
 if [[ "${RUNTYPE}" = "GUI" ]] ; then
-    _master_gui
+    _home_gui
 fi
 if [[ "${RUNTYPE}" = "reset" ]] ; then
     _report -q -n "Resetting the configuration will clear ${CONFIG_FILE}. Please enter [Y] to confirm: "
@@ -1000,7 +1092,7 @@ _review_option(){
     QUERY="${2}"
     shift 2
     CHOICES=("${@}")
-    if [[ "${SELECTED}" && "${SELECTED}" != "${UNDECLAREDOPTION}" ]] ; then
+    if [[ "${SELECTED}" && "${SELECTED}" != "${UNSELECTEDOPTION}" ]] ; then
         _lookup_choice "${SELECTED}"
         LOG_OF_OPTIONS+="${VALUE_NAME}: ${SELECTED}\n"
         OPTION="${SELECTED}"
@@ -1026,7 +1118,7 @@ if [[ "${CORE_COUNT}" -le 2 && "${RUNTYPE}" = "record" ]] ; then
     _report -w "Since this computer has only ${CORE_COUNT} cores, the playback will display only half of the frames to reduce CPU. This will not impact the recording."
     PLAYBACK_FILTER_ADJUSTMENT="select=not(mod(n\,2)),"
 fi
-if [[ "${RUNTYPE}" = "passthrough" ]] && [[ -n "${PLAYBACKVIEW_CHOICE_PASS}" ]] && [[ "${PLAYBACKVIEW_CHOICE_PASS}" != "Undeclared" ]] ; then
+if [[ "${RUNTYPE}" = "passthrough" ]] && [[ -n "${PLAYBACKVIEW_CHOICE_PASS}" ]] && [[ "${PLAYBACKVIEW_CHOICE_PASS}" != "Unselected" ]] ; then
   _review_option "PLAYBACKVIEW_CHOICE_PASS" "Which playback view?" "${PLAYBACKVIEW_OPTIONS[@]}"
 else
   _review_option "PLAYBACKVIEW_CHOICE" "Which playback view?" "${PLAYBACKVIEW_OPTIONS[@]}"
@@ -1072,8 +1164,7 @@ if [[ "${TIMECODE_SCAN}" = 1 ]] ; then
         fi
         echo "${timecode_type}: ${tc_value}"
     done
-    "${0}" -e
-    exit
+    _edit_prefs
 fi
 PIPE_DECKLINK=(-c copy)
 PIPE_DECKLINK+=(-map 0)

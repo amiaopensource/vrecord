@@ -6,7 +6,6 @@
 SCRIPTNAME=$(basename "${0}")
 SCRIPTDIR=$(dirname "${0}")
 CONFIG_FILE="${HOME}/.${SCRIPTNAME}.conf"
-unset PASHUAINSTALL
 unset VERSION
 if [[ $(dirname "$(command -v "${0}")") = "/usr/local/bin" ]] ; then
     VERSION=$(TMP=$(brew info vrecord | grep ".*\*$" | grep -Eo "/vrecord/.* \(") ; echo "${TMP:9:(${#TMP}-11)}")
@@ -110,52 +109,6 @@ _get_decklink_output(){
         exit 1
     else
         FIRST_DECKLINK_OUTPUT="$(echo "${DECKLINK_OUTPUT}" | head -n 1 )"
-    fi
-}
-
-_pashua_run() {
-    # Wrapper function for interfacing to Pashua. Written by Carsten
-    # Bluem <carsten@bluem.net> in 10/2003, modified in 12/2003 (including
-    # a code snippet contributed by Tor Sigurdsson), 08/2004 and 12/2004.
-    # Write config file
-
-    # Find Pashua binary. We do search both . and dirname "$0"
-    # , as in a doubleclickable application, cwd is /
-    # BTW, all these quotes below are necessary to handle paths
-    # containing spaces.
-    BUNDLEPATH="Pashua.app/Contents/MacOS/Pashua"
-    MYPATH=$(dirname "$0")
-    for SEARCHPATH in "${MYPATH}/Pashua" "${MYPATH}/${BUNDLEPATH}" "./${BUNDLEPATH}" \
-                      "/Applications/${BUNDLEPATH}" "${HOME}/Applications/${BUNDLEPATH}"
-    do
-        if [ -f "${SEARCHPATH}" -a -x "${SEARCHPATH}" ] ; then
-            PASHUAPATH="${SEARCHPATH}"
-            break
-        fi
-    done
-    if [[ ! "${PASHUAPATH}" ]] ; then
-        echo "Error: Pashua is used to edit vtest options but is not found."
-        if [[ -z "${PASHUAINSTALL}" ]] ; then
-            echo "Attempting to run: brew cask install pashua"
-            if [[ "${PASHUAINSTALL}" != "Y" ]] ; then
-                brew cask install pashua
-                PASHUAINSTALL="Y"
-                _pashua_run
-            else
-                break 2
-            fi
-        fi
-    else
-        # Get result
-        RESULT=$("${PASHUAPATH}" "${PASHUA_CONFIGFILE}" | sed 's/ /;;;/g')
-        # Parse result
-        for LINE in ${RESULT} ; do
-            KEY=$(echo "${LINE}" | sed 's/^\([^=]*\)=.*$/\1/')
-            VALUE=$(echo "${LINE}" | sed 's/^[^=]*=\(.*\)$/\1/' | sed 's/;;;/ /g')
-            VARNAME="${KEY}"
-            VARVALUE="${VALUE}"
-            eval "${VARNAME}"='${VARVALUE}'
-        done
     fi
 }
 
@@ -271,13 +224,91 @@ _config_check(){
     fi
 }
 
+_edit_prefs() {
+  _expand_list2items(){
+    LIST=( "$@" )
+    for i in "${LIST[@]}" ; do
+      echo "<item>${i}</item>"
+    done
+  }
+  _get_index_of_value(){
+    # run with function, value to look for as first argument, and array to look in as 2nd argument, such function as
+    # _get_index_of_value "${VIDEO_INPUT_CHOICE}" "${VIDEO_INPUT_OPTIONS[@]}"
+    VALUE="${1}"
+    shift
+    LIST=( "$@" )
+    INDEX=0
+    MATCH=""
+    for ITEM in "${LIST[@]}" ; do
+      if [[ "${VALUE}" == "${ITEM}" ]] ; then
+        MATCH="$INDEX"
+      fi
+      (( ++INDEX ))
+    done
+    if [[ -n "${MATCH}" ]] ; then
+      echo -n "${MATCH}"
+    fi
+  }
+
+  export MAIN_DIALOG="<window title=\"vrecord configuration\">
+    <vbox>
+        <text>
+            <label>vtest configuration</label>
+        </text>
+        <vbox>
+            <text>
+                <label>Select video source:</label>
+            </text>
+            <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${VIDEO_SOURCE_CHOICE}" "${VIDEO_SOURCE_OPTIONS[@]}")\">
+                <variable>VIDEO_SOURCE_CHOICE</variable>
+                $(_expand_list2items "${VIDEO_SOURCE_OPTIONS[@]}")
+            </list>
+        </vbox>
+        <vbox>
+            <text>
+                <label>Select Television Standard</label>
+            </text>
+            <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${STANDARD_CHOICE}" "${STANDARD_OPTIONS[@]}")\">
+                <variable>STANDARD_CHOICE</variable>
+                $(_expand_list2items "${STANDARD_OPTIONS[@]}")
+            </list>
+        </vbox>
+        <vbox>
+            <text>
+                <label>Select audio source:</label>
+            </text>
+            <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${AUDIO_SOURCE_CHOICE}" "${AUDIO_SOURCE_OPTIONS[@]}")\">
+                <variable>AUDIO_SOURCE_CHOICE</variable>
+                $(_expand_list2items "${AUDIO_SOURCE_OPTIONS[@]}")
+            </list>
+        </vbox>
+        <vbox>
+            <text>
+                <label>Set test time in minutes, or leave blank for indefinite:</label>
+            </text>
+            <entry activates_default=\"true\" tooltip-text=\"Suggested:1 5 10. Leave blank for indefinite recording time\">
+                <variable>DURATION</variable>
+            </entry>
+        </vbox>
+        <vbox>
+            <hbox>
+                <button ok>
+                    <variable>OKBUTTON</variable>
+                </button>
+                <button cancel>
+                </button>
+            </hbox>
+        </vbox>
+    </vbox>
+</window>"
+
+    eval $(gtkdialog --center --program MAIN_DIALOG)
+}
+
 _edit_mode(){
-    PASHUA_CONFIGFILE=$(/usr/bin/mktemp /tmp/pashua_XXXXXXXXX)
-    echo "${CONF}" > "${PASHUA_CONFIGFILE}"
-    _pashua_run
-    rm "${PASHUA_CONFIGFILE}"
-    # cb = cancel button; default button is "OK"
-    if [[ "${cb}" != 1 ]] ; then
+    _edit_prefs
+    # check that gtkdialog _edit_prefs was exited with OK button
+    if [[ "${EXIT}" == "OK" ]] ; then
         _duration_check
         # report back options
         _report -d "Test variables set:"
