@@ -786,6 +786,8 @@ _lookup_choice(){
 
         # audio inputs
         "Analog")                  AUDIO_INPUT="analog" ;;
+        "Analog (RCA -10 dBV)")    AUDIO_INPUT="analog_rca" ;;
+        "Analog (XLR +4 dBu)")     AUDIO_INPUT="analog_xlr" ;;
         "SDI Embedded Audio")      AUDIO_INPUT="embedded" ;;
         "Digital Audio (AES/EBU)") AUDIO_INPUT="aes_ebu" ;;
 
@@ -1093,7 +1095,7 @@ drawgrid=w=256:h=256:t=1:c=white@0.2"
 
 # list of selections for each vrecord option
 VIDEO_INPUT_OPTIONS=("Composite" "SDI" "Component" "S-Video")
-AUDIO_INPUT_OPTIONS=("Analog" "SDI Embedded Audio" "Digital Audio (AES/EBU)")
+AUDIO_INPUT_OPTIONS=("Analog" "Analog (RCA -10 dBV)" "Analog (XLR +4 dBu)" "SDI Embedded Audio" "Digital Audio (AES/EBU)")
 CONTAINER_OPTIONS=("QuickTime" "Matroska" "AVI" "MXF")
 VIDEO_CODEC_OPTIONS=("Uncompressed Video" "FFV1 version 3" "JPEG2000" "ProRes" )
 FFV1_SLICE_OPTIONS=("4" "6" "9" "12" "16" "24" "30")
