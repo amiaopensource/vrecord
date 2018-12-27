@@ -1176,20 +1176,20 @@ PIPE_DECKLINK+=(-)
 WINDOW_NAME="mode:${RUNTYPE} - video:'${VIDEO_INPUT}' audio:'${AUDIO_INPUT}' - to end recording press q, esc, or close video window"
 
 _set_ffplay_options(){
-FFPLAY_OPTIONS=(-v info)
-FFPLAY_OPTIONS+=(-hide_banner)
-FFPLAY_OPTIONS+=(-stats)
-FFPLAY_OPTIONS+=(-autoexit)
-if [[ "${RUNTYPE}" = "passthrough" ]] ; then
-    FFPLAY_OPTIONS+=("${GRAB_DECKLINK[@]}")
-else
-    FFPLAY_OPTIONS+=(-i -)
-fi
-FFPLAY_OPTIONS+=(-window_title "${WINDOW_NAME}")
-if [[ ! -z "${PLAYBACKFILTER}" ]] ; then
-    FFPLAY_OPTIONS+=(-vf "${PLAYBACKFILTER}")
-fi
-FFPLAY_OPTIONS+=(-af "channelmap=0|1:stereo")
+    FFPLAY_OPTIONS=(-v info)
+    FFPLAY_OPTIONS+=(-hide_banner)
+    FFPLAY_OPTIONS+=(-stats)
+    FFPLAY_OPTIONS+=(-autoexit)
+    if [[ "${RUNTYPE}" = "passthrough" ]] ; then
+        FFPLAY_OPTIONS+=("${GRAB_DECKLINK[@]}")
+    else
+        FFPLAY_OPTIONS+=(-i -)
+    fi
+    FFPLAY_OPTIONS+=(-window_title "${WINDOW_NAME}")
+    if [[ ! -z "${PLAYBACKFILTER}" ]] ; then
+        FFPLAY_OPTIONS+=(-vf "${PLAYBACKFILTER}")
+    fi
+    FFPLAY_OPTIONS+=(-af "channelmap=0|1:stereo")
 }
 
 # CLI passthrough and audiopassthrough modes
