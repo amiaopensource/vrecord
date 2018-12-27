@@ -17,7 +17,7 @@ DEVICE_NAME=$("${FFMPEG_DECKLINK[@]}" -f decklink -list_devices 1 -i dummy 2>&1 
 
 if [[ "$("${FFMPEG_DECKLINK[@]}" -version 2>&1 | grep "Library not loaded" >/dev/null)" || ! -f "${FFMPEG_DECKLINK}" || ! -f "${FFPLAY_DECKLINK}" ]] ; then
     echo "Please reinstall 'ffmpeg-dl':"
-    echo "  brew reinstall amiaopensource/amiaos/ffmpegdecklink --with-sdl2 --with-freetype --with-openjpeg"
+    echo "  brew reinstall amiaopensource/amiaos/ffmpegdecklink"
     echo "Exiting."
     exit 1
 fi
@@ -30,8 +30,7 @@ ${SCRIPTNAME} will pipe test files and output from the computer out to your
 monitor, via a BlackMagic capture card. It is useful for testing equipment
 without having to play a test tape.
 
-Dependencies: amiaopensource/amiaos/ffmpegdecklink --with-sdl2
-  --with-freetype --with-openjpeg
+Dependencies: amiaopensource/amiaos/ffmpegdecklink
 
 Usage: ${SCRIPTNAME} [ -n | -p | -a | -l | -e | -f optionaltestfile | -h ]
   -n    pipe NTSC SMPTE bars + sine wave tone through output device
