@@ -563,6 +563,7 @@ _edit_mode(){
 
 # passthrough and audiopassthrough modes
 _passthrough_mode(){
+    _set_ffplay_options
     if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
         _check_mpv
         "${FFMPEG_DECKLINK}" -nostats "${GRAB_DECKLINK[@]}" 2> >(tee /tmp/vrecord_input.log 1>&2) \
@@ -1174,20 +1175,22 @@ PIPE_DECKLINK+=(-live true)
 PIPE_DECKLINK+=(-)
 WINDOW_NAME="mode:${RUNTYPE} - video:'${VIDEO_INPUT}' audio:'${AUDIO_INPUT}' - to end recording press q, esc, or close video window"
 
-FFPLAY_OPTIONS=(-v info)
-FFPLAY_OPTIONS+=(-hide_banner)
-FFPLAY_OPTIONS+=(-stats)
-FFPLAY_OPTIONS+=(-autoexit)
-if [[ "${RUNTYPE}" = "passthrough" ]] ; then
-    FFPLAY_OPTIONS+=("${GRAB_DECKLINK[@]}")
-else
-    FFPLAY_OPTIONS+=(-i -)
-fi
-FFPLAY_OPTIONS+=(-window_title "${WINDOW_NAME}")
-if [[ ! -z "${PLAYBACKFILTER}" ]] ; then
-    FFPLAY_OPTIONS+=(-vf "${PLAYBACKFILTER}")
-fi
-FFPLAY_OPTIONS+=(-af "channelmap=0|1:stereo")
+_set_ffplay_options(){
+    FFPLAY_OPTIONS=(-v info)
+    FFPLAY_OPTIONS+=(-hide_banner)
+    FFPLAY_OPTIONS+=(-stats)
+    FFPLAY_OPTIONS+=(-autoexit)
+    if [[ "${RUNTYPE}" = "passthrough" ]] ; then
+        FFPLAY_OPTIONS+=("${GRAB_DECKLINK[@]}")
+    else
+        FFPLAY_OPTIONS+=(-i -)
+    fi
+    FFPLAY_OPTIONS+=(-window_title "${WINDOW_NAME}")
+    if [[ ! -z "${PLAYBACKFILTER}" ]] ; then
+        FFPLAY_OPTIONS+=(-vf "${PLAYBACKFILTER}")
+    fi
+    FFPLAY_OPTIONS+=(-af "channelmap=0|1:stereo")
+}
 
 # CLI passthrough and audiopassthrough modes
 if [[ "${RUNTYPE}" = "passthrough" ]] ; then
@@ -1346,7 +1349,7 @@ RECORD_COMMAND+=(-filter_complex "[0:v:0]${RECORDINGFILTER}${TC_WRITE}; ${AUDIOM
 RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
 RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}" "${PIPE_DECKLINK[@]}")
 _writeingestlog "FFmpeg command" "${RECORD_COMMAND[@]}"
-
+_set_ffplay_options
 if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
     _check_mpv
     "${RECORD_COMMAND[@]}" \
