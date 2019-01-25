@@ -10,7 +10,7 @@ GTK_RECENT_DIR="${HOME}/.local/share"
 unset VERSION
 if [[ $(dirname "$(command -v "${0}")") = "/usr/local/bin" ]] ; then
     VERSION=$(TMP=$(brew info vrecord | grep ".*\*$" | grep -Eo "/vrecord/.* \(") ; echo "${TMP:9:(${#TMP}-11)}")
-    RESOURCE_PATH="/usr/local/Cellar/vrecord/${VERSION}/Resources"
+    RESOURCE_PATH="$(brew --prefix vrecord)"
 else
     RESOURCE_PATH="${SCRIPTDIR}/Resources"
 fi
