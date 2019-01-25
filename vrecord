@@ -10,10 +10,11 @@ GTK_RECENT_DIR="${HOME}/.local/share"
 unset VERSION
 if [[ $(dirname "$(command -v "${0}")") = "/usr/local/bin" ]] ; then
     VERSION=$(TMP=$(brew info vrecord | grep ".*\*$" | grep -Eo "/vrecord/.* \(") ; echo "${TMP:9:(${#TMP}-11)}")
-    LOGO_PATH="/usr/local/Cellar/vrecord/${VERSION}/vrecord_logo.png"
+    RESOURCE_PATH="/usr/local/Cellar/vrecord/${VERSION}/Resources"
 else
-    LOGO_PATH="${SCRIPTDIR}/vrecord_logo.png"
+    RESOURCE_PATH="${SCRIPTDIR}/Resources"
 fi
+
 unset INPUTOPTIONS
 unset MIDDLEOPTIONS
 unset SUFFIX
@@ -33,7 +34,7 @@ FFPLAY_DECKLINK="${BREW_PREFIX}/bin/ffplay-dl"
 FFPROBE_DECKLINK="${BREW_PREFIX}/bin/ffprobe-dl"
 MPVOPTS=(--no-osc)
 MPVOPTS+=(--load-scripts=no)
-MPVOPTS+=(--script "${SCRIPTDIR}/qcview.lua")
+MPVOPTS+=(--script "${RESOURCE_PATH}/qcview.lua")
 MPVOPTS+=(--really-quiet)
 
 if [[ "$("${FFMPEG_DECKLINK}" -version 2>&1 | grep "Library not loaded" >/dev/null)" || ! -f "${FFMPEG_DECKLINK}" || ! -f "${FFPLAY_DECKLINK}" ]] ; then
@@ -431,34 +432,34 @@ _home_gui(){
             <hbox>
                 <button>
                     <label>Record</label>
-                    <input file>Resources/vrecord logo.png</input>
+                    <input file>${RESOURCE_PATH}/vrecord logo.png</input>
                     <action type=\"exit\">record</action>
                 </button>
                 <button>
                     <label>Passthrough</label>
-                    <input file>Resources/vrecord logo playback.png</input>
+                    <input file>${RESOURCE_PATH}/vrecord logo playback.png</input>
                     <action type=\"exit\">passthrough</action>
                 </button>
                 <button>
                     <label>Audio Check</label>
-                    <input file>Resources/vrecord logo audio.png</input>
+                    <input file>${RESOURCE_PATH}/vrecord logo audio.png</input>
                     <action type=\"exit\">audiopassthrough</action>
                 </button>
                 </hbox>
                 <hbox>
                 <button>
                     <label>Edit Settings</label>
-                    <input file>Resources/vrecord logo edit.png</input>
+                    <input file>${RESOURCE_PATH}/vrecord logo edit.png</input>
                     <action type=\"exit\">edit</action>
                 </button>
                 <button>
                     <label>Help</label>
-                    <input file>Resources/vrecord logo help.png</input>
+                    <input file>${RESOURCE_PATH}/vrecord logo help.png</input>
                     <action>man vrecord</action>
                 </button>
                 <button>
                     <label>Documentation</label>
-                    <input file>Resources/vrecord logo documentation.png</input>
+                    <input file>${RESOURCE_PATH}/vrecord logo documentation.png</input>
                     <action>open https://github.com/amiaopensource/vrecord#vrecord-documentation</action>
                 </button>
             </hbox>
@@ -1481,27 +1482,27 @@ fi
 # policy checks with mediaconch
 if [[ "${VIDEO_CODEC_CHOICE}" = "Uncompressed Video" ]] ; then
     _report -d "Checking file conformance against uncompressed video policy..."
-    STATUS=$(mediaconch -fx -p "${SCRIPTDIR}/vrecord_policy_uncompressed.xml" "${VRECORD_OUTPUT}" | xmlstarlet sel -N mc="https://mediaarea.net/mediaconch" -t -v mc:MediaConch/mc:media/mc:policy/@outcome -n)
+    STATUS=$(mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_uncompressed.xml" "${VRECORD_OUTPUT}" | xmlstarlet sel -N mc="https://mediaarea.net/mediaconch" -t -v mc:MediaConch/mc:media/mc:policy/@outcome -n)
     if [[ "$STATUS" = "pass" ]] ; then
         _report -dt "File passed policy check for uncompressed video."
     elif [[ "$STATUS" = "fail" ]] ; then
         _report -wt "File did not pass vrecord policy check for uncompressed video and may not conform to digital preservation standards. Try another file?"
-        mediaconch -fx -p "${SCRIPTDIR}/vrecord_policy_uncompressed.xml" "${VRECORD_OUTPUT}" | xmlstarlet fo > "${DIR}/${ID}${SUFFIX}_mediaconchreport.xml"
+        mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_uncompressed.xml" "${VRECORD_OUTPUT}" | xmlstarlet fo > "${DIR}/${ID}${SUFFIX}_mediaconchreport.xml"
         _report -wt "See ${DIR}/${ID}${SUFFIX}_mediaconchreport.xml for a full MediaConch policy report."
     else
-        mediaconch -p "${SCRIPTDIR}/vrecord_policy_uncompressed.xml" "${VRECORD_OUTPUT}"
+        mediaconch -p "${RESOURCE_PATH}/vrecord_policy_uncompressed.xml" "${VRECORD_OUTPUT}"
     fi
 elif [[ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" ]] ; then
     _report -d "Checking file conformance against FFV1 video policy..."
-    STATUS=$(mediaconch -fx -p "${SCRIPTDIR}/vrecord_policy_ffv1.xml" "${VRECORD_OUTPUT}" | xmlstarlet sel -N mc="https://mediaarea.net/mediaconch" -t -v mc:MediaConch/mc:media/mc:policy/@outcome -n)
+    STATUS=$(mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_ffv1.xml" "${VRECORD_OUTPUT}" | xmlstarlet sel -N mc="https://mediaarea.net/mediaconch" -t -v mc:MediaConch/mc:media/mc:policy/@outcome -n)
     if [[ "${STATUS}" = "pass" ]] ; then
         _report -dt "File passed policy check for FFV1 video."
     elif [[ "$STATUS" = "fail" ]] ; then
         _report -wt "File did not pass vrecord policy check for FFV1 video and may not conform to digital preservation standards. Try another file?"
-        mediaconch -fx -p "${SCRIPTDIR}/vrecord_policy_ffv1.xml" "${VRECORD_OUTPUT}" | xmlstarlet fo > "${DIR}/${ID}${SUFFIX}_mediaconchreport.xml"
+        mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_ffv1.xml" "${VRECORD_OUTPUT}" | xmlstarlet fo > "${DIR}/${ID}${SUFFIX}_mediaconchreport.xml"
         _report -wt "See ${DIR}/${ID}${SUFFIX}_mediaconchreport.xml for a full MediaConch policy report."
     else
-        mediaconch -p "${SCRIPTDIR}/vrecord_policy_ffv1.xml" "${VRECORD_OUTPUT}"
+        mediaconch -p "${RESOURCE_PATH}/vrecord_policy_ffv1.xml" "${VRECORD_OUTPUT}"
     fi
 fi
 
