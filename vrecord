@@ -536,7 +536,7 @@ _edit_mode(){
             echo -e " \033[101mWARNING: Incompatible video codecs and CONTAINERs have been selected\033[0m"
         elif [ "${VIDEO_CODEC_CHOICE}" = "ProRes" -a "${CONTAINER_CHOICE}" = "MXF" ] ; then
             echo -e " \033[101mWARNING: Incompatible video codecs and CONTAINERs have been selected\033[0m"
-        elif [ "${AUDIO_CODEC_CHOICE}" = "FLAC" -a "${CONTAINER_CHOICE}" = "QuickTime" ] ; then
+        elif [ "${AUDIO_CODEC_CHOICE}" = "24-bit FLAC" -a "${CONTAINER_CHOICE}" = "QuickTime" ] ; then
             echo -e " \033[101mWARNING: Incompatible audio codecs and CONTAINERs have been selected\033[0m"
         fi
         if [ "${EMBED_LOGS_CHOICE}" = "Yes" -a "${CONTAINER_CHOICE}" != "Matroska" ] ; then
