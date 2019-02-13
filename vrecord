@@ -809,8 +809,8 @@ _lookup_choice(){
         "24-bit PCM")
             AUDIOCODECNAME="24-bit PCM"
             MIDDLEOPTIONS+=(-c:a pcm_s24le) ;;
-        "FLAC")
-            VIDEOCODECNAME="FLAC"
+        "24-bit FLAC")
+            VIDEOCODECNAME="24-bit FLAC"
             MIDDLEOPTIONS+=(-c:a flac) ;;
 
         # audio mappings
@@ -1074,7 +1074,7 @@ VIDEO_INPUT_OPTIONS=("Composite" "SDI" "Component" "S-Video")
 AUDIO_INPUT_OPTIONS=("Analog" "SDI Embedded Audio" "Digital Audio (AES/EBU)")
 CONTAINER_OPTIONS=("QuickTime" "Matroska" "AVI" "MXF")
 VIDEO_CODEC_OPTIONS=("Uncompressed Video" "FFV1 version 3" "JPEG2000" "ProRes" )
-AUDIO_CODEC_OPTIONS=("24-bit PCM" "FLAC")
+AUDIO_CODEC_OPTIONS=("24-bit PCM" "24-bit FLAC")
 VIDEO_BITDEPTH_OPTIONS=("10 bit" "8 bit")
 CHANNEL_MAPPING_OPTIONS=("2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, Channels 3 & 4 -> 2nd Track Stereo)" "1 Stereo Track (From Channels 1 & 2)" "1 Stereo Track (From Channels 3 & 4)" "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono" "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono" "Channel 1 -> Single Track Mono" "Channel 2 -> Single Track Mono")
 TIMECODE_OPTIONS=("none" "rp188vitc" "rp188vitc2" "rp188ltc" "rp188any" "vitc" "vitc2" "serial")
