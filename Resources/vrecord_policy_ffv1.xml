@@ -8,7 +8,10 @@
                 <rule name="Matroska version 4 or greater?" value="Format_Version" tracktype="General" operator="&gt;=">4</rule>
                 <rule name="Unique ID is present?" value="UniqueID" tracktype="General"/>
                 <rule name="Is the FFV1 Codec ID V_MS/VFW/FOURCC / FFV1?" value="CodecID" tracktype="Video" operator="=">V_MS/VFW/FOURCC / FFV1</rule>
-                <rule name="Is the PCM Codec ID A_PCM/INT/LIT" value="CodecID" tracktype="Audio" operator="=">A_PCM/INT/LIT</rule>
+                <policy type="or" name="Is the audio Codec ID A_PCM/INT/LIT or A_FLAC?">
+                    <rule name="Is the Codec ID A_PCM/INT/LIT?" value="CodecID" tracktype="Audio" operator="=">A_PCM/INT/LIT</rule>
+                    <rule name="Is the Codec ID A_FLAC?" value="CodecID" tracktype="Audio" operator="=">A_FLAC</rule>
+                </policy>
                 <!-- add Endianness and Signedness when added to report -->
             </policy>
             <policy type="or" name="Is it NTSC SD or PAL SD?">
@@ -97,9 +100,12 @@
         </policy>
     </policy>
     <rule name="Is the audio stream on track 2?" value="StreamOrder" tracktype="Audio" operator="=">1</rule>
-    <rule name="Is the audio PCM?" value="Format" tracktype="Audio" operator="=">PCM</rule>
     <rule name="Is the audio bit depth 24?" value="BitDepth" tracktype="Audio" operator="=">24</rule>
     <rule name="Is the sample rate 48kHz?" value="SamplingRate" tracktype="Audio" operator="=">48000</rule>
+    <policy type="or" name="Is the audio PCM or FLAC?">
+        <rule name="Is the audio PCM?" value="Format" tracktype="Audio" operator="=">PCM</rule>
+        <rule name="Is the audio FLAC?" value="Format" tracktype="Audio" operator="=">FLAC</rule>
+    </policy>
     <policy type="or" name="1 or 2 channels of audio?">
         <rule name="1 channel of audio?" value="Channels" tracktype="Audio" operator="=">1</rule>
         <rule name="2 channels of audio?" value="Channels" tracktype="Audio" operator="=">2</rule>
