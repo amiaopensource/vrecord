@@ -807,10 +807,8 @@ _lookup_choice(){
 
         # audio codec
         "24-bit PCM")
-            AUDIOCODECNAME="24-bit PCM"
             MIDDLEOPTIONS+=(-c:a pcm_s24le) ;;
         "24-bit FLAC")
-            VIDEOCODECNAME="24-bit FLAC"
             MIDDLEOPTIONS+=(-c:a flac) ;;
 
         # audio mappings
