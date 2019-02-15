@@ -207,7 +207,7 @@ _duration_check(){
             _report -w "Illegal value for recording time. Input must only be numbers."
             exit 1
         fi
-        if (( $(bc <<< "${DURATION} == 0") )) ; then
+        if (( $(bc <<< "${DURATION} = 0") )) ; then
             _report -w "A recording duration of zero is invalid."
             exit 1
         fi
@@ -239,7 +239,7 @@ _edit_prefs() {
     INDEX=0
     MATCH=""
     for ITEM in "${LIST[@]}" ; do
-      if [[ "${VALUE}" == "${ITEM}" ]] ; then
+      if [[ "${VALUE}" = "${ITEM}" ]] ; then
         MATCH="$INDEX"
       fi
       (( ++INDEX ))
@@ -307,7 +307,7 @@ _edit_prefs() {
 _edit_mode(){
     _edit_prefs
     # check that gtkdialog _edit_prefs was exited with OK button
-    if [[ "${EXIT}" == "OK" ]] ; then
+    if [[ "${EXIT}" = "OK" ]] ; then
         _duration_check
         # report back options
         _report -d "Test variables set:"

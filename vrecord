@@ -210,7 +210,7 @@ _edit_prefs() {
     INDEX=0
     MATCH=""
     for ITEM in "${LIST[@]}" ; do
-      if [[ "${VALUE}" == "${ITEM}" ]] ; then
+      if [[ "${VALUE}" = "${ITEM}" ]] ; then
         MATCH="$INDEX"
       fi
       (( ++INDEX ))
@@ -481,7 +481,7 @@ _home_gui(){
 
   RUNTYPE=$(gtkdialog --center --program=HOME_DIALOG | grep "^EXIT=" | cut -d= -f2 | sed 's/"//g')
 
-  if [[ "${RUNTYPE}" == "Cancel" ]] ; then
+  if [[ "${RUNTYPE}" = "Cancel" ]] ; then
       echo "Exiting Vrecord. Goodbye!" && exit 0
   fi
 }
@@ -503,7 +503,7 @@ _edit_mode(){
     _edit_prefs
     echo "ts is $TIMECODE_SCAN"
     # check that gtkdialog _edit_prefs was exited with OK button
-    if [[ "${EXIT}" == "OK" ]] ; then
+    if [[ "${EXIT}" = "OK" ]] ; then
         _duration_check
         # report back options
         if [[ -z "${LOGDIR}" ]] ; then
@@ -615,7 +615,7 @@ _duration_check(){
             _report -w "Illegal value for recording time. Input must only be numbers."
             exit 1
         fi
-        if (( $(bc <<< "${DURATION} == 0") )) ; then
+        if (( $(bc <<< "${DURATION} = 0") )) ; then
             _report -w "A recording duration of zero is invalid."
             exit 1
         fi
@@ -923,11 +923,11 @@ split=9[x][hm][hp][sm][sp][hmsm][hmsp][hpsm][hpsp];\
 [hpsp]hue=h=${HUE}:s=1+${SAT}[hpsp1];\
 [hpsm1][hp1][hpsp1][sm1][x][sp1][hmsm1][hm1][hmsp1]xstack=inputs=9:layout=0_0|0_h0|0_h0+h1|w0_0|w0_h0|w0_h0+h1|w0+w1_0|w0+w1_h0|w0+w1_h0+h1" ;;
       "Bit Planes")
-          if [[ "${PIXEL_FORMAT}" == "uyvy422" ]] ; then
+          if [[ "${PIXEL_FORMAT}" = "uyvy422" ]] ; then
               BITS=8
               SPLIT="8[b0][b1][b2][b3][b4][b5][b6][b7]"
               STACK="[b0c][b1c][b2c][b3c][b4c][b5c][b6c][b7c]hstack=8,format=yuv444p,drawgrid=w=iw/8:h=ih:t=2:c=green@0.5"
-          elif [[ "${PIXEL_FORMAT}" == "yuv422p10" ]] ; then
+          elif [[ "${PIXEL_FORMAT}" = "yuv422p10" ]] ; then
               BITS=10
               SPLIT="10[b0][b1][b2][b3][b4][b5][b6][b7][b8][b9]"
               STACK="\
@@ -1155,7 +1155,7 @@ MIDDLEOPTIONS+=(${EXTRAOUTPUTOPTIONS[@]})
 
 # set up input and playback
 _set_up_drawtext
-if [[ "$VERBOSE" == "true" ]] ; then
+if [[ "$VERBOSE" = "true" ]] ; then
     GRAB_DECKLINK=(-loglevel debug)
     _report -wt "When running vrecord in verbose mode, avoid using Visual + Numerical option."
 else
