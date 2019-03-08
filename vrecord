@@ -1243,6 +1243,7 @@ done
 if [[ ! -d "${DIR}" ]] ; then
     _report -q -n "Enter Directory: "
     read DIR
+    DIR="$(echo "${DIR}" | sed "s/^['\"]\(.*\).$/\1/")"
     if [[ ! -d "${DIR}" ]] ; then
         _report -w "Error: Not a valid directory"
         exit 1
@@ -1253,6 +1254,7 @@ if [[ ! -d "${LOGDIR}" ]] ; then
     if [[ ! -d "${DIR}" ]] ; then
         _report -q -n "Enter Directory for Auxiliary Files (If blank will default to recording directory): "
         read LOGDIR
+        LOGDIR="$(echo "${LOGDIR}" | sed "s/^['\"]\(.*\).$/\1/")"
     else
         LOGDIR="${DIR}"
     fi
