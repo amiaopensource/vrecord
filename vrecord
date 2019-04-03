@@ -407,6 +407,24 @@ _edit_prefs() {
             </entry>
         </vbox>
         <vbox>
+            <text>
+                <label>Enter an optional file prefix</label>
+            </text>
+            <entry>
+                <default>\"${PREFIX}\"</default>
+                <variable>PREFIX</variable>
+            </entry>
+        </vbox>
+        <vbox>
+            <text>
+                <label>Enter an optional file suffix</label>
+            </text>
+            <entry>
+                <default>\"${USER_SUFFIX}\"</default>
+                <variable>USER_SUFFIX</variable>
+            </entry>
+        </vbox>
+        <vbox>
             <checkbox>
                 <label>Invert Second Channel of Audio (WARNING: Do not use this option unless required)</label>
                 <default>false</default>
@@ -555,6 +573,8 @@ _edit_mode(){
         echo "  PLAYBACKVIEW_CHOICE_PASS = ${PLAYBACKVIEW_CHOICE_PASS}"
         echo "  DURATION = ${DURATION}"
         echo "  TECHNICIAN = ${TECHNICIAN}"
+        echo "  PREFIX = ${PREFIX}"
+        echo "  USER_SUFFIX = ${USER_SUFFIX}"
         if [[ "${INVERT_PHASE}" = 1 ]] ; then
             echo -e " \033[101mWARNING: Option to invert phase of second audio channel has been selected\033[0m"
         fi
@@ -574,7 +594,7 @@ _edit_mode(){
             echo "# Set these variables to a valid option or leave as empty quotes (like \"\") to request each run."
             for COMMENT_LINE in VIDEO_INPUT_CHOICE AUDIO_INPUT_CHOICE CONTAINER_CHOICE VIDEO_CODEC_CHOICE FFV1_SLICE_CHOICE AUDIO_CODEC_CHOICE\
             VIDEO_BIT_DEPTH_CHOICE AUDIO_MAPPING_CHOICE TIMECODE_CHOICE STANDARD_CHOICE QCTOOLSXML_CHOICE FRAMEMD5_CHOICE \
-            EMBED_LOGS_CHOICE PLAYBACKVIEW_CHOICE PLAYBACKVIEW_CHOICE_PASS DIR LOGDIR INVERT_PHASE DURATION TECHNICIAN ; do
+            EMBED_LOGS_CHOICE PLAYBACKVIEW_CHOICE PLAYBACKVIEW_CHOICE_PASS DIR LOGDIR INVERT_PHASE DURATION PREFIX USER_SUFFIX TECHNICIAN ; do
                 echo "${COMMENT_LINE}=\"${!COMMENT_LINE}\""
             done
         } > "${CONFIG_FILE}"
@@ -1298,8 +1318,15 @@ if [[ "${VIDEO_CODEC_CHOICE}" = "FFV1" ]] ; then
 fi
 _review_option "AUDIO_CODEC_CHOICE" "Which audio codec?" "${AUDIO_CODEC_OPTIONS[@]}"
 
+# Check for user suffix to override automatic settings
 
-VRECORD_OUTPUT="${DIR}/${ID}${SUFFIX}.${EXTENSION}"
+if [[ -n "${USER_SUFFIX}" ]] ; then
+    SUFFIX="${USER_SUFFIX}"
+fi
+
+FULL_OUTPUT_ID="${PREFIX}${ID}${SUFFIX}"
+
+VRECORD_OUTPUT="${DIR}/${FULL_OUTPUT_ID}.${EXTENSION}"
 if [[ -f "${VRECORD_OUTPUT}" ]] ; then
     _report -w "A file called ${VRECORD_OUTPUT} already exists."
     _report -w "Exiting to avoid overwriting that file."
