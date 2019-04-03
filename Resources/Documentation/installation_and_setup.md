@@ -1,5 +1,7 @@
 ## Installing vrecord
 
+### macOS
+
 If you use macOS, you can easily install vrecord using a package manager called Homebrew. To install Homebrew, follow [these instructions](https://brew.sh/).
 
 To install vrecord, run the following two commands in a [Terminal window](https://en.wikipedia.org/wiki/Terminal_%28macOS%29):
@@ -8,13 +10,6 @@ brew tap amiaopensource/amiaos
 brew install vrecord
 ```
 (The first taps the homebrew recipes of the amiaopensource account; the second installs vrecord and the other programs that it requires.)
-
-Gnuplot is the program that vrecord uses to generate the jpeg of the QC graphs. It must be installed separately due to a conflicting dependency on a newer version of lua. You will be prompted to install by running the following command:
-```
-brew install gnuplot --without-lua
-```
-
-(This will install gnuplot without lua and allow vrecord to produce an image of the QC graphs along with the qctools report)
 
 Once vrecord has been successfully installed, you can update it to the latest release by first running:
 ```
@@ -34,7 +29,18 @@ brew upgrade
 ```
 (This command will upgrade all of the programs you've installed through Homebrew.)
 
-Thus far installing vrecord on Linux using Linuxbrew has not been successful.
+### Linux
+
+As of version 2019-01-19, vrecord can now be installed on select Linux distributions, most easily via [Linuxbrew](https://docs.brew.sh/Homebrew-on-Linux), with the same macOS Homebrew Terminal commands:
+```
+brew tap amiaopensource/amiaos
+brew install vrecord
+```
+But if find yourself experiencing Linux installation issues, it may be beneficial to first install vrecord's core dependencies, and then install vrecord without dependencies:
+```
+brew install decklinksdk && brew install ffmpegdecklink && brew install gtkdialog
+brew install --ignore-dependencies vrecord
+```
 
 ## Using vrecord
 
