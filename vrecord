@@ -1342,7 +1342,7 @@ if [[ "${OPTION}" != "No" && ! "$(command -v qcli)" ]] ; then
 fi
 _review_option "FRAMEMD5_CHOICE" "Create frame-level MD5 checksums?" "${FRAMEMD5_OPTIONS[@]}"
 if [[ "${OPTION}" = "Yes" ]] ; then
-    FRAMEMD5NAME="${LOGDIR}/${ID}${SUFFIX}.framemd5"
+    FRAMEMD5NAME="${LOGDIR}/${PREFIX}${ID}${SUFFIX}.framemd5"
     EXTRAOUTPUTS=(-an -f framemd5 "${FRAMEMD5NAME}")
 fi
 if [[ "${FORMAT}" = "matroska" ]] ; then
@@ -1568,7 +1568,7 @@ if [[ "${VIDEO_CODEC_CHOICE}" = "Uncompressed Video" ]] ; then
         _report -dt "File passed policy check for uncompressed video."
     elif [[ "$STATUS" = "fail" ]] ; then
         _report -wt "File did not pass vrecord policy check for uncompressed video and may not conform to digital preservation standards. Try another file?"
-        mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_uncompressed.xml" "${VRECORD_OUTPUT}" | xmlstarlet fo > "${DIR}/${ID}${SUFFIX}_mediaconchreport.xml"
+        mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_uncompressed.xml" "${VRECORD_OUTPUT}" | xmlstarlet fo > "${DIR}/${PREFIX}${ID}${SUFFIX}_mediaconchreport.xml"
         _report -wt "See ${DIR}/${ID}${SUFFIX}_mediaconchreport.xml for a full MediaConch policy report."
     else
         mediaconch -p "${RESOURCE_PATH}/vrecord_policy_uncompressed.xml" "${VRECORD_OUTPUT}"
@@ -1580,7 +1580,7 @@ elif [[ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" ]] ; then
         _report -dt "File passed policy check for FFV1 video."
     elif [[ "$STATUS" = "fail" ]] ; then
         _report -wt "File did not pass vrecord policy check for FFV1 video and may not conform to digital preservation standards. Try another file?"
-        mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_ffv1.xml" "${VRECORD_OUTPUT}" | xmlstarlet fo > "${DIR}/${ID}${SUFFIX}_mediaconchreport.xml"
+        mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_ffv1.xml" "${VRECORD_OUTPUT}" | xmlstarlet fo > "${DIR}/${PREFIX}${ID}${SUFFIX}_mediaconchreport.xml"
         _report -wt "See ${DIR}/${ID}${SUFFIX}_mediaconchreport.xml for a full MediaConch policy report."
     else
         mediaconch -p "${RESOURCE_PATH}/vrecord_policy_ffv1.xml" "${VRECORD_OUTPUT}"
