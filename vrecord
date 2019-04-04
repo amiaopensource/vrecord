@@ -426,7 +426,7 @@ _edit_prefs() {
         </vbox>
         <vbox>
             <checkbox>
-                <label>Check this to turn off file appending of suffixes</label>
+                <label>Check this to turn off appending of suffixes</label>
                 <default>\"${NO_SUFFIX}\"</default>
                 <variable>NO_SUFFIX</variable>
             </checkbox>
@@ -1158,7 +1158,7 @@ while [[ "${RUNTYPE}" = "edit" ]] ; do
     _edit_mode
 done
 
-if [[ "${INVERT_PHASE}" = 1 ]] ; then
+if [[ "${INVERT_PHASE}" = 'true' ]] ; then
     PHASE_VALUE="-1*"
 fi
 
@@ -1371,7 +1371,7 @@ if [[ -z "${TECHNICIAN}" ]] ; then
 fi
 
 _report -d "Summary: ${VIDEOCODECNAME}/${FORMAT} ${PIXEL_FORMAT} file from ${STANDARD} ${VIDEO_INPUT} ${AUDIO_INPUT}. Frame MD5s=${FRAMEMD5_CHOICE}, QCTools XML=${QCTOOLSXML_CHOICE}, and Technician=${TECHNICIAN}. Inputs recorded to ${VRECORD_OUTPUT} and Auxiliary Files created in ${LOGDIR}"
-if [[ "${INVERT_PHASE}" = 1 ]] ; then
+if [[ "${INVERT_PHASE}" = 'true' ]] ; then
     echo -e " \033[101mWARNING: Option to invert phase of second audio channel has been selected\033[0m"
 fi
 _report -q "Hit enter to start recording"
