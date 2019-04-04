@@ -280,203 +280,205 @@ _edit_prefs() {
                 </list>
             </vbox>
         </hbox>
-    <hbox>
-        <vbox>
-            <text>
-                <label>Embed digitization logs in video file (Matroska ONLY)</label>
-            </text>
-            <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${EMBED_LOGS_CHOICE}" "${EMBED_LOGS_OPTIONS[@]}")\">
-                <variable>EMBED_LOGS_CHOICE</variable>
-                $(_expand_list2items "${EMBED_LOGS_OPTIONS[@]}")
-            </list>
-        </vbox>
-        <vbox>
-            <text>
-                <label>Create frame-level MD5 checksums? (recommended)</label>
-            </text>
-            <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${FRAMEMD5_CHOICE}" "${FRAMEMD5_PPTIONS[@]}")\">
-                <variable>FRAMEMD5_CHOICE</variable>
-                $(_expand_list2items "${FRAMEMD5_OPTIONS[@]}")
-            </list>
-        </vbox>
-        <vbox>
-            <text>
-                <label>Select File Format</label>
-            </text>
-            <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${CONTAINER_CHOICE}" "${CONTAINER_OPTIONS[@]}")\">
-                <variable>CONTAINER_CHOICE</variable>
-                $(_expand_list2items "${CONTAINER_OPTIONS[@]}")
-            </list>
-        </vbox>
-        <vbox>
-            <text>
-                <label>Select Video Codec</label>
-            </text>
-            <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${VIDEO_CODEC_CHOICE}" "${VIDEO_CODEC_OPTIONS[@]}")\">
-                <variable>VIDEO_CODEC_CHOICE</variable>
-                $(_expand_list2items "${VIDEO_CODEC_OPTIONS[@]}")
-            </list>
-        </vbox>
-        <vbox>
-            <text>
-                <label>FFV1 Slice Count</label>
-            </text>
-            <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${FFV1_SLICE_CHOICE}" "${FFV1_SLICE_OPTIONS[@]}")\">
-                <variable>FFV1_SLICE_CHOICE</variable>
-                $(_expand_list2items "${FFV1_SLICE_OPTIONS[@]}")
-            </list>
-        </vbox>
-        <vbox>
-            <text>
-                <label>Select Audio Codec</label>
-            </text>
-            <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${AUDIO_CODEC_CHOICE}" "${AUDIO_CODEC_OPTIONS[@]}")\">
-                <variable>AUDIO_CODEC_CHOICE</variable>
-                $(_expand_list2items "${AUDIO_CODEC_OPTIONS[@]}")
-            </list>
-        </vbox>
-        <vbox>
-            <text>
-                <label>Select Video Bit Depth</label>
-            </text>
-            <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${VIDEO_BIT_DEPTH_CHOICE}" "${VIDEO_BITDEPTH_OPTIONS[@]}")\">
-                <variable>VIDEO_BIT_DEPTH_CHOICE</variable>
-                $(_expand_list2items "${VIDEO_BITDEPTH_OPTIONS[@]}")
-            </list>
-        </vbox>
-    </hbox>
         <hbox>
-        <vbox>
+            <vbox>
+                <text>
+                    <label>Embed digitization logs in video file (Matroska ONLY)</label>
+                </text>
+                <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${EMBED_LOGS_CHOICE}" "${EMBED_LOGS_OPTIONS[@]}")\">
+                    <variable>EMBED_LOGS_CHOICE</variable>
+                    $(_expand_list2items "${EMBED_LOGS_OPTIONS[@]}")
+                </list>
+            </vbox>
+            <vbox>
+                <text>
+                    <label>Create frame-level MD5 checksums? (recommended)</label>
+                </text>
+                <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${FRAMEMD5_CHOICE}" "${FRAMEMD5_PPTIONS[@]}")\">
+                    <variable>FRAMEMD5_CHOICE</variable>
+                    $(_expand_list2items "${FRAMEMD5_OPTIONS[@]}")
+                </list>
+            </vbox>
+            <vbox>
+                <text>
+                    <label>Select File Format</label>
+                </text>
+                <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${CONTAINER_CHOICE}" "${CONTAINER_OPTIONS[@]}")\">
+                    <variable>CONTAINER_CHOICE</variable>
+                    $(_expand_list2items "${CONTAINER_OPTIONS[@]}")
+                </list>
+            </vbox>
+            <vbox>
+                <text>
+                    <label>Select Video Codec</label>
+                </text>
+                <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${VIDEO_CODEC_CHOICE}" "${VIDEO_CODEC_OPTIONS[@]}")\">
+                    <variable>VIDEO_CODEC_CHOICE</variable>
+                    $(_expand_list2items "${VIDEO_CODEC_OPTIONS[@]}")
+                </list>
+            </vbox>
+            <vbox>
+                <text>
+                    <label>FFV1 Slice Count</label>
+                </text>
+                <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${FFV1_SLICE_CHOICE}" "${FFV1_SLICE_OPTIONS[@]}")\">
+                    <variable>FFV1_SLICE_CHOICE</variable>
+                    $(_expand_list2items "${FFV1_SLICE_OPTIONS[@]}")
+                </list>
+            </vbox>
+            <vbox>
+                <text>
+                    <label>Select Audio Codec</label>
+                </text>
+                <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${AUDIO_CODEC_CHOICE}" "${AUDIO_CODEC_OPTIONS[@]}")\">
+                    <variable>AUDIO_CODEC_CHOICE</variable>
+                    $(_expand_list2items "${AUDIO_CODEC_OPTIONS[@]}")
+                </list>
+            </vbox>
+            <vbox>
+                <text>
+                    <label>Select Video Bit Depth</label>
+                </text>
+                <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${VIDEO_BIT_DEPTH_CHOICE}" "${VIDEO_BITDEPTH_OPTIONS[@]}")\">
+                    <variable>VIDEO_BIT_DEPTH_CHOICE</variable>
+                    $(_expand_list2items "${VIDEO_BITDEPTH_OPTIONS[@]}")
+                </list>
+            </vbox>
+        </hbox>
+        <hbox>
+            <vbox>
+                <text>
+                    <label>Select timecode format</label>
+                </text>
+                <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${TIMECODE_CHOICE}" "${TIMECODE_OPTIONS[@]}")\">
+                    <variable>TIMECODE_CHOICE</variable>
+                    $(_expand_list2items "${TIMECODE_OPTIONS[@]}")
+                </list>
+                <button>
+                    <label>Scan timecode types</label>
+                    <action>echo TIMECODE_SCAN=1</action>
+                    <action type=\"exit\">TIMECODE_SCAN</action>
+                </button>
+            </vbox>
+            <vbox>
+                <text>
+                    <label>Create QCTools XML?</label>
+                </text>
+                <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${QCTOOLSXML_CHOICE}" "${QCTOOLSXML_OPTIONS[@]}")\">
+                    <variable>QCTOOLSXML_CHOICE</variable>
+                    $(_expand_list2items "${QCTOOLSXML_OPTIONS[@]}")
+                </list>
+            </vbox>
+            <vbox>
+                <text>
+                    <label>Select View (for recording)</label>
+                </text>
+                <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${PLAYBACKVIEW_CHOICE}" "${PLAYBACKVIEW_OPTIONS[@]}")\">
+                    <variable>PLAYBACKVIEW_CHOICE</variable>
+                    $(_expand_list2items "${PLAYBACKVIEW_OPTIONS[@]}")
+                </list>
+            </vbox>
+            <vbox>
+                <text>
+                    <label>Select View (for passthrough)</label>
+                </text>
+                <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${PLAYBACKVIEW_CHOICE_PASS}" "${PLAYBACKVIEW_OPTIONS[@]}")\">
+                    <variable>PLAYBACKVIEW_CHOICE_PASS</variable>
+                    $(_expand_list2items "${PLAYBACKVIEW_OPTIONS[@]}")
+                </list>
+            </vbox>
+        </hbox>
+        <hbox>
+            <vbox>
+                <text>
+                    <label>Enter an optional file prefix</label>
+                </text>
+                <entry>
+                    <default>\"${PREFIX}\"</default>
+                    <variable>PREFIX</variable>
+                </entry>
+            </vbox>
+            <vbox>
+                <text>
+                    <label>Enter an optional file suffix</label>
+                </text>
+                <entry>
+                    <default>\"${USER_SUFFIX}\"</default>
+                    <variable>USER_SUFFIX</variable>
+                </entry>
+            </vbox>
+            <vbox>
+                <checkbox>
+                    <label>Check this to turn off appending of suffixes</label>
+                    <default>\"${NO_SUFFIX}\"</default>
+                    <variable>NO_SUFFIX</variable>
+                </checkbox>
+            </vbox>
+        </hbox>
+        <hbox>
+            <vbox>
+                <text>
+                    <label>Set recording time (integer or decimal) in minutes</label>
+                </text>
+                <entry activates_default=\"true\" tooltip-text=\"Suggested:23 33 63 93. Leave blank for indefinite recording time\">
+                    <default>\"${DURATION}\"</default>
+                    <variable>DURATION</variable>
+                </entry>
+            </vbox>
+            <vbox>
+                <text>
+                    <label>Enter the name of the person digitizing this tape.</label>
+                </text>
+                <entry>
+                    <variable>TECHNICIAN</variable>
+                </entry>
+            </vbox>
+            <vbox>
+                <checkbox>
+                    <label>Invert Second Channel of Audio (WARNING: Do not use this option unless required)</label>
+                    <default>false</default>
+                    <variable>INVERT_PHASE</variable>
+                </checkbox>
+            </vbox>
+        </hbox>
+        <hbox>
             <text>
-                <label>Select timecode format</label>
+                <label>Select a recording directory</label>
             </text>
-            <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${TIMECODE_CHOICE}" "${TIMECODE_OPTIONS[@]}")\">
-                <variable>TIMECODE_CHOICE</variable>
-                $(_expand_list2items "${TIMECODE_OPTIONS[@]}")
-            </list>
+            <entry accept=\"directory\">
+                <variable>DIR</variable>
+                <default>\"${DIR}\"</default>
+            </entry>
             <button>
-                <label>Scan timecode types</label>
-                <action>echo TIMECODE_SCAN=1</action>
-                <action type=\"exit\">TIMECODE_SCAN</action>
-            </button>
-        </vbox>
-        <vbox>
-            <text>
-                <label>Create QCTools XML?</label>
-            </text>
-            <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${QCTOOLSXML_CHOICE}" "${QCTOOLSXML_OPTIONS[@]}")\">
-                <variable>QCTOOLSXML_CHOICE</variable>
-                $(_expand_list2items "${QCTOOLSXML_OPTIONS[@]}")
-            </list>
-        </vbox>
-        <vbox>
-            <text>
-                <label>Select View (for recording)</label>
-            </text>
-            <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${PLAYBACKVIEW_CHOICE}" "${PLAYBACKVIEW_OPTIONS[@]}")\">
-                <variable>PLAYBACKVIEW_CHOICE</variable>
-                $(_expand_list2items "${PLAYBACKVIEW_OPTIONS[@]}")
-            </list>
-        </vbox>
-        <vbox>
-            <text>
-                <label>Select View (for passthrough)</label>
-            </text>
-            <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${PLAYBACKVIEW_CHOICE_PASS}" "${PLAYBACKVIEW_OPTIONS[@]}")\">
-                <variable>PLAYBACKVIEW_CHOICE_PASS</variable>
-                $(_expand_list2items "${PLAYBACKVIEW_OPTIONS[@]}")
-            </list>
-        </vbox>
-    </hbox>
-    <hbox>
-        <vbox>
-            <text>
-                <label>Set recording time (integer or decimal) in minutes</label>
-            </text>
-            <entry activates_default=\"true\" tooltip-text=\"Suggested:23 33 63 93. Leave blank for indefinite recording time\">
-                <default>\"${DURATION}\"</default>
-                <variable>DURATION</variable>
-            </entry>
-        </vbox>
-        <vbox>
-            <text>
-                <label>Enter the name of the person digitizing this tape.</label>
-            </text>
-            <entry>
-                <variable>TECHNICIAN</variable>
-            </entry>
-        </vbox>
-        <vbox>
-            <text>
-                <label>Enter an optional file prefix</label>
-            </text>
-            <entry>
-                <default>\"${PREFIX}\"</default>
-                <variable>PREFIX</variable>
-            </entry>
-        </vbox>
-        <vbox>
-            <text>
-                <label>Enter an optional file suffix</label>
-            </text>
-            <entry>
-                <default>\"${USER_SUFFIX}\"</default>
-                <variable>USER_SUFFIX</variable>
-            </entry>
-        </vbox>
-        <vbox>
-            <checkbox>
-                <label>Check this to turn off appending of suffixes</label>
-                <default>\"${NO_SUFFIX}\"</default>
-                <variable>NO_SUFFIX</variable>
-            </checkbox>
-        </vbox>
-        <vbox>
-            <checkbox>
-                <label>Invert Second Channel of Audio (WARNING: Do not use this option unless required)</label>
-                <default>false</default>
-                <variable>INVERT_PHASE</variable>
-            </checkbox>
-        </vbox>
-    </hbox>
-    <hbox>
-        <text>
-            <label>Select a recording directory</label>
-        </text>
-        <entry accept=\"directory\">
-            <variable>DIR</variable>
-            <default>\"${DIR}\"</default>
-        </entry>
-        <button>
-            <input file stock=\"gtk-open\"></input>
-            <variable>DIRBROWSE</variable>
-            <action type=\"fileselect\">DIR</action>
-        </button>
-    </hbox>
-    <hbox>
-        <text>
-            <label>Select a directory for auxiliary files (leave blank to match the recording directory).</label>
-        </text>
-        <entry accept=\"directory\" tooltip-text=\"select the directory for automatically generated logs and checksums\">
-            <variable>LOGDIR</variable>
-            <default>\"${LOGDIR}\"</default>
-        </entry>
-        <button>
-            <input file stock=\"gtk-open\"></input>
-            <variable>LOGDIRBROWSE</variable>
-            <action type=\"fileselect\">LOGDIR</action>
-        </button>
-    </hbox>
-    <vbox>
-        <hbox>
-            <button ok>
-                <variable>OKBUTTON</variable>
-            </button>
-            <button cancel>
+                <input file stock=\"gtk-open\"></input>
+                <variable>DIRBROWSE</variable>
+                <action type=\"fileselect\">DIR</action>
             </button>
         </hbox>
+        <hbox>
+            <text>
+                <label>Select a directory for auxiliary files (leave blank to match the recording directory).</label>
+            </text>
+            <entry accept=\"directory\" tooltip-text=\"select the directory for automatically generated logs and checksums\">
+                <variable>LOGDIR</variable>
+                <default>\"${LOGDIR}\"</default>
+            </entry>
+            <button>
+                <input file stock=\"gtk-open\"></input>
+                <variable>LOGDIRBROWSE</variable>
+                <action type=\"fileselect\">LOGDIR</action>
+            </button>
+        </hbox>
+        <vbox>
+            <hbox>
+                <button ok>
+                    <variable>OKBUTTON</variable>
+                </button>
+                <button cancel>
+                </button>
+            </hbox>
+        </vbox>
     </vbox>
-</vbox>
 </window>"
 
     eval $(gtkdialog --center --program MAIN_DIALOG)
