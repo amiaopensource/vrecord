@@ -1337,7 +1337,7 @@ elif [[ "${NO_SUFFIX}" = 'true' ]] ; then
 fi
 
 FULL_OUTPUT_ID="${PREFIX}${ID}${SUFFIX}"
-FULL_CAPTURE_LOG="${LOGDIR}/${PREFIX}${ID}${SUFFIX}${CAPTURELOGSUFFIX}"
+FULL_CAPTURE_LOG="${LOGDIR}/${FULL_OUTPUT_ID}${CAPTURELOGSUFFIX}"
 
 VRECORD_OUTPUT="${DIR}/${FULL_OUTPUT_ID}.${EXTENSION}"
 if [[ -f "${VRECORD_OUTPUT}" ]] ; then
@@ -1354,7 +1354,7 @@ if [[ "${OPTION}" != "No" && ! "$(command -v qcli)" ]] ; then
 fi
 _review_option "FRAMEMD5_CHOICE" "Create frame-level MD5 checksums?" "${FRAMEMD5_OPTIONS[@]}"
 if [[ "${OPTION}" = "Yes" ]] ; then
-    FRAMEMD5NAME="${LOGDIR}/${PREFIX}${ID}${SUFFIX}.framemd5"
+    FRAMEMD5NAME="${LOGDIR}/${FULL_OUTPUT_ID}.framemd5"
     EXTRAOUTPUTS=(-an -f framemd5 "${FRAMEMD5NAME}")
 fi
 if [[ "${FORMAT}" = "matroska" ]] ; then
@@ -1380,8 +1380,8 @@ _report -q "Hit enter to start recording"
 read
 
 # create log of vrecord decisions
-INGESTLOG="${LOGDIR}/${PREFIX}${ID}${SUFFIX}_capture_options.log"
-QCXML="${LOGDIR}/${PREFIX}${ID}${SUFFIX}.${EXTENSION}.qctools.xml.gz"
+INGESTLOG="${LOGDIR}/${FULL_OUTPUT_ID}_capture_options.log"
+QCXML="${LOGDIR}/${FULL_OUTPUT_ID}.${EXTENSION}.qctools.xml.gz"
 touch "${INGESTLOG}"
 _writeingestlog "computer_name" "$(uname -n)"
 _writeingestlog "computer_model_name" "$(_parse_report "Model Name" "${HARDWARE_REPORT}")"
@@ -1580,7 +1580,7 @@ if [[ "${VIDEO_CODEC_CHOICE}" = "Uncompressed Video" ]] ; then
         _report -dt "File passed policy check for uncompressed video."
     elif [[ "$STATUS" = "fail" ]] ; then
         _report -wt "File did not pass vrecord policy check for uncompressed video and may not conform to digital preservation standards. Try another file?"
-        mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_uncompressed.xml" "${VRECORD_OUTPUT}" | xmlstarlet fo > "${DIR}/${PREFIX}${ID}${SUFFIX}_mediaconchreport.xml"
+        mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_uncompressed.xml" "${VRECORD_OUTPUT}" | xmlstarlet fo > "${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml"
         _report -wt "See ${DIR}/${ID}${SUFFIX}_mediaconchreport.xml for a full MediaConch policy report."
     else
         mediaconch -p "${RESOURCE_PATH}/vrecord_policy_uncompressed.xml" "${VRECORD_OUTPUT}"
@@ -1592,7 +1592,7 @@ elif [[ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" ]] ; then
         _report -dt "File passed policy check for FFV1 video."
     elif [[ "$STATUS" = "fail" ]] ; then
         _report -wt "File did not pass vrecord policy check for FFV1 video and may not conform to digital preservation standards. Try another file?"
-        mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_ffv1.xml" "${VRECORD_OUTPUT}" | xmlstarlet fo > "${DIR}/${PREFIX}${ID}${SUFFIX}_mediaconchreport.xml"
+        mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_ffv1.xml" "${VRECORD_OUTPUT}" | xmlstarlet fo > "${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml"
         _report -wt "See ${DIR}/${ID}${SUFFIX}_mediaconchreport.xml for a full MediaConch policy report."
     else
         mediaconch -p "${RESOURCE_PATH}/vrecord_policy_ffv1.xml" "${VRECORD_OUTPUT}"
