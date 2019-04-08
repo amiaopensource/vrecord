@@ -727,7 +727,7 @@ _qcgraphimage(){
     fi
 
     echo "set terminal jpeg size 1920, 1080
-    set output '${LOGDIR}/${ID}_QC_output_graphs.jpeg'
+    set output '${LOGDIR}/${FULL_OUTPUT_ID}_QC_output_graphs.jpeg'
     set term jpeg font 'times,12'
     set multiplot layout 7, 1 title '${ID} QC Data Graphs (ver.2)' margins screen .05,.93, .05, .93 spacing screen 0, char .7
     set style line 11 lc rgb '#808080' lt 1
@@ -1491,7 +1491,7 @@ if [[ ! -s "${VRECORD_OUTPUT}" ]] ; then
 fi
 
 if [[ -f "${TC_TMP}" ]] ; then
-    mv "${TC_TMP}" "${LOGDIR}/${ID}_${TC_TYPE}${TIMECODELOGSUFFIX}"
+    mv "${TC_TMP}" "${LOGDIR}/${FULL_OUTPUT_ID}_${TC_TYPE}${TIMECODELOGSUFFIX}"
 fi
 
 _writeingestlog "datetime_end" "$(_get_iso8601)"
