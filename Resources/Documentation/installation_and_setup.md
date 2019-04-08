@@ -31,16 +31,17 @@ brew upgrade
 
 ### Linux
 
-As of version 2019-01-19, vrecord can now be installed on select Linux distributions, most easily via [Linuxbrew](https://docs.brew.sh/Homebrew-on-Linux), with the same macOS Homebrew Terminal commands:
+As of version 2019-01-19, vrecord can now be installed on select Linux distributions, also via [Homebrew](https://docs.brew.sh/Homebrew-on-Linux), using the same Terminal commands:
 ```
 brew tap amiaopensource/amiaos
 brew install vrecord
 ```
-But if find yourself experiencing Linux installation issues, it may be beneficial to first install vrecord's core dependencies, and then install vrecord without dependencies:
+If you experience installation issues, however, it may be beneficial to first install vrecord's core dependencies, and then install vrecord without dependencies:
 ```
 brew install decklinksdk && brew install ffmpegdecklink && brew install gtkdialog
 brew install --ignore-dependencies vrecord
 ```
+Note: these commands only cover vrecord's core capture functionality. If you're interested in the full vrecord experience, you'll need to install a number of other [dependencies](https://github.com/amiaopensource/homebrew-amiaos/blob/master/vrecord.rb) individually. 
 
 ## Using vrecord
 
@@ -55,7 +56,7 @@ Once your capture device is set up you can start vrecord by simply opening up a 
 vrecord 
 ```
 The first time you use vrecord you will be asked to make some initial choices about how you want to capture. Any decisions you make will be saved in a configuration file. But don't worry, you will be able to alter these decisions later. 
-Vrecord will ask you for video and audio inputs. These should agree with your settings for the Blackmagic capture device. Vrecord's other settings can be tailored to your liking. See the section on [Options for Video Capture](settings.md#options-for-video-capture) which explains all of the settings in detail.
+vrecord will ask you for video and audio inputs. These should agree with your settings for the Blackmagic capture device. vrecord's other settings can be tailored to your liking. See the section on [Options for Video Capture](settings.md#options-for-video-capture) which explains all of the settings in detail.
 
 ### Basic Usage
 
