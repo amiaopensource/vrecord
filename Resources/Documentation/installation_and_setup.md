@@ -56,7 +56,7 @@ Once your capture device is set up you can start vrecord by simply opening up a 
 vrecord 
 ```
 The first time you use vrecord you will be asked to make some initial choices about how you want to capture. Any decisions you make will be saved in a configuration file. But don't worry, you will be able to alter these decisions later. 
-vrecord will ask you for video and audio inputs. These should agree with your settings for the Blackmagic capture device. vrecord's other settings can be tailored to your liking. See the section on [Options for Video Capture](settings.md#options-for-video-capture) which explains all of the settings in detail.
+Vrecord will ask you for video and audio inputs. These should agree with your settings for the Blackmagic capture device. Vrecord's other settings can be tailored to your liking. See the section on [Options for Video Capture](settings.md#options-for-video-capture) which explains all of the settings in detail.
 
 ### Basic Usage
 
