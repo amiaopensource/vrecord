@@ -6,13 +6,13 @@ Run edit mode by typing:
 ```
 vrecord -e
 ```
-After selecting all of your options and clicking "OK" the you will be prompted to enter a unique ID for the file. After the ID is entered, the incoming video signal will be recorded to a file with some associated metadata files. When you are done recording, close the vrecord window. If you've set a time limit for capture the vrecord window should automatically close when the time limit has been reached.
+After selecting all of your options and clicking "OK," you will be prompted to enter a unique ID for the file. After the ID is entered, the incoming video signal will be recorded to a file with some associated metadata files. When you are finished recording, you can close the vrecord window. If you've set a time limit for capture, the vrecord window will automatically close when the time limit has been reached.
 
-By default vrecord will create a video file, a bmdcapture log, a framemd5 file (which creates an MD5 hash value [AKA a checksum] for every frame of video), an ffmpeg log, an ffplay log, and a capture options log (which records the options that you selected in the GUI like codec and video bit depth). Vrecord will check all FFV1 and uncompressed video files in QuickTime or Matroska wrappers against local [MediaConch](https://mediaarea.net/MediaConch/about.html) policies, and will alert the user if the file does not conform to vrecord and archival standards. Vrecord can also create a [QCTools](https://github.com/bavc/qctools) XML file, which records the characteristics of the video signal. This file can be imported into QCTools for further analysis. 
+By default, vrecord will create a video file, a bmdcapture log, a framemd5 file (which creates an MD5 hash value [AKA a checksum] for every frame of video), an ffmpeg log, an ffplay log, and a capture options log (which records the options that you selected in the GUI like codec and video bit depth). Vrecord will check all FFV1 and uncompressed video files in QuickTime or Matroska wrappers against local [MediaConch](https://mediaarea.net/MediaConch/about.html) policies, and will alert the user if the file does not conform to vrecord and archival standards. Vrecord can also create a [QCTools](https://github.com/bavc/qctools) XML file, which measures characteristics of the video signal, and a PNG file, which provides an easy-to-assess, overarching view of the video signal across time. The QCTools XML can be imported into QCTools for further analysis. 
 
 #### Options for Video Capture
 
-All of options in the vrecord GUI (which appears when running `vrecord -e`) or otherwise in text prompts are explained below. If you want to feel like a college freshman you can choose "Undeclared" for any of the options below. You will be prompted later to make a choice before the software actually starts recording:
+All of the options in the vrecord GUI (which appears when running `vrecord -e`), or otherwise in terminal prompts, are explained below. If you want to feel like a college freshman, you can choose "Undeclared" for any of the options below. You will be prompted later to make a choice before the software actually begins recording:
 
 **Select a recording directory** — Choose the location (on an internal or external hard drive) where you want your resulting video files and logs to be saved.
 
@@ -22,9 +22,13 @@ All of options in the vrecord GUI (which appears when running `vrecord -e`) or o
 
 **Select file format** — Choose the file format that you want the video to be saved in. This is also often called the container.
 
-**Select codec for video** — Choose how you would like the video signal to be encoded digitally. You can choose from some uncompressed, lossless, and lossy codecs. 
+**Select codec for video** — Choose how you would like the video signal to be encoded digitally. You can choose from some uncompressed, lossless, and lossy codecs.
 
 **Select bit depth for video** — Choose the level of bit depth you would like for your video file. Vrecord supports 10 and 8-bit video capture.
+
+**Select FFV1 slice count** - If you select FFV1 as your video codec, you will be prompted to choose between a number of "slice count" options. An error detection/correction mechanism specific to FFV1, slices allow for each frame of video to be split into sub-sections, which will, in turn, each receive their own CRC checksum value. Keep in mind that the higher the slice count, the larger the resulting file.
+
+**Select codec for audio** - Choose how you would like the audio signal to be encoded digitally. You can choose between uncompressed or lossless codecs.
 
 **Select audio channel mapping** — Choose how you want the audio to be captured. Currently vrecord captures audio at 24-bits and can only capture 4 tracks. The options are: 
 * "2 Stereo Tracks" — For capturing videotape formats that have four tracks which are arranged as stereo pairs.
@@ -44,10 +48,12 @@ All of options in the vrecord GUI (which appears when running `vrecord -e`) or o
 
 **Select standard** — Select the television standard of the tape you are digitizing. Currently vrecord only supports NTSC and PAL.
 
-**Select view** — Select the display you want to see as you digitize your tape. See [Video Capture Views](#video-capture-views) below for more details.
+**Select view (for recording)** — Select the display you want to see as you digitize your tape. See [Video Views](#video-views) below for more details.
 
-**Create QCTools XML** — vrecord can create an XML file that contains a record of the characteristics of the video signal (such as luminance, color saturation, audio levels, etc.). vrecord can create this file after capturing the video signal or during capture of the video signal. The XML file is then compressed using [gzip](https://www.gnu.org/software/gzip/).
-* Choosing to create a QCTools XML is highly recommended. This file can be quickly imported into QCTools for further analysis of the video. In addition, if you choose this option, vrecord can analyze the video signal for potential errors. Currently vrecord only tests the saturation levels of the video.
+**Select view (for passthrough)** — Select the display you want to see as you preview your tape before capture. See [Video Views](#video-views) below for more details.
+
+**Create QCTools XML?** — vrecord can create an XML file that contains a measurement of the characteristics of the video signal (such as luminance, color saturation, audio levels, etc.). vrecord can create this file either during capture, or as a post process. The XML will then be compressed using [gzip](https://www.gnu.org/software/gzip/).
+* Choosing to create a QCTools XML is highly recommended. These files can be easily imported into QCTools for further analysis and, if you choose this option, vrecord will also (1) analyze the video for potential errors (reporting in your terminal window, post-capture, about the signal's adherence to broadcast range specifications), and (2) use this QCTools data to generate a easy-to-review [image file](https://github.com/amiaopensource/vrecord/blob/master/Resources/Documentation/analog_digitization.md#qc-graphs).
 
 **Frame MD5s** — You can choose to create an MD5 hash value (AKA a checksum) for each frame of video captured. Frame MD5s are strongly recommended, as some dropped-frame errors will not be caught without the hash values. A separate .md5 file with all the hash values will be created along with the video file. Generally choosing to create frame-level MD5s will not slow down or hinder the capture of your video. To read more about the value of frame-level MD5s see this article: http://dericed.com/papers/reconsidering-the-checksum-for-audiovisual-preservation/ 
 
@@ -66,7 +72,7 @@ Click "OK" when you are finished with your selections. Vrecord will save all of 
 
 Vrecord will then prompt you for a unique ID. The ID that you type in will become a prefix for the filename of all the resulting files in that recording session. After entering your unique ID you will be asked to press enter to start recording. Press enter and start playing your tape. The vrecord window will appear. Do not type any keys or click the mouse inside the window while the vrecord is working. 
 
-#### Video Capture Views
+#### Video Views
 
 **Broadcast Range Visual mode** — Broadcast Range Visual mode displays the video feed, the video feed with pixels out of broadcast range highlighted, the waveform monitor, and the vectorscope in the vrecord window.
 
