@@ -585,7 +585,7 @@ _edit_mode(){
         echo "  PREFIX = ${PREFIX}"
         echo "  USER_SUFFIX = ${USER_SUFFIX}"
         echo "  NO_SUFFIX = ${NO_SUFFIX}"
-        if [[ "${INVERT_PHASE}" = 1 ]] ; then
+        if [[ "${INVERT_PHASE}" = 'true' ]] ; then
             echo -e " \033[101mWARNING: Option to invert phase of second audio channel has been selected\033[0m"
         fi
         if [ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" -a "${CONTAINER_CHOICE}" = "MXF" ] ; then
