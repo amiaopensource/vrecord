@@ -280,178 +280,205 @@ _edit_prefs() {
                 </list>
             </vbox>
         </hbox>
-    <hbox>
-        <vbox>
-            <text>
-                <label>Embed digitization logs in video file (Matroska ONLY)</label>
-            </text>
-            <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${EMBED_LOGS_CHOICE}" "${EMBED_LOGS_OPTIONS[@]}")\">
-                <variable>EMBED_LOGS_CHOICE</variable>
-                $(_expand_list2items "${EMBED_LOGS_OPTIONS[@]}")
-            </list>
-        </vbox>
-        <vbox>
-            <text>
-                <label>Create frame-level MD5 checksums? (recommended)</label>
-            </text>
-            <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${FRAMEMD5_CHOICE}" "${FRAMEMD5_PPTIONS[@]}")\">
-                <variable>FRAMEMD5_CHOICE</variable>
-                $(_expand_list2items "${FRAMEMD5_OPTIONS[@]}")
-            </list>
-        </vbox>
-        <vbox>
-            <text>
-                <label>Select File Format</label>
-            </text>
-            <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${CONTAINER_CHOICE}" "${CONTAINER_OPTIONS[@]}")\">
-                <variable>CONTAINER_CHOICE</variable>
-                $(_expand_list2items "${CONTAINER_OPTIONS[@]}")
-            </list>
-        </vbox>
-        <vbox>
-            <text>
-                <label>Select Video Codec</label>
-            </text>
-            <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${VIDEO_CODEC_CHOICE}" "${VIDEO_CODEC_OPTIONS[@]}")\">
-                <variable>VIDEO_CODEC_CHOICE</variable>
-                $(_expand_list2items "${VIDEO_CODEC_OPTIONS[@]}")
-            </list>
-        </vbox>
-        <vbox>
-            <text>
-                <label>FFV1 Slice Count</label>
-            </text>
-            <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${FFV1_SLICE_CHOICE}" "${FFV1_SLICE_OPTIONS[@]}")\">
-                <variable>FFV1_SLICE_CHOICE</variable>
-                $(_expand_list2items "${FFV1_SLICE_OPTIONS[@]}")
-            </list>
-        </vbox>
-        <vbox>
-            <text>
-                <label>Select Audio Codec</label>
-            </text>
-            <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${AUDIO_CODEC_CHOICE}" "${AUDIO_CODEC_OPTIONS[@]}")\">
-                <variable>AUDIO_CODEC_CHOICE</variable>
-                $(_expand_list2items "${AUDIO_CODEC_OPTIONS[@]}")
-            </list>
-        </vbox>
-        <vbox>
-            <text>
-                <label>Select Video Bit Depth</label>
-            </text>
-            <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${VIDEO_BIT_DEPTH_CHOICE}" "${VIDEO_BITDEPTH_OPTIONS[@]}")\">
-                <variable>VIDEO_BIT_DEPTH_CHOICE</variable>
-                $(_expand_list2items "${VIDEO_BITDEPTH_OPTIONS[@]}")
-            </list>
-        </vbox>
-    </hbox>
         <hbox>
-        <vbox>
+            <vbox>
+                <text>
+                    <label>Embed digitization logs in video file (Matroska ONLY)</label>
+                </text>
+                <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${EMBED_LOGS_CHOICE}" "${EMBED_LOGS_OPTIONS[@]}")\">
+                    <variable>EMBED_LOGS_CHOICE</variable>
+                    $(_expand_list2items "${EMBED_LOGS_OPTIONS[@]}")
+                </list>
+            </vbox>
+            <vbox>
+                <text>
+                    <label>Create frame-level MD5 checksums? (recommended)</label>
+                </text>
+                <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${FRAMEMD5_CHOICE}" "${FRAMEMD5_PPTIONS[@]}")\">
+                    <variable>FRAMEMD5_CHOICE</variable>
+                    $(_expand_list2items "${FRAMEMD5_OPTIONS[@]}")
+                </list>
+            </vbox>
+            <vbox>
+                <text>
+                    <label>Select File Format</label>
+                </text>
+                <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${CONTAINER_CHOICE}" "${CONTAINER_OPTIONS[@]}")\">
+                    <variable>CONTAINER_CHOICE</variable>
+                    $(_expand_list2items "${CONTAINER_OPTIONS[@]}")
+                </list>
+            </vbox>
+            <vbox>
+                <text>
+                    <label>Select Video Codec</label>
+                </text>
+                <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${VIDEO_CODEC_CHOICE}" "${VIDEO_CODEC_OPTIONS[@]}")\">
+                    <variable>VIDEO_CODEC_CHOICE</variable>
+                    $(_expand_list2items "${VIDEO_CODEC_OPTIONS[@]}")
+                </list>
+            </vbox>
+            <vbox>
+                <text>
+                    <label>FFV1 Slice Count</label>
+                </text>
+                <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${FFV1_SLICE_CHOICE}" "${FFV1_SLICE_OPTIONS[@]}")\">
+                    <variable>FFV1_SLICE_CHOICE</variable>
+                    $(_expand_list2items "${FFV1_SLICE_OPTIONS[@]}")
+                </list>
+            </vbox>
+            <vbox>
+                <text>
+                    <label>Select Audio Codec</label>
+                </text>
+                <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${AUDIO_CODEC_CHOICE}" "${AUDIO_CODEC_OPTIONS[@]}")\">
+                    <variable>AUDIO_CODEC_CHOICE</variable>
+                    $(_expand_list2items "${AUDIO_CODEC_OPTIONS[@]}")
+                </list>
+            </vbox>
+            <vbox>
+                <text>
+                    <label>Select Video Bit Depth</label>
+                </text>
+                <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${VIDEO_BIT_DEPTH_CHOICE}" "${VIDEO_BITDEPTH_OPTIONS[@]}")\">
+                    <variable>VIDEO_BIT_DEPTH_CHOICE</variable>
+                    $(_expand_list2items "${VIDEO_BITDEPTH_OPTIONS[@]}")
+                </list>
+            </vbox>
+        </hbox>
+        <hbox>
+            <vbox>
+                <text>
+                    <label>Select timecode format</label>
+                </text>
+                <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${TIMECODE_CHOICE}" "${TIMECODE_OPTIONS[@]}")\">
+                    <variable>TIMECODE_CHOICE</variable>
+                    $(_expand_list2items "${TIMECODE_OPTIONS[@]}")
+                </list>
+                <button>
+                    <label>Scan timecode types</label>
+                    <action>echo TIMECODE_SCAN=1</action>
+                    <action type=\"exit\">TIMECODE_SCAN</action>
+                </button>
+            </vbox>
+            <vbox>
+                <text>
+                    <label>Create QCTools XML?</label>
+                </text>
+                <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${QCTOOLSXML_CHOICE}" "${QCTOOLSXML_OPTIONS[@]}")\">
+                    <variable>QCTOOLSXML_CHOICE</variable>
+                    $(_expand_list2items "${QCTOOLSXML_OPTIONS[@]}")
+                </list>
+            </vbox>
+            <vbox>
+                <text>
+                    <label>Select View (for recording)</label>
+                </text>
+                <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${PLAYBACKVIEW_CHOICE}" "${PLAYBACKVIEW_OPTIONS[@]}")\">
+                    <variable>PLAYBACKVIEW_CHOICE</variable>
+                    $(_expand_list2items "${PLAYBACKVIEW_OPTIONS[@]}")
+                </list>
+            </vbox>
+            <vbox>
+                <text>
+                    <label>Select View (for passthrough)</label>
+                </text>
+                <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${PLAYBACKVIEW_CHOICE_PASS}" "${PLAYBACKVIEW_OPTIONS[@]}")\">
+                    <variable>PLAYBACKVIEW_CHOICE_PASS</variable>
+                    $(_expand_list2items "${PLAYBACKVIEW_OPTIONS[@]}")
+                </list>
+            </vbox>
+        </hbox>
+        <hbox>
+            <vbox>
+                <text>
+                    <label>Enter an optional file prefix</label>
+                </text>
+                <entry>
+                    <default>\"${PREFIX}\"</default>
+                    <variable>PREFIX</variable>
+                </entry>
+            </vbox>
+            <vbox>
+                <text>
+                    <label>Enter an optional file suffix</label>
+                </text>
+                <entry>
+                    <default>\"${USER_SUFFIX}\"</default>
+                    <variable>USER_SUFFIX</variable>
+                </entry>
+            </vbox>
+            <vbox>
+                <checkbox>
+                    <label>Check this to turn off appending of suffixes</label>
+                    <default>\"${NO_SUFFIX}\"</default>
+                    <variable>NO_SUFFIX</variable>
+                </checkbox>
+            </vbox>
+        </hbox>
+        <hbox>
+            <vbox>
+                <text>
+                    <label>Set recording time (integer or decimal) in minutes</label>
+                </text>
+                <entry activates_default=\"true\" tooltip-text=\"Suggested:23 33 63 93. Leave blank for indefinite recording time\">
+                    <default>\"${DURATION}\"</default>
+                    <variable>DURATION</variable>
+                </entry>
+            </vbox>
+            <vbox>
+                <text>
+                    <label>Enter the name of the person digitizing this tape.</label>
+                </text>
+                <entry>
+                    <variable>TECHNICIAN</variable>
+                </entry>
+            </vbox>
+            <vbox>
+                <checkbox>
+                    <label>Invert Second Channel of Audio (WARNING: Do not use this option unless required)</label>
+                    <default>false</default>
+                    <variable>INVERT_PHASE</variable>
+                </checkbox>
+            </vbox>
+        </hbox>
+        <hbox>
             <text>
-                <label>Select timecode format</label>
+                <label>Select a recording directory</label>
             </text>
-            <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${TIMECODE_CHOICE}" "${TIMECODE_OPTIONS[@]}")\">
-                <variable>TIMECODE_CHOICE</variable>
-                $(_expand_list2items "${TIMECODE_OPTIONS[@]}")
-            </list>
+            <entry accept=\"directory\">
+                <variable>DIR</variable>
+                <default>\"${DIR}\"</default>
+            </entry>
             <button>
-                <label>Scan timecode types</label>
-                <action>echo TIMECODE_SCAN=1</action>
-                <action type=\"exit\">TIMECODE_SCAN</action>
-            </button>
-        </vbox>
-        <vbox>
-            <text>
-                <label>Create QCTools XML?</label>
-            </text>
-            <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${QCTOOLSXML_CHOICE}" "${QCTOOLSXML_OPTIONS[@]}")\">
-                <variable>QCTOOLSXML_CHOICE</variable>
-                $(_expand_list2items "${QCTOOLSXML_OPTIONS[@]}")
-            </list>
-        </vbox>
-        <vbox>
-            <text>
-                <label>Select View (for recording)</label>
-            </text>
-            <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${PLAYBACKVIEW_CHOICE}" "${PLAYBACKVIEW_OPTIONS[@]}")\">
-                <variable>PLAYBACKVIEW_CHOICE</variable>
-                $(_expand_list2items "${PLAYBACKVIEW_OPTIONS[@]}")
-            </list>
-        </vbox>
-        <vbox>
-            <text>
-                <label>Select View (for passthrough)</label>
-            </text>
-            <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${PLAYBACKVIEW_CHOICE_PASS}" "${PLAYBACKVIEW_OPTIONS[@]}")\">
-                <variable>PLAYBACKVIEW_CHOICE_PASS</variable>
-                $(_expand_list2items "${PLAYBACKVIEW_OPTIONS[@]}")
-            </list>
-        </vbox>
-    </hbox>
-    <hbox>
-        <vbox>
-            <text>
-                <label>Set recording time (integer or decimal) in minutes</label>
-            </text>
-            <entry activates_default=\"true\" tooltip-text=\"Suggested:23 33 63 93. Leave blank for indefinite recording time\">
-                <default>\"${DURATION}\"</default>
-                <variable>DURATION</variable>
-            </entry>
-        </vbox>
-        <vbox>
-            <text>
-                <label>Enter the name of the person digitizing this tape.</label>
-            </text>
-            <entry>
-                <variable>TECHNICIAN</variable>
-            </entry>
-        </vbox>
-        <vbox>
-            <checkbox>
-                <label>Invert Second Channel of Audio (WARNING: Do not use this option unless required)</label>
-                <default>false</default>
-                <variable>INVERT_PHASE</variable>
-            </checkbox>
-        </vbox>
-    </hbox>
-    <hbox>
-        <text>
-            <label>Select a recording directory</label>
-        </text>
-        <entry accept=\"directory\">
-            <variable>DIR</variable>
-            <default>\"${DIR}\"</default>
-        </entry>
-        <button>
-            <input file stock=\"gtk-open\"></input>
-            <variable>DIRBROWSE</variable>
-            <action type=\"fileselect\">DIR</action>
-        </button>
-    </hbox>
-    <hbox>
-        <text>
-            <label>Select a directory for auxiliary files (leave blank to match the recording directory).</label>
-        </text>
-        <entry accept=\"directory\" tooltip-text=\"select the directory for automatically generated logs and checksums\">
-            <variable>LOGDIR</variable>
-            <default>\"${LOGDIR}\"</default>
-        </entry>
-        <button>
-            <input file stock=\"gtk-open\"></input>
-            <variable>LOGDIRBROWSE</variable>
-            <action type=\"fileselect\">LOGDIR</action>
-        </button>
-    </hbox>
-    <vbox>
-        <hbox>
-            <button ok>
-                <variable>OKBUTTON</variable>
-            </button>
-            <button cancel>
+                <input file stock=\"gtk-open\"></input>
+                <variable>DIRBROWSE</variable>
+                <action type=\"fileselect\">DIR</action>
             </button>
         </hbox>
+        <hbox>
+            <text>
+                <label>Select a directory for auxiliary files (leave blank to match the recording directory).</label>
+            </text>
+            <entry accept=\"directory\" tooltip-text=\"select the directory for automatically generated logs and checksums\">
+                <variable>LOGDIR</variable>
+                <default>\"${LOGDIR}\"</default>
+            </entry>
+            <button>
+                <input file stock=\"gtk-open\"></input>
+                <variable>LOGDIRBROWSE</variable>
+                <action type=\"fileselect\">LOGDIR</action>
+            </button>
+        </hbox>
+        <vbox>
+            <hbox>
+                <button ok>
+                    <variable>OKBUTTON</variable>
+                </button>
+                <button cancel>
+                </button>
+            </hbox>
+        </vbox>
     </vbox>
-</vbox>
 </window>"
 
     eval $(gtkdialog --center --program MAIN_DIALOG)
@@ -555,7 +582,10 @@ _edit_mode(){
         echo "  PLAYBACKVIEW_CHOICE_PASS = ${PLAYBACKVIEW_CHOICE_PASS}"
         echo "  DURATION = ${DURATION}"
         echo "  TECHNICIAN = ${TECHNICIAN}"
-        if [[ "${INVERT_PHASE}" = 1 ]] ; then
+        echo "  PREFIX = ${PREFIX}"
+        echo "  USER_SUFFIX = ${USER_SUFFIX}"
+        echo "  NO_SUFFIX = ${NO_SUFFIX}"
+        if [[ "${INVERT_PHASE}" = 'true' ]] ; then
             echo -e " \033[101mWARNING: Option to invert phase of second audio channel has been selected\033[0m"
         fi
         if [ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" -a "${CONTAINER_CHOICE}" = "MXF" ] ; then
@@ -574,7 +604,7 @@ _edit_mode(){
             echo "# Set these variables to a valid option or leave as empty quotes (like \"\") to request each run."
             for COMMENT_LINE in VIDEO_INPUT_CHOICE AUDIO_INPUT_CHOICE CONTAINER_CHOICE VIDEO_CODEC_CHOICE FFV1_SLICE_CHOICE AUDIO_CODEC_CHOICE\
             VIDEO_BIT_DEPTH_CHOICE AUDIO_MAPPING_CHOICE TIMECODE_CHOICE STANDARD_CHOICE QCTOOLSXML_CHOICE FRAMEMD5_CHOICE \
-            EMBED_LOGS_CHOICE PLAYBACKVIEW_CHOICE PLAYBACKVIEW_CHOICE_PASS DIR LOGDIR INVERT_PHASE DURATION TECHNICIAN ; do
+            EMBED_LOGS_CHOICE PLAYBACKVIEW_CHOICE PLAYBACKVIEW_CHOICE_PASS DIR LOGDIR INVERT_PHASE DURATION PREFIX USER_SUFFIX NO_SUFFIX TECHNICIAN ; do
                 echo "${COMMENT_LINE}=\"${!COMMENT_LINE}\""
             done
         } > "${CONFIG_FILE}"
@@ -665,7 +695,7 @@ _writeingestlog(){
 _qcgraphimage(){
     # get audio data
     qctools_CONFIGFILE_A="$(/usr/bin/mktemp /tmp/astats_A_XXXXXXXXX).csv"
-    gzcat "$1" | perl -nle 'print if not m{lavfi.(?!astats.Overall.Min_level|astats.Overall.Max_level|astats.Overall.Peak_level|aphasemeter.phase)}' | xml select -t -m "//ffprobe:ffprobe/frames/frame[@media_type='audio']" \
+    gzcat "$1" | perl -nle 'print if not m{lavfi.(?!astats.Overall.Min_level|astats.Overall.Max_level|astats.Overall.Peak_level|aphasemeter.phase)}' | xmlstarlet select -t -m "//ffprobe:ffprobe/frames/frame[@media_type='audio']" \
        -v "@pkt_pts_time" -o " " \
        -v "tag[@key='lavfi.astats.Overall.Max_level']/@value" -o " " \
        -v "tag[@key='lavfi.astats.Overall.Min_level']/@value" -o " " \
@@ -673,7 +703,7 @@ _qcgraphimage(){
        -v "tag[@key='lavfi.aphasemeter.phase']/@value" -n > "${qctools_CONFIGFILE_A}"
     # get video data
     qctools_CONFIGFILE_V="$(/usr/bin/mktemp /tmp/signalstats_V_XXXXXXXXX).csv"
-    gzcat "$1" | perl -nle 'print if not m{lavfi.(?!signalstats.BRNG|signalstats.TOUT|signalstats.SATMAX|signalstats.SATAVG|ssim.Y|ssim.U|ssim.V)}' | xml select -t -m "//ffprobe:ffprobe/frames/frame[@media_type='video']" \
+    gzcat "$1" | perl -nle 'print if not m{lavfi.(?!signalstats.BRNG|signalstats.TOUT|signalstats.SATMAX|signalstats.SATAVG|ssim.Y|ssim.U|ssim.V)}' | xmlstarlet select -t -m "//ffprobe:ffprobe/frames/frame[@media_type='video']" \
        -v "@pkt_pts_time" -o " " \
        -v "tag[@key='lavfi.signalstats.TOUT']/@value" -o " " \
        -v "tag[@key='lavfi.signalstats.BRNG']/@value" -o " " \
@@ -684,7 +714,7 @@ _qcgraphimage(){
        -v "tag[@key='lavfi.ssim.V']/@value" -n > "${qctools_CONFIGFILE_V}"
 
     # determine SATURATION scale
-    VBitdepth="$(gzcat "$1" | perl -nle 'print if not m{<frame|</frame|<tag}' | xml sel -t -v "//stream[@codec_type='video']/@pix_fmt" -n
+    VBitdepth="$(gzcat "$1" | perl -nle 'print if not m{<frame|</frame|<tag}' | xmlstarlet sel -t -v "//stream[@codec_type='video']/@pix_fmt" -n
     )"
     if [[ "${VBitdepth}" = "uyvy422" ]] || [[ "${VBitdepth}" = "yuv422p" ]] ; then
             SATpalette="(0'#a0a0a0',20'#bebebe',44.35'#c8c800',80'#a0ff20',88.7'#00ff00',103.45'#006400',108.2'#00ff00',113.2'#a0ff20',118.2'#ffa500',124'#ff0000')"
@@ -697,7 +727,7 @@ _qcgraphimage(){
     fi
 
     echo "set terminal jpeg size 1920, 1080
-    set output '${LOGDIR}/${ID}_QC_output_graphs.jpeg'
+    set output '${LOGDIR}/${FULL_OUTPUT_ID}_QC_output_graphs.jpeg'
     set term jpeg font 'times,12'
     set multiplot layout 7, 1 title '${ID} QC Data Graphs (ver.2)' margins screen .05,.93, .05, .93 spacing screen 0, char .7
     set style line 11 lc rgb '#808080' lt 1
@@ -1130,7 +1160,7 @@ while [[ "${RUNTYPE}" = "edit" ]] ; do
     _edit_mode
 done
 
-if [[ "${INVERT_PHASE}" = 1 ]] ; then
+if [[ "${INVERT_PHASE}" = 'true' ]] ; then
     PHASE_VALUE="-1*"
 fi
 
@@ -1298,8 +1328,18 @@ if [[ "${VIDEO_CODEC_CHOICE}" = "FFV1" ]] ; then
 fi
 _review_option "AUDIO_CODEC_CHOICE" "Which audio codec?" "${AUDIO_CODEC_OPTIONS[@]}"
 
+# Check for user suffix to override automatic settings
 
-VRECORD_OUTPUT="${DIR}/${ID}${SUFFIX}.${EXTENSION}"
+if [[ -n "${USER_SUFFIX}" ]] ; then
+    SUFFIX="${USER_SUFFIX}"
+elif [[ "${NO_SUFFIX}" = 'true' ]] ; then
+    SUFFIX=''
+fi
+
+FULL_OUTPUT_ID="${PREFIX}${ID}${SUFFIX}"
+FULL_CAPTURE_LOG="${LOGDIR}/${FULL_OUTPUT_ID}${CAPTURELOGSUFFIX}"
+
+VRECORD_OUTPUT="${DIR}/${FULL_OUTPUT_ID}.${EXTENSION}"
 if [[ -f "${VRECORD_OUTPUT}" ]] ; then
     _report -w "A file called ${VRECORD_OUTPUT} already exists."
     _report -w "Exiting to avoid overwriting that file."
@@ -1314,7 +1354,7 @@ if [[ "${OPTION}" != "No" && ! "$(command -v qcli)" ]] ; then
 fi
 _review_option "FRAMEMD5_CHOICE" "Create frame-level MD5 checksums?" "${FRAMEMD5_OPTIONS[@]}"
 if [[ "${OPTION}" = "Yes" ]] ; then
-    FRAMEMD5NAME="${LOGDIR}/${ID}${SUFFIX}.framemd5"
+    FRAMEMD5NAME="${LOGDIR}/${FULL_OUTPUT_ID}.framemd5"
     EXTRAOUTPUTS=(-an -f framemd5 "${FRAMEMD5NAME}")
 fi
 if [[ "${FORMAT}" = "matroska" ]] ; then
@@ -1333,15 +1373,15 @@ if [[ -z "${TECHNICIAN}" ]] ; then
 fi
 
 _report -d "Summary: ${VIDEOCODECNAME}/${FORMAT} ${PIXEL_FORMAT} file from ${STANDARD} ${VIDEO_INPUT} ${AUDIO_INPUT}. Frame MD5s=${FRAMEMD5_CHOICE}, QCTools XML=${QCTOOLSXML_CHOICE}, and Technician=${TECHNICIAN}. Inputs recorded to ${VRECORD_OUTPUT} and Auxiliary Files created in ${LOGDIR}"
-if [[ "${INVERT_PHASE}" = 1 ]] ; then
+if [[ "${INVERT_PHASE}" = 'true' ]] ; then
     echo -e " \033[101mWARNING: Option to invert phase of second audio channel has been selected\033[0m"
 fi
 _report -q "Hit enter to start recording"
 read
 
 # create log of vrecord decisions
-INGESTLOG="${LOGDIR}/${ID}_capture_options.log"
-QCXML="${LOGDIR}/${ID}${SUFFIX}.${EXTENSION}.qctools.xml.gz"
+INGESTLOG="${LOGDIR}/${FULL_OUTPUT_ID}_capture_options.log"
+QCXML="${LOGDIR}/${FULL_OUTPUT_ID}.${EXTENSION}.qctools.xml.gz"
 touch "${INGESTLOG}"
 _writeingestlog "computer_name" "$(uname -n)"
 _writeingestlog "computer_model_name" "$(_parse_report "Model Name" "${HARDWARE_REPORT}")"
@@ -1407,7 +1447,7 @@ _set_ffplay_options
 if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
     _check_mpv
     "${RECORD_COMMAND[@]}" \
-        2> >(tee "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}" /tmp/vrecord_input.log 1>&2) \
+        2> >(tee ${FULL_CAPTURE_LOG} /tmp/vrecord_input.log 1>&2) \
         | \
         if [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]] ; then
             tee >(mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -) | \
@@ -1417,7 +1457,7 @@ if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
         fi
 else
     "${RECORD_COMMAND[@]}" \
-        2> >(tee "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}" /tmp/vrecord_input.log 1>&2) \
+        2> >(tee ${FULL_CAPTURE_LOG} /tmp/vrecord_input.log 1>&2) \
         | \
         if [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]] ; then
             tee >("${FFPLAY_DECKLINK}" "${FFPLAY_OPTIONS[@]}") | \
@@ -1451,7 +1491,7 @@ if [[ ! -s "${VRECORD_OUTPUT}" ]] ; then
 fi
 
 if [[ -f "${TC_TMP}" ]] ; then
-    mv "${TC_TMP}" "${LOGDIR}/${ID}_${TC_TYPE}${TIMECODELOGSUFFIX}"
+    mv "${TC_TMP}" "${LOGDIR}/${FULL_OUTPUT_ID}_${TC_TYPE}${TIMECODELOGSUFFIX}"
 fi
 
 _writeingestlog "datetime_end" "$(_get_iso8601)"
@@ -1465,12 +1505,12 @@ if [[ "${QCTOOLSXML_CHOICE}" != "No" ]] ; then
     _report -d "Vrecord is analyzing your video file. Please be patient."
     if [[ -s "${QCXML}" ]] ; then
         if [[ "${PIXEL_FORMAT}" = "yuv422p10" ]] ; then
-            SAT_OUTLIERS=$(gzcat "${QCXML}" | perl -nle 'print if not m{lavfi.(?!signalstats.SATMAX)}' | xml sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>496])" -n)
+            SAT_OUTLIERS=$(gzcat "${QCXML}" | perl -nle 'print if not m{lavfi.(?!signalstats.SATMAX)}' | xmlstarlet sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>496])" -n)
         elif [[ "${PIXEL_FORMAT}" = "uyvy422" ]] ; then
-            SAT_OUTLIERS=$(gzcat "${QCXML}" | perl -nle 'print if not m{lavfi.(?!signalstats.SATMAX)}' | xml sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>124])" -n)
+            SAT_OUTLIERS=$(gzcat "${QCXML}" | perl -nle 'print if not m{lavfi.(?!signalstats.SATMAX)}' | xmlstarlet sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>124])" -n)
         fi
-        AUD_OUTLIERS=$(gzcat "${QCXML}" | perl -nle 'print if not m{lavfi.(?!astats.Overall.Peak_level)}' | grep -v "tag key=\"lavfi.[^a]" | xml sel -t -v "count(//tag[@key='lavfi.astats.Overall.Peak_level'][@value>=-0.01])" -n)
-        BRNG_OUTLIERS=$(gzcat "${QCXML}" | perl -nle 'print if not m{lavfi.(?!signalstats.BRNG)}' | xml sel -t -v "count(//tag[@key='lavfi.signalstats.BRNG'][@value>=0.03])" -n)
+        AUD_OUTLIERS=$(gzcat "${QCXML}" | perl -nle 'print if not m{lavfi.(?!astats.Overall.Peak_level)}' | grep -v "tag key=\"lavfi.[^a]" | xmlstarlet sel -t -v "count(//tag[@key='lavfi.astats.Overall.Peak_level'][@value>=-0.01])" -n)
+        BRNG_OUTLIERS=$(gzcat "${QCXML}" | perl -nle 'print if not m{lavfi.(?!signalstats.BRNG)}' | xmlstarlet sel -t -v "count(//tag[@key='lavfi.signalstats.BRNG'][@value>=0.03])" -n)
         AUDIO_PEAK=$(gzcat "${QCXML}" | grep lavfi.astats.Overall.Peak_level | cut -d '"' -f 4 | sort -n | tail -n 1)
         _writeingestlog "Peak Volume is (dB)" "${AUDIO_PEAK}"
         if [[ $(which gnuplot) ]] ; then
@@ -1514,8 +1554,8 @@ elif [[ "${FRAMEMD5_CHOICE}" = "No" ]] ; then
 fi
 
 # check for frames dropped in decklink_input.log
-DROPPED_FRAMES_INSTANCES=$(grep -c "Frames dropped" "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}")
-DROPPED_FRAMES_FRAMENUMBERS=$(grep "Frames dropped" "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}" | awk '{print $6}' | sed 's/[(#)]//g')
+DROPPED_FRAMES_INSTANCES=$(grep -c "Frames dropped" ${FULL_CAPTURE_LOG})
+DROPPED_FRAMES_FRAMENUMBERS=$(grep "Frames dropped" ${FULL_CAPTURE_LOG} | awk '{print $6}' | sed 's/[(#)]//g')
 if [[ "${DROPPED_FRAMES_INSTANCES}" -gt 0 ]] ; then
     cowsay "$(_report -w "WARNING: FFmpeg Decklink input reported dropped frames in the following ${DROPPED_FRAMES_INSTANCES} locations. This error may indicate an interrupted signal between hardware components. The file may be missing content.")"
     for i in ${DROPPED_FRAMES_FRAMENUMBERS} ; do # do not quote this variable
@@ -1526,7 +1566,7 @@ if [[ "${DROPPED_FRAMES_INSTANCES}" -gt 0 ]] ; then
 fi
 
 # check for input buffer overrun error
-BUFFER_OVERRUN=$(grep -c "Decklink input buffer overrun" "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}")
+BUFFER_OVERRUN=$(grep -c "Decklink input buffer overrun" ${FULL_CAPTURE_LOG})
 if [[ "${BUFFER_OVERRUN}" -gt 0 ]] ; then
     cowsay "$(_report -w "WARNING: FFmpeg Decklink input reported a buffer overrun. The file is likely missing frames or contains artifacts from the buffer overrun.")"
     _writeingestlog "Decklink input buffer overrun" "Yes"
@@ -1540,7 +1580,7 @@ if [[ "${VIDEO_CODEC_CHOICE}" = "Uncompressed Video" ]] ; then
         _report -dt "File passed policy check for uncompressed video."
     elif [[ "$STATUS" = "fail" ]] ; then
         _report -wt "File did not pass vrecord policy check for uncompressed video and may not conform to digital preservation standards. Try another file?"
-        mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_uncompressed.xml" "${VRECORD_OUTPUT}" | xmlstarlet fo > "${DIR}/${ID}${SUFFIX}_mediaconchreport.xml"
+        mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_uncompressed.xml" "${VRECORD_OUTPUT}" | xmlstarlet fo > "${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml"
         _report -wt "See ${DIR}/${ID}${SUFFIX}_mediaconchreport.xml for a full MediaConch policy report."
     else
         mediaconch -p "${RESOURCE_PATH}/vrecord_policy_uncompressed.xml" "${VRECORD_OUTPUT}"
@@ -1552,7 +1592,7 @@ elif [[ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" ]] ; then
         _report -dt "File passed policy check for FFV1 video."
     elif [[ "$STATUS" = "fail" ]] ; then
         _report -wt "File did not pass vrecord policy check for FFV1 video and may not conform to digital preservation standards. Try another file?"
-        mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_ffv1.xml" "${VRECORD_OUTPUT}" | xmlstarlet fo > "${DIR}/${ID}${SUFFIX}_mediaconchreport.xml"
+        mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_ffv1.xml" "${VRECORD_OUTPUT}" | xmlstarlet fo > "${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml"
         _report -wt "See ${DIR}/${ID}${SUFFIX}_mediaconchreport.xml for a full MediaConch policy report."
     else
         mediaconch -p "${RESOURCE_PATH}/vrecord_policy_ffv1.xml" "${VRECORD_OUTPUT}"
@@ -1563,7 +1603,7 @@ fi
 if [[ "${CONTAINER_CHOICE}" = "Matroska" ]] && [[ "${EMBED_LOGS_CHOICE}" = "Yes" ]] ; then
     _report -d "Vrecord is attaching logs to your Matroska file:"
     mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "Capture options selected by user during vrecord process" --add-attachment "${INGESTLOG}"
-    mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "Full FFmpeg output from vrecord capture process" --add-attachment "${LOGDIR}/${ID}${CAPTURELOGSUFFIX}"
+    mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "Full FFmpeg output from vrecord capture process" --add-attachment ${FULL_CAPTURE_LOG}
     if [[ "${QCTOOLSXML_CHOICE}" = "Yes" ]] ; then
         mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "QCTools report from vrecord capture process (zipped XML)" --add-attachment "${QCXML}"
     fi
