@@ -234,6 +234,13 @@ _gtk_vbox_list() {
                 <action>echo TIMECODE_SCAN=1</action>
                 <action type=\"exit\">TIMECODE_SCAN</action>
             </button>"
+        elif [[ "${VARIABLE_NAME}" == "AUDIO_INPUT_CHOICE" ]] ; then
+            echo "
+            <button>
+                <label>Scan supported a/v inputs</label>
+                <action>echo INPUT_SCAN=1</action>
+                <action type=\"exit\">INPUT_SCAN</action>
+            </button>"
         fi
     }
 
@@ -580,6 +587,9 @@ _edit_mode(){
         _home_gui
     elif [[ "${TIMECODE_SCAN}" = 1 ]] ; then
         _report -dt "Scanning each supported type of timecode."
+        RUNTYPE="passthrough"
+    elif [[ "${INPUT_SCAN}" = 1 ]] ; then
+        _report -dt "Scanning each supported type of a/v input."
         RUNTYPE="passthrough"
     else
         RUNTYPE="record"
@@ -1095,7 +1105,9 @@ drawgrid=w=256:h=256:t=1:c=white@0.2"
 
 # list of selections for each vrecord option
 VIDEO_INPUT_OPTIONS=("Composite" "SDI" "Component" "S-Video")
+VIDEO_INPUT_OPTIONS_FF=("composite" "sdi" "component" "s_video")
 AUDIO_INPUT_OPTIONS=("Analog" "Analog (RCA -10 dBV)" "Analog (XLR +4 dBu)" "SDI Embedded Audio" "Digital Audio (AES/EBU)")
+AUDIO_INPUT_OPTIONS_FF=("analog" "analog_rca" "analog_xlr" "embedded" "aes_ebu")
 CONTAINER_OPTIONS=("QuickTime" "Matroska" "AVI" "MXF")
 VIDEO_CODEC_OPTIONS=("Uncompressed Video" "FFV1 version 3" "JPEG2000" "ProRes" )
 FFV1_SLICE_OPTIONS=("4" "6" "9" "12" "16" "24" "30")
@@ -1239,6 +1251,36 @@ if [[ "${TIMECODE_SCAN}" = 1 ]] ; then
             tc_value="none"
         fi
         echo "${timecode_type}: ${tc_value}"
+    done
+    _edit_prefs
+fi
+if [[ "${INPUT_SCAN}" = 1 ]] ; then
+    _report "This scan will test the following inputs with ${FIRST_DECKLINK_INPUT} to see if they are supported by that hardware."
+    _report -d "Testing video inputs:"
+    GRAB_DECKLINK_NO_VIDEO=("${GRAB_INPUT[@]}") 
+    REMOVE_VIDEO_ARG="$(_get_index_of_value "-video_input" "${GRAB_DECKLINK_NO_VIDEO[@]}")"
+    REMOVE_VIDEO_VAL="$(echo "${REMOVE_VIDEO_ARG}" + 1 | bc)"
+    unset GRAB_DECKLINK_NO_VIDEO[${REMOVE_VIDEO_ARG}]
+    unset GRAB_DECKLINK_NO_VIDEO[${REMOVE_VIDEO_VAL}]
+    for video_input_test in "${VIDEO_INPUT_OPTIONS_FF[@]}" ; do
+        result="$("${FFPROBE_DECKLINK}" -video_input "${video_input_test}" "${GRAB_DECKLINK_NO_VIDEO[@]}" -show_entries error=string -of default=nw=1:nk=1 2>/dev/null)"
+        if [[ -z "${result}" ]] ; then
+            result="ok"
+        fi
+        echo "   ${video_input_test}: ${result}"
+    done
+    _report -d "Testing audio inputs:"
+    GRAB_DECKLINK_NO_AUDIO=("${GRAB_INPUT[@]}") 
+    REMOVE_AUDIO_ARG="$(_get_index_of_value "-audio_input" "${GRAB_DECKLINK_NO_AUDIO[@]}")"
+    REMOVE_AUDIO_VAL="$(echo "${REMOVE_AUDIO_ARG}" + 1 | bc)"
+    unset GRAB_DECKLINK_NO_AUDIO[${REMOVE_AUDIO_ARG}]
+    unset GRAB_DECKLINK_NO_AUDIO[${REMOVE_AUDIO_VAL}]
+    for audio_input_test in "${AUDIO_INPUT_OPTIONS_FF[@]}" ; do
+        result="$("${FFPROBE_DECKLINK}" -audio_input "${audio_input_test}" "${GRAB_DECKLINK_NO_AUDIO[@]}" -show_entries error=string -of default=nw=1:nk=1 2>/dev/null)"
+        if [[ -z "${result}" ]] ; then
+            result="ok"
+        fi
+        echo "   ${audio_input_test}: ${result}"
     done
     _edit_prefs
 fi

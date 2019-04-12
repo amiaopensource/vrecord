@@ -16,9 +16,9 @@ All of the options in the vrecord GUI (which appears when running `vrecord -e`),
 
 **Select a recording directory** — Choose the location (on an internal or external hard drive) where you want your resulting video files and logs to be saved.
 
-**Select video input** — Choose how the video signal will be entering the capture device. You can receive the video signal through Composite, SDI, Component, or S-Video cables.
+**Select video input** — Choose how the video signal will be entering the capture device. You can receive the video signal through Composite, SDI, Component, or S-Video cables. The "Scan supported a/v inputs" button will test your capture hardware against each input type, to see what is and is not supported.
 
-**Select audio input** — Choose how the audio signal will be entering the capture device. You can receive the audio signal through Analog (such as XLR), SDI, or other digital audio cables.  
+**Select audio input** — Choose how the audio signal will be entering the capture device. You can receive the audio signal through Analog (such as XLR), SDI, or other digital audio cables. The "Scan supported a/v inputs" button will test your capture hardware against each input type, to see what is and is not supported.
 
 **Select file format** — Choose the file format that you want the video to be saved in. This is also often called the container.
 
