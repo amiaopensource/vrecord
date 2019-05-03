@@ -1603,7 +1603,7 @@ fi
 if [[ "${CONTAINER_CHOICE}" = "Matroska" ]] && [[ "${EMBED_LOGS_CHOICE}" = "Yes" ]] ; then
     _report -d "Vrecord is attaching logs to your Matroska file:"
     mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "Capture options selected by user during vrecord process" --add-attachment "${INGESTLOG}"
-    mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "Full FFmpeg output from vrecord capture process" --add-attachment ${FULL_CAPTURE_LOG}
+    mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "Full FFmpeg output from vrecord capture process" --add-attachment "${FULL_CAPTURE_LOG}"
     if [[ "${QCTOOLSXML_CHOICE}" = "Yes" ]] ; then
         mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "QCTools report from vrecord capture process (zipped XML)" --add-attachment "${QCXML}"
     fi
