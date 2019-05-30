@@ -646,16 +646,14 @@ _passthrough_mode(){
 
 _audiopassthrough_mode(){
     PLAYBACKFILTER="\
-[aid1]asplit=2[z][ao],\
-[z]channelsplit=channel_layout=quad[s1][s2][s3][s4];[s1][s2][s3][s4]amerge=inputs=4,aformat=channel_layouts=quad[zz],\
-[zz]showvolume=t=0:h=17:w=200[xx],\
-[vid1]split=5[a][b][c][d][e],\
-[b]field=top,${WAVEFORM_FILTER}[b1],\
-[c]field=bottom,${WAVEFORM_FILTER}[c1],\
-[d]${VECTORSCOPE_FILTER}[d1],\
-[e]scale=512:ih,signalstats=out=brng[e1],\
-[a][b1][c1][e1][d1]xstack=inputs=5:layout=0_0|0_h0|0_h0+h1|w0_0|w0_h0[abcde1],\
-[abcde1][xx]overlay=10:10[vo]"
+[aid1]asplit=6[a][b][c][d][e][ao],\
+[a]showvolume=t=0:h=17:w=200[a1],\
+[b]pan=stereo|c0=c0|c1=c1,avectorscope[b1],\
+[c]pan=stereo|c0=c2|c1=c3,avectorscope[c1],\
+[d]showspectrum=s=535x672:color=rainbow:legend=1[d1],\
+[e]showwaves=split_channels=1:s=500x500:mode=cline[e1],\
+[vid1][b1][c1][e1][d1]xstack=inputs=5:layout=0_0|0_h0|0_h0+h1|w0_0|w1_h0[abcde1],\
+[abcde1][a1]overlay=10:10[vo]"
     echo "ESC quit" > ~/.config/mpv/input.conf
     _check_mpv
     "${FFMPEG_DECKLINK}" -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_DECKLINK[@]}" "${PIPE_DECKLINK[@]}" 2> /tmp/vrecord_input.log | \
