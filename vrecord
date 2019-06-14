@@ -1447,7 +1447,7 @@ _set_ffplay_options
 if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
     _check_mpv
     "${RECORD_COMMAND[@]}" \
-        2> >(tee ${FULL_CAPTURE_LOG} /tmp/vrecord_input.log 1>&2) \
+        2> >(tee "${FULL_CAPTURE_LOG}" /tmp/vrecord_input.log 1>&2) \
         | \
         if [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]] ; then
             tee >(mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -) | \
@@ -1457,7 +1457,7 @@ if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
         fi
 else
     "${RECORD_COMMAND[@]}" \
-        2> >(tee ${FULL_CAPTURE_LOG} /tmp/vrecord_input.log 1>&2) \
+        2> >(tee "${FULL_CAPTURE_LOG}" /tmp/vrecord_input.log 1>&2) \
         | \
         if [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]] ; then
             tee >("${FFPLAY_DECKLINK}" "${FFPLAY_OPTIONS[@]}") | \
@@ -1554,8 +1554,8 @@ elif [[ "${FRAMEMD5_CHOICE}" = "No" ]] ; then
 fi
 
 # check for frames dropped in decklink_input.log
-DROPPED_FRAMES_INSTANCES=$(grep -c "Frames dropped" ${FULL_CAPTURE_LOG})
-DROPPED_FRAMES_FRAMENUMBERS=$(grep "Frames dropped" ${FULL_CAPTURE_LOG} | awk '{print $6}' | sed 's/[(#)]//g')
+DROPPED_FRAMES_INSTANCES=$(grep -c "Frames dropped" "${FULL_CAPTURE_LOG}")
+DROPPED_FRAMES_FRAMENUMBERS=$(grep "Frames dropped" "${FULL_CAPTURE_LOG}" | awk '{print $6}' | sed 's/[(#)]//g')
 if [[ "${DROPPED_FRAMES_INSTANCES}" -gt 0 ]] ; then
     cowsay "$(_report -w "WARNING: FFmpeg Decklink input reported dropped frames in the following ${DROPPED_FRAMES_INSTANCES} locations. This error may indicate an interrupted signal between hardware components. The file may be missing content.")"
     for i in ${DROPPED_FRAMES_FRAMENUMBERS} ; do # do not quote this variable
@@ -1566,7 +1566,7 @@ if [[ "${DROPPED_FRAMES_INSTANCES}" -gt 0 ]] ; then
 fi
 
 # check for input buffer overrun error
-BUFFER_OVERRUN=$(grep -c "Decklink input buffer overrun" ${FULL_CAPTURE_LOG})
+BUFFER_OVERRUN=$(grep -c "Decklink input buffer overrun" "${FULL_CAPTURE_LOG}")
 if [[ "${BUFFER_OVERRUN}" -gt 0 ]] ; then
     cowsay "$(_report -w "WARNING: FFmpeg Decklink input reported a buffer overrun. The file is likely missing frames or contains artifacts from the buffer overrun.")"
     _writeingestlog "Decklink input buffer overrun" "Yes"
