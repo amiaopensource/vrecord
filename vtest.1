@@ -1,35 +1,35 @@
-.TH vtest 1 "https://github.com/amiaopensource/vrecord" "2018\-06\-07" "AMIA Open Source"
+.TH vtest 1 "https://github.com/amiaopensource/vrecord" "2019-05-03" "AMIA Open Source"
 .\" Turn off justification for nroff.
 .if n .ad l
 .\" Turn off hyphenation.
 .nh
 .SH NAME
-\fBvtest\fR \- Test streams from computer out to monitor through Blackmagic card
+\fBvtest\fR - Test streams from computer out to monitor through Blackmagic card
 .SH SYNOPSIS
-\fBvtest\fR [\fB\-n\fR | \fB\-p\fR | \fB\-a\fR | \fB\-l\fR | \fB\-e\fR | \fB\-f \fIoptionaltestfile\fR | \fB\-h\fR]
+\fBvtest\fR [\fB-n\fR | \fB-p\fR | \fB-a\fR | \fB-l\fR | \fB-e\fR | \fB-f \fIoptionaltestfile\fR | \fB-h\fR]
 .SH DESCRIPTION
 \fBvtest\fR will pipe test files and output from the computer out to your monitor, via a BlackMagic capture card. It is useful for testing equipment without having to play a test tape.
 .SH OPTIONS
-.TP
-.BR \-n
+.TP 4
+.B -n
 pipe NTSC SMPTE bars + sine wave tone through output device
 .TP
-.BR \-p
+.B -p
 pipe PAL SMPTE bars + sine wave tone through output device
 .TP
-.BR \-a
+.B -a
 pipe audio test for left and right channels through output device
 .TP
-.BR \-l
-pipe a local combination of video and audio test sources through output device (chooses the most recent combination stored in \fBvtest \-e\fR)
+.B -l
+pipe a local combination of video and audio test sources through output device (chooses the most recent combination stored in \fBvtest -e\fR)
 .TP
-.BR \-e
+.B -e
 edit the local combination of video and audio sources
 .TP
-.BR \-f
+.B -f
 play \fIoptionaltestfile\fR through output device (must be in format compatible with your BlackMagic device)
 .TP
-.BR \-h
+.B -h
 display basic usage information
 .SH LICENSE
 \fBvtest\fR is licensed under a Creative Commons Attribution 4.0 International License.
