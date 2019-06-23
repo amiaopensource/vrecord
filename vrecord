@@ -140,12 +140,14 @@ if [[ "${QUERY_OS_TYPE}" = "Darwin" ]] ; then
     HARDWARE_REPORT=$(system_profiler SPHardwareDataType)
     CORE_COUNT="$(_parse_report "Total Number of Cores" "${HARDWARE_REPORT}")"
     OPEN_COMMAND="open"
+    ZCAT_COMMAND="gzcat"
 elif [[ "${QUERY_OS_TYPE}" = "Linux" ]] ; then
     OS_TYPE="linux"
     DEFAULTFONT="/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf"
     HARDWARE_REPORT=$(lscpu)
     CORE_COUNT="$(nproc --all)"
     OPEN_COMMAND="xdg-open"
+    ZCAT_COMMAND="zcat"
 else
     echo "Unsupported OS, ${QUERY_OS_TYPE}, detected. Exiting."
     exit 1
@@ -695,7 +697,7 @@ _writeingestlog(){
 _qcgraphimage(){
     # get audio data
     qctools_CONFIGFILE_A="$(/usr/bin/mktemp /tmp/astats_A_XXXXXXXXX).csv"
-    gzcat "$1" | perl -nle 'print if not m{lavfi.(?!astats.Overall.Min_level|astats.Overall.Max_level|astats.Overall.Peak_level|aphasemeter.phase)}' | xmlstarlet select -t -m "//ffprobe:ffprobe/frames/frame[@media_type='audio']" \
+    "${ZCAT_COMMAND}" "$1" | perl -nle 'print if not m{lavfi.(?!astats.Overall.Min_level|astats.Overall.Max_level|astats.Overall.Peak_level|aphasemeter.phase)}' | xmlstarlet select -t -m "//ffprobe:ffprobe/frames/frame[@media_type='audio']" \
        -v "@pkt_pts_time" -o " " \
        -v "tag[@key='lavfi.astats.Overall.Max_level']/@value" -o " " \
        -v "tag[@key='lavfi.astats.Overall.Min_level']/@value" -o " " \
@@ -703,7 +705,7 @@ _qcgraphimage(){
        -v "tag[@key='lavfi.aphasemeter.phase']/@value" -n > "${qctools_CONFIGFILE_A}"
     # get video data
     qctools_CONFIGFILE_V="$(/usr/bin/mktemp /tmp/signalstats_V_XXXXXXXXX).csv"
-    gzcat "$1" | perl -nle 'print if not m{lavfi.(?!signalstats.BRNG|signalstats.TOUT|signalstats.SATMAX|signalstats.SATAVG|ssim.Y|ssim.U|ssim.V)}' | xmlstarlet select -t -m "//ffprobe:ffprobe/frames/frame[@media_type='video']" \
+    "${ZCAT_COMMAND}" "$1" | perl -nle 'print if not m{lavfi.(?!signalstats.BRNG|signalstats.TOUT|signalstats.SATMAX|signalstats.SATAVG|ssim.Y|ssim.U|ssim.V)}' | xmlstarlet select -t -m "//ffprobe:ffprobe/frames/frame[@media_type='video']" \
        -v "@pkt_pts_time" -o " " \
        -v "tag[@key='lavfi.signalstats.TOUT']/@value" -o " " \
        -v "tag[@key='lavfi.signalstats.BRNG']/@value" -o " " \
@@ -714,7 +716,7 @@ _qcgraphimage(){
        -v "tag[@key='lavfi.ssim.V']/@value" -n > "${qctools_CONFIGFILE_V}"
 
     # determine SATURATION scale
-    VBitdepth="$(gzcat "$1" | perl -nle 'print if not m{<frame|</frame|<tag}' | xmlstarlet sel -t -v "//stream[@codec_type='video']/@pix_fmt" -n
+    VBitdepth="$("${ZCAT_COMMAND}" "$1" | perl -nle 'print if not m{<frame|</frame|<tag}' | xmlstarlet sel -t -v "//stream[@codec_type='video']/@pix_fmt" -n
     )"
     if [[ "${VBitdepth}" = "uyvy422" ]] || [[ "${VBitdepth}" = "yuv422p" ]] ; then
             SATpalette="(0'#a0a0a0',20'#bebebe',44.35'#c8c800',80'#a0ff20',88.7'#00ff00',103.45'#006400',108.2'#00ff00',113.2'#a0ff20',118.2'#ffa500',124'#ff0000')"
@@ -1505,13 +1507,13 @@ if [[ "${QCTOOLSXML_CHOICE}" != "No" ]] ; then
     _report -d "Vrecord is analyzing your video file. Please be patient."
     if [[ -s "${QCXML}" ]] ; then
         if [[ "${PIXEL_FORMAT}" = "yuv422p10" ]] ; then
-            SAT_OUTLIERS=$(gzcat "${QCXML}" | perl -nle 'print if not m{lavfi.(?!signalstats.SATMAX)}' | xmlstarlet sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>496])" -n)
+            SAT_OUTLIERS=$("${ZCAT_COMMAND}" "${QCXML}" | perl -nle 'print if not m{lavfi.(?!signalstats.SATMAX)}' | xmlstarlet sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>496])" -n)
         elif [[ "${PIXEL_FORMAT}" = "uyvy422" ]] ; then
-            SAT_OUTLIERS=$(gzcat "${QCXML}" | perl -nle 'print if not m{lavfi.(?!signalstats.SATMAX)}' | xmlstarlet sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>124])" -n)
+            SAT_OUTLIERS=$("${ZCAT_COMMAND}" "${QCXML}" | perl -nle 'print if not m{lavfi.(?!signalstats.SATMAX)}' | xmlstarlet sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>124])" -n)
         fi
-        AUD_OUTLIERS=$(gzcat "${QCXML}" | perl -nle 'print if not m{lavfi.(?!astats.Overall.Peak_level)}' | grep -v "tag key=\"lavfi.[^a]" | xmlstarlet sel -t -v "count(//tag[@key='lavfi.astats.Overall.Peak_level'][@value>=-0.01])" -n)
-        BRNG_OUTLIERS=$(gzcat "${QCXML}" | perl -nle 'print if not m{lavfi.(?!signalstats.BRNG)}' | xmlstarlet sel -t -v "count(//tag[@key='lavfi.signalstats.BRNG'][@value>=0.03])" -n)
-        AUDIO_PEAK=$(gzcat "${QCXML}" | grep lavfi.astats.Overall.Peak_level | cut -d '"' -f 4 | sort -n | tail -n 1)
+        AUD_OUTLIERS=$("${ZCAT_COMMAND}" "${QCXML}" | perl -nle 'print if not m{lavfi.(?!astats.Overall.Peak_level)}' | grep -v "tag key=\"lavfi.[^a]" | xmlstarlet sel -t -v "count(//tag[@key='lavfi.astats.Overall.Peak_level'][@value>=-0.01])" -n)
+        BRNG_OUTLIERS=$("${ZCAT_COMMAND}" "${QCXML}" | perl -nle 'print if not m{lavfi.(?!signalstats.BRNG)}' | xmlstarlet sel -t -v "count(//tag[@key='lavfi.signalstats.BRNG'][@value>=0.03])" -n)
+        AUDIO_PEAK=$("${ZCAT_COMMAND}" "${QCXML}" | grep lavfi.astats.Overall.Peak_level | cut -d '"' -f 4 | sort -n | tail -n 1)
         _writeingestlog "Peak Volume is (dB)" "${AUDIO_PEAK}"
         if [[ $(which gnuplot) ]] ; then
             _report -d "Vrecord is generating graphs from the QCTools data. One moment please."
