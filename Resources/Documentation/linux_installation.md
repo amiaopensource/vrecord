@@ -23,6 +23,9 @@ There are many possible ways to install the various dependencies of Vrecord on L
   - `sudo apt-get install xmlstarlet`
   - `sudo apt-get install mkvtoolnix`
   - `sudo apt-get install mediaconch`
+* If `make` and `gcc` are not already installed, install them with
+  - `sudo apt-get install gcc`
+  - `sudo apt-get install make`
 
 ## Install Homebrew for Linux (Linuxbrew)
 * Use the following commands, (sourced from the [Homebrew docs](https://docs.brew.sh/Homebrew-on-Linux)) to install and configure Homebrew on Linux:
@@ -33,6 +36,8 @@ There are many possible ways to install the various dependencies of Vrecord on L
  test -d /home/linuxbrew/.linuxbrew && eval $(/home/linuxbrew/.linuxbrew/bin/brew shellenv)
  test -r ~/.bash_profile && echo "eval \$($(brew --prefix)/bin/brew shellenv)" >> ~/.bashrc
  ~~~
+ * Add the AMIA Open Source tap for Homebrew:
+   - `brew tap amiaopensource/amiaos`
 
 ## Install additional vrecord dependencies via Homebrew
 * `brew install decklinksdk && brew install ffmpegdecklink && brew install gtkdialog`
