@@ -217,6 +217,13 @@ _gtk_vbox_list() {
     SELECTION="$(_get_index_of_value "${!VARIABLE_NAME}" "${OPTION_LIST[@]}")"
     LIST="$(_expand_list2items "${OPTION_LIST[@]}")"
 
+    _get_list_extras(){
+        if [[ "${VARIABLE_NAME}" == "VIDEO_CODEC_CHOICE" ]] ; then
+            echo "<action condition=\"command_is_true( [[ \$VIDEO_CODEC_CHOICE == 'FFV1 version 3' ]] && echo true)\">enable:FFV1_SLICE_CHOICE</action>
+                  <action condition=\"command_is_true( [[ \$VIDEO_CODEC_CHOICE != 'FFV1 version 3' ]] && echo true)\">disable:FFV1_SLICE_CHOICE</action>"
+        fi
+    }
+
     _get_vbox_extras(){
         if [[ "${VARIABLE_NAME}" == "TIMECODE_CHOICE" ]] ; then
             echo "
@@ -235,6 +242,7 @@ _gtk_vbox_list() {
       <list selection-mode=\"1\" selected-row=\"${SELECTION}\">
           <variable>${VARIABLE_NAME}</variable>
           ${LIST}
+          $(_get_list_extras)
       </list>
       $(_get_vbox_extras)
     </vbox>"
