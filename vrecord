@@ -296,7 +296,7 @@ _edit_prefs() {
                 <text>
                     <label>Create frame-level MD5 checksums? (recommended)</label>
                 </text>
-                <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${FRAMEMD5_CHOICE}" "${FRAMEMD5_PPTIONS[@]}")\">
+                <list selection-mode=\"1\" selected-row=\"$(_get_index_of_value "${FRAMEMD5_CHOICE}" "${FRAMEMD5_OPTIONS[@]}")\">
                     <variable>FRAMEMD5_CHOICE</variable>
                     $(_expand_list2items "${FRAMEMD5_OPTIONS[@]}")
                 </list>
