@@ -219,11 +219,11 @@ _gtk_vbox_list() {
 
     _get_list_extras(){
         if [[ "${VARIABLE_NAME}" == "VIDEO_CODEC_CHOICE" ]] ; then
-            echo "<action condition=\"command_is_true( [[ \$VIDEO_CODEC_CHOICE == 'FFV1 version 3' ]] && echo true)\">enable:FFV1_SLICE_CHOICE</action>
-                  <action condition=\"command_is_true( [[ \$VIDEO_CODEC_CHOICE != 'FFV1 version 3' ]] && echo true)\">disable:FFV1_SLICE_CHOICE</action>"
+            echo '<action condition="command_is_true( [ \"$VIDEO_CODEC_CHOICE\" = \"FFV1 version 3\" ] && echo true)">enable:FFV1_SLICE_CHOICE</action>
+                  <action condition="command_is_true( [ \"$VIDEO_CODEC_CHOICE\" != \"FFV1 version 3\" ] && echo true)">disable:FFV1_SLICE_CHOICE</action>'
         elif [[ "${VARIABLE_NAME}" == "CONTAINER_CHOICE" ]] ;then
-            echo "<action condition=\"command_is_true( [[ \$CONTAINER_CHOICE == 'Matroska' ]] && echo true)\">enable:EMBED_LOGS_CHOICE</action>
-                  <action condition=\"command_is_true( [[ \$CONTAINER_CHOICE != 'Matroska' ]] && echo true)\">disable:EMBED_LOGS_CHOICE</action>"
+            echo '<action condition="command_is_true( [ \"$CONTAINER_CHOICE\" = \"Matroska\" ] && echo true)">enable:EMBED_LOGS_CHOICE</action>
+                  <action condition="command_is_true( [ \"$CONTAINER_CHOICE\" != \"Matroska\" ] && echo true)">disable:EMBED_LOGS_CHOICE</action>'
         fi
     }
 
