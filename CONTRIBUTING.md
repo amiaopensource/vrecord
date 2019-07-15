@@ -2,7 +2,7 @@
 
 ## Rules for contributing
 
-This project welcomes contributions and feedback particularly from active [AMIA](http://amianet.org) members, although any contributing and/or interested institutions and individuals are welcome to participate and contribute via issue tracking, various open source communication and social media channels and other sources of public community outreach. Open source feedback and participation of all kinds and from any interested party or institution is encouraged and can be made through opening an issue or pull request on GitHub.
+This project welcomes contributions and feedback. Open source feedback and participation of all kinds and from any interested party or institution is encouraged and can be made through opening an issue or pull request on GitHub.
 
 ## How to contribute
 
