@@ -569,7 +569,7 @@ _edit_mode(){
         echo "  VIDEO_INPUT_CHOICE = ${VIDEO_INPUT_CHOICE}"
         echo "  AUDIO_INPUT_CHOICE = ${AUDIO_INPUT_CHOICE}"
         echo "  VIDEO_CODEC_CHOICE = ${VIDEO_CODEC_CHOICE}"
-        if [[ "${VIDEO_CODEC_CHOICE}" = "FFV1" ]] ; then
+        if [[ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" ]] ; then
             echo "  FFV1_SLICE_CHOICE  = ${FFV1_SLICE_CHOICE}"
         fi
         echo "  AUDIO_CODEC_CHOICE = ${AUDIO_CODEC_CHOICE}"
@@ -1325,7 +1325,7 @@ fi
 
 _review_option "CONTAINER_CHOICE" "Which audiovisual container format?" "${CONTAINER_OPTIONS[@]}"
 _review_option "VIDEO_CODEC_CHOICE" "Which video codec?" "${VIDEO_CODEC_OPTIONS[@]}"
-if [[ "${VIDEO_CODEC_CHOICE}" = "FFV1" ]] ; then
+if [[ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" ]] ; then
     _review_option "FFV1_SLICE_CHOICE" "FFV1 Slice Count?" "${FFV1_SLICE_OPTIONS[@]}"
 fi
 _review_option "AUDIO_CODEC_CHOICE" "Which audio codec?" "${AUDIO_CODEC_OPTIONS[@]}"
