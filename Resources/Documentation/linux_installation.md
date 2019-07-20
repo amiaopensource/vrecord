@@ -30,6 +30,7 @@ There are many possible ways to install the various dependencies of Vrecord on L
 * If `make` and `gcc` are not already installed, install them with
   - `sudo apt-get install gcc`
   - `sudo apt-get install make`
+  
 ## Install Homebrew for Linux (Linuxbrew)
 * Use the following commands, (sourced from the [Homebrew docs](https://docs.brew.sh/Homebrew-on-Linux)) to install and configure Homebrew on Linux:
  - Install linuxbrew with: `sh -c "$(curl -fsSL https://raw.githubusercontent.com/Linuxbrew/install/master/install.sh)"`
