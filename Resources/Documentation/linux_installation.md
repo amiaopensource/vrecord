@@ -23,10 +23,14 @@ There are many possible ways to install the various dependencies of Vrecord on L
   - `sudo apt-get install xmlstarlet`
   - `sudo apt-get install mkvtoolnix`
   - `sudo apt-get install mediaconch`
+* Install the following dependencies for enabling DV capture in vrecord's FFmpeg build:
+  - `sudo apt-get install libiec61883-dev`
+  - `sudo apt-get install libraw1394-dev`
+  - `sudo apt-get install libavc1394-dev`
 * If `make` and `gcc` are not already installed, install them with
   - `sudo apt-get install gcc`
   - `sudo apt-get install make`
-
+  
 ## Install Homebrew for Linux (Linuxbrew)
 * Use the following commands, (sourced from the [Homebrew docs](https://docs.brew.sh/Homebrew-on-Linux)) to install and configure Homebrew on Linux:
  - Install linuxbrew with: `sh -c "$(curl -fsSL https://raw.githubusercontent.com/Linuxbrew/install/master/install.sh)"`
@@ -40,7 +44,7 @@ There are many possible ways to install the various dependencies of Vrecord on L
    - `brew tap amiaopensource/amiaos`
 
 ## Install additional vrecord dependencies via Homebrew
-* `brew install decklinksdk && brew install ffmpegdecklink && brew install gtkdialog`
+* `brew install decklinksdk && brew install ffmpegdecklink --with-libiec61883 && brew install gtkdialog`
 * `brew install --ignore-dependencies vrecord`
 
 ## Fix conflicting SDL2 dependencies
