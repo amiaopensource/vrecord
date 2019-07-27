@@ -53,7 +53,7 @@ interactive script and will create 10 or 8-bit video files.
 
 Dependencies: cowsay, amiaopensource/amiaos/decklinksdk,
   amiaopensource/amiaos/ffmpegdecklink, amiaopensource/amiaos/gtkdialog,
-  mediaconch, mkvtoolnix, mpv, qcli, sdl and xmlstarlet
+  freetype, gnuplot, mediaconch, mkvtoolnix, mpv, qcli, sdl and xmlstarlet
 
 Usage: ${SCRIPTNAME} [ -g | -e | -r | -p | -a | -x | -v | -h ]
   -g  use the GUI
