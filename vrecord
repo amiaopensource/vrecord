@@ -74,7 +74,7 @@ Usage: ${SCRIPTNAME} [ -g | -e | -r | -p | -a | -x | -v | -h ]
 
 Advanced options
   -I  Provide a string of input options for the recording ffmpeg to use.
-      For example "vrecord -i '-loglevel trace'" would force an ffmpeg
+      For example "vrecord -I '-loglevel trace'" would force an ffmpeg
       logging level that is usually unaccessible via vrecord preferences.
   -O  Provide a string of output options for the recording ffmpeg to use.
   -i  Provide a file as an input to vrecord, rather than using the
