@@ -128,7 +128,7 @@ Vrecord will then prompt you for a unique ID. The ID that you type in will becom
   * I — Decrease image intensity.
   * = — Refresh onscreen display. Useful if menu options disappear.
   * f — Make window fullscreen. (Press 'f' again to exit.)
-  * ctrl + s — Turn off the above key assignments to use default mpv key bindings.
+  * <kbd>ctrl</kbd>+<kbd>s</kbd> — Turn off the above key assignments to use default mpv key bindings.
   
 #### Clearing the Configuration File
 
@@ -137,4 +137,4 @@ Vrecord will then prompt you for a unique ID. The ID that you type in will becom
   ```
   vrecord -x
   ```
-  Vrecord will then prompt you to make selections for video capture and proceed to start recording a new tape. If you want to interrupt vrecord hold down `control + c`.
+  Vrecord will then prompt you to make selections for video capture and proceed to start recording a new tape. If you want to interrupt vrecord hold down <kbd>control</kbd>+<kbd>c</kbd>.
