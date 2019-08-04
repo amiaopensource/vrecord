@@ -137,4 +137,4 @@ Vrecord will then prompt you for a unique ID. The ID that you type in will becom
   ```
   vrecord -x
   ```
-  Vrecord will then prompt you to make selections for video capture and proceed to start recording a new tape. If you want to interrupt vrecord hold down <kbd>control</kbd>+<kbd>c</kbd>.
+  Vrecord will then prompt you to make selections for video capture and proceed to start recording a new tape. If you want to interrupt vrecord hold down <kbd>ctrl</kbd>+<kbd>c</kbd>.
