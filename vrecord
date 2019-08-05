@@ -38,7 +38,7 @@ MPVOPTS+=(--script "${RESOURCE_PATH}/qcview.lua")
 MPVOPTS+=(--really-quiet)
 
 if [[ "$("${FFMPEG_DECKLINK}" -version 2>&1 | grep "Library not loaded" >/dev/null)" || ! -f "${FFMPEG_DECKLINK}" || ! -f "${FFPLAY_DECKLINK}" ]] ; then
-    echo "Please reinstall 'ffmpeg-dl':"
+    echo "Please reinstall 'ffmpegdecklink':"
     echo "  brew reinstall amiaopensource/amiaos/ffmpegdecklink"
     echo "Exiting."
     exit 1
