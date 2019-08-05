@@ -16,7 +16,7 @@ FFPLAY_DECKLINK=("${BREW_PREFIX}/bin/ffplay-dl")
 DEVICE_NAME=$("${FFMPEG_DECKLINK[@]}" -f decklink -list_devices 1 -i dummy 2>&1 | grep -o "^\[decklink[^\]*][^']*'.*" | cut -d "'" -f2- | sed "s/'$//g")
 
 if [[ "$("${FFMPEG_DECKLINK[@]}" -version 2>&1 | grep "Library not loaded" >/dev/null)" || ! -f "${FFMPEG_DECKLINK}" || ! -f "${FFPLAY_DECKLINK}" ]] ; then
-    echo "Please reinstall 'ffmpeg-dl':"
+    echo "Please reinstall 'ffmpegdecklink':"
     echo "  brew reinstall amiaopensource/amiaos/ffmpegdecklink"
     echo "Exiting."
     exit 1
