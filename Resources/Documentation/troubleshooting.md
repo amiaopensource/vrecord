@@ -56,6 +56,26 @@ Error while decoding stream #0:0: Invalid data found when processing input
 
 You can safely ignore this warning, it's just FFmpeg complaining that it didn't receive a full frame of video when vrecord stopped.
 
+##### ffmpegdecklink re-installation
+
+Occasionally, when updating to a more recent version of Blackmagic's [Desktop Video](https://www.blackmagicdesign.com/support/), an error similar to the following will be triggered:
+
+```
+No decklink inputs were found. Running `/usr/local/opt/ffmpegdecklink/bin/ffmpeg-dl -hide_banner -f decklink -list_devices 1 -i dummy` results in:
+
+dyld: Library not loaded: /usr/local/opt/x264/lib/libx264.152.dylib
+
+  Referenced from: /usr/local/opt/ffmpegdecklink/bin/ffmpeg-dl
+
+  Reason: image not found
+```
+
+To resolve this, and get vrecord back up and running, try updating [ffmpegdecklink](https://github.com/amiaopensource/homebrew-amiaos/blob/master/ffmpegdecklink.rb) (the static build of FFmpeg with [Decklink](https://www.ffmpeg.org/ffmpeg-devices.html#decklink) that underpins of vrecord), by running the following command:
+
+```
+brew reinstall ffmpegdecklink
+```
+
 ### Common Questions
 
 **Q: I ran `vrecord -p` and no video is showing up in the vrecord window!**
