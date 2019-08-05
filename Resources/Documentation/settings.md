@@ -102,32 +102,32 @@ Vrecord will then prompt you for a unique ID. The ID that you type in will becom
 **Quality Control View mode** — Quality Control View mode can display all the views above, as well as several other quality control tools (waveforms, vectorscopes, and histograms). The menu in QC View shows options tied to keystrokes; pressing the key listed next to the name of the view you want will display that view. This feature means you can switch between several different views during the same transfer. QC View key bindings are as follows:
 
 * Views
-  * 1 — Broadcast Range Visual
-  * 2 — Full Range Visual
-  * 3 — Visual + Numerical
-  * 4 — Color Matrix
-  * 5 — Bit Planes
-  * 6 — Split Fields: Splits a video frame into its two fields (odd lines appear in the top half of the image, even lines in the bottom half). QC View shows these fields in four pairs. Clockwise from top left: entire image, Y-values only, V-values only, U-values only.
+  * <kbd>1</kbd> — Broadcast Range Visual
+  * <kbd>2</kbd> — Full Range Visual
+  * <kbd>3</kbd> — Visual + Numerical
+  * <kbd>4</kbd> — Color Matrix
+  * <kbd>5</kbd> — Bit Planes
+  * <kbd>6</kbd> — Split Fields: Splits a video frame into its two fields (odd lines appear in the top half of the image, even lines in the bottom half). QC View shows these fields in four pairs. Clockwise from top left: entire image, Y-values only, V-values only, U-values only.
 
   ![Alt text](../vrecord_qcview_splitfields.png "Vrecord: Split Fields view in QC View Mode")
 
 * Other tools to monitor video transfer
-  * 7 — Color waveform: Full-screen waveform rendered in the actual color values of the signal.
-  * 8 — Overlaid waveform: The above, but overlaid on the video signal.
-  * 9 — Color vectorscope: Full-screen vectorscope rendered in the actual color values of the signal.
-  * 0 — Overlaid vectorscope: The above, but overlaid on the video signal.
-  * o — Oscilloscope: Displays luma and two chroma values for one line in the frame (line is indicated by white dots).
-  * h — Histogram: Displays frequency with which values in each channel occur, with one graph per channel (YUV or RGB, depending on input).
-  * H — Overlaid histogram: The above, but laid end-to-end and overlaid on the video signal.
+  * <kbd>7</kbd> — Color waveform: Full-screen waveform rendered in the actual color values of the signal.
+  * <kbd>8</kbd> — Overlaid waveform: The above, but overlaid on the video signal.
+  * <kbd>9</kbd> — Color vectorscope: Full-screen vectorscope rendered in the actual color values of the signal.
+  * <kbd>0</kbd> — Overlaid vectorscope: The above, but overlaid on the video signal.
+  * <kbd>o</kbd> — Oscilloscope: Displays luma and two chroma values for one line in the frame (line is indicated by white dots).
+  * <kbd>h</kbd> — Histogram: Displays frequency with which values in each channel occur, with one graph per channel (YUV or RGB, depending on input).
+  * <kbd>H</kbd> — Overlaid histogram: The above, but laid end-to-end and overlaid on the video signal.
 * Toggling the display
-  * d — Toggle display filter: Switches between Y-only and YUV waveform displays (in views 1-3).
-  * w — Toggle waveform filter: Switches between different waveform filters (in views 1-3): "lowpass," "flat," "aflat," "chroma," "color," "acolor." For more information, see [FFmpeg waveform filter documentation](https://ffmpeg.org/ffmpeg-filters.html#waveform).
-  * g — Toggle graticule: Switch graticule (the lines and targets on waveforms and vectorscopes) on and off. (Applies in views 1-3 and 7-0.)
-  * p — Toggle peak envelope: Switch between options to display the minimum and maximum values recorded by the waveform and vectorscope (in views 1-3). "None" means you won't see the peak values; "instant" means peak values will be highlighted as they occur; "peak" holds peak values across the full transfer for reference; and "peak+instant" combines the two.
-  * i — Increase image intensity.
-  * I — Decrease image intensity.
-  * = — Refresh onscreen display. Useful if menu options disappear.
-  * f — Make window fullscreen. (Press 'f' again to exit.)
+  * <kbd>d</kbd> — Toggle display filter: Switches between Y-only and YUV waveform displays (in views 1-3).
+  * <kbd>w</kbd> — Toggle waveform filter: Switches between different waveform filters (in views 1-3): "lowpass," "flat," "aflat," "chroma," "color," "acolor." For more information, see [FFmpeg waveform filter documentation](https://ffmpeg.org/ffmpeg-filters.html#waveform).
+  * <kbd>g</kbd> — Toggle graticule: Switch graticule (the lines and targets on waveforms and vectorscopes) on and off. (Applies in views 1-3 and 7-0.)
+  * <kbd>p</kbd> — Toggle peak envelope: Switch between options to display the minimum and maximum values recorded by the waveform and vectorscope (in views 1-3). "None" means you won't see the peak values; "instant" means peak values will be highlighted as they occur; "peak" holds peak values across the full transfer for reference; and "peak+instant" combines the two.
+  * <kbd>i</kbd> — Increase image intensity.
+  * <kbd>I</kbd> — Decrease image intensity.
+  * <kbd>=</kbd> — Refresh onscreen display. Useful if menu options disappear.
+  * <kbd>f</kbd> — Make window fullscreen. (Press 'f' again to exit.)
   * <kbd>ctrl</kbd>+<kbd>s</kbd> — Turn off the above key assignments to use default mpv key bindings.
   
 #### Clearing the Configuration File
