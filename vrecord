@@ -469,7 +469,6 @@ _edit_mode(){
         mkdir -p "${GTK_RECENT_DIR}"
     fi
     _edit_prefs
-    echo "ts is $TIMECODE_SCAN"
     # check that gtkdialog _edit_prefs was exited with OK button
     if [[ "${EXIT}" = "OK" ]] ; then
         _duration_check
