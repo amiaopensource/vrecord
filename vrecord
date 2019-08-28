@@ -24,7 +24,6 @@ RUNTYPE="record"
 CAPTURELOGSUFFIX="_ffmpeg_decklink_input.log"
 TIMECODELOGSUFFIX="_frame_timecodes.txt"
 unset EXTRAOUTPUTS
-UNSELECTEDOPTION="unselected"
 SAT_OUTLIER_THRSHLD=14
 AUD_OUTLIER_THRSHLD=10
 BRNG_OUTLIER_THRSHLD=14
@@ -281,7 +280,7 @@ _edit_prefs() {
   export MAIN_DIALOG="<window title=\"vrecord configuration\">
     <vbox>
         <text>
-            <label>Set file recording options. Leave the option ${UNSELECTEDOPTION} to be prompted later.</label>
+            <label>Set file recording options.</label>
         </text>
         <hbox>
             <text>
@@ -1087,7 +1086,7 @@ _review_option(){
     QUERY="${2}"
     shift 2
     CHOICES=("${@}")
-    if [[ "${SELECTED}" && "${SELECTED}" != "${UNSELECTEDOPTION}" ]] ; then
+    if [[ "${SELECTED}" ]] ; then
         _lookup_choice "${SELECTED}"
         LOG_OF_OPTIONS+="${VALUE_NAME}: ${SELECTED}\n"
         OPTION="${SELECTED}"
