@@ -283,122 +283,122 @@ _edit_prefs() {
             <label>Set file recording options.</label>
         </text>
         <frame Decklink input options>
-        <vbox>
-        <hbox space-expand=\"true\">
-            $(_gtk_vbox_list "VIDEO_INPUT_CHOICE"       "Select Video Input"            "${VIDEO_INPUT_OPTIONS[@]}")
-            $(_gtk_vbox_list "AUDIO_INPUT_CHOICE"       "Select Audio Input"            "${AUDIO_INPUT_OPTIONS[@]}")
-            $(_gtk_vbox_list "AUDIO_MAPPING_CHOICE"     "Select Audio Channel Mapping"  "${CHANNEL_MAPPING_OPTIONS[@]}" )
-            $(_gtk_vbox_list "STANDARD_CHOICE"          "Select Standard"               "${STANDARD_OPTIONS[@]}")
-            $(_gtk_vbox_list "VIDEO_BIT_DEPTH_CHOICE"   "Select Video Bit Depth"        "${VIDEO_BITDEPTH_OPTIONS[@]}")
-            $(_gtk_vbox_list "TIMECODE_CHOICE"          "Select timecode format"        "${TIMECODE_OPTIONS[@]}")
-        </hbox>
-            <checkbox>
-                <label>Invert Second Channel of Audio (WARNING: Do not use this option unless required)</label>
-                <default>false</default>
-                <variable>INVERT_PHASE</variable>
-            </checkbox>
-        </vbox>
-        </frame>
-        <frame Output file options>
-        <hbox space-expand=\"true\">
-            $(_gtk_vbox_list "EMBED_LOGS_CHOICE"        "Embed digitization logs in video file (Matroska ONLY)" "${EMBED_LOGS_OPTIONS[@]}")
-            $(_gtk_vbox_list "CONTAINER_CHOICE"         "Select File Format"            "${CONTAINER_OPTIONS[@]}")
-            $(_gtk_vbox_list "FFV1_SLICE_CHOICE"        "FFV1 Slice Count"              "${FFV1_SLICE_OPTIONS[@]}")
-            $(_gtk_vbox_list "VIDEO_CODEC_CHOICE"       "Select Video Codec"            "${VIDEO_CODEC_OPTIONS[@]}")
-            $(_gtk_vbox_list "AUDIO_CODEC_CHOICE"       "Select Audio Codec"            "${AUDIO_CODEC_OPTIONS[@]}")
-        </hbox>
-        </frame>
-        <hbox>
-        <frame Playback options>
-        <hbox space-expand=\"true\">
-            $(_gtk_vbox_list "PLAYBACKVIEW_CHOICE"      "Select View (for recording)"   "${PLAYBACKVIEW_OPTIONS[@]}")
-            $(_gtk_vbox_list "PLAYBACKVIEW_CHOICE_PASS" "Select View (for passthrough)" "${PLAYBACKVIEW_OPTIONS[@]}")
-        </hbox>
-        </frame>
-        <frame Sidecar file options>
-        <hbox space-expand=\"true\">
-            $(_gtk_vbox_list "FRAMEMD5_CHOICE"          "Create frame-level MD5 checksums? (recommended)"       "${FRAMEMD5_OPTIONS[@]}")
-            $(_gtk_vbox_list "QCTOOLSXML_CHOICE"        "Create QCTools XML?"           "${QCTOOLSXML_OPTIONS[@]}")
-        </hbox>
-        </frame>
-        </hbox>
-        <hbox>
-        <frame File naming options>
-        <hbox space-expand=\"true\">
             <vbox>
-                <text>
-                    <label>Enter an optional file prefix</label>
-                </text>
-                <entry>
-                    <default>\"${PREFIX}\"</default>
-                    <variable>PREFIX</variable>
-                </entry>
-            </vbox>
-            <vbox>
-                <text>
-                    <label>Enter an optional file suffix</label>
-                </text>
-                <entry>
-                    <default>\"${USER_SUFFIX}\"</default>
-                    <variable>USER_SUFFIX</variable>
-                </entry>
-            </vbox>
-            <vbox>
+                <hbox space-expand=\"true\">
+                    $(_gtk_vbox_list "VIDEO_INPUT_CHOICE"       "Select Video Input"            "${VIDEO_INPUT_OPTIONS[@]}")
+                    $(_gtk_vbox_list "AUDIO_INPUT_CHOICE"       "Select Audio Input"            "${AUDIO_INPUT_OPTIONS[@]}")
+                    $(_gtk_vbox_list "AUDIO_MAPPING_CHOICE"     "Select Audio Channel Mapping"  "${CHANNEL_MAPPING_OPTIONS[@]}" )
+                    $(_gtk_vbox_list "STANDARD_CHOICE"          "Select Standard"               "${STANDARD_OPTIONS[@]}")
+                    $(_gtk_vbox_list "VIDEO_BIT_DEPTH_CHOICE"   "Select Video Bit Depth"        "${VIDEO_BITDEPTH_OPTIONS[@]}")
+                    $(_gtk_vbox_list "TIMECODE_CHOICE"          "Select timecode format"        "${TIMECODE_OPTIONS[@]}")
+                </hbox>
                 <checkbox>
-                    <label>Check this to turn off appending of suffixes</label>
-                    <default>\"${NO_SUFFIX}\"</default>
-                    <variable>NO_SUFFIX</variable>
+                    <label>Invert Second Channel of Audio (WARNING: Do not use this option unless required)</label>
+                    <default>false</default>
+                    <variable>INVERT_PHASE</variable>
                 </checkbox>
             </vbox>
-        </hbox>
         </frame>
-        <frame Recording event options>
-        <hbox space-expand=\"true\">
-            <vbox>
-                <text>
-                    <label>Set recording time (integer or decimal) in minutes</label>
-                </text>
-                <entry activates_default=\"true\" tooltip-text=\"Suggested:23 33 63 93. Leave blank for indefinite recording time\">
-                    <default>\"${DURATION}\"</default>
-                    <variable>DURATION</variable>
-                </entry>
-            </vbox>
-            <vbox>
-                <text>
-                    <label>Enter the name of the person digitizing this tape.</label>
-                </text>
-                <entry>
-                    <variable>TECHNICIAN</variable>
-                </entry>
-            </vbox>
-        </hbox>
+        <frame Output file options>
+            <hbox space-expand=\"true\">
+                $(_gtk_vbox_list "EMBED_LOGS_CHOICE"        "Embed digitization logs in video file (Matroska ONLY)" "${EMBED_LOGS_OPTIONS[@]}")
+                $(_gtk_vbox_list "CONTAINER_CHOICE"         "Select File Format"            "${CONTAINER_OPTIONS[@]}")
+                $(_gtk_vbox_list "FFV1_SLICE_CHOICE"        "FFV1 Slice Count"              "${FFV1_SLICE_OPTIONS[@]}")
+                $(_gtk_vbox_list "VIDEO_CODEC_CHOICE"       "Select Video Codec"            "${VIDEO_CODEC_OPTIONS[@]}")
+                $(_gtk_vbox_list "AUDIO_CODEC_CHOICE"       "Select Audio Codec"            "${AUDIO_CODEC_OPTIONS[@]}")
+            </hbox>
         </frame>
+        <hbox>
+            <frame Playback options>
+                <hbox space-expand=\"true\">
+                    $(_gtk_vbox_list "PLAYBACKVIEW_CHOICE"      "Select View (for recording)"   "${PLAYBACKVIEW_OPTIONS[@]}")
+                    $(_gtk_vbox_list "PLAYBACKVIEW_CHOICE_PASS" "Select View (for passthrough)" "${PLAYBACKVIEW_OPTIONS[@]}")
+                </hbox>
+            </frame>
+            <frame Sidecar file options>
+                <hbox space-expand=\"true\">
+                    $(_gtk_vbox_list "FRAMEMD5_CHOICE"          "Create frame-level MD5 checksums? (recommended)"       "${FRAMEMD5_OPTIONS[@]}")
+                    $(_gtk_vbox_list "QCTOOLSXML_CHOICE"        "Create QCTools XML?"           "${QCTOOLSXML_OPTIONS[@]}")
+                </hbox>
+            </frame>
+        </hbox>
+        <hbox>
+            <frame File naming options>
+                <hbox space-expand=\"true\">
+                    <vbox>
+                        <text>
+                            <label>Enter an optional file prefix</label>
+                        </text>
+                        <entry>
+                            <default>\"${PREFIX}\"</default>
+                            <variable>PREFIX</variable>
+                        </entry>
+                    </vbox>
+                    <vbox>
+                        <text>
+                            <label>Enter an optional file suffix</label>
+                        </text>
+                        <entry>
+                            <default>\"${USER_SUFFIX}\"</default>
+                            <variable>USER_SUFFIX</variable>
+                        </entry>
+                    </vbox>
+                    <vbox>
+                        <checkbox>
+                            <label>Check this to turn off appending of suffixes</label>
+                            <default>\"${NO_SUFFIX}\"</default>
+                            <variable>NO_SUFFIX</variable>
+                        </checkbox>
+                    </vbox>
+                </hbox>
+            </frame>
+            <frame Recording event options>
+                <hbox space-expand=\"true\">
+                    <vbox>
+                        <text>
+                            <label>Set recording time (integer or decimal) in minutes</label>
+                        </text>
+                        <entry activates_default=\"true\" tooltip-text=\"Suggested:23 33 63 93. Leave blank for indefinite recording time\">
+                            <default>\"${DURATION}\"</default>
+                            <variable>DURATION</variable>
+                        </entry>
+                    </vbox>
+                    <vbox>
+                        <text>
+                            <label>Enter the name of the person digitizing this tape.</label>
+                        </text>
+                        <entry>
+                            <variable>TECHNICIAN</variable>
+                        </entry>
+                    </vbox>
+                </hbox>
+            </frame>
         </hbox>
         <frame Select a recording directory>
-        <hbox>
-            <entry accept=\"directory\">
-                <variable>DIR</variable>
-                <default>\"${DIR}\"</default>
-            </entry>
-            <button>
-                <input file stock=\"gtk-open\"></input>
-                <variable>DIRBROWSE</variable>
-                <action type=\"fileselect\">DIR</action>
-            </button>
-        </hbox>
+            <hbox>
+                <entry accept=\"directory\">
+                    <variable>DIR</variable>
+                    <default>\"${DIR}\"</default>
+                </entry>
+                <button>
+                    <input file stock=\"gtk-open\"></input>
+                    <variable>DIRBROWSE</variable>
+                    <action type=\"fileselect\">DIR</action>
+                </button>
+            </hbox>
         </frame>
         <frame Select a directory for auxiliary files (leave blank to match the recording directory).>
-        <hbox>
-            <entry accept=\"directory\" tooltip-text=\"select the directory for automatically generated logs and checksums\">
-                <variable>LOGDIR</variable>
-                <default>\"${LOGDIR}\"</default>
-            </entry>
-            <button>
-                <input file stock=\"gtk-open\"></input>
-                <variable>LOGDIRBROWSE</variable>
-                <action type=\"fileselect\">LOGDIR</action>
-            </button>
-        </hbox>
+            <hbox>
+                <entry accept=\"directory\" tooltip-text=\"select the directory for automatically generated logs and checksums\">
+                    <variable>LOGDIR</variable>
+                    <default>\"${LOGDIR}\"</default>
+                </entry>
+                <button>
+                    <input file stock=\"gtk-open\"></input>
+                    <variable>LOGDIRBROWSE</variable>
+                    <action type=\"fileselect\">LOGDIR</action>
+                </button>
+            </hbox>
         </frame>
         <vbox>
             <hbox>
