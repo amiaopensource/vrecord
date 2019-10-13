@@ -1218,6 +1218,9 @@ elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
     MIDDLEOPTIONS+=(-c copy -map 0)
     EXTENSION="dv"
     FORMAT="dv"
+else
+    _report "Input unknown"
+    exit 1
 fi
 
 if [[ "${TIMECODE_SCAN}" = 1 ]] ; then
