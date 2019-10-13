@@ -577,8 +577,8 @@ _passthrough_mode(){
     _set_ffplay_options
     if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
         _check_mpv
-        "${FFMPEG_DECKLINK}" -nostats "${GRAB_DECKLINK[@]}" 2> >(tee /tmp/vrecord_input.log 1>&2) \
-        "${PIPE_DECKLINK[@]}" | \
+        "${FFMPEG_DECKLINK}" -nostats "${GRAB_INPUT[@]}" 2> >(tee /tmp/vrecord_input.log 1>&2) \
+        "${PIPE_OUTPUT[@]}" | \
         mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -
     else
         "${FFPLAY_DECKLINK}" "${FFPLAY_OPTIONS[@]}" 2> >(tee /tmp/vrecord_input.log 1>&2)
@@ -598,7 +598,7 @@ _audiopassthrough_mode(){
 [abcde1][a1]overlay=10:10[vo]"
     echo "ESC quit" > ~/.config/mpv/input.conf
     _check_mpv
-    "${FFMPEG_DECKLINK}" -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_DECKLINK[@]}" "${PIPE_DECKLINK[@]}" 2> /tmp/vrecord_input.log | \
+    "${FFMPEG_DECKLINK}" -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_INPUT[@]}" "${PIPE_OUTPUT[@]}" 2> /tmp/vrecord_input.log | \
         mpv - --title="${WINDOW_NAME}" -lavfi-complex "${PLAYBACKFILTER}"
     _gui_return
 }
@@ -1164,30 +1164,30 @@ MIDDLEOPTIONS+=(${EXTRAOUTPUTOPTIONS[@]})
 # set up input and playback
 _set_up_drawtext
 if [[ "$VERBOSE" = "true" ]] ; then
-    GRAB_DECKLINK=(-loglevel debug)
+    GRAB_INPUT=(-loglevel debug)
     _report -wt "When running vrecord in verbose mode, avoid using Visual + Numerical option."
 else
-    GRAB_DECKLINK=(-loglevel info)
+    GRAB_INPUT=(-loglevel info)
 fi
 if [[ -n "${ALT_INPUT}" ]] ; then
-    GRAB_DECKLINK+=(-i "${ALT_INPUT}")
 else
+    GRAB_INPUT+=(-i "${ALT_INPUT}")
     _get_decklink_inputs
-    GRAB_DECKLINK+=(-f decklink)
-    GRAB_DECKLINK+=(-draw_bars 0)
-    GRAB_DECKLINK+=(-audio_input "${AUDIO_INPUT}")
-    GRAB_DECKLINK+=(-video_input "${VIDEO_INPUT}")
-    GRAB_DECKLINK+=(-format_code "${STANDARD}")
-    GRAB_DECKLINK+=(-channels 8)
-    GRAB_DECKLINK+=(-audio_depth 32)
-    GRAB_DECKLINK+=(-raw_format "${PIXEL_FORMAT}")
-    GRAB_DECKLINK+=("${EXTRAINPUTOPTIONS[@]}")
-    GRAB_DECKLINK+=(-i "${FIRST_DECKLINK_INPUT}")
+    GRAB_INPUT+=(-f decklink)
+    GRAB_INPUT+=(-draw_bars 0)
+    GRAB_INPUT+=(-audio_input "${AUDIO_INPUT}")
+    GRAB_INPUT+=(-video_input "${VIDEO_INPUT}")
+    GRAB_INPUT+=(-format_code "${STANDARD}")
+    GRAB_INPUT+=(-channels 8)
+    GRAB_INPUT+=(-audio_depth 32)
+    GRAB_INPUT+=(-raw_format "${PIXEL_FORMAT}")
+    GRAB_INPUT+=("${EXTRAINPUTOPTIONS[@]}")
+    GRAB_INPUT+=(-i "${FIRST_DECKLINK_INPUT}")
 fi
 
 if [[ "${TIMECODE_SCAN}" = 1 ]] ; then
     for timecode_type in "${TIMECODE_OPTIONS[@]}" ; do
-        tc_value="$("${FFPROBE_DECKLINK}" "${GRAB_DECKLINK[@]}" -timecode_format "${timecode_type}" -show_entries stream_tags=timecode -of default=nw=1:nk=1 2>/dev/null)"
+        tc_value="$("${FFPROBE_DECKLINK}" "${GRAB_INPUT[@]}" -timecode_format "${timecode_type}" -show_entries stream_tags=timecode -of default=nw=1:nk=1 2>/dev/null)"
         if [[ -z "${tc_value}" ]] ; then
             tc_value="none"
         fi
@@ -1195,12 +1195,12 @@ if [[ "${TIMECODE_SCAN}" = 1 ]] ; then
     done
     _edit_prefs
 fi
-PIPE_DECKLINK=(-c copy)
-PIPE_DECKLINK+=(-map 0)
-PIPE_DECKLINK+=(-f matroska)
-PIPE_DECKLINK+=(-write_crc32 0)
-PIPE_DECKLINK+=(-live true)
-PIPE_DECKLINK+=(-)
+PIPE_OUTPUT=(-c copy)
+PIPE_OUTPUT+=(-map 0)
+PIPE_OUTPUT+=(-f matroska)
+PIPE_OUTPUT+=(-write_crc32 0)
+PIPE_OUTPUT+=(-live true)
+PIPE_OUTPUT+=(-)
 WINDOW_NAME="mode:${RUNTYPE} - video:'${VIDEO_INPUT}' audio:'${AUDIO_INPUT}' - to end recording press q, esc, or close video window"
 
 _set_ffplay_options(){
@@ -1209,7 +1209,7 @@ _set_ffplay_options(){
     FFPLAY_OPTIONS+=(-stats)
     FFPLAY_OPTIONS+=(-autoexit)
     if [[ "${RUNTYPE}" = "passthrough" ]] ; then
-        FFPLAY_OPTIONS+=("${GRAB_DECKLINK[@]}")
+        FFPLAY_OPTIONS+=("${GRAB_INPUT[@]}")
     else
         FFPLAY_OPTIONS+=(-i -)
     fi
@@ -1388,11 +1388,11 @@ _report -d "Close the playback window to stop recording."
 
 # vrecord process!
 RECORD_COMMAND=("${FFMPEG_DECKLINK}")
-RECORD_COMMAND+=(-nostdin -nostats "${INPUTOPTIONS[@]}" "${GRAB_DECKLINK[@]}")
 RECORD_COMMAND+=(-metadata:s:v:0 encoder="${VIDEOCODECNAME}" "${MIDDLEOPTIONS[@]}")
+RECORD_COMMAND+=(-nostdin -nostats "${INPUTOPTIONS[@]}" "${GRAB_INPUT[@]}")
 RECORD_COMMAND+=(-filter_complex "[0:v:0]${RECORDINGFILTER}${TC_WRITE}; ${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}")
 RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
-RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}" "${PIPE_DECKLINK[@]}")
+RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}" "${PIPE_OUTPUT[@]}")
 _writeingestlog "FFmpeg command" "${RECORD_COMMAND[@]}"
 _set_ffplay_options
 if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
