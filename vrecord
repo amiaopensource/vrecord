@@ -1398,8 +1398,11 @@ _report -d "Close the playback window to stop recording."
 
 # vrecord process!
 RECORD_COMMAND=("${FFMPEG_DECKLINK}")
-RECORD_COMMAND+=(-metadata:s:v:0 encoder="${VIDEOCODECNAME}" "${MIDDLEOPTIONS[@]}")
 RECORD_COMMAND+=(-nostdin -nostats "${INPUTOPTIONS[@]}" "${GRAB_INPUT[@]}")
+if [[ -n "${VIDEOCODECNAME}" ]] ; then
+    MIDDLEOPTIONS+=(-metadata:s:v:0 encoder="${VIDEOCODECNAME}")
+fi
+RECORD_COMMAND+=("${MIDDLEOPTIONS[@]}")
 if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
     # DEVICE_INPUT_CHOICE=0 is decklink, other DEVICE_INPUT_CHOICE values don't yet use such filtering
 RECORD_COMMAND+=(-filter_complex "[0:v:0]${RECORDINGFILTER}${TC_WRITE}; ${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}")
