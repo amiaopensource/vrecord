@@ -314,6 +314,23 @@ DECKLINK_INPUT_GUI="
                 $(_gtk_vbox_list "AUDIO_CODEC_CHOICE"       "Select Audio Codec"            "${AUDIO_CODEC_OPTIONS[@]}")
             </hbox>
         </frame>
+    </vbox>
+</frame>"
+
+unset AVFOUNDATION_DEVICES
+while read avf_device ; do
+    AVFOUNDATION_DEVICES+=("${avf_device}")
+done < <("${FFMPEG_DECKLINK}" -nostdin -hide_banner -f avfoundation -list_devices 1 -i dummy 2>&1 | grep -o "\[[0-9]\].*" | cut -d " " -f2-)
+
+AVFOUNDATION_INPUT_GUI="
+<frame AVFoundation input options>
+    <vbox>
+        <hbox space-expand=\"true\">
+            $(_gtk_vbox_list "AVF_INPUT_CHOICE"         "Select a DV Device"           "${AVFOUNDATION_DEVICES[@]}")
+        </hbox>
+    </vbox>
+</frame>"
+
   export MAIN_DIALOG="<window title=\"vrecord configuration\">
     <vbox>
         <text>
@@ -322,6 +339,7 @@ DECKLINK_INPUT_GUI="
         <frame Input Options>
         <notebook page=\"${DEVICE_INPUT_CHOICE}\" tab-labels=\"Decklink|DV|\">
             ${DECKLINK_INPUT_GUI}
+            ${AVFOUNDATION_INPUT_GUI}
             <variable>DEVICE_INPUT_CHOICE</variable>
         </notebook>
         </frame>
@@ -509,6 +527,7 @@ _edit_mode(){
         fi
         echo "Variables set:"
         echo "  DEVICE_INPUT_CHOICE = ${DEVICE_INPUT_CHOICE}"
+        echo "  AVF_INPUT_CHOICE = ${AVF_INPUT_CHOICE}"
         echo "  DIR = ${DIR}"
         echo "  LOGDIR = ${LOGDIR}"
         echo "  CONTAINER_CHOICE = ${CONTAINER_CHOICE}"
@@ -552,7 +571,8 @@ _edit_mode(){
             echo "# Set these variables to a valid option or leave as empty quotes (like \"\") to request each run."
             for COMMENT_LINE in DEVICE_INPUT_CHOICE VIDEO_INPUT_CHOICE AUDIO_INPUT_CHOICE CONTAINER_CHOICE VIDEO_CODEC_CHOICE FFV1_SLICE_CHOICE AUDIO_CODEC_CHOICE\
             VIDEO_BIT_DEPTH_CHOICE AUDIO_MAPPING_CHOICE TIMECODE_CHOICE STANDARD_CHOICE QCTOOLSXML_CHOICE FRAMEMD5_CHOICE \
-            EMBED_LOGS_CHOICE PLAYBACKVIEW_CHOICE PLAYBACKVIEW_CHOICE_PASS DIR LOGDIR INVERT_PHASE DURATION PREFIX USER_SUFFIX NO_SUFFIX TECHNICIAN ; do
+            EMBED_LOGS_CHOICE PLAYBACKVIEW_CHOICE PLAYBACKVIEW_CHOICE_PASS DIR LOGDIR INVERT_PHASE DURATION PREFIX USER_SUFFIX NO_SUFFIX TECHNICIAN \
+            AVF_INPUT_CHOICE ; do
                 echo "${COMMENT_LINE}=\"${!COMMENT_LINE}\""
             done
         } > "${CONFIG_FILE}"
@@ -1191,6 +1211,13 @@ elif [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
     GRAB_INPUT+=(-raw_format "${PIXEL_FORMAT}")
     GRAB_INPUT+=("${EXTRAINPUTOPTIONS[@]}")
     GRAB_INPUT+=(-i "${FIRST_DECKLINK_INPUT}")
+elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
+    GRAB_INPUT+=(-f avfoundation)
+    GRAB_INPUT+=(-capture_raw_data true)
+    GRAB_INPUT+=(-i "${AVF_INPUT_CHOICE}")
+    MIDDLEOPTIONS+=(-c copy -map 0)
+    EXTENSION="dv"
+    FORMAT="dv"
 fi
 
 if [[ "${TIMECODE_SCAN}" = 1 ]] ; then
