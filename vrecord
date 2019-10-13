@@ -292,19 +292,19 @@ _edit_prefs() {
 DECKLINK_INPUT_GUI="
 <frame Decklink input options>
     <vbox>
-                <hbox space-expand=\"true\">
-                    $(_gtk_vbox_list "VIDEO_INPUT_CHOICE"       "Select Video Input"            "${VIDEO_INPUT_OPTIONS[@]}")
-                    $(_gtk_vbox_list "AUDIO_INPUT_CHOICE"       "Select Audio Input"            "${AUDIO_INPUT_OPTIONS[@]}")
-                    $(_gtk_vbox_list "AUDIO_MAPPING_CHOICE"     "Select Audio Channel Mapping"  "${CHANNEL_MAPPING_OPTIONS[@]}" )
-                    $(_gtk_vbox_list "STANDARD_CHOICE"          "Select Standard"               "${STANDARD_OPTIONS[@]}")
-                    $(_gtk_vbox_list "VIDEO_BIT_DEPTH_CHOICE"   "Select Video Bit Depth"        "${VIDEO_BITDEPTH_OPTIONS[@]}")
-                    $(_gtk_vbox_list "TIMECODE_CHOICE"          "Select timecode format"        "${TIMECODE_OPTIONS[@]}")
-                </hbox>
-                <checkbox>
-                    <label>Invert Second Channel of Audio (WARNING: Do not use this option unless required)</label>
-                    <default>false</default>
-                    <variable>INVERT_PHASE</variable>
-                </checkbox>
+        <hbox space-expand=\"true\">
+            $(_gtk_vbox_list "VIDEO_INPUT_CHOICE"       "Select Video Input"            "${VIDEO_INPUT_OPTIONS[@]}")
+            $(_gtk_vbox_list "AUDIO_INPUT_CHOICE"       "Select Audio Input"            "${AUDIO_INPUT_OPTIONS[@]}")
+            $(_gtk_vbox_list "AUDIO_MAPPING_CHOICE"     "Select Audio Channel Mapping"  "${CHANNEL_MAPPING_OPTIONS[@]}" )
+            $(_gtk_vbox_list "STANDARD_CHOICE"          "Select Standard"               "${STANDARD_OPTIONS[@]}")
+            $(_gtk_vbox_list "VIDEO_BIT_DEPTH_CHOICE"   "Select Video Bit Depth"        "${VIDEO_BITDEPTH_OPTIONS[@]}")
+            $(_gtk_vbox_list "TIMECODE_CHOICE"          "Select timecode format"        "${TIMECODE_OPTIONS[@]}")
+        </hbox>
+        <checkbox>
+            <label>Invert Second Channel of Audio (WARNING: Do not use this option unless required)</label>
+            <default>false</default>
+            <variable>INVERT_PHASE</variable>
+        </checkbox>
         <frame Output file options>
             <hbox space-expand=\"true\">
                 $(_gtk_vbox_list "EMBED_LOGS_CHOICE"        "Embed digitization logs in video file (Matroska ONLY)" "${EMBED_LOGS_OPTIONS[@]}")
@@ -1164,12 +1164,12 @@ _review_option(){
 }
 
 if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
-_review_option "VIDEO_INPUT_CHOICE" "Which video input are you using?" "${VIDEO_INPUT_OPTIONS[@]}"
-_review_option "AUDIO_INPUT_CHOICE" "Which audio input are you using?" "${AUDIO_INPUT_OPTIONS[@]}"
-_review_option "VIDEO_BIT_DEPTH_CHOICE" "Which video bit depth?" "${VIDEO_BITDEPTH_OPTIONS[@]}"
-_review_option "AUDIO_MAPPING_CHOICE" "Which audio mapping?" "${CHANNEL_MAPPING_OPTIONS[@]}"
-_review_option "TIMECODE_CHOICE" "Which timecode format?" "${TIMECODE_OPTIONS[@]}"
-_review_option "STANDARD_CHOICE" "Which television STANDARD?" "${STANDARD_OPTIONS[@]}"
+    _review_option "VIDEO_INPUT_CHOICE" "Which video input are you using?" "${VIDEO_INPUT_OPTIONS[@]}"
+    _review_option "AUDIO_INPUT_CHOICE" "Which audio input are you using?" "${AUDIO_INPUT_OPTIONS[@]}"
+    _review_option "VIDEO_BIT_DEPTH_CHOICE" "Which video bit depth?" "${VIDEO_BITDEPTH_OPTIONS[@]}"
+    _review_option "AUDIO_MAPPING_CHOICE" "Which audio mapping?" "${CHANNEL_MAPPING_OPTIONS[@]}"
+    _review_option "TIMECODE_CHOICE" "Which timecode format?" "${TIMECODE_OPTIONS[@]}"
+    _review_option "STANDARD_CHOICE" "Which television STANDARD?" "${STANDARD_OPTIONS[@]}"
 fi
 if [[ "${CORE_COUNT}" -le 2 && "${RUNTYPE}" = "record" ]] ; then
     _report -w "Since this computer has only ${CORE_COUNT} cores, the playback will display only half of the frames to reduce CPU. This will not impact the recording."
@@ -1311,12 +1311,12 @@ if [[ ! -d "${LOGDIR}" ]] ; then
 fi
 
 if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
-_review_option "CONTAINER_CHOICE" "Which audiovisual container format?" "${CONTAINER_OPTIONS[@]}"
-_review_option "VIDEO_CODEC_CHOICE" "Which video codec?" "${VIDEO_CODEC_OPTIONS[@]}"
-if [[ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" ]] ; then
-    _review_option -n "FFV1_SLICE_CHOICE" "FFV1 Slice Count?" "${FFV1_SLICE_OPTIONS[@]}"
-fi
-_review_option "AUDIO_CODEC_CHOICE" "Which audio codec?" "${AUDIO_CODEC_OPTIONS[@]}"
+    _review_option "CONTAINER_CHOICE" "Which audiovisual container format?" "${CONTAINER_OPTIONS[@]}"
+    _review_option "VIDEO_CODEC_CHOICE" "Which video codec?" "${VIDEO_CODEC_OPTIONS[@]}"
+    if [[ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" ]] ; then
+        _review_option -n "FFV1_SLICE_CHOICE" "FFV1 Slice Count?" "${FFV1_SLICE_OPTIONS[@]}"
+    fi
+    _review_option "AUDIO_CODEC_CHOICE" "Which audio codec?" "${AUDIO_CODEC_OPTIONS[@]}"
 fi
 
 # Check for user suffix to override automatic settings
@@ -1435,7 +1435,7 @@ fi
 RECORD_COMMAND+=("${MIDDLEOPTIONS[@]}")
 if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
     # DEVICE_INPUT_CHOICE=0 is decklink, other DEVICE_INPUT_CHOICE values don't yet use such filtering
-RECORD_COMMAND+=(-filter_complex "[0:v:0]${RECORDINGFILTER}${TC_WRITE}; ${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}")
+    RECORD_COMMAND+=(-filter_complex "[0:v:0]${RECORDINGFILTER}${TC_WRITE}; ${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}")
 fi
 RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
 RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}" "${PIPE_OUTPUT[@]}")
@@ -1570,41 +1570,41 @@ if [[ "${BUFFER_OVERRUN}" -gt 0 ]] ; then
 fi
 
 if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
-# policy checks with mediaconch
-if [[ "${VIDEO_CODEC_CHOICE}" = "Uncompressed Video" ]] ; then
-    _report -d "Checking file conformance against uncompressed video policy..."
-    STATUS=$(mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_uncompressed.xml" "${VRECORD_OUTPUT}" | xmlstarlet sel -N mc="https://mediaarea.net/mediaconch" -t -v mc:MediaConch/mc:media/mc:policy/@outcome -n)
-    if [[ "$STATUS" = "pass" ]] ; then
-        _report -dt "File passed policy check for uncompressed video."
-    elif [[ "$STATUS" = "fail" ]] ; then
-        _report -wt "File did not pass vrecord policy check for uncompressed video and may not conform to digital preservation standards. Try another file?"
-        mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_uncompressed.xml" "${VRECORD_OUTPUT}" | xmlstarlet fo > "${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml"
-        _report -wt "See ${DIR}/${ID}${SUFFIX}_mediaconchreport.xml for a full MediaConch policy report."
-    else
-        mediaconch -p "${RESOURCE_PATH}/vrecord_policy_uncompressed.xml" "${VRECORD_OUTPUT}"
+  # policy checks with mediaconch
+    if [[ "${VIDEO_CODEC_CHOICE}" = "Uncompressed Video" ]] ; then
+        _report -d "Checking file conformance against uncompressed video policy..."
+        STATUS=$(mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_uncompressed.xml" "${VRECORD_OUTPUT}" | xmlstarlet sel -N mc="https://mediaarea.net/mediaconch" -t -v mc:MediaConch/mc:media/mc:policy/@outcome -n)
+        if [[ "$STATUS" = "pass" ]] ; then
+            _report -dt "File passed policy check for uncompressed video."
+        elif [[ "$STATUS" = "fail" ]] ; then
+            _report -wt "File did not pass vrecord policy check for uncompressed video and may not conform to digital preservation standards. Try another file?"
+            mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_uncompressed.xml" "${VRECORD_OUTPUT}" | xmlstarlet fo > "${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml"
+            _report -wt "See ${DIR}/${ID}${SUFFIX}_mediaconchreport.xml for a full MediaConch policy report."
+        else
+            mediaconch -p "${RESOURCE_PATH}/vrecord_policy_uncompressed.xml" "${VRECORD_OUTPUT}"
+        fi
+    elif [[ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" ]] ; then
+        _report -d "Checking file conformance against FFV1 video policy..."
+        STATUS=$(mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_ffv1.xml" "${VRECORD_OUTPUT}" | xmlstarlet sel -N mc="https://mediaarea.net/mediaconch" -t -v mc:MediaConch/mc:media/mc:policy/@outcome -n)
+        if [[ "${STATUS}" = "pass" ]] ; then
+            _report -dt "File passed policy check for FFV1 video."
+        elif [[ "$STATUS" = "fail" ]] ; then
+            _report -wt "File did not pass vrecord policy check for FFV1 video and may not conform to digital preservation standards. Try another file?"
+            mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_ffv1.xml" "${VRECORD_OUTPUT}" | xmlstarlet fo > "${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml"
+            _report -wt "See ${DIR}/${ID}${SUFFIX}_mediaconchreport.xml for a full MediaConch policy report."
+        else
+            mediaconch -p "${RESOURCE_PATH}/vrecord_policy_ffv1.xml" "${VRECORD_OUTPUT}"
+        fi
     fi
-elif [[ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" ]] ; then
-    _report -d "Checking file conformance against FFV1 video policy..."
-    STATUS=$(mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_ffv1.xml" "${VRECORD_OUTPUT}" | xmlstarlet sel -N mc="https://mediaarea.net/mediaconch" -t -v mc:MediaConch/mc:media/mc:policy/@outcome -n)
-    if [[ "${STATUS}" = "pass" ]] ; then
-        _report -dt "File passed policy check for FFV1 video."
-    elif [[ "$STATUS" = "fail" ]] ; then
-        _report -wt "File did not pass vrecord policy check for FFV1 video and may not conform to digital preservation standards. Try another file?"
-        mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_ffv1.xml" "${VRECORD_OUTPUT}" | xmlstarlet fo > "${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml"
-        _report -wt "See ${DIR}/${ID}${SUFFIX}_mediaconchreport.xml for a full MediaConch policy report."
-    else
-        mediaconch -p "${RESOURCE_PATH}/vrecord_policy_ffv1.xml" "${VRECORD_OUTPUT}"
-    fi
-fi
 
-# embed logs in Matroska files
-if [[ "${CONTAINER_CHOICE}" = "Matroska" ]] && [[ "${EMBED_LOGS_CHOICE}" = "Yes" ]] ; then
-    _report -d "Vrecord is attaching logs to your Matroska file:"
-    mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "Capture options selected by user during vrecord process" --add-attachment "${INGESTLOG}"
-    mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "Full FFmpeg output from vrecord capture process" --add-attachment "${FULL_CAPTURE_LOG}"
-    if [[ "${QCTOOLSXML_CHOICE}" = "Yes" ]] ; then
-        mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "QCTools report from vrecord capture process (zipped XML)" --add-attachment "${QCXML}"
+    # embed logs in Matroska files
+    if [[ "${CONTAINER_CHOICE}" = "Matroska" ]] && [[ "${EMBED_LOGS_CHOICE}" = "Yes" ]] ; then
+        _report -d "Vrecord is attaching logs to your Matroska file:"
+        mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "Capture options selected by user during vrecord process" --add-attachment "${INGESTLOG}"
+        mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "Full FFmpeg output from vrecord capture process" --add-attachment "${FULL_CAPTURE_LOG}"
+        if [[ "${QCTOOLSXML_CHOICE}" = "Yes" ]] ; then
+            mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "QCTools report from vrecord capture process (zipped XML)" --add-attachment "${QCXML}"
+        fi
+        _report -d "Vrecord is done attaching logs to your Matroska file!"
     fi
-    _report -d "Vrecord is done attaching logs to your Matroska file!"
-fi
 fi
