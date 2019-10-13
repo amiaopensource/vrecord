@@ -289,13 +289,9 @@ _edit_prefs() {
     fi
   }
 
-  export MAIN_DIALOG="<window title=\"vrecord configuration\">
+DECKLINK_INPUT_GUI="
+<frame Decklink input options>
     <vbox>
-        <text>
-            <label>Set file recording options.</label>
-        </text>
-        <frame Decklink input options>
-            <vbox>
                 <hbox space-expand=\"true\">
                     $(_gtk_vbox_list "VIDEO_INPUT_CHOICE"       "Select Video Input"            "${VIDEO_INPUT_OPTIONS[@]}")
                     $(_gtk_vbox_list "AUDIO_INPUT_CHOICE"       "Select Audio Input"            "${AUDIO_INPUT_OPTIONS[@]}")
@@ -309,8 +305,6 @@ _edit_prefs() {
                     <default>false</default>
                     <variable>INVERT_PHASE</variable>
                 </checkbox>
-            </vbox>
-        </frame>
         <frame Output file options>
             <hbox space-expand=\"true\">
                 $(_gtk_vbox_list "EMBED_LOGS_CHOICE"        "Embed digitization logs in video file (Matroska ONLY)" "${EMBED_LOGS_OPTIONS[@]}")
@@ -319,6 +313,17 @@ _edit_prefs() {
                 $(_gtk_vbox_list "VIDEO_CODEC_CHOICE"       "Select Video Codec"            "${VIDEO_CODEC_OPTIONS[@]}")
                 $(_gtk_vbox_list "AUDIO_CODEC_CHOICE"       "Select Audio Codec"            "${AUDIO_CODEC_OPTIONS[@]}")
             </hbox>
+        </frame>
+  export MAIN_DIALOG="<window title=\"vrecord configuration\">
+    <vbox>
+        <text>
+            <label>Set file recording options.</label>
+        </text>
+        <frame Input Options>
+        <notebook page=\"${DEVICE_INPUT_CHOICE}\" tab-labels=\"Decklink|DV|\">
+            ${DECKLINK_INPUT_GUI}
+            <variable>DEVICE_INPUT_CHOICE</variable>
+        </notebook>
         </frame>
         <hbox>
             <frame Playback options>
@@ -503,6 +508,7 @@ _edit_mode(){
             echo "As auxiliary files directory was left blank, logs will be written to recording directory at ${DIR}."
         fi
         echo "Variables set:"
+        echo "  DEVICE_INPUT_CHOICE = ${DEVICE_INPUT_CHOICE}"
         echo "  DIR = ${DIR}"
         echo "  LOGDIR = ${LOGDIR}"
         echo "  CONTAINER_CHOICE = ${CONTAINER_CHOICE}"
@@ -544,7 +550,7 @@ _edit_mode(){
         # write config file
         {
             echo "# Set these variables to a valid option or leave as empty quotes (like \"\") to request each run."
-            for COMMENT_LINE in VIDEO_INPUT_CHOICE AUDIO_INPUT_CHOICE CONTAINER_CHOICE VIDEO_CODEC_CHOICE FFV1_SLICE_CHOICE AUDIO_CODEC_CHOICE\
+            for COMMENT_LINE in DEVICE_INPUT_CHOICE VIDEO_INPUT_CHOICE AUDIO_INPUT_CHOICE CONTAINER_CHOICE VIDEO_CODEC_CHOICE FFV1_SLICE_CHOICE AUDIO_CODEC_CHOICE\
             VIDEO_BIT_DEPTH_CHOICE AUDIO_MAPPING_CHOICE TIMECODE_CHOICE STANDARD_CHOICE QCTOOLSXML_CHOICE FRAMEMD5_CHOICE \
             EMBED_LOGS_CHOICE PLAYBACKVIEW_CHOICE PLAYBACKVIEW_CHOICE_PASS DIR LOGDIR INVERT_PHASE DURATION PREFIX USER_SUFFIX NO_SUFFIX TECHNICIAN ; do
                 echo "${COMMENT_LINE}=\"${!COMMENT_LINE}\""
@@ -1137,12 +1143,14 @@ _review_option(){
     fi
 }
 
+if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
 _review_option "VIDEO_INPUT_CHOICE" "Which video input are you using?" "${VIDEO_INPUT_OPTIONS[@]}"
 _review_option "AUDIO_INPUT_CHOICE" "Which audio input are you using?" "${AUDIO_INPUT_OPTIONS[@]}"
 _review_option "VIDEO_BIT_DEPTH_CHOICE" "Which video bit depth?" "${VIDEO_BITDEPTH_OPTIONS[@]}"
 _review_option "AUDIO_MAPPING_CHOICE" "Which audio mapping?" "${CHANNEL_MAPPING_OPTIONS[@]}"
 _review_option "TIMECODE_CHOICE" "Which timecode format?" "${TIMECODE_OPTIONS[@]}"
 _review_option "STANDARD_CHOICE" "Which television STANDARD?" "${STANDARD_OPTIONS[@]}"
+fi
 if [[ "${CORE_COUNT}" -le 2 && "${RUNTYPE}" = "record" ]] ; then
     _report -w "Since this computer has only ${CORE_COUNT} cores, the playback will display only half of the frames to reduce CPU. This will not impact the recording."
     PLAYBACK_FILTER_ADJUSTMENT="select=not(mod(n\,2)),"
@@ -1170,8 +1178,8 @@ else
     GRAB_INPUT=(-loglevel info)
 fi
 if [[ -n "${ALT_INPUT}" ]] ; then
-else
     GRAB_INPUT+=(-i "${ALT_INPUT}")
+elif [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
     _get_decklink_inputs
     GRAB_INPUT+=(-f decklink)
     GRAB_INPUT+=(-draw_bars 0)
@@ -1272,12 +1280,14 @@ if [[ ! -d "${LOGDIR}" ]] ; then
     fi
 fi
 
+if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
 _review_option "CONTAINER_CHOICE" "Which audiovisual container format?" "${CONTAINER_OPTIONS[@]}"
 _review_option "VIDEO_CODEC_CHOICE" "Which video codec?" "${VIDEO_CODEC_OPTIONS[@]}"
 if [[ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" ]] ; then
     _review_option -n "FFV1_SLICE_CHOICE" "FFV1 Slice Count?" "${FFV1_SLICE_OPTIONS[@]}"
 fi
 _review_option "AUDIO_CODEC_CHOICE" "Which audio codec?" "${AUDIO_CODEC_OPTIONS[@]}"
+fi
 
 # Check for user suffix to override automatic settings
 
@@ -1390,7 +1400,10 @@ _report -d "Close the playback window to stop recording."
 RECORD_COMMAND=("${FFMPEG_DECKLINK}")
 RECORD_COMMAND+=(-metadata:s:v:0 encoder="${VIDEOCODECNAME}" "${MIDDLEOPTIONS[@]}")
 RECORD_COMMAND+=(-nostdin -nostats "${INPUTOPTIONS[@]}" "${GRAB_INPUT[@]}")
+if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
+    # DEVICE_INPUT_CHOICE=0 is decklink, other DEVICE_INPUT_CHOICE values don't yet use such filtering
 RECORD_COMMAND+=(-filter_complex "[0:v:0]${RECORDINGFILTER}${TC_WRITE}; ${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}")
+fi
 RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
 RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}" "${PIPE_OUTPUT[@]}")
 _writeingestlog "FFmpeg command" "${RECORD_COMMAND[@]}"
@@ -1523,6 +1536,7 @@ if [[ "${BUFFER_OVERRUN}" -gt 0 ]] ; then
     _writeingestlog "Decklink input buffer overrun" "Yes"
 fi
 
+if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
 # policy checks with mediaconch
 if [[ "${VIDEO_CODEC_CHOICE}" = "Uncompressed Video" ]] ; then
     _report -d "Checking file conformance against uncompressed video policy..."
@@ -1559,4 +1573,5 @@ if [[ "${CONTAINER_CHOICE}" = "Matroska" ]] && [[ "${EMBED_LOGS_CHOICE}" = "Yes"
         mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "QCTools report from vrecord capture process (zipped XML)" --add-attachment "${QCXML}"
     fi
     _report -d "Vrecord is done attaching logs to your Matroska file!"
+fi
 fi
