@@ -1105,20 +1105,31 @@ if [[ "${INVERT_PHASE}" = 'true' ]] ; then
 fi
 
 _review_option(){
+    OPTIND=1
+    while getopts "n" opt ; do
+        case "${opt}" in
+            n) NO_LOOKUP="Y" #also the SELECTED value to be used as-is rather than lookup what it means
+        esac
+    done
+    shift "$((OPTIND-1))"
     VALUE_NAME="${1}"
     SELECTED="${!1}"
     QUERY="${2}"
     shift 2
     CHOICES=("${@}")
     if [[ "${SELECTED}" ]] ; then
-        _lookup_choice "${SELECTED}"
+        if [[ "NO_LOOKUP" != "Y" ]] ; then
+          _lookup_choice "${SELECTED}"
+        fi
         LOG_OF_OPTIONS+="${VALUE_NAME}: ${SELECTED}\n"
         OPTION="${SELECTED}"
     else
         _report -q "${QUERY}"
         PS3="Select an option or 'q' to quit: "
         select OPTION in "${CHOICES[@]}" ; do
-            _lookup_choice "${OPTION}" "${REPLY}"
+            if [[ "NO_LOOKUP" != "Y" ]] ; then
+              _lookup_choice "${OPTION}" "${REPLY}"
+            fi
             [[ "${?}" -eq 0 ]] && break
         done
         export "${VALUE_NAME}"="${OPTION}"
@@ -1264,7 +1275,7 @@ fi
 _review_option "CONTAINER_CHOICE" "Which audiovisual container format?" "${CONTAINER_OPTIONS[@]}"
 _review_option "VIDEO_CODEC_CHOICE" "Which video codec?" "${VIDEO_CODEC_OPTIONS[@]}"
 if [[ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" ]] ; then
-    _review_option "FFV1_SLICE_CHOICE" "FFV1 Slice Count?" "${FFV1_SLICE_OPTIONS[@]}"
+    _review_option -n "FFV1_SLICE_CHOICE" "FFV1 Slice Count?" "${FFV1_SLICE_OPTIONS[@]}"
 fi
 _review_option "AUDIO_CODEC_CHOICE" "Which audio codec?" "${AUDIO_CODEC_OPTIONS[@]}"
 
