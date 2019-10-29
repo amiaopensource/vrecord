@@ -44,7 +44,7 @@ There are many possible ways to install the various dependencies of Vrecord on L
    - `brew tap amiaopensource/amiaos`
 
 ## Install additional vrecord dependencies via Homebrew
-* `brew install decklinksdk && brew install ffmpegdecklink --with-libiec61883 && brew install gtkdialog`
+* `brew install decklinksdk && brew install ffmpegdecklink --with-iec61883 && brew install gtkdialog`
 * `brew install --ignore-dependencies vrecord`
 
 ## Fix conflicting SDL2 dependencies
