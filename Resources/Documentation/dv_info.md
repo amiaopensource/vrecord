@@ -6,16 +6,16 @@ To capture DV formats in vrecord, you will need to have your DV deck connected d
 ![Alt text](../dv_vrecord_configuration.png "DV Capture")
 
 1. To select the deck you would like to use, go into the configuration mode either by:
-- run `vrecord -e'`
-- clicking on the “Edit Settings” button in the GUI (run 'vrecord -g')
+- run `vrecord -e`
+- clicking on the "Edit Settings" button in the GUI (run `vrecord -g`)
 
-2. Switch from the "Decklink" tab to the "DV" tab under “Input Options” at the top of the configuration window.
+2. Switch from the "Decklink" tab to the "DV" tab under "Input Options" at the top of the configuration window.
 
 3. Select the name of the DV device you want to use from the list.
 
 4. Specify the playback, sidecar, file naming, recording event and directory options as you normally would for vrecord. For details see [Editing Settings](Resources/Documentation/settings.md)
 
-5. Click “OK” to save.
+5. Click "OK" to save.
 You can then run passthrough and record modes the same as you would with analog videotape. Please note that if the timecode does not start at the very beginning of the tape, the record mode viewer will not open until the timecode is detected (as soon as the counter starts moving on your deck, the viewer window should pop-up)
 
 ## Bitstream Error Concealment
