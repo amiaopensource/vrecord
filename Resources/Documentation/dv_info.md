@@ -1,6 +1,6 @@
 # DV Capture
 
-To capture DV formats in vrecord, you will need to have your DV deck connected directly to your computer via FireWire input. Make sure your deck is in “Local” mode. At this time, vrecord is not equipped with tape control, so you will need to manually start and stop the tape just like with analog capture in vrecord. 
+To capture DV formats in vrecord (when installed in macOS), you will need to have your DV deck connected directly to your computer via FireWire input. Make sure your deck is in “Local” mode. At this time, vrecord is not equipped with tape control, so you will need to manually start and stop the tape just like with analog capture in vrecord. 
 
 ## DV Settings
 ![Alt text](../dv_vrecord_configuration.png "DV Capture")
