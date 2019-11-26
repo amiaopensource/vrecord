@@ -624,8 +624,14 @@ _audiopassthrough_mode(){
 [abcde1][a1]overlay=10:10[vo]"
     echo "ESC quit" > ~/.config/mpv/input.conf
     _check_mpv
-    "${FFMPEG_DECKLINK}" -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_INPUT[@]}" "${PIPE_OUTPUT[@]}" 2> /tmp/vrecord_input.log | \
+    if [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
+        unset PIPE_OUTPUT[0] && unset PIPE_OUTPUT[1]
+        "${FFMPEG_DECKLINK}" -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_INPUT[@]}" -c copy -f rawvideo - | "${FFMPEG_DECKLINK}" -i - "${PIPE_OUTPUT[@]}" 2> /tmp/vrecord_input.log | \
         mpv - --title="${WINDOW_NAME}" -lavfi-complex "${PLAYBACKFILTER}"
+    else
+        "${FFMPEG_DECKLINK}" -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_INPUT[@]}" "${PIPE_OUTPUT[@]}" 2> /tmp/vrecord_input.log | \
+        mpv - --title="${WINDOW_NAME}" -lavfi-complex "${PLAYBACKFILTER}"
+    fi
     _gui_return
 }
 
