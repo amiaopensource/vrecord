@@ -900,7 +900,7 @@ _lookup_choice(){
         "Broadcast Range Visual")
             PLAYBACKFILTER="\
 ${PLAYBACK_FILTER_ADJUSTMENT}split=5[a][b][c][d][e];\
-[a]copy${TIMECODE_OVERLAY}[a1];\
+[a]${RECORDINGFILTER}${TIMECODE_OVERLAY}[a1];\
 [b]field=top,${WAVEFORM_FILTER}[b1];\
 [c]field=bottom,${WAVEFORM_FILTER}[c1];\
 [d]${VECTORSCOPE_FILTER}[d1];\
@@ -909,7 +909,7 @@ ${PLAYBACK_FILTER_ADJUSTMENT}split=5[a][b][c][d][e];\
         "Full Range Visual")
             PLAYBACKFILTER="\
 ${PLAYBACK_FILTER_ADJUSTMENT}split=5[a][b][c][d][e];\
-[a]copy${TIMECODE_OVERLAY}[a1];\
+[a]${RECORDINGFILTER}${TIMECODE_OVERLAY}[a1];\
 [b]field=top,${WAVEFORM_FILTER}[b1];\
 [c]field=bottom,${WAVEFORM_FILTER}[c1];\
 [d]${VECTORSCOPE_FILTER}[d1];\
@@ -918,7 +918,7 @@ ${PLAYBACK_FILTER_ADJUSTMENT}split=5[a][b][c][d][e];\
       "Visual + Numerical")
           PLAYBACKFILTER="\
 ${PLAYBACK_FILTER_ADJUSTMENT}split=6[a][b][c][d][e][f];\
-[a]copy${TIMECODE_OVERLAY}[a1];\
+[a]${RECORDINGFILTER}${TIMECODE_OVERLAY}[a1];\
 [b]field=top,${WAVEFORM_FILTER}[b1];\
 [c]field=bottom,${WAVEFORM_FILTER}[c1];\
 [d]${VECTORSCOPE_FILTER}[d1];\
