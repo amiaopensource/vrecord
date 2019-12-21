@@ -1186,13 +1186,15 @@ if [[ "${RUNTYPE}" = "passthrough" ]] && [[ -n "${PLAYBACKVIEW_CHOICE_PASS}" ]] 
 else
   _review_option "PLAYBACKVIEW_CHOICE" "Which playback view?" "${PLAYBACKVIEW_OPTIONS[@]}"
 fi
-if [[ "${OPTION}" = "Full Range Visual" ]] ; then
-    MIDDLEOPTIONS+=(-color_range jpeg)
-else
-    MIDDLEOPTIONS+=(-color_range mpeg)
-fi
+if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
+  if [[ "${OPTION}" = "Full Range Visual" ]] ; then
+      MIDDLEOPTIONS+=(-color_range jpeg)
+  else
+      MIDDLEOPTIONS+=(-color_range mpeg)
+  fi
 
-MIDDLEOPTIONS+=(-metadata creation_time=now)
+  MIDDLEOPTIONS+=(-metadata creation_time=now)
+fi
 MIDDLEOPTIONS+=(${EXTRAOUTPUTOPTIONS[@]})
 
 # set up input and playback
