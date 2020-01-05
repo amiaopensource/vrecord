@@ -1242,17 +1242,17 @@ if [[ "${TIMECODE_SCAN}" = 1 ]] ; then
     _edit_prefs
 fi
 if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
-PIPE_OUTPUT=(-c copy)
-PIPE_OUTPUT+=(-map 0)
-PIPE_OUTPUT+=(-f matroska)
-PIPE_OUTPUT+=(-write_crc32 0)
-PIPE_OUTPUT+=(-live true)
-PIPE_OUTPUT+=(-)
+    PIPE_OUTPUT=(-c copy)
+    PIPE_OUTPUT+=(-map 0)
+    PIPE_OUTPUT+=(-f matroska)
+    PIPE_OUTPUT+=(-write_crc32 0)
+    PIPE_OUTPUT+=(-live true)
+    PIPE_OUTPUT+=(-)
 else
-  PIPE_OUTPUT=(-c copy)
-  PIPE_OUTPUT+=(-map 0)
-  PIPE_OUTPUT+=(-f rawvideo)
-  PIPE_OUTPUT+=(-)
+    PIPE_OUTPUT=(-c copy)
+    PIPE_OUTPUT+=(-map 0)
+    PIPE_OUTPUT+=(-f rawvideo)
+    PIPE_OUTPUT+=(-)
 fi
 WINDOW_NAME="mode:${RUNTYPE} - video:'${VIDEO_INPUT}' audio:'${AUDIO_INPUT}' - to end recording press q, esc, or close video window"
 
