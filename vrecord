@@ -1430,9 +1430,9 @@ fi
 _writeingestlog "FILE_PATH" "${VRECORD_OUTPUT}"
 
 if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
-DECKLINK_DRIVER_PLIST=/Library/Extensions/DeckLink_Driver.kext/Contents/Info.plist
-_writeingestlog "video_card_driver_version" "$(defaults read "${DECKLINK_DRIVER_PLIST}" CFBundleVersion)"
-_writeingestlog "video_card_name" "${FIRST_DECKLINK_INPUT}"
+    DECKLINK_DRIVER_PLIST=/Library/Extensions/DeckLink_Driver.kext/Contents/Info.plist
+    _writeingestlog "video_card_driver_version" "$(defaults read "${DECKLINK_DRIVER_PLIST}" CFBundleVersion)"
+    _writeingestlog "video_card_name" "${FIRST_DECKLINK_INPUT}"
 elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
     _writeingestlog "avfoundation_input" "${AVF_INPUT_CHOICE}"
 fi
