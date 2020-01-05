@@ -1249,12 +1249,13 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
     PIPE_OUTPUT+=(-live true)
     PIPE_OUTPUT+=(-)
 else
+    WINDOW_NAME="mode:${RUNTYPE} - video:'${VIDEO_INPUT}' audio:'${AUDIO_INPUT}' - to end recording press q, esc, or close video window"
     PIPE_OUTPUT=(-c copy)
     PIPE_OUTPUT+=(-map 0)
     PIPE_OUTPUT+=(-f rawvideo)
     PIPE_OUTPUT+=(-)
+    WINDOW_NAME="mode:${RUNTYPE} - input:'${AVF_INPUT_CHOICE}' - to end recording press q, esc, or close video window"
 fi
-WINDOW_NAME="mode:${RUNTYPE} - video:'${VIDEO_INPUT}' audio:'${AUDIO_INPUT}' - to end recording press q, esc, or close video window"
 
 _set_ffplay_options(){
     FFPLAY_OPTIONS=(-v info)
