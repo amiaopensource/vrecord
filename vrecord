@@ -1186,13 +1186,15 @@ if [[ "${RUNTYPE}" = "passthrough" ]] && [[ -n "${PLAYBACKVIEW_CHOICE_PASS}" ]] 
 else
   _review_option "PLAYBACKVIEW_CHOICE" "Which playback view?" "${PLAYBACKVIEW_OPTIONS[@]}"
 fi
-if [[ "${OPTION}" = "Full Range Visual" ]] ; then
-    MIDDLEOPTIONS+=(-color_range jpeg)
-else
-    MIDDLEOPTIONS+=(-color_range mpeg)
-fi
+if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
+  if [[ "${OPTION}" = "Full Range Visual" ]] ; then
+      MIDDLEOPTIONS+=(-color_range jpeg)
+  else
+      MIDDLEOPTIONS+=(-color_range mpeg)
+  fi
 
-MIDDLEOPTIONS+=(-metadata creation_time=now)
+  MIDDLEOPTIONS+=(-metadata creation_time=now)
+fi
 MIDDLEOPTIONS+=(${EXTRAOUTPUTOPTIONS[@]})
 
 # set up input and playback
@@ -1220,10 +1222,10 @@ elif [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
 elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
     GRAB_INPUT+=(-f avfoundation)
     GRAB_INPUT+=(-capture_raw_data true)
-    GRAB_INPUT+=(-i "${AVF_INPUT_CHOICE}")
+    GRAB_INPUT+=(-i "${AVF_INPUT_CHOICE}:none")
     MIDDLEOPTIONS+=(-c copy -map 0)
     EXTENSION="dv"
-    FORMAT="dv"
+    FORMAT="rawvideo"
 else
     _report "Input unknown"
     exit 1
@@ -1239,13 +1241,24 @@ if [[ "${TIMECODE_SCAN}" = 1 ]] ; then
     done
     _edit_prefs
 fi
-PIPE_OUTPUT=(-c copy)
-PIPE_OUTPUT+=(-map 0)
-PIPE_OUTPUT+=(-f matroska)
-PIPE_OUTPUT+=(-write_crc32 0)
-PIPE_OUTPUT+=(-live true)
-PIPE_OUTPUT+=(-)
-WINDOW_NAME="mode:${RUNTYPE} - video:'${VIDEO_INPUT}' audio:'${AUDIO_INPUT}' - to end recording press q, esc, or close video window"
+if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
+    PIPE_OUTPUT=(-c copy)
+    PIPE_OUTPUT+=(-map 0)
+    PIPE_OUTPUT+=(-f matroska)
+    PIPE_OUTPUT+=(-write_crc32 0)
+    PIPE_OUTPUT+=(-live true)
+    PIPE_OUTPUT+=(-)
+    WINDOW_NAME="mode:${RUNTYPE} - video:'${VIDEO_INPUT}' audio:'${AUDIO_INPUT}' - to end recording press q, esc, or close video window"
+elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
+    PIPE_OUTPUT=(-c copy)
+    PIPE_OUTPUT+=(-map 0)
+    PIPE_OUTPUT+=(-f rawvideo)
+    PIPE_OUTPUT+=(-)
+    WINDOW_NAME="mode:${RUNTYPE} - input:'${AVF_INPUT_CHOICE}' - to end recording press q, esc, or close video window"
+else
+    _report "Input unknown"
+    exit 1
+fi
 
 _set_ffplay_options(){
     FFPLAY_OPTIONS=(-v info)
@@ -1416,9 +1429,13 @@ fi
 
 _writeingestlog "FILE_PATH" "${VRECORD_OUTPUT}"
 
-DECKLINK_DRIVER_PLIST=/Library/Extensions/DeckLink_Driver.kext/Contents/Info.plist
-_writeingestlog "video_card_driver_version" "$(defaults read "${DECKLINK_DRIVER_PLIST}" CFBundleVersion)"
-_writeingestlog "video_card_name" "${FIRST_DECKLINK_INPUT}"
+if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
+    DECKLINK_DRIVER_PLIST=/Library/Extensions/DeckLink_Driver.kext/Contents/Info.plist
+    _writeingestlog "video_card_driver_version" "$(defaults read "${DECKLINK_DRIVER_PLIST}" CFBundleVersion)"
+    _writeingestlog "video_card_name" "${FIRST_DECKLINK_INPUT}"
+elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
+    _writeingestlog "avfoundation_input" "${AVF_INPUT_CHOICE}"
+fi
 
 echo -e "${LOG_OF_OPTIONS}" >> "${INGESTLOG}"
 if [[ -z "${TECHNICIAN}" ]] ; then
