@@ -617,24 +617,28 @@ _passthrough_mode(){
 
 _audiopassthrough_mode(){
   if [[ "${MPV_INSTALL}" = 'Cellar' ]] ; then
-    PRINT_PHASE=",drawtext=fontfile=${DEFAULTFONT}: text=Phase\\\: %{metadata\\\:lavfi.aphasemeter.phase}:x=10: y=10:fontcolor=black"
+    PRINT_PHASE=",drawtext=fontfile=${DEFAULTFONT}:box=1: text=Phase\\\: %{metadata\\\:lavfi.aphasemeter.phase}:x=135: y=380:fontcolor=black"
+    PRINT_CHANNELS_1_2=",drawtext=fontfile=${DEFAULTFONT}: text=Ch.1/2:x=10: y=10:fontcolor=white"
+    PRINT_CHANNELS_3_4=",drawtext=fontfile=${DEFAULTFONT}: text=Ch.3/4:x=10: y=10:fontcolor=white"
   fi
   if [[ "${AUDIO_MAPPING_CHOICE}" = '2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, Channels 3 & 4 -> 2nd Track Stereo)' ]] ; then
     AUDIO_SPLIT='6[a][b][c][d][e][ao]'
-    CHANNEL_PARAMS='[b]pan=stereo|c0=c0|c1=c1,avectorscope[bb],[e]pan=stereo|c0=c2|c1=c3,avectorscope[ee]'
-    AP_MAP='[aa][bb][ee][x][dd]xstack=inputs=5:layout=0_0|h0_0|h0+h1_0|h0+h1+h2_0|0_h0[vo]'
+    CHANNEL_PARAMS="[b]pan=stereo|c0=c0|c1=c1,avectorscope${PRINT_CHANNELS_1_2}[b1],[e]pan=stereo|c0=c2|c1=c3,avectorscope${PRINT_CHANNELS_3_4}[e1]"
+    AP_MAP='[a1][b1][e1][x][d1]xstack=inputs=5:layout=0_0|h0_0|h0+h1_0|h0+h1+h2_0|0_h0[vo]'
+    SPECTRUM_SIZE='1200x300'
   else
     AUDIO_SPLIT='5[a][b][c][d][ao]'
-    CHANNEL_PARAMS="[b]pan=stereo|c0=c0|c1=c1,avectorscope[bb]"
-    AP_MAP='[aa][bb][x][dd]xstack=inputs=4:layout=0_0|h0_0|h0+h1_0|0_h0[vo]'
+    CHANNEL_PARAMS="[b]pan=stereo|c0=c0|c1=c1,avectorscope${PRINT_CHANNELS_1_2}[b1]"
+    AP_MAP='[a1][b1][x][d1]xstack=inputs=4:layout=0_0|h0_0|h0+h1_0|0_h0[vo]'
+    SPECTRUM_SIZE='900x300'
   fi
     PLAYBACKFILTER="[aid1]asplit=${AUDIO_SPLIT},\
-    [a]aphasemeter=video=0,adrawgraph=lavfi.aphasemeter.phase:max=1:min=-1:size=400x400${PRINT_PHASE}[aa],\
+    [a]aphasemeter=video=0,adrawgraph=lavfi.aphasemeter.phase:max=1:min=-1:size=400x400${PRINT_PHASE}[a1],\
     ${CHANNEL_PARAMS},\
-    [c]showvolume=t=0:h=17:w=200[cc],\
-    [d]showspectrum=s=900x300:fps=10:color=rainbow:legend=1[dd],\
+    [c]showvolume=t=0:h=17:w=200[c1],\
+    [d]showspectrum=s=${SPECTRUM_SIZE}:fps=10:color=rainbow:legend=1[d1],\
     [vid1]scale=400x400[vidscale],\
-    [vidscale][cc]overlay=10:10[x],\
+    [vidscale][c1]overlay=10:10[x],\
     ${AP_MAP}"
     echo "ESC quit" > ~/.config/mpv/input.conf
     _check_mpv
