@@ -207,20 +207,6 @@ elif [[ "${RUNTYPE}" = "record" || "${RUNTYPE}" = "edit" ]] ; then
     exec "${SCRIPTNAME}" -e
 fi
 
-# local functions
-_get_decklink_inputs(){
-    DECKLINK_INPUTS=$("${FFMPEG_DECKLINK}" -f decklink -list_devices 1 -i dummy 2>&1 | grep -o "^\[decklink[^\]*][^']*'.*" | cut -d "'" -f2- | sed "s/'$//g")
-    if [[ -z "${DECKLINK_INPUTS}" ]] ; then
-        _report -w "No decklink inputs were found. Running \`${FFMPEG_DECKLINK} -hide_banner -f decklink -list_devices 1 -i dummy\` results in:"
-        DECKLINK_RESULT=$("${FFMPEG_DECKLINK}" -hide_banner -f decklink -list_devices 1 -i dummy)
-        echo "${DECKLINK_RESULT}"
-        _report -w "Please check connections and drivers and try again."
-        exit 1
-    else
-        FIRST_DECKLINK_INPUT="$(echo "${DECKLINK_INPUTS}" | head -n 1 )"
-    fi
-}
-
 _gtk_vbox_list() {
     VARIABLE_NAME="${1}"
     LABEL="${2}"
@@ -289,10 +275,16 @@ _edit_prefs() {
     fi
   }
 
+unset DECKLINK_DEVICES
+while read decklink_device ; do
+  DECKLINK_DEVICES+=("${decklink_device}")
+done < <("${FFMPEG_DECKLINK}" -nostdin -v 0 -sources decklink | awk -F'[][]' '{print $2}' | grep -v "^$")
+
 DECKLINK_INPUT_GUI="
 <frame Decklink input options>
     <vbox>
         <hbox space-expand=\"true\">
+            $(_gtk_vbox_list "DECKLINK_INPUT_CHOICE"    "Select Video Card"             "${DECKLINK_DEVICES[@]}")
             $(_gtk_vbox_list "VIDEO_INPUT_CHOICE"       "Select Video Input"            "${VIDEO_INPUT_OPTIONS[@]}")
             $(_gtk_vbox_list "AUDIO_INPUT_CHOICE"       "Select Audio Input"            "${AUDIO_INPUT_OPTIONS[@]}")
             $(_gtk_vbox_list "AUDIO_MAPPING_CHOICE"     "Select Audio Channel Mapping"  "${CHANNEL_MAPPING_OPTIONS[@]}" )
@@ -1208,7 +1200,6 @@ fi
 if [[ -n "${ALT_INPUT}" ]] ; then
     GRAB_INPUT+=(-i "${ALT_INPUT}")
 elif [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
-    _get_decklink_inputs
     GRAB_INPUT+=(-f decklink)
     GRAB_INPUT+=(-draw_bars 0)
     GRAB_INPUT+=(-audio_input "${AUDIO_INPUT}")
@@ -1218,7 +1209,7 @@ elif [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
     GRAB_INPUT+=(-audio_depth 32)
     GRAB_INPUT+=(-raw_format "${PIXEL_FORMAT}")
     GRAB_INPUT+=("${EXTRAINPUTOPTIONS[@]}")
-    GRAB_INPUT+=(-i "${FIRST_DECKLINK_INPUT}")
+    GRAB_INPUT+=(-i "${DECKLINK_INPUT_CHOICE}")
 elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
     GRAB_INPUT+=(-f avfoundation)
     GRAB_INPUT+=(-capture_raw_data true)
@@ -1432,7 +1423,7 @@ _writeingestlog "FILE_PATH" "${VRECORD_OUTPUT}"
 if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
     DECKLINK_DRIVER_PLIST=/Library/Extensions/DeckLink_Driver.kext/Contents/Info.plist
     _writeingestlog "video_card_driver_version" "$(defaults read "${DECKLINK_DRIVER_PLIST}" CFBundleVersion)"
-    _writeingestlog "video_card_name" "${FIRST_DECKLINK_INPUT}"
+    _writeingestlog "video_card_name" "${DECKLINK_INPUT_CHOICE}"
 elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
     _writeingestlog "avfoundation_input" "${AVF_INPUT_CHOICE}"
 fi
