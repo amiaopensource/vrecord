@@ -21,7 +21,7 @@ unset SUFFIX
 unset DURATION
 unset TECHNICIAN
 RUNTYPE="record"
-CAPTURELOGSUFFIX="_ffmpeg_decklink_input.log"
+CAPTURELOGSUFFIX="_ffmpeg_input.log"
 TIMECODELOGSUFFIX="_frame_timecodes.txt"
 unset EXTRAOUTPUTS
 SAT_OUTLIER_THRSHLD=14
@@ -1573,7 +1573,7 @@ elif [[ "${FRAMEMD5_CHOICE}" = "No" ]] ; then
     fi
 fi
 
-# check for frames dropped in decklink_input.log
+# check for frames dropped in ffmpeg_input.log
 DROPPED_FRAMES_INSTANCES=$(grep -c "Frames dropped" "${FULL_CAPTURE_LOG}")
 DROPPED_FRAMES_FRAMENUMBERS=$(grep "Frames dropped" "${FULL_CAPTURE_LOG}" | awk '{print $6}' | sed 's/[(#)]//g')
 if [[ "${DROPPED_FRAMES_INSTANCES}" -gt 0 ]] ; then
