@@ -1439,6 +1439,12 @@ fi
 if [[ "${INVERT_PHASE}" = 1 ]] ; then
     _writeingestlog "INVERT_PHASE" "Yes"
 fi
+if [[ -n "${EXTRAINPUTOPTIONS[@]}" ]] ; then
+    _writeingestlog "EXTRA_INPUT_OPTIONS" "${EXTRAINPUTOPTIONS[@]}"
+fi
+if [[ -n "${EXTRAOUTPUTOPTIONS[@]}" ]] ; then
+    _writeingestlog "EXTRA_OUTPUT_OPTIONS" "${EXTRAOUTPUTOPTIONS[@]}"
+fi
 
 _report -d "Close the playback window to stop recording."
 
