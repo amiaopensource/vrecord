@@ -27,7 +27,7 @@ unset EXTRAOUTPUTS
 SAT_OUTLIER_THRSHLD=14
 AUD_OUTLIER_THRSHLD=10
 BRNG_OUTLIER_THRSHLD=14
-BREW_PREFIX=$(brew --prefix ffmpegdecklink 2>/dev/null)
+BREW_PREFIX="$(brew --prefix ffmpegdecklink 2>/dev/null)"
 FFMPEG_DECKLINK="${BREW_PREFIX}/bin/ffmpeg-dl"
 FFPLAY_DECKLINK="${BREW_PREFIX}/bin/ffplay-dl"
 FFPROBE_DECKLINK="${BREW_PREFIX}/bin/ffprobe-dl"
