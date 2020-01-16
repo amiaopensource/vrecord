@@ -47,8 +47,9 @@ _usage(){
     cat <<EOF
 ${SCRIPTNAME} ${VERSION}
 
-${SCRIPTNAME} will record a file via the Blackmagic SDK and ffmpeg. It is an
-interactive script and will create 10 or 8-bit video files.
+${SCRIPTNAME} will record a file via ffmpeg and the the Blackmagic SDK or
+AVFoundation. It is an interactive script and will create 10 or 8-bit video
+files.
 
 Dependencies: cowsay, amiaopensource/amiaos/decklinksdk,
   amiaopensource/amiaos/ffmpegdecklink, amiaopensource/amiaos/gtkdialog,
