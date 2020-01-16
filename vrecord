@@ -457,34 +457,34 @@ _home_gui(){
             <hbox>
                 <button>
                     <label>Record</label>
-                    <input file>${RESOURCE_PATH}/vrecord logo.png</input>
+                    <input file>${RESOURCE_PATH}/vrecord_logo.png</input>
                     <action type=\"exit\">record</action>
                 </button>
                 <button>
                     <label>Passthrough</label>
-                    <input file>${RESOURCE_PATH}/vrecord logo playback.png</input>
+                    <input file>${RESOURCE_PATH}/vrecord_logo_playback.png</input>
                     <action type=\"exit\">passthrough</action>
                 </button>
                 <button>
                     <label>Audio Check</label>
-                    <input file>${RESOURCE_PATH}/vrecord logo audio.png</input>
+                    <input file>${RESOURCE_PATH}/vrecord_logo_audio.png</input>
                     <action type=\"exit\">audiopassthrough</action>
                 </button>
                 </hbox>
                 <hbox>
                 <button>
                     <label>Edit Settings</label>
-                    <input file>${RESOURCE_PATH}/vrecord logo edit.png</input>
+                    <input file>${RESOURCE_PATH}/vrecord_logo_edit.png</input>
                     <action type=\"exit\">edit</action>
                 </button>
                 <button>
                     <label>Help</label>
-                    <input file>${RESOURCE_PATH}/vrecord logo help.png</input>
+                    <input file>${RESOURCE_PATH}/vrecord_logo_help.png</input>
                     <action>man vrecord</action>
                 </button>
                 <button>
                     <label>Documentation</label>
-                    <input file>${RESOURCE_PATH}/vrecord logo documentation.png</input>
+                    <input file>${RESOURCE_PATH}/vrecord_logo_documentation.png</input>
                     <action>open https://github.com/amiaopensource/vrecord#vrecord-documentation</action>
                 </button>
             </hbox>
