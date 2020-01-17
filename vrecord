@@ -485,7 +485,7 @@ _home_gui(){
                 <button>
                     <label>Documentation</label>
                     <input file>${RESOURCE_PATH}/vrecord_logo_documentation.png</input>
-                    <action>open https://github.com/amiaopensource/vrecord#vrecord-documentation</action>
+                    <action>${OPEN_COMMAND} https://github.com/amiaopensource/vrecord#vrecord-documentation</action>
                 </button>
             </hbox>
         </vbox>
