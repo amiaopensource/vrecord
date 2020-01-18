@@ -1378,7 +1378,12 @@ if [[ -z "${TECHNICIAN}" ]] ; then
     read TECHNICIAN
 fi
 
-_report -d "Summary: ${VIDEOCODECNAME}/${FORMAT} ${PIXEL_FORMAT} file from ${STANDARD} ${VIDEO_INPUT} ${AUDIO_INPUT}. Frame MD5s=${FRAMEMD5_CHOICE}, QCTools XML=${QCTOOLSXML_CHOICE}, and Technician=${TECHNICIAN}. Inputs recorded to ${VRECORD_OUTPUT} and Auxiliary Files created in ${LOGDIR}"
+if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
+    _report -d "Summary: ${VIDEOCODECNAME}/${FORMAT} ${PIXEL_FORMAT} file from ${STANDARD} ${VIDEO_INPUT} ${AUDIO_INPUT}. Frame MD5s=${FRAMEMD5_CHOICE}, QCTools XML=${QCTOOLSXML_CHOICE}, and Technician=${TECHNICIAN}. Inputs recorded to ${VRECORD_OUTPUT} and Auxiliary Files created in ${LOGDIR}"
+elif [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
+    _report -d "Summary: Copying video from ${AVF_INPUT_CHOICE}. Frame MD5s=${FRAMEMD5_CHOICE}, QCTools XML=${QCTOOLSXML_CHOICE}, and Technician=${TECHNICIAN}. Inputs recorded to ${VRECORD_OUTPUT} and Auxiliary Files created in ${LOGDIR}"
+fi
+
 if [[ "${INVERT_PHASE}" = 'true' ]] ; then
     echo -e " \033[101mWARNING: Option to invert phase of second audio channel has been selected\033[0m"
 fi
