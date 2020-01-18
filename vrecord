@@ -250,7 +250,14 @@ _gtk_vbox_list() {
     </vbox>"
 }
 
-unset AVFOUNDATION_DEVICES
+# get information on what input device options are available
+unset DECKLINK_DEVICES AVFOUNDATION_DEVICES
+while read decklink_device ; do
+  DECKLINK_DEVICES+=("${decklink_device}")
+done < <("${FFMPEG_DECKLINK}" -nostdin -v 0 -sources decklink | awk -F'[][]' '{print $2}' | grep -v "^$")
+if [[ "${#DECKLINK_DEVICES[@]}" = 1 ]] ; then # default to first input if only one
+  DECKLINK_INPUT_CHOICE="${DECKLINK_DEVICES[1]}"
+fi
 while read avf_device ; do
     AVFOUNDATION_DEVICES+=("${avf_device}")
 done < <("${FFMPEG_DECKLINK}" -nostdin -hide_banner -f avfoundation -list_devices 1 -i dummy 2>&1 | grep -o "\[[0-9]\].*" | cut -d " " -f2-)
@@ -280,11 +287,6 @@ _edit_prefs() {
       echo -n "${MATCH}"
     fi
   }
-
-unset DECKLINK_DEVICES
-while read decklink_device ; do
-  DECKLINK_DEVICES+=("${decklink_device}")
-done < <("${FFMPEG_DECKLINK}" -nostdin -v 0 -sources decklink | awk -F'[][]' '{print $2}' | grep -v "^$")
 
 DECKLINK_INPUT_GUI="
 <frame Decklink input options>
@@ -521,6 +523,7 @@ _edit_mode(){
         echo "Variables set:"
         echo "  DEVICE_INPUT_CHOICE = ${DEVICE_INPUT_CHOICE}"
         echo "  AVF_INPUT_CHOICE = ${AVF_INPUT_CHOICE}"
+        echo "  DECKLINK_INPUT_CHOICE = ${DECKLINK_INPUT_CHOICE}"
         echo "  DIR = ${DIR}"
         echo "  LOGDIR = ${LOGDIR}"
         echo "  CONTAINER_CHOICE = ${CONTAINER_CHOICE}"
@@ -565,7 +568,7 @@ _edit_mode(){
             for COMMENT_LINE in DEVICE_INPUT_CHOICE VIDEO_INPUT_CHOICE AUDIO_INPUT_CHOICE CONTAINER_CHOICE VIDEO_CODEC_CHOICE FFV1_SLICE_CHOICE AUDIO_CODEC_CHOICE\
             VIDEO_BIT_DEPTH_CHOICE AUDIO_MAPPING_CHOICE TIMECODE_CHOICE STANDARD_CHOICE QCTOOLSXML_CHOICE FRAMEMD5_CHOICE \
             EMBED_LOGS_CHOICE PLAYBACKVIEW_CHOICE PLAYBACKVIEW_CHOICE_PASS DIR LOGDIR INVERT_PHASE DURATION PREFIX USER_SUFFIX NO_SUFFIX TECHNICIAN \
-            AVF_INPUT_CHOICE ; do
+            AVF_INPUT_CHOICE DECKLINK_INPUT_CHOICE ; do
                 echo "${COMMENT_LINE}=\"${!COMMENT_LINE}\""
             done
         } > "${CONFIG_FILE}"
