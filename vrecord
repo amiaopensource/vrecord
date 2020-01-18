@@ -250,6 +250,11 @@ _gtk_vbox_list() {
     </vbox>"
 }
 
+unset AVFOUNDATION_DEVICES
+while read avf_device ; do
+    AVFOUNDATION_DEVICES+=("${avf_device}")
+done < <("${FFMPEG_DECKLINK}" -nostdin -hide_banner -f avfoundation -list_devices 1 -i dummy 2>&1 | grep -o "\[[0-9]\].*" | cut -d " " -f2-)
+
 _edit_prefs() {
   _expand_list2items(){
     LIST=( "$@" )
@@ -309,11 +314,6 @@ DECKLINK_INPUT_GUI="
         </frame>
     </vbox>
 </frame>"
-
-unset AVFOUNDATION_DEVICES
-while read avf_device ; do
-    AVFOUNDATION_DEVICES+=("${avf_device}")
-done < <("${FFMPEG_DECKLINK}" -nostdin -hide_banner -f avfoundation -list_devices 1 -i dummy 2>&1 | grep -o "\[[0-9]\].*" | cut -d " " -f2-)
 
 AVFOUNDATION_INPUT_GUI="
 <frame AVFoundation input options>
@@ -1169,6 +1169,8 @@ if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
     _review_option "AUDIO_MAPPING_CHOICE" "Which audio mapping?" "${CHANNEL_MAPPING_OPTIONS[@]}"
     _review_option "TIMECODE_CHOICE" "Which timecode format?" "${TIMECODE_OPTIONS[@]}"
     _review_option "STANDARD_CHOICE" "Which television STANDARD?" "${STANDARD_OPTIONS[@]}"
+elif [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
+    _review_option -n "AVF_INPUT_CHOICE" "Which avfoundation input are you using?" "${AVFOUNDATION_DEVICES[@]}"
 fi
 if [[ "${CORE_COUNT}" -le 2 && "${RUNTYPE}" = "record" ]] ; then
     _report -w "Since this computer has only ${CORE_COUNT} cores, the playback will display only half of the frames to reduce CPU. This will not impact the recording."
