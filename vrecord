@@ -1143,7 +1143,7 @@ _review_option(){
     shift 2
     CHOICES=("${@}")
     if [[ "${SELECTED}" ]] ; then
-        if [[ "NO_LOOKUP" != "Y" ]] ; then
+        if [[ "${NO_LOOKUP}" != "Y" ]] ; then
           _lookup_choice "${SELECTED}"
         fi
         LOG_OF_OPTIONS+="${VALUE_NAME}: ${SELECTED}\n"
@@ -1152,7 +1152,7 @@ _review_option(){
         _report -q "${QUERY}"
         PS3="Select an option or 'q' to quit: "
         select OPTION in "${CHOICES[@]}" ; do
-            if [[ "NO_LOOKUP" != "Y" ]] ; then
+            if [[ "${NO_LOOKUP}" != "Y" ]] ; then
               _lookup_choice "${OPTION}" "${REPLY}"
             fi
             [[ "${?}" -eq 0 ]] && break
