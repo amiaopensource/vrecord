@@ -6,7 +6,7 @@ Run edit mode by typing:
 ```
 vrecord -e
 ```
-(https://drive.google.com/open?id=1BY6Mu2qkBg1l7oETNBsFNK8Qs_hU6f-k)
+![vrecord window](../vrecord_settings.png)
 
 After selecting all of your options and clicking "OK," you will be prompted to enter a unique ID for the file. After the ID is entered, the incoming video signal will be recorded to a file with some associated metadata files. When you are finished recording, you can close the vrecord window. If you've set a time limit for capture, the vrecord window will automatically close when the time limit has been reached.
 
