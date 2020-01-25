@@ -628,18 +628,21 @@ _audiopassthrough_mode(){
         PRINT_PHASE=",drawtext=fontfile=${DEFAULTFONT}:box=1: text=Phase\\\: %{metadata\\\:lavfi.aphasemeter.phase}:x=135:y=380:fontcolor=black"
         PRINT_CHANNELS_1_2=",drawtext=fontfile=${DEFAULTFONT}: text=Ch.1/2:x=10: y=10:fontcolor=white"
         AUDIO_SPLIT='5[a][b][c][d][out1]'
-        CHANNEL_PARAMS="[b]pan=stereo|c0=c0|c1=c1,avectorscope${PRINT_CHANNELS_1_2}[b1]"
-        AP_MAP='[a1][b1][x][d1]xstack=inputs=4:layout=0_0|h0_0|h0+h1_0|0_h0,fps=25[out0]'
+        CHANNEL_PARAMS="[b]pan=stereo|c0=c0|c1=c1,avectorscope=s=300x400${PRINT_CHANNELS_1_2}[b1]"
+        AP_MAP='[a1][b1][x][d1][TFIELD][BFIELD][vector]xstack=inputs=7:layout=0_0|w0_0|w0+w1_0|0_h0|0_h0+h3|w4_h0+h3|w0+w1+w2_0,fps=25[out0]'
         PHASE_LOCATION='x=135:y=380'
-        PHASE_MAP="[a]aphasemeter=video=0,adrawgraph=lavfi.aphasemeter.phase:max=1:min=-1:size=400x400:bg=black:fg1=0x99999999,drawbox=x=0:y=200:w=400:c=white:h=1${PRINT_PHASE}${PRINT_CHANNELS_1_2}[a1]"
-        SPECTRUM_SIZE='915x300'
+        PHASE_MAP="[a]aphasemeter=video=0,adrawgraph=lavfi.aphasemeter.phase:max=1:min=-1:size=300x400:bg=black:fg1=0x99999999,drawbox=x=0:y=200:w=400:c=white:h=1${PRINT_PHASE}${PRINT_CHANNELS_1_2}[a1]"
+        SPECTRUM_SIZE='500x200'
     fi
     PLAYBACKFILTER="streams=dv+da[vid][aud],[aud]asplit=${AUDIO_SPLIT},\
     ${PHASE_MAP},\
     ${CHANNEL_PARAMS},\
     [c]showvolume=t=0:h=17:w=200[c1],\
     [d]showspectrum=s=${SPECTRUM_SIZE}:fps=10:color=rainbow:legend=1[d1],\
-    [vid]scale=400x400[vidscale],\
+    [vid]split=4[vid1][vid2][vid3][vid4],[vid1]scale=400x400[vidscale],\
+    [vid2]field=top,${WAVEFORM_FILTER}[TFIELD],\
+    [vid3]field=bottom,${WAVEFORM_FILTER}[BFIELD],\
+    [vid4]${VECTORSCOPE_FILTER}[vector],\
     [vidscale][c1]overlay=10:10[x],\
     ${AP_MAP}"
 
