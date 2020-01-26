@@ -256,7 +256,7 @@ while read decklink_device ; do
   DECKLINK_DEVICES+=("${decklink_device}")
 done < <("${FFMPEG_DECKLINK}" -nostdin -v 0 -sources decklink | awk -F'[][]' '{print $2}' | grep -v "^$")
 if [[ "${#DECKLINK_DEVICES[@]}" = 1 ]] ; then # default to first input if only one
-  DECKLINK_INPUT_CHOICE="${DECKLINK_DEVICES[1]}"
+  DECKLINK_INPUT_CHOICE="${DECKLINK_DEVICES[0]}"
 fi
 while read avf_device ; do
     AVFOUNDATION_DEVICES+=("${avf_device}")
