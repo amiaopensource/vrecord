@@ -21,13 +21,13 @@ unset SUFFIX
 unset DURATION
 unset TECHNICIAN
 RUNTYPE="record"
-CAPTURELOGSUFFIX="_ffmpeg_decklink_input.log"
+CAPTURELOGSUFFIX="_ffmpeg_input.log"
 TIMECODELOGSUFFIX="_frame_timecodes.txt"
 unset EXTRAOUTPUTS
 SAT_OUTLIER_THRSHLD=14
 AUD_OUTLIER_THRSHLD=10
 BRNG_OUTLIER_THRSHLD=14
-BREW_PREFIX=$(brew --prefix ffmpegdecklink 2>/dev/null)
+BREW_PREFIX="$(brew --prefix ffmpegdecklink 2>/dev/null)"
 FFMPEG_DECKLINK="${BREW_PREFIX}/bin/ffmpeg-dl"
 FFPLAY_DECKLINK="${BREW_PREFIX}/bin/ffplay-dl"
 FFPROBE_DECKLINK="${BREW_PREFIX}/bin/ffprobe-dl"
@@ -47,8 +47,9 @@ _usage(){
     cat <<EOF
 ${SCRIPTNAME} ${VERSION}
 
-${SCRIPTNAME} will record a file via the Blackmagic SDK and ffmpeg. It is an
-interactive script and will create 10 or 8-bit video files.
+${SCRIPTNAME} will record a file via ffmpeg and the the Blackmagic SDK or
+AVFoundation. It is an interactive script and will create 10 or 8-bit video
+files.
 
 Dependencies: cowsay, amiaopensource/amiaos/decklinksdk,
   amiaopensource/amiaos/ffmpegdecklink, amiaopensource/amiaos/gtkdialog,
@@ -207,20 +208,6 @@ elif [[ "${RUNTYPE}" = "record" || "${RUNTYPE}" = "edit" ]] ; then
     exec "${SCRIPTNAME}" -e
 fi
 
-# local functions
-_get_decklink_inputs(){
-    DECKLINK_INPUTS=$("${FFMPEG_DECKLINK}" -f decklink -list_devices 1 -i dummy 2>&1 | grep -o "^\[decklink[^\]*][^']*'.*" | cut -d "'" -f2- | sed "s/'$//g")
-    if [[ -z "${DECKLINK_INPUTS}" ]] ; then
-        _report -w "No decklink inputs were found. Running \`${FFMPEG_DECKLINK} -hide_banner -f decklink -list_devices 1 -i dummy\` results in:"
-        DECKLINK_RESULT=$("${FFMPEG_DECKLINK}" -hide_banner -f decklink -list_devices 1 -i dummy)
-        echo "${DECKLINK_RESULT}"
-        _report -w "Please check connections and drivers and try again."
-        exit 1
-    else
-        FIRST_DECKLINK_INPUT="$(echo "${DECKLINK_INPUTS}" | head -n 1 )"
-    fi
-}
-
 _gtk_vbox_list() {
     VARIABLE_NAME="${1}"
     LABEL="${2}"
@@ -263,6 +250,18 @@ _gtk_vbox_list() {
     </vbox>"
 }
 
+# get information on what input device options are available
+unset DECKLINK_DEVICES AVFOUNDATION_DEVICES
+while read decklink_device ; do
+  DECKLINK_DEVICES+=("${decklink_device}")
+done < <("${FFMPEG_DECKLINK}" -nostdin -v 0 -sources decklink | awk -F'[][]' '{print $2}' | grep -v "^$")
+if [[ "${#DECKLINK_DEVICES[@]}" = 1 ]] ; then # default to first input if only one
+  DECKLINK_INPUT_CHOICE="${DECKLINK_DEVICES[0]}"
+fi
+while read avf_device ; do
+    AVFOUNDATION_DEVICES+=("${avf_device}")
+done < <("${FFMPEG_DECKLINK}" -nostdin -hide_banner -f avfoundation -list_devices 1 -i dummy 2>&1 | grep -o "\[[0-9]\].*" | cut -d " " -f2-)
+
 _edit_prefs() {
   _expand_list2items(){
     LIST=( "$@" )
@@ -293,6 +292,7 @@ DECKLINK_INPUT_GUI="
 <frame Decklink input options>
     <vbox>
         <hbox space-expand=\"true\">
+            $(_gtk_vbox_list "DECKLINK_INPUT_CHOICE"    "Select Video Card"             "${DECKLINK_DEVICES[@]}")
             $(_gtk_vbox_list "VIDEO_INPUT_CHOICE"       "Select Video Input"            "${VIDEO_INPUT_OPTIONS[@]}")
             $(_gtk_vbox_list "AUDIO_INPUT_CHOICE"       "Select Audio Input"            "${AUDIO_INPUT_OPTIONS[@]}")
             $(_gtk_vbox_list "AUDIO_MAPPING_CHOICE"     "Select Audio Channel Mapping"  "${CHANNEL_MAPPING_OPTIONS[@]}" )
@@ -316,11 +316,6 @@ DECKLINK_INPUT_GUI="
         </frame>
     </vbox>
 </frame>"
-
-unset AVFOUNDATION_DEVICES
-while read avf_device ; do
-    AVFOUNDATION_DEVICES+=("${avf_device}")
-done < <("${FFMPEG_DECKLINK}" -nostdin -hide_banner -f avfoundation -list_devices 1 -i dummy 2>&1 | grep -o "\[[0-9]\].*" | cut -d " " -f2-)
 
 AVFOUNDATION_INPUT_GUI="
 <frame AVFoundation input options>
@@ -528,6 +523,7 @@ _edit_mode(){
         echo "Variables set:"
         echo "  DEVICE_INPUT_CHOICE = ${DEVICE_INPUT_CHOICE}"
         echo "  AVF_INPUT_CHOICE = ${AVF_INPUT_CHOICE}"
+        echo "  DECKLINK_INPUT_CHOICE = ${DECKLINK_INPUT_CHOICE}"
         echo "  DIR = ${DIR}"
         echo "  LOGDIR = ${LOGDIR}"
         echo "  CONTAINER_CHOICE = ${CONTAINER_CHOICE}"
@@ -572,7 +568,7 @@ _edit_mode(){
             for COMMENT_LINE in DEVICE_INPUT_CHOICE VIDEO_INPUT_CHOICE AUDIO_INPUT_CHOICE CONTAINER_CHOICE VIDEO_CODEC_CHOICE FFV1_SLICE_CHOICE AUDIO_CODEC_CHOICE\
             VIDEO_BIT_DEPTH_CHOICE AUDIO_MAPPING_CHOICE TIMECODE_CHOICE STANDARD_CHOICE QCTOOLSXML_CHOICE FRAMEMD5_CHOICE \
             EMBED_LOGS_CHOICE PLAYBACKVIEW_CHOICE PLAYBACKVIEW_CHOICE_PASS DIR LOGDIR INVERT_PHASE DURATION PREFIX USER_SUFFIX NO_SUFFIX TECHNICIAN \
-            AVF_INPUT_CHOICE ; do
+            AVF_INPUT_CHOICE DECKLINK_INPUT_CHOICE ; do
                 echo "${COMMENT_LINE}=\"${!COMMENT_LINE}\""
             done
         } > "${CONFIG_FILE}"
@@ -1169,7 +1165,7 @@ _review_option(){
     shift 2
     CHOICES=("${@}")
     if [[ "${SELECTED}" ]] ; then
-        if [[ "NO_LOOKUP" != "Y" ]] ; then
+        if [[ "${NO_LOOKUP}" != "Y" ]] ; then
           _lookup_choice "${SELECTED}"
         fi
         LOG_OF_OPTIONS+="${VALUE_NAME}: ${SELECTED}\n"
@@ -1178,7 +1174,7 @@ _review_option(){
         _report -q "${QUERY}"
         PS3="Select an option or 'q' to quit: "
         select OPTION in "${CHOICES[@]}" ; do
-            if [[ "NO_LOOKUP" != "Y" ]] ; then
+            if [[ "${NO_LOOKUP}" != "Y" ]] ; then
               _lookup_choice "${OPTION}" "${REPLY}"
             fi
             [[ "${?}" -eq 0 ]] && break
@@ -1195,6 +1191,8 @@ if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
     _review_option "AUDIO_MAPPING_CHOICE" "Which audio mapping?" "${CHANNEL_MAPPING_OPTIONS[@]}"
     _review_option "TIMECODE_CHOICE" "Which timecode format?" "${TIMECODE_OPTIONS[@]}"
     _review_option "STANDARD_CHOICE" "Which television STANDARD?" "${STANDARD_OPTIONS[@]}"
+elif [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
+    _review_option -n "AVF_INPUT_CHOICE" "Which avfoundation input are you using?" "${AVFOUNDATION_DEVICES[@]}"
 fi
 if [[ "${CORE_COUNT}" -le 2 && "${RUNTYPE}" = "record" ]] ; then
     _report -w "Since this computer has only ${CORE_COUNT} cores, the playback will display only half of the frames to reduce CPU. This will not impact the recording."
@@ -1225,9 +1223,9 @@ else
     GRAB_INPUT=(-loglevel info)
 fi
 if [[ -n "${ALT_INPUT}" ]] ; then
+    GRAB_INPUT+=("${EXTRAINPUTOPTIONS[@]}")
     GRAB_INPUT+=(-i "${ALT_INPUT}")
 elif [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
-    _get_decklink_inputs
     GRAB_INPUT+=(-f decklink)
     GRAB_INPUT+=(-draw_bars 0)
     GRAB_INPUT+=(-audio_input "${AUDIO_INPUT}")
@@ -1237,10 +1235,11 @@ elif [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
     GRAB_INPUT+=(-audio_depth 32)
     GRAB_INPUT+=(-raw_format "${PIXEL_FORMAT}")
     GRAB_INPUT+=("${EXTRAINPUTOPTIONS[@]}")
-    GRAB_INPUT+=(-i "${FIRST_DECKLINK_INPUT}")
+    GRAB_INPUT+=(-i "${DECKLINK_INPUT_CHOICE}")
 elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
     GRAB_INPUT+=(-f avfoundation)
     GRAB_INPUT+=(-capture_raw_data true)
+    GRAB_INPUT+=("${EXTRAINPUTOPTIONS[@]}")
     GRAB_INPUT+=(-i "${AVF_INPUT_CHOICE}:none")
     MIDDLEOPTIONS+=(-c copy -map 0)
     EXTENSION="dv"
@@ -1401,7 +1400,12 @@ if [[ -z "${TECHNICIAN}" ]] ; then
     read TECHNICIAN
 fi
 
-_report -d "Summary: ${VIDEOCODECNAME}/${FORMAT} ${PIXEL_FORMAT} file from ${STANDARD} ${VIDEO_INPUT} ${AUDIO_INPUT}. Frame MD5s=${FRAMEMD5_CHOICE}, QCTools XML=${QCTOOLSXML_CHOICE}, and Technician=${TECHNICIAN}. Inputs recorded to ${VRECORD_OUTPUT} and Auxiliary Files created in ${LOGDIR}"
+if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
+    _report -d "Summary: ${VIDEOCODECNAME}/${FORMAT} ${PIXEL_FORMAT} file from ${STANDARD} ${VIDEO_INPUT} ${AUDIO_INPUT}. Frame MD5s=${FRAMEMD5_CHOICE}, QCTools XML=${QCTOOLSXML_CHOICE}, and Technician=${TECHNICIAN}. Inputs recorded to ${VRECORD_OUTPUT} and Auxiliary Files created in ${LOGDIR}"
+elif [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
+    _report -d "Summary: Copying video from ${AVF_INPUT_CHOICE}. Frame MD5s=${FRAMEMD5_CHOICE}, QCTools XML=${QCTOOLSXML_CHOICE}, and Technician=${TECHNICIAN}. Inputs recorded to ${VRECORD_OUTPUT} and Auxiliary Files created in ${LOGDIR}"
+fi
+
 if [[ "${INVERT_PHASE}" = 'true' ]] ; then
     echo -e " \033[101mWARNING: Option to invert phase of second audio channel has been selected\033[0m"
 fi
@@ -1451,7 +1455,7 @@ _writeingestlog "FILE_PATH" "${VRECORD_OUTPUT}"
 if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
     DECKLINK_DRIVER_PLIST=/Library/Extensions/DeckLink_Driver.kext/Contents/Info.plist
     _writeingestlog "video_card_driver_version" "$(defaults read "${DECKLINK_DRIVER_PLIST}" CFBundleVersion)"
-    _writeingestlog "video_card_name" "${FIRST_DECKLINK_INPUT}"
+    _writeingestlog "video_card_name" "${DECKLINK_INPUT_CHOICE}"
 elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
     _writeingestlog "avfoundation_input" "${AVF_INPUT_CHOICE}"
 fi
@@ -1464,6 +1468,12 @@ else
 fi
 if [[ "${INVERT_PHASE}" = 1 ]] ; then
     _writeingestlog "INVERT_PHASE" "Yes"
+fi
+if [[ -n "${EXTRAINPUTOPTIONS[@]}" ]] ; then
+    _writeingestlog "EXTRA_INPUT_OPTIONS" "${EXTRAINPUTOPTIONS[@]}"
+fi
+if [[ -n "${EXTRAOUTPUTOPTIONS[@]}" ]] ; then
+    _writeingestlog "EXTRA_OUTPUT_OPTIONS" "${EXTRAOUTPUTOPTIONS[@]}"
 fi
 
 _report -d "Close the playback window to stop recording."
@@ -1592,7 +1602,7 @@ elif [[ "${FRAMEMD5_CHOICE}" = "No" ]] ; then
     fi
 fi
 
-# check for frames dropped in decklink_input.log
+# check for frames dropped in ffmpeg_input.log
 DROPPED_FRAMES_INSTANCES=$(grep -c "Frames dropped" "${FULL_CAPTURE_LOG}")
 DROPPED_FRAMES_FRAMENUMBERS=$(grep "Frames dropped" "${FULL_CAPTURE_LOG}" | awk '{print $6}' | sed 's/[(#)]//g')
 if [[ "${DROPPED_FRAMES_INSTANCES}" -gt 0 ]] ; then
