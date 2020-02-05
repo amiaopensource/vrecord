@@ -642,7 +642,7 @@ scale=400:400"
     ${PHASE_MAP},\
     ${CHANNEL_PARAMS},\
     [c]showvolume=t=0:h=17:w=200[c1],\
-    [d]showspectrum=s=${SPECTRUM_SIZE}:fps=10:color=rainbow:legend=1[d1],\
+    [d]showspectrum=s=${SPECTRUM_SIZE}:fps=10:color=rainbow:saturation=2:legend=1[d1],\
     [vid]split=4[vid1][vid2][vid3][vid4],[vid1]scale=400x400,signalstats=out=brng[vidscale],\
     [vid2]field=top,${WAVEFORM_FILTER}[TFIELD],\
     [vid3]field=bottom,${WAVEFORM_FILTER}[BFIELD],\
