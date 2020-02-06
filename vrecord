@@ -1152,6 +1152,7 @@ if [[ "${INVERT_PHASE}" = 'true' ]] ; then
 fi
 
 _review_option(){
+    unset NO_LOOKUP
     OPTIND=1
     while getopts "n" opt ; do
         case "${opt}" in
