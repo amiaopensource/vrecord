@@ -692,14 +692,14 @@ _qcgraphimage(){
     # determine SATURATION scale
     VBitdepth="$("${ZCAT_COMMAND}" "$1" | perl -nle 'print if not m{<frame|</frame|<tag}' | xmlstarlet sel -t -v "//stream[@codec_type='video']/@pix_fmt" -n
     )"
-    if [[ "${VBitdepth}" = "uyvy422" ]] || [[ "${VBitdepth}" = "yuv422p" ]] ; then
-            SATpalette="(0'#a0a0a0',20'#bebebe',44.35'#c8c800',80'#a0ff20',88.7'#00ff00',103.45'#006400',108.2'#00ff00',113.2'#a0ff20',118.2'#ffa500',124'#ff0000')"
-            SATcbrange="[0:124]"
-            SATyrange="[0:183]"
-    elif [[ "${VBitdepth}" = "yuv422p10le" ]] ; then
-            SATpalette="(0'#a0a0a0',80'#bebebe',177.4'#c8c800',322'#a0ff20',354.8'#00ff00',413.8'#006400',433.46'#00ff00',453.13'#a0ff20',472.8'#ffa500',496'#ff0000')"
-            SATcbrange="[0:496]"
-            SATyrange="[0:725]"
+    if [[ "${VBitdepth}" = "yuv422p10le" ]] ; then
+        SATpalette="(0'#a0a0a0',80'#bebebe',177.4'#c8c800',322'#a0ff20',354.8'#00ff00',413.8'#006400',433.46'#00ff00',453.13'#a0ff20',472.8'#ffa500',496'#ff0000')"
+        SATcbrange="[0:496]"
+        SATyrange="[0:725]"
+    else
+        SATpalette="(0'#a0a0a0',20'#bebebe',44.35'#c8c800',80'#a0ff20',88.7'#00ff00',103.45'#006400',108.2'#00ff00',113.2'#a0ff20',118.2'#ffa500',124'#ff0000')"
+        SATcbrange="[0:124]"
+        SATyrange="[0:183]"
     fi
 
     echo "set terminal jpeg size 1920, 1080
