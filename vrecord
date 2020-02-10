@@ -28,15 +28,15 @@ SAT_OUTLIER_THRSHLD=14
 AUD_OUTLIER_THRSHLD=10
 BRNG_OUTLIER_THRSHLD=14
 BREW_PREFIX="$(brew --prefix ffmpegdecklink 2>/dev/null)"
-FFMPEG_DECKLINK="${BREW_PREFIX}/bin/ffmpeg-dl"
-FFPLAY_DECKLINK="${BREW_PREFIX}/bin/ffplay-dl"
-FFPROBE_DECKLINK="${BREW_PREFIX}/bin/ffprobe-dl"
+FFMPEG_BIN="${BREW_PREFIX}/bin/ffmpeg-dl"
+FFPLAY_BIN="${BREW_PREFIX}/bin/ffplay-dl"
+FFPROBE_BIN="${BREW_PREFIX}/bin/ffprobe-dl"
 MPVOPTS=(--no-osc)
 MPVOPTS+=(--load-scripts=no)
 MPVOPTS+=(--script "${RESOURCE_PATH}/qcview.lua")
 MPVOPTS+=(--really-quiet)
 
-if [[ "$("${FFMPEG_DECKLINK}" -version 2>&1 | grep "Library not loaded" >/dev/null)" || ! -f "${FFMPEG_DECKLINK}" || ! -f "${FFPLAY_DECKLINK}" ]] ; then
+if [[ "$("${FFMPEG_BIN}" -version 2>&1 | grep "Library not loaded" >/dev/null)" || ! -f "${FFMPEG_BIN}" || ! -f "${FFPLAY_BIN}" ]] ; then
     echo "Please reinstall 'ffmpegdecklink':"
     echo "  brew reinstall amiaopensource/amiaos/ffmpegdecklink"
     echo "Exiting."
@@ -254,13 +254,13 @@ _gtk_vbox_list() {
 unset DECKLINK_DEVICES AVFOUNDATION_DEVICES
 while read decklink_device ; do
   DECKLINK_DEVICES+=("${decklink_device}")
-done < <("${FFMPEG_DECKLINK}" -nostdin -v 0 -sources decklink | awk -F'[][]' '{print $2}' | grep -v "^$")
+done < <("${FFMPEG_BIN}" -nostdin -v 0 -sources decklink | awk -F'[][]' '{print $2}' | grep -v "^$")
 if [[ "${#DECKLINK_DEVICES[@]}" = 1 ]] ; then # default to first input if only one
   DECKLINK_INPUT_CHOICE="${DECKLINK_DEVICES[0]}"
 fi
 while read avf_device ; do
     AVFOUNDATION_DEVICES+=("${avf_device}")
-done < <("${FFMPEG_DECKLINK}" -nostdin -hide_banner -f avfoundation -list_devices 1 -i dummy 2>&1 | grep -o "\[[0-9]\].*" | cut -d " " -f2-)
+done < <("${FFMPEG_BIN}" -nostdin -hide_banner -f avfoundation -list_devices 1 -i dummy 2>&1 | grep -o "\[[0-9]\].*" | cut -d " " -f2-)
 
 _edit_prefs() {
   _expand_list2items(){
@@ -599,20 +599,20 @@ _passthrough_mode(){
     _set_ffplay_options
     if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
         _check_mpv
-        "${FFMPEG_DECKLINK}" -nostats "${GRAB_INPUT[@]}" 2> >(tee /tmp/vrecord_input.log 1>&2) \
+        "${FFMPEG_BIN}" -nostats "${GRAB_INPUT[@]}" 2> >(tee /tmp/vrecord_input.log 1>&2) \
         "${PIPE_OUTPUT[@]}" | \
         mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -
     elif [[ "${PLAYBACKVIEW_CHOICE_PASS}" = "Audio + Video" ]] ; then
         if [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
             unset PIPE_OUTPUT[0] && unset PIPE_OUTPUT[1]
-            "${FFMPEG_DECKLINK}" -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_INPUT[@]}" -c copy -f rawvideo - | "${FFMPEG_DECKLINK}" -i - "${PIPE_OUTPUT[@]}" 2> /tmp/vrecord_input.log | \
-            "${FFPLAY_DECKLINK}" -window_title "${WINDOW_NAME}" -f lavfi "movie='pipe\:0':${PLAYBACKFILTER}"
+            "${FFMPEG_BIN}" -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_INPUT[@]}" -c copy -f rawvideo - | "${FFMPEG_BIN}" -i - "${PIPE_OUTPUT[@]}" 2> /tmp/vrecord_input.log | \
+            "${FFPLAY_BIN}" -window_title "${WINDOW_NAME}" -f lavfi "movie='pipe\:0':${PLAYBACKFILTER}"
         else
-            "${FFMPEG_DECKLINK}" -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_INPUT[@]}" "${PIPE_OUTPUT[@]}" 2> /tmp/vrecord_input.log | \
-            "${FFPLAY_DECKLINK}" -window_title "${WINDOW_NAME}" -f lavfi "movie='pipe\:0':${PLAYBACKFILTER}"
+            "${FFMPEG_BIN}" -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_INPUT[@]}" "${PIPE_OUTPUT[@]}" 2> /tmp/vrecord_input.log | \
+            "${FFPLAY_BIN}" -window_title "${WINDOW_NAME}" -f lavfi "movie='pipe\:0':${PLAYBACKFILTER}"
         fi
     else
-        "${FFPLAY_DECKLINK}" "${FFPLAY_OPTIONS[@]}" 2> >(tee /tmp/vrecord_input.log 1>&2)
+        "${FFPLAY_BIN}" "${FFPLAY_OPTIONS[@]}" 2> >(tee /tmp/vrecord_input.log 1>&2)
     fi
     _gui_return
 }
@@ -1266,7 +1266,7 @@ fi
 
 if [[ "${TIMECODE_SCAN}" = 1 ]] ; then
     for timecode_type in "${TIMECODE_OPTIONS[@]}" ; do
-        tc_value="$("${FFPROBE_DECKLINK}" "${GRAB_INPUT[@]}" -timecode_format "${timecode_type}" -show_entries stream_tags=timecode -of default=nw=1:nk=1 2>/dev/null)"
+        tc_value="$("${FFPROBE_BIN}" "${GRAB_INPUT[@]}" -timecode_format "${timecode_type}" -show_entries stream_tags=timecode -of default=nw=1:nk=1 2>/dev/null)"
         if [[ -z "${tc_value}" ]] ; then
             tc_value="none"
         fi
@@ -1494,7 +1494,7 @@ fi
 _report -d "Close the playback window to stop recording."
 
 # vrecord process!
-RECORD_COMMAND=("${FFMPEG_DECKLINK}")
+RECORD_COMMAND=("${FFMPEG_BIN}")
 RECORD_COMMAND+=(-nostdin -nostats "${INPUTOPTIONS[@]}" "${GRAB_INPUT[@]}")
 if [[ -n "${VIDEOCODECNAME}" ]] ; then
     MIDDLEOPTIONS+=(-metadata:s:v:0 encoder="${VIDEOCODECNAME}")
@@ -1524,10 +1524,10 @@ else
         2> >(tee "${FULL_CAPTURE_LOG}" /tmp/vrecord_input.log 1>&2) \
         | \
         if [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]] ; then
-            tee >("${FFPLAY_DECKLINK}" "${FFPLAY_OPTIONS[@]}") | \
+            tee >("${FFPLAY_BIN}" "${FFPLAY_OPTIONS[@]}") | \
                 qcli -f signalstats+aphasemeter+astats+ssim -i - -o "${QCXML}"
         else
-            "${FFPLAY_DECKLINK}" "${FFPLAY_OPTIONS[@]}"
+            "${FFPLAY_BIN}" "${FFPLAY_OPTIONS[@]}"
         fi
 fi
 # capture errors from components of recording pipe
