@@ -56,6 +56,15 @@ Error while decoding stream #0:0: Invalid data found when processing input
 
 You can safely ignore this warning, it's just FFmpeg complaining that it didn't receive a full frame of video when vrecord stopped.
 
+Or you may see
+
+```
+av_interleaved_write_frame(): Broken pipe
+Error writing trailer of pipe:: Broken pipe
+```
+
+This happens when vrecord stops because the ffplay playback window is closed, this stops ffplay but ffmpeg is still writing video data out but ffplay is no longer running, so ffmpeg provides this warning. This is a part of how vrecord is designed to end recordings and is expected.
+
 ### Common Questions
 
 **Q: I ran `vrecord -p` and no video is showing up in the vrecord window!**
