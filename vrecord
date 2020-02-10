@@ -32,12 +32,12 @@ if [[ -d "/usr/local/opt/ffmpegdecklink" ]] ; then
 elif [[ -d "/home/linuxbrew/.linuxbrew/opt/ffmpegdecklink" ]] ; then
     BREW_PREFIX="/home/linuxbrew/.linuxbrew/opt/ffmpegdecklink"
 else
-BREW_PREFIX="$(brew --prefix ffmpegdecklink 2>/dev/null)"
+    BREW_PREFIX="$(brew --prefix ffmpegdecklink 2>/dev/null)"
 fi
 if [[ -d "${BREW_PREFIX}/bin" ]] ; then
-FFMPEG_BIN="${BREW_PREFIX}/bin/ffmpeg-dl"
-FFPLAY_BIN="${BREW_PREFIX}/bin/ffplay-dl"
-FFPROBE_BIN="${BREW_PREFIX}/bin/ffprobe-dl"
+    FFMPEG_BIN="${BREW_PREFIX}/bin/ffmpeg-dl"
+    FFPLAY_BIN="${BREW_PREFIX}/bin/ffplay-dl"
+    FFPROBE_BIN="${BREW_PREFIX}/bin/ffprobe-dl"
 else
     NONBREW="Y"
     FFMPEG_BIN="$(which ffmpeg)"
