@@ -835,7 +835,7 @@ _lookup_choice(){
             SUFFIX="_j2k" ;;
         "ProRes")
             VIDEOCODECNAME="Apple ProRes 422"
-            MIDDLEOPTIONS+=(-c:v prores_ks -flags +ildct)
+            MIDDLEOPTIONS+=(-c:v prores_ks -flags +ildct -profile:v 2)
             SUFFIX="_prores" ;;
         "ProRes (HQ)")
             VIDEOCODECNAME="Apple ProRes 422 HQ"
