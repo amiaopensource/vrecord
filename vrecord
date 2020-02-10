@@ -46,7 +46,7 @@ else
 fi
 MPVOPTS=(--no-osc)
 MPVOPTS+=(--load-scripts=no)
-MPVOPTS+=(--script "${RESOURCE_PATH}/qcview.lua")
+MPVOPTS+=(--script="${RESOURCE_PATH}/qcview.lua")
 MPVOPTS+=(--really-quiet)
 
 if [[ "$("${FFMPEG_BIN}" -version 2>&1 | grep "Library not loaded" >/dev/null)" || ! -f "${FFMPEG_BIN}" || ! -f "${FFPLAY_BIN}" ]] ; then
