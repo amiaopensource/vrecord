@@ -28,9 +28,16 @@ SAT_OUTLIER_THRSHLD=14
 AUD_OUTLIER_THRSHLD=10
 BRNG_OUTLIER_THRSHLD=14
 BREW_PREFIX="$(brew --prefix ffmpegdecklink 2>/dev/null)"
+if [[ -d "${BREW_PREFIX}/bin" ]] ; then
 FFMPEG_BIN="${BREW_PREFIX}/bin/ffmpeg-dl"
 FFPLAY_BIN="${BREW_PREFIX}/bin/ffplay-dl"
 FFPROBE_BIN="${BREW_PREFIX}/bin/ffprobe-dl"
+else
+    NONBREW="Y"
+    FFMPEG_BIN="$(which ffmpeg)"
+    FFPLAY_BIN="$(which ffplay)"
+    FFPROBE_BIN="$(which ffprobe)"
+fi
 MPVOPTS=(--no-osc)
 MPVOPTS+=(--load-scripts=no)
 MPVOPTS+=(--script "${RESOURCE_PATH}/qcview.lua")
@@ -39,6 +46,7 @@ MPVOPTS+=(--really-quiet)
 if [[ "$("${FFMPEG_BIN}" -version 2>&1 | grep "Library not loaded" >/dev/null)" || ! -f "${FFMPEG_BIN}" || ! -f "${FFPLAY_BIN}" ]] ; then
     echo "Please reinstall 'ffmpegdecklink':"
     echo "  brew reinstall amiaopensource/amiaos/ffmpegdecklink"
+    echo "Or install a version of ffmpeg that is compiled with decklink support if you wish to use that input."
     echo "Exiting."
     exit 1
 fi
@@ -257,6 +265,8 @@ while read decklink_device ; do
 done < <("${FFMPEG_BIN}" -nostdin -v 0 -sources decklink | awk -F'[][]' '{print $2}' | grep -v "^$")
 if [[ "${#DECKLINK_DEVICES[@]}" = 1 ]] ; then # default to first input if only one
   DECKLINK_INPUT_CHOICE="${DECKLINK_DEVICES[0]}"
+elif [[ -z "$("${FFMPEG_BIN}" -nostdin -v 0 -sources decklink)" ]] ; then
+    FFMPEG_DECKLINK_SUPPORT="N"
 fi
 while read avf_device ; do
     AVFOUNDATION_DEVICES+=("${avf_device}")
@@ -1240,7 +1250,11 @@ fi
 if [[ -n "${ALT_INPUT}" ]] ; then
     GRAB_INPUT+=("${EXTRAINPUTOPTIONS[@]}")
     GRAB_INPUT+=(-i "${ALT_INPUT}")
-elif [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
+elif [[ "${DEVICE_INPUT_CHOICE}" = 0 && "${FFMPEG_DECKLINK_SUPPORT}" = "N" ]] ; then
+    echo "vrecord is set to use a decklink input but ${FFMPEG_BIN} does not appear to support decklink inputs."
+    echo "Please review installation and troubleshooting information for vrecord or install ffmpegdecklink."
+    exit 1
+elif [[ "${DEVICE_INPUT_CHOICE}" = 0 && ! "${FFMPEG_DECKLINK_SUPPORT}" = "N" ]] ; then
     GRAB_INPUT+=(-f decklink)
     GRAB_INPUT+=(-draw_bars 0)
     GRAB_INPUT+=(-audio_input "${AUDIO_INPUT}")
