@@ -27,7 +27,13 @@ unset EXTRAOUTPUTS
 SAT_OUTLIER_THRSHLD=14
 AUD_OUTLIER_THRSHLD=10
 BRNG_OUTLIER_THRSHLD=14
+if [[ -d "/usr/local/opt/ffmpegdecklink" ]] ; then
+    BREW_PREFIX="/usr/local/opt/ffmpegdecklink"
+elif [[ -d "/home/linuxbrew/.linuxbrew/opt/ffmpegdecklink" ]] ; then
+    BREW_PREFIX="/home/linuxbrew/.linuxbrew/opt/ffmpegdecklink"
+else
 BREW_PREFIX="$(brew --prefix ffmpegdecklink 2>/dev/null)"
+fi
 if [[ -d "${BREW_PREFIX}/bin" ]] ; then
 FFMPEG_BIN="${BREW_PREFIX}/bin/ffmpeg-dl"
 FFPLAY_BIN="${BREW_PREFIX}/bin/ffplay-dl"
