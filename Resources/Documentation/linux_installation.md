@@ -1,21 +1,24 @@
-# Steps for a successful install of Vrecord on Linux (Ubuntu 18.04)
+# Steps for a successful install of Vrecord on Linux
 
 ## About
-There are many possible ways to install the various dependencies of Vrecord on Linux. The following instructions aim to minimize use of linuxbrew installs for packages that can otherwise be installed via native Linux methods. When followed in order, these commands should result in a fully functional install of vrecord (tested on Ubuntu 18.04)
+There are many possible ways to install the various dependencies of Vrecord on Linux. 
 
-## Programs to be installed manually
+## via Linuxbrew (tested Ubuntu 18.04)
+The following instructions aim to minimize use of linuxbrew installs for packages that can otherwise be installed via native Linux methods. When followed in order, these commands should result in a fully functional install of vrecord (tested on Ubuntu 18.04)
+
+### Programs to be installed manually
 
 * Download and install the latest Linux version of 'Blackmagic Desktop Video' from the [Blackmagic website](https://www.blackmagicdesign.com/support/)
 * Download and install the latest version of the QC Tools CLI tool from the [MediaArea](https://mediaarea.net/QCTools/Download/Ubuntu)
 
-## Programs to be installed via PPA
+### Programs to be installed via PPA
 
 * Install MPV with the following steps:
   - Add the MPV PPA with: `sudo add-apt-repository ppa:mc3man/mpv-tests`
   - Update package manager with: `sudo apt-get update`
   - Install MPV with `sudo apt-get install mpv`
 
-## Programs to be installed via standard package manager
+### Programs to be installed via standard package manager
 
 * Use the following commands to install additional dependencies for full vrecord use:
   - `sudo apt-get install curl`
@@ -31,7 +34,7 @@ There are many possible ways to install the various dependencies of Vrecord on L
   - `sudo apt-get install gcc`
   - `sudo apt-get install make`
   
-## Install Homebrew for Linux (Linuxbrew)
+### Install Homebrew for Linux (Linuxbrew)
 * Use the following commands, (sourced from the [Homebrew docs](https://docs.brew.sh/Homebrew-on-Linux)) to install and configure Homebrew on Linux:
  - Install linuxbrew with: `sh -c "$(curl -fsSL https://raw.githubusercontent.com/Linuxbrew/install/master/install.sh)"`
  - Add linuxbrew to path with: 
@@ -43,11 +46,25 @@ There are many possible ways to install the various dependencies of Vrecord on L
  * Add the AMIA Open Source tap for Homebrew:
    - `brew tap amiaopensource/amiaos`
 
-## Install additional vrecord dependencies via Homebrew
+### Install additional vrecord dependencies via Homebrew
 * `brew install decklinksdk && brew install ffmpegdecklink --with-iec61883 && brew install gtkdialog`
 * `brew install --ignore-dependencies vrecord`
 
-## Fix conflicting SDL2 dependencies
+### Fix conflicting SDL2 dependencies
 * `brew uninstall --ignore-dependencies sdl2`
 * `sudo apt install libsdl2-dev`
 
+## via RPM (tested on CentOS 7/8 and Fedora 31)
+This method is maintained by [Jonáš Svatoš](mailto:jonas.svatos@nfa.cz) at [Národní filmový archiv](https://github.com/NFAcz)
+and contains patches which modify Vrecord source to bypass some hardcoded Homebrew-specific variables. It also adds a nice menu entry.
+
+### Install RPM from COPR repository
+Follow the instructions on https://copr.fedorainfracloud.org/coprs/lsde/vrecord/
+
+### Build the RPM yourself
+```
+$ git clone https://github.com/NFAcz/vrecord-rpm.git
+$ spectool -g -R vrecord.spec
+$ cp *.patch ~/rpmbuild/SOURCES/
+$ rpmbuild -bb vrecord.spec
+```
