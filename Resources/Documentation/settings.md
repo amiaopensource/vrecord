@@ -20,6 +20,8 @@ All of the options in the vrecord GUI (which appears when running `vrecord -e`),
 
 **Select video input** — Choose how the video signal will be entering the capture device. You can receive the video signal through Composite, SDI, Component, or S-Video cables.
 
+NOTE: Setting the video input in Desktop Video Setup to match this option will reduce the likelihood of some dropped frames at the beginning of the capture.
+
 **Select audio input** — Choose how the audio signal will be entering the capture device. You can receive the audio signal through Analog (such as XLR), SDI, or other digital audio cables.  
 
 **Select file format** — Choose the file format that you want the video to be saved in. This is also often called the container.

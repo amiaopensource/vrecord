@@ -1607,7 +1607,7 @@ fi
 DROPPED_FRAMES_INSTANCES=$(grep -c "Frames dropped" "${FULL_CAPTURE_LOG}")
 DROPPED_FRAMES_FRAMENUMBERS=$(grep "Frames dropped" "${FULL_CAPTURE_LOG}" | awk '{print $6}' | sed 's/[(#)]//g')
 if [[ "${DROPPED_FRAMES_INSTANCES}" -gt 0 ]] ; then
-    cowsay "$(_report -w "WARNING: FFmpeg Decklink input reported dropped frames in the following ${DROPPED_FRAMES_INSTANCES} locations. This error may indicate an interrupted signal between hardware components. The file may be missing content.")"
+    cowsay "$(_report -w "WARNING: FFmpeg Decklink input reported dropped frames in the following ${DROPPED_FRAMES_INSTANCES} locations. This error may indicate an interrupted signal between hardware components. The file may be missing content. With decklink inputs, this cow recommends reviewing your settings in Desktop Video Setup and setting the video and audio inputs to match what those set in vrecord.")"
     for i in ${DROPPED_FRAMES_FRAMENUMBERS} ; do # do not quote this variable
         DROPPED_FRAMES_TIMESTAMPS+="$(_frames_to_hhmmss "${i}") "
     done
