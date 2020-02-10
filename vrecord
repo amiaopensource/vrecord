@@ -1202,7 +1202,9 @@ if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
     _review_option "AUDIO_INPUT_CHOICE" "Which audio input are you using?" "${AUDIO_INPUT_OPTIONS[@]}"
     _review_option "VIDEO_BIT_DEPTH_CHOICE" "Which video bit depth?" "${VIDEO_BITDEPTH_OPTIONS[@]}"
     _review_option "AUDIO_MAPPING_CHOICE" "Which audio mapping?" "${CHANNEL_MAPPING_OPTIONS[@]}"
-    _review_option "TIMECODE_CHOICE" "Which timecode format?" "${TIMECODE_OPTIONS[@]}"
+    if [[ -z "${ALT_INPUT}" ]] ; then
+        _review_option "TIMECODE_CHOICE" "Which timecode format?" "${TIMECODE_OPTIONS[@]}"
+    fi
     _review_option "STANDARD_CHOICE" "Which television STANDARD?" "${STANDARD_OPTIONS[@]}"
 elif [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
     _review_option -n "AVF_INPUT_CHOICE" "Which avfoundation input are you using?" "${AVFOUNDATION_DEVICES[@]}"
