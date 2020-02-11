@@ -1018,7 +1018,7 @@ ${STACK}" ;;
 
         # others
         "Yes"|"Yes, after recording"|"Yes, concurrent with recording"|"No") ;;
-        *)           _report -w "Error: Not a valid option, select a valid number." ; return 1 ;;
+        *)           _report -w "Error: ${1} is not a valid option." ; return 1 ;;
     esac
 }
 
