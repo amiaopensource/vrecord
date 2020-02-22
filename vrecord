@@ -847,7 +847,11 @@ _lookup_choice(){
             SUFFIX="" ;;
         "HuffYUV")
             VIDEOCODECNAME="HuffYUV"
-            MIDDLEOPTIONS+=(-c:v ffvhuff -pix_fmt yuv422p10le -pred median -context 1)
+            if [[ "${PIXEL_FORMAT}" = "yuv422p10" ]] ; then
+                MIDDLEOPTIONS+=(-c:v ffvhuff -pix_fmt yuv422p10le -pred median -context 1)
+            elif [[ "${PIXEL_FORMAT}" = "uyvy422" ]] ; then
+                MIDDLEOPTIONS+=(-c:v ffvhuff -pix_fmt yuv422 -pred median -context 1)
+            fi
             SUFFIX="_huff" ;;
 
         # video pixel format and bit depth
