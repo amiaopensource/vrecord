@@ -845,6 +845,11 @@ _lookup_choice(){
             VIDEOCODECNAME="H.264"
             MIDDLEOPTIONS+=(-c:v libx264 -crf 18 -pix_fmt yuv420p)
             SUFFIX="" ;;
+        "HuffYUV")
+            VIDEOCODECNAME="HuffYUV"
+            MIDDLEOPTIONS+=(-c:v ffvhuff -pix_fmt yuv422p10le -pred median -context 1)
+            SUFFUX="_huff" ;;
+
         # video pixel format and bit depth
         "10 bit") PIXEL_FORMAT="yuv422p10" ;;
         "8 bit")  PIXEL_FORMAT="uyvy422" ;;
@@ -1164,7 +1169,7 @@ drawgrid=w=256:h=256:t=1:c=white@0.2"
 VIDEO_INPUT_OPTIONS=("Composite" "SDI" "Component" "S-Video")
 AUDIO_INPUT_OPTIONS=("Analog" "SDI Embedded Audio" "Digital Audio (AES/EBU)")
 CONTAINER_OPTIONS=("QuickTime" "Matroska" "AVI" "MXF" "MP4")
-VIDEO_CODEC_OPTIONS=("Uncompressed Video" "FFV1 version 3" "JPEG2000" "ProRes" "ProRes (HQ)" "h264")
+VIDEO_CODEC_OPTIONS=("Uncompressed Video" "FFV1 version 3" "JPEG2000" "ProRes" "ProRes (HQ)" "h264" "HuffYUV")
 FFV1_SLICE_OPTIONS=("4" "6" "9" "12" "16" "24" "30")
 AUDIO_CODEC_OPTIONS=("24-bit PCM" "24-bit FLAC" "AAC")
 VIDEO_BITDEPTH_OPTIONS=("10 bit" "8 bit")
