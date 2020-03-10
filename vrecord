@@ -39,7 +39,6 @@ if [[ -d "${BREW_PREFIX}/bin" ]] ; then
     FFPLAY_BIN="${BREW_PREFIX}/bin/ffplay-dl"
     FFPROBE_BIN="${BREW_PREFIX}/bin/ffprobe-dl"
 else
-    NONBREW="Y"
     FFMPEG_BIN="$(which ffmpeg)"
     FFPLAY_BIN="$(which ffplay)"
     FFPROBE_BIN="$(which ffprobe)"
