@@ -6,7 +6,6 @@
 SCRIPTNAME=$(basename "${0}")
 SCRIPTDIR=$(dirname "${0}")
 CONFIG_FILE="${HOME}/.${SCRIPTNAME}.conf"
-GTK_RECENT_DIR="${HOME}/.local/share"
 unset VERSION
 if [[ $(dirname "$(command -v "${0}")") = "/usr/local/bin" ]] ; then
     VERSION=$(TMP=$(brew info vrecord | grep ".*\*$" | grep -Eo "/vrecord/.* \(") ; echo "${TMP:9:(${#TMP}-11)}")
@@ -523,9 +522,6 @@ _gui_return(){
 
 # edit mode
 _edit_mode(){
-    if [[ ! -d "${GTK_RECENT_DIR}" ]] ; then
-        mkdir -p "${GTK_RECENT_DIR}"
-    fi
     _edit_prefs
     # check that gtkdialog _edit_prefs was exited with OK button
     if [[ "${EXIT}" = "OK" ]] ; then
