@@ -1642,7 +1642,7 @@ fi
 
 # check for discontinuities in the Frame MD5s; if user chose not to use Frame MD5s, check for frame discontinuties in the FFmpeg file
 if [[ "${FRAMEMD5_CHOICE}" = "Yes" ]] ; then
-    PTS_DISCONTINUITY=$(cat "${FRAMEMD5NAME}" | grep -v "^#" | cut -d, -f3 | sed 's/ //g' | grep -v "^0$" | awk '$1!=p+1{printf p+1"-"$1-1" "}{p=$1}')
+    PTS_DISCONTINUITY=$(cat "${FRAMEMD5NAME}" | grep -v "^#" | cut -d, -f3 | sed 's/ //g' | grep -v "^0$" | awk '{if($1!=p+1){if(p+1==$1-1){printf p+1" "}else{printf p+1"-"$1-1" "}}{p=$1}}')
     if [[ -z "${PTS_DISCONTINUITY}" ]] ; then
         _writeingestlog "PTS_DISCONTINUITY" "none"
     else
