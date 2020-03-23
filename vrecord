@@ -284,6 +284,14 @@ _get_avfoundation_inputs(){
 _get_decklink_inputs
 _get_avfoundation_inputs
 
+if [[ "${OS_TYPE}" = "linux" ]] ; then
+    while read audio_device ; do
+        AUDIO_DEVICES+=("${audio_device}")
+    done < <(arecord -l | grep card | cut -d ':' -f2 | cut -d ',' -f1 | awk '{$1=$1;print}')
+else
+    AUDIO_DEVICES=("${AVFOUNDATION_DEVICES[@]}")
+fi
+
 _edit_prefs() {
   _expand_list2items(){
     LIST=( "$@" )
@@ -348,15 +356,25 @@ AVFOUNDATION_INPUT_GUI="
     </vbox>
 </frame>"
 
+AUDIO_INPUT_GUI="
+<frame Audio input options>
+    <vbox>
+        <hbox space-expand=\"true\">
+            $(_gtk_vbox_list "AVF_INPUT_CHOICE"         "Select an Audio Device"           "${AUDIO_DEVICES[@]}")
+        </hbox>
+    </vbox>
+</frame>"
+
   export MAIN_DIALOG="<window title=\"vrecord configuration\">
     <vbox>
         <text>
             <label>Set file recording options.</label>
         </text>
         <frame Input Options>
-        <notebook page=\"${DEVICE_INPUT_CHOICE}\" tab-labels=\"Decklink|DV|\">
+        <notebook page=\"${DEVICE_INPUT_CHOICE}\" tab-labels=\"Decklink|DV|Audio\">
             ${DECKLINK_INPUT_GUI}
             ${AVFOUNDATION_INPUT_GUI}
+            ${AUDIO_INPUT_GUI}
             <variable>DEVICE_INPUT_CHOICE</variable>
         </notebook>
         </frame>
