@@ -288,9 +288,16 @@ if [[ "${OS_TYPE}" = "linux" ]] ; then
     while read audio_device ; do
         AUDIO_DEVICES+=("${audio_device}")
     done < <(arecord -l | grep card | cut -d ':' -f2 | cut -d ',' -f1 | awk '{$1=$1;print}')
-else
+elif [[ "${OS_TYPE}" = "macOS" ]] ; then
     AUDIO_DEVICES=("${AVFOUNDATION_DEVICES[@]}")
 fi
+
+_get_audio_dev_num(){
+    AUDIO_DEV_NUM=0
+    while [[ "${AUDIO_DEV_CHOICE}" != "${AUDIO_DEVICES[${AUDIO_DEV_NUM}]}" ]] ; do
+        AUDIO_DEV_NUM=$(( ${AUDIO_DEV_NUM} + 1 ))
+    done
+}
 
 _edit_prefs() {
   _expand_list2items(){
@@ -360,7 +367,7 @@ AUDIO_INPUT_GUI="
 <frame Audio input options>
     <vbox>
         <hbox space-expand=\"true\">
-            $(_gtk_vbox_list "AVF_INPUT_CHOICE"         "Select an Audio Device"           "${AUDIO_DEVICES[@]}")
+            $(_gtk_vbox_list "AUDIO_DEV_CHOICE"         "Select an Audio Device"           "${AUDIO_DEVICES[@]}")
         </hbox>
     </vbox>
 </frame>"
@@ -572,6 +579,7 @@ _edit_mode(){
         echo "  DEVICE_INPUT_CHOICE = ${DEVICE_INPUT_CHOICE}"
         echo "  AVF_INPUT_CHOICE = ${AVF_INPUT_CHOICE}"
         echo "  DECKLINK_INPUT_CHOICE = ${DECKLINK_INPUT_CHOICE}"
+        echo "  AUDIO_DEV_CHOICE = ${AUDIO_DEV_CHOICE}"
         echo "  DIR = ${DIR}"
         echo "  LOGDIR = ${LOGDIR}"
         echo "  CONTAINER_CHOICE = ${CONTAINER_CHOICE}"
@@ -613,7 +621,7 @@ _edit_mode(){
         # write config file
         {
             echo "# Set these variables to a valid option or leave as empty quotes (like \"\") to request each run."
-            for COMMENT_LINE in DEVICE_INPUT_CHOICE VIDEO_INPUT_CHOICE AUDIO_INPUT_CHOICE CONTAINER_CHOICE VIDEO_CODEC_CHOICE FFV1_SLICE_CHOICE AUDIO_CODEC_CHOICE\
+            for COMMENT_LINE in DEVICE_INPUT_CHOICE VIDEO_INPUT_CHOICE AUDIO_INPUT_CHOICE AUDIO_DEV_CHOICE CONTAINER_CHOICE VIDEO_CODEC_CHOICE FFV1_SLICE_CHOICE AUDIO_CODEC_CHOICE\
             VIDEO_BIT_DEPTH_CHOICE AUDIO_MAPPING_CHOICE TIMECODE_CHOICE STANDARD_CHOICE QCTOOLSXML_CHOICE FRAMEMD5_CHOICE \
             EMBED_LOGS_CHOICE PLAYBACKVIEW_CHOICE PLAYBACKVIEW_CHOICE_PASS DIR LOGDIR INVERT_PHASE DURATION PREFIX USER_SUFFIX NO_SUFFIX TECHNICIAN \
             AVF_INPUT_CHOICE DECKLINK_INPUT_CHOICE ; do
@@ -668,6 +676,9 @@ _passthrough_mode(){
             "${FFMPEG_BIN}" -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_INPUT[@]}" "${PIPE_OUTPUT[@]}" 2> /tmp/vrecord_input.log | \
             "${FFPLAY_BIN}" -window_title "${WINDOW_NAME}" -f lavfi "movie='pipe\:0':${PLAYBACKFILTER}"
         fi
+    elif [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
+        "${FFMPEG_BIN}" -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_INPUT[@]}" "${PIPE_OUTPUT[@]}" 2> /tmp/vrecord_input.log | \
+            "${FFPLAY_BIN}" -window_title "${WINDOW_NAME}" -f lavfi "amovie='pipe\:0',${PLAYBACKFILTER}"
     else
         "${FFPLAY_BIN}" "${FFPLAY_OPTIONS[@]}" 2> >(tee /tmp/vrecord_input.log 1>&2)
     fi
@@ -975,6 +986,38 @@ _lookup_choice(){
         # playback views
         "Unfiltered") PLAYBACKFILTER="" ;;
         "Quality Control View (mpv)") MEDIA_PLAYER_CHOICE="mpv" ;;
+        "Audio")
+if [[ "${AUDIO_MAPPING_CHOICE}" = '2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, Channels 3 & 4 -> 2nd Track Stereo)' ]] ; then
+    PRINT_PHASE=",drawtext=fontfile=${DEFAULTFONT}:box=1: text=Phase\\\: %{metadata\\\:lavfi.aphasemeter.phase}:x=135:y=1 80:fontcolor=black"
+    PRINT_CHANNELS_1_2=",drawtext=fontfile=${DEFAULTFONT}: text=Ch.1/2:x=10: y=10:fontcolor=white"
+    PRINT_CHANNELS_3_4=",drawtext=fontfile=${DEFAULTFONT}: text=Ch.3/4:x=10: y=10:fontcolor=white"
+    AUDIO_SPLIT='7[a][aa][b][c][d][e][out1]'
+    CHANNEL_PARAMS="[b]pan=stereo|c0=c0|c1=c1,avectorscope=s=320x400${PRINT_CHANNELS_1_2}[b1],[e]pan=stereo|c0=c2|c1=c3,avectorscope=s=320x400${PRINT_CHANNELS_3_4}[e1]"
+    AP_MAP='[phase1][phase2][b1][e1][x]xstack=inputs=5:layout=0_0|0_h0|w0_0|w0+w2_0|w0+w2+w3_0,fps=25[out0]'
+    PHASE_LOCATION='x=135:y=180'
+    PHASE_MAP="[a]pan=stereo|c0=c0|c1=c1,aphasemeter=video=0,adrawgraph=lavfi.aphasemeter.phase:max=1:min=-1:size=400x200:bg=black:fg1=0x99999999,drawbox=x=0:y=100:w=400:c=white:h=1${PRINT_PHASE}${PRINT_CHANNELS_1_2}[phase1],\
+    [aa]pan=stereo|c0=c2|c1=c3,aphasemeter=video=0,adrawgraph=lavfi.aphasemeter.phase:max=1:min=-1:size=400x200:bg=black:fg1=0x99999999,drawbox=x=0:y=100:w=400:c=white:h=1${PRINT_PHASE}${PRINT_CHANNELS_3_4}[phase2]"
+    SPECTRUM_SIZE='755x265'
+else
+    PRINT_PHASE=",drawtext=fontfile=${DEFAULTFONT}:box=1: text=Phase\\\: %{metadata\\\:lavfi.aphasemeter.phase}:x=135:y=380:fontcolor=black"
+    PRINT_CHANNELS_1_2=",drawtext=fontfile=${DEFAULTFONT}: text=Ch.1/2:x=10: y=10:fontcolor=white"
+    AUDIO_SPLIT='7[a][b][c][d][e][f][out1]'
+    WAVEFORM="[e]astats=metadata=1:reset=1,adrawgraph=m1=lavfi.astats.1.Min_level:m2=lavfi.astats.1.Max_level:size=700x160:bg=Black:fg1=0xFFFF0000:fg2=0xFFFF0000:slide=scroll:min=-32767:max=32767[wav1],\
+    [f]astats=metadata=1:reset=1,adrawgraph=m1=lavfi.astats.2.Min_level:m2=lavfi.astats.2.Max_level:size=700x160:bg=Black:fg1=0xFF00FF00:fg2=0xFF00FF00:slide=scroll:min=-32767:max=32767[wav2]"
+    CHANNEL_PARAMS="[b]pan=stereo|c0=c0|c1=c1,avectorscope=s=320x400${PRINT_CHANNELS_1_2}[b1]"
+    AP_MAP='[a1][b1][x][wav1][wav2]xstack=inputs=5:layout=0_0|w0_0|0_h0|w0+w1_0|w0+w1_h3,fps=25[out0]'
+    PHASE_LOCATION='x=135:y=380'
+    PHASE_MAP="[a]aphasemeter=video=0,adrawgraph=lavfi.aphasemeter.phase:max=1:min=-1:size=320x400:bg=black:fg1=0x99999999,drawbox=x=0:y=200:w=400:c=white:h=1${PRINT_PHASE}${PRINT_CHANNELS_1_2}[a1]"
+    SPECTRUM_SIZE='1155x200'
+fi
+PLAYBACKFILTER="asplit=${AUDIO_SPLIT},\
+${PHASE_MAP},\
+${CHANNEL_PARAMS},\
+${WAVEFORM},\
+[c]showvolume=t=0:h=17:w=200[c1],\
+[d]showspectrum=s=${SPECTRUM_SIZE}:fps=10:color=rainbow:saturation=2:legend=1[d1],\
+[d1][c1]overlay=10:10[x],\
+${AP_MAP}" ;;
         "Audio + Video")
             VECTORSCOPE_FILTER="\
 format=yuv422p,\
@@ -1298,6 +1341,8 @@ if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
     _review_option "STANDARD_CHOICE" "Which television STANDARD?" "${STANDARD_OPTIONS[@]}"
 elif [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
     _review_option -n "AVF_INPUT_CHOICE" "Which avfoundation input are you using?" "${AVFOUNDATION_DEVICES[@]}"
+elif [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
+    _review_option -n "AUDIO_DEV_CHOICE" "Which audio input are you using?" "${AUDIO_DEVICES[@]}"
 fi
 if [[ "${CORE_COUNT}" -le 2 && "${RUNTYPE}" = "record" ]] ; then
     _report -w "Since this computer has only ${CORE_COUNT} cores, the playback will display only half of the frames to reduce CPU. This will not impact the recording."
@@ -1318,6 +1363,11 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
   MIDDLEOPTIONS+=(-metadata creation_time=now)
 fi
 MIDDLEOPTIONS+=(${EXTRAOUTPUTOPTIONS[@]})
+if [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
+    PLAYBACKVIEW_CHOICE_PASS="Audio"
+    PLAYBACKVIEW_CHOICE="Audio"
+    _lookup_choice "Audio"
+fi
 
 # set up input and playback
 _set_up_drawtext
@@ -1353,6 +1403,17 @@ elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
     MIDDLEOPTIONS+=(-c copy -map 0)
     EXTENSION="dv"
     FORMAT="rawvideo"
+elif [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
+    #Mac Options
+    #Linux Options
+    if [[ "${OS_TYPE}" = "linux" ]] ; then
+        _get_audio_dev_num
+        GRAB_INPUT+=(-f alsa)
+        GRAB_INPUT+=(-acodec pcm_s32le -ac 2)
+        GRAB_INPUT+=(-i hw:"${AUDIO_DEV_NUM}")
+        FORMAT="wav"
+        EXTENSION="wav"
+    fi
 else
     _report "Input unknown"
     exit 1
@@ -1372,6 +1433,10 @@ elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
     PIPE_OUTPUT+=(-f rawvideo)
     PIPE_OUTPUT+=(-)
     WINDOW_NAME="mode:${RUNTYPE} - input:'${AVF_INPUT_CHOICE}' - to end recording press q, esc, or close video window"
+elif [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
+    PIPE_OUTPUT+=(-c:a pcm_s16le -ar 48k)
+    PIPE_OUTPUT+=(-f wav)
+    PIPE_OUTPUT+=(-)
 else
     _report "Input unknown"
     exit 1
