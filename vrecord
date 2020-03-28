@@ -460,6 +460,10 @@ AVFOUNDATION_INPUT_GUI="
                 </button>
                 <button cancel>
                 </button>
+                <button>
+                    <label>Refresh</label>
+                    <action type=\"exit\">refresh</action>
+                </button>
             </hbox>
         </vbox>
     </vbox>
@@ -600,7 +604,9 @@ _edit_mode(){
             done
         } > "${CONFIG_FILE}"
         . "${CONFIG_FILE}"
-    else
+    elif [[ "${EXIT}" = "refresh" ]] ; then
+        RUNTYPE="edit"
+    elif [[ "${EXIT}" = "Cancel" ]] ; then
         _report -d "Editing of preferences was canceled by the user."
     fi
     if [[ "${GUI}" = 1 ]] ; then
@@ -608,7 +614,7 @@ _edit_mode(){
     elif [[ "${TIMECODE_SCAN}" = 1 ]] ; then
         _report -dt "Scanning each supported type of timecode."
         RUNTYPE="passthrough"
-    else
+    elif [[ "${EXIT}" = "OK" || ${EXIT} = "Cancel" ]] ; then
         RUNTYPE="record"
         _report -nd "Press [q] to quit, [p] to enter passthrough mode or any other key to proceed: "
         read AFTEREDITRESPONSE
