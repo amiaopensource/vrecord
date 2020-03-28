@@ -243,8 +243,7 @@ _gtk_vbox_list() {
             echo "
             <button>
                 <label>Scan timecode types</label>
-                <action>echo TIMECODE_SCAN=1</action>
-                <action type=\"exit\">TIMECODE_SCAN</action>
+                <action type=\"exit\">timecode_scan</action>
             </button>"
         fi
     }
@@ -606,14 +605,21 @@ _edit_mode(){
         . "${CONFIG_FILE}"
     elif [[ "${EXIT}" = "refresh" ]] ; then
         RUNTYPE="edit"
+    elif [[ "${EXIT}" = "timecode_scan" ]] ; then
+        _report -dt "Scanning each supported type of timecode."
+        for timecode_type in "${TIMECODE_OPTIONS[@]}" ; do
+            tc_value="$("${FFPROBE_BIN}" "${GRAB_INPUT[@]}" -timecode_format "${timecode_type}" -show_entries stream_tags=timecode -of default=nw=1:nk=1 2>/dev/null)"
+            if [[ -z "${tc_value}" ]] ; then
+                tc_value="none"
+            fi
+            echo "${timecode_type}: ${tc_value}"
+        done
+        RUNTYPE="edit"
     elif [[ "${EXIT}" = "Cancel" ]] ; then
         _report -d "Editing of preferences was canceled by the user."
     fi
     if [[ "${GUI}" = 1 ]] ; then
         _home_gui
-    elif [[ "${TIMECODE_SCAN}" = 1 ]] ; then
-        _report -dt "Scanning each supported type of timecode."
-        RUNTYPE="passthrough"
     elif [[ "${EXIT}" = "OK" || ${EXIT} = "Cancel" ]] ; then
         RUNTYPE="record"
         _report -nd "Press [q] to quit, [p] to enter passthrough mode or any other key to proceed: "
@@ -1334,16 +1340,6 @@ else
     exit 1
 fi
 
-if [[ "${TIMECODE_SCAN}" = 1 ]] ; then
-    for timecode_type in "${TIMECODE_OPTIONS[@]}" ; do
-        tc_value="$("${FFPROBE_BIN}" "${GRAB_INPUT[@]}" -timecode_format "${timecode_type}" -show_entries stream_tags=timecode -of default=nw=1:nk=1 2>/dev/null)"
-        if [[ -z "${tc_value}" ]] ; then
-            tc_value="none"
-        fi
-        echo "${timecode_type}: ${tc_value}"
-    done
-    _edit_prefs
-fi
 if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
     PIPE_OUTPUT=(-c copy)
     PIPE_OUTPUT+=(-map 0)
