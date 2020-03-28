@@ -531,6 +531,13 @@ _gui_return(){
 
 # edit mode
 _edit_mode(){
+
+    _get_decklink_inputs
+    _get_avfoundation_inputs
+
+    if [[ ! -d "${GTK_RECENT_DIR}" ]] ; then
+        mkdir -p "${GTK_RECENT_DIR}"
+    fi
     _edit_prefs
     # check that gtkdialog _edit_prefs was exited with OK button
     if [[ "${EXIT}" = "OK" ]] ; then
