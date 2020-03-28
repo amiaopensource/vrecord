@@ -262,19 +262,28 @@ _gtk_vbox_list() {
     </vbox>"
 }
 
-# get information on what input device options are available
-unset DECKLINK_DEVICES AVFOUNDATION_DEVICES
-while read decklink_device ; do
-  DECKLINK_DEVICES+=("${decklink_device}")
-done < <("${FFMPEG_BIN}" -nostdin -v 0 -sources decklink | awk -F'[][]' '{print $2}' | grep -v "^$")
-if [[ "${#DECKLINK_DEVICES[@]}" = 1 ]] ; then # default to first input if only one
-  DECKLINK_INPUT_CHOICE="${DECKLINK_DEVICES[0]}"
-elif [[ -z "$("${FFMPEG_BIN}" -nostdin -v 0 -sources decklink)" ]] ; then
-    FFMPEG_DECKLINK_SUPPORT="N"
-fi
-while read avf_device ; do
-    AVFOUNDATION_DEVICES+=("${avf_device}")
-done < <("${FFMPEG_BIN}" -nostdin -hide_banner -f avfoundation -list_devices 1 -i dummy 2>&1 | grep -o "\[[0-9]\].*" | cut -d " " -f2-)
+_get_decklink_inputs(){
+    # get information on what input device options are available
+    unset DECKLINK_DEVICES
+    while read decklink_device ; do
+      DECKLINK_DEVICES+=("${decklink_device}")
+    done < <("${FFMPEG_BIN}" -nostdin -v 0 -sources decklink | awk -F'[][]' '{print $2}' | grep -v "^$")
+    if [[ "${#DECKLINK_DEVICES[@]}" = 1 ]] ; then # default to first input if only one
+      DECKLINK_INPUT_CHOICE="${DECKLINK_DEVICES[0]}"
+    elif [[ -z "$("${FFMPEG_BIN}" -nostdin -v 0 -sources decklink)" ]] ; then
+        FFMPEG_DECKLINK_SUPPORT="N"
+    fi
+}
+_get_avfoundation_inputs(){
+    # set avfoundation input options
+    unset AVFOUNDATION_DEVICES
+    while read avf_device ; do
+        AVFOUNDATION_DEVICES+=("${avf_device}")
+    done < <("${FFMPEG_BIN}" -nostdin -hide_banner -f avfoundation -list_devices 1 -i dummy 2>&1 | grep -o "\[[0-9]\].*" | cut -d " " -f2-)
+}
+
+_get_decklink_inputs
+_get_avfoundation_inputs
 
 _edit_prefs() {
   _expand_list2items(){
