@@ -243,8 +243,7 @@ _gtk_vbox_list() {
             echo "
             <button>
                 <label>Scan timecode types</label>
-                <action>echo TIMECODE_SCAN=1</action>
-                <action type=\"exit\">TIMECODE_SCAN</action>
+                <action type=\"exit\">timecode_scan</action>
             </button>"
         fi
     }
@@ -262,19 +261,28 @@ _gtk_vbox_list() {
     </vbox>"
 }
 
-# get information on what input device options are available
-unset DECKLINK_DEVICES AVFOUNDATION_DEVICES
-while read decklink_device ; do
-  DECKLINK_DEVICES+=("${decklink_device}")
-done < <("${FFMPEG_BIN}" -nostdin -v 0 -sources decklink | awk -F'[][]' '{print $2}' | grep -v "^$")
-if [[ "${#DECKLINK_DEVICES[@]}" = 1 ]] ; then # default to first input if only one
-  DECKLINK_INPUT_CHOICE="${DECKLINK_DEVICES[0]}"
-elif [[ -z "$("${FFMPEG_BIN}" -nostdin -v 0 -sources decklink)" ]] ; then
-    FFMPEG_DECKLINK_SUPPORT="N"
-fi
-while read avf_device ; do
-    AVFOUNDATION_DEVICES+=("${avf_device}")
-done < <("${FFMPEG_BIN}" -nostdin -hide_banner -f avfoundation -list_devices 1 -i dummy 2>&1 | grep -o "\[[0-9]\].*" | cut -d " " -f2-)
+_get_decklink_inputs(){
+    # get information on what input device options are available
+    unset DECKLINK_DEVICES
+    while read decklink_device ; do
+      DECKLINK_DEVICES+=("${decklink_device}")
+    done < <("${FFMPEG_BIN}" -nostdin -v 0 -sources decklink | awk -F'[][]' '{print $2}' | grep -v "^$")
+    if [[ "${#DECKLINK_DEVICES[@]}" = 1 ]] ; then # default to first input if only one
+      DECKLINK_INPUT_CHOICE="${DECKLINK_DEVICES[0]}"
+    elif [[ -z "$("${FFMPEG_BIN}" -nostdin -v 0 -sources decklink)" ]] ; then
+        FFMPEG_DECKLINK_SUPPORT="N"
+    fi
+}
+_get_avfoundation_inputs(){
+    # set avfoundation input options
+    unset AVFOUNDATION_DEVICES
+    while read avf_device ; do
+        AVFOUNDATION_DEVICES+=("${avf_device}")
+    done < <("${FFMPEG_BIN}" -nostdin -hide_banner -f avfoundation -list_devices 1 -i dummy 2>&1 | grep -o "\[[0-9]\].*" | cut -d " " -f2-)
+}
+
+_get_decklink_inputs
+_get_avfoundation_inputs
 
 _edit_prefs() {
   _expand_list2items(){
@@ -451,6 +459,10 @@ AVFOUNDATION_INPUT_GUI="
                 </button>
                 <button cancel>
                 </button>
+                <button>
+                    <label>Refresh</label>
+                    <action type=\"exit\">refresh</action>
+                </button>
             </hbox>
         </vbox>
     </vbox>
@@ -522,6 +534,13 @@ _gui_return(){
 
 # edit mode
 _edit_mode(){
+
+    _get_decklink_inputs
+    _get_avfoundation_inputs
+
+    if [[ ! -d "${GTK_RECENT_DIR}" ]] ; then
+        mkdir -p "${GTK_RECENT_DIR}"
+    fi
     _edit_prefs
     # check that gtkdialog _edit_prefs was exited with OK button
     if [[ "${EXIT}" = "OK" ]] ; then
@@ -584,15 +603,24 @@ _edit_mode(){
             done
         } > "${CONFIG_FILE}"
         . "${CONFIG_FILE}"
-    else
+    elif [[ "${EXIT}" = "refresh" ]] ; then
+        RUNTYPE="edit"
+    elif [[ "${EXIT}" = "timecode_scan" ]] ; then
+        _report -dt "Scanning each supported type of timecode."
+        for timecode_type in "${TIMECODE_OPTIONS[@]}" ; do
+            tc_value="$("${FFPROBE_BIN}" "${GRAB_INPUT[@]}" -timecode_format "${timecode_type}" -show_entries stream_tags=timecode -of default=nw=1:nk=1 2>/dev/null)"
+            if [[ -z "${tc_value}" ]] ; then
+                tc_value="none"
+            fi
+            echo "${timecode_type}: ${tc_value}"
+        done
+        RUNTYPE="edit"
+    elif [[ "${EXIT}" = "Cancel" ]] ; then
         _report -d "Editing of preferences was canceled by the user."
     fi
     if [[ "${GUI}" = 1 ]] ; then
         _home_gui
-    elif [[ "${TIMECODE_SCAN}" = 1 ]] ; then
-        _report -dt "Scanning each supported type of timecode."
-        RUNTYPE="passthrough"
-    else
+    elif [[ "${EXIT}" = "OK" || ${EXIT} = "Cancel" ]] ; then
         RUNTYPE="record"
         _report -nd "Press [q] to quit, [p] to enter passthrough mode or any other key to proceed: "
         read AFTEREDITRESPONSE
@@ -1312,16 +1340,6 @@ else
     exit 1
 fi
 
-if [[ "${TIMECODE_SCAN}" = 1 ]] ; then
-    for timecode_type in "${TIMECODE_OPTIONS[@]}" ; do
-        tc_value="$("${FFPROBE_BIN}" "${GRAB_INPUT[@]}" -timecode_format "${timecode_type}" -show_entries stream_tags=timecode -of default=nw=1:nk=1 2>/dev/null)"
-        if [[ -z "${tc_value}" ]] ; then
-            tc_value="none"
-        fi
-        echo "${timecode_type}: ${tc_value}"
-    done
-    _edit_prefs
-fi
 if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
     PIPE_OUTPUT=(-c copy)
     PIPE_OUTPUT+=(-map 0)
