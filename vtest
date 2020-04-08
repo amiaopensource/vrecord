@@ -224,32 +224,33 @@ _config_check(){
 }
 
 _edit_prefs() {
-  _expand_list2items(){
-    LIST=( "$@" )
-    for i in "${LIST[@]}" ; do
-      echo "<item>${i}</item>"
-    done
-  }
-  _get_index_of_value(){
-    # run with function, value to look for as first argument, and array to look in as 2nd argument, such function as
-    # _get_index_of_value "${VIDEO_INPUT_CHOICE}" "${VIDEO_INPUT_OPTIONS[@]}"
-    VALUE="${1}"
-    shift
-    LIST=( "$@" )
-    INDEX=0
-    MATCH=""
-    for ITEM in "${LIST[@]}" ; do
-      if [[ "${VALUE}" = "${ITEM}" ]] ; then
-        MATCH="$INDEX"
-      fi
-      (( ++INDEX ))
-    done
-    if [[ -n "${MATCH}" ]] ; then
-      echo -n "${MATCH}"
-    fi
-  }
+    _expand_list2items(){
+        LIST=( "$@" )
+        for i in "${LIST[@]}" ; do
+            echo "<item>${i}</item>"
+        done
+     }
 
-  export MAIN_DIALOG="<window title=\"vrecord configuration\">
+    _get_index_of_value(){
+        # run with function, value to look for as first argument, and array to look in as 2nd argument, such function as
+        # _get_index_of_value "${VIDEO_INPUT_CHOICE}" "${VIDEO_INPUT_OPTIONS[@]}"
+        VALUE="${1}"
+        shift
+        LIST=( "$@" )
+        INDEX=0
+        MATCH=""
+        for ITEM in "${LIST[@]}" ; do
+            if [[ "${VALUE}" = "${ITEM}" ]] ; then
+                MATCH="$INDEX"
+            fi
+            (( ++INDEX ))
+        done
+        if [[ -n "${MATCH}" ]] ; then
+            echo -n "${MATCH}"
+        fi
+    }
+
+    export MAIN_DIALOG="<window title=\"vrecord configuration\">
     <vbox>
         <text>
             <label>vtest configuration</label>
