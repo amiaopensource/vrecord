@@ -427,32 +427,32 @@ AVFOUNDATION_INPUT_GUI="
             </frame>
         </hbox>
         <hbox>
-        <frame Select a recording directory>
-            <hbox>
-                <entry accept=\"directory\">
-                    <variable>DIR</variable>
-                    <default>\"${DIR}\"</default>
-                </entry>
-                <button>
-                    <input file stock=\"gtk-open\"></input>
-                    <variable>DIRBROWSE</variable>
-                    <action type=\"fileselect\">DIR</action>
-                </button>
-            </hbox>
-        </frame>
-        <frame Select a directory for auxiliary files (leave blank to match the recording directory).>
-            <hbox>
-                <entry accept=\"directory\" tooltip-text=\"select the directory for automatically generated logs and checksums\">
-                    <variable>LOGDIR</variable>
-                    <default>\"${LOGDIR}\"</default>
-                </entry>
-                <button>
-                    <input file stock=\"gtk-open\"></input>
-                    <variable>LOGDIRBROWSE</variable>
-                    <action type=\"fileselect\">LOGDIR</action>
-                </button>
-            </hbox>
-        </frame>
+            <frame Select a recording directory>
+                <hbox>
+                    <entry accept=\"directory\">
+                        <variable>DIR</variable>
+                        <default>\"${DIR}\"</default>
+                    </entry>
+                    <button>
+                        <input file stock=\"gtk-open\"></input>
+                        <variable>DIRBROWSE</variable>
+                        <action type=\"fileselect\">DIR</action>
+                    </button>
+                </hbox>
+            </frame>
+            <frame Select a directory for auxiliary files (leave blank to match the recording directory).>
+                <hbox>
+                    <entry accept=\"directory\" tooltip-text=\"select the directory for automatically generated logs and checksums\">
+                        <variable>LOGDIR</variable>
+                        <default>\"${LOGDIR}\"</default>
+                    </entry>
+                    <button>
+                        <input file stock=\"gtk-open\"></input>
+                        <variable>LOGDIRBROWSE</variable>
+                        <action type=\"fileselect\">LOGDIR</action>
+                    </button>
+                </hbox>
+            </frame>
         </hbox>
         <vbox>
             <hbox>
