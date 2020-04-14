@@ -426,6 +426,7 @@ AVFOUNDATION_INPUT_GUI="
                 </hbox>
             </frame>
         </hbox>
+        <hbox>
         <frame Select a recording directory>
             <hbox>
                 <entry accept=\"directory\">
@@ -452,6 +453,7 @@ AVFOUNDATION_INPUT_GUI="
                 </button>
             </hbox>
         </frame>
+        </hbox>
         <vbox>
             <hbox>
                 <button ok>
