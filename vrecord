@@ -1765,43 +1765,43 @@ fi
 if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
     # policy checks with mediaconch
     if "$MEDIACONCH_INSTALLED" ; then
-    if [[ "${VIDEO_CODEC_CHOICE}" = "Uncompressed Video" ]] ; then
-        _report -d "Checking file conformance against uncompressed video policy..."
-        STATUS=$(mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_uncompressed.xml" "${VRECORD_OUTPUT}" | xmlstarlet sel -N mc="https://mediaarea.net/mediaconch" -t -v mc:MediaConch/mc:media/mc:policy/@outcome -n)
-        if [[ "$STATUS" = "pass" ]] ; then
-            _report -dt "File passed policy check for uncompressed video."
-        elif [[ "$STATUS" = "fail" ]] ; then
-            _report -wt "File did not pass vrecord policy check for uncompressed video and may not conform to digital preservation standards. Try another file?"
-            mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_uncompressed.xml" "${VRECORD_OUTPUT}" | xmlstarlet fo > "${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml"
-            _report -wt "See ${DIR}/${ID}${SUFFIX}_mediaconchreport.xml for a full MediaConch policy report."
-        else
-            mediaconch -p "${RESOURCE_PATH}/vrecord_policy_uncompressed.xml" "${VRECORD_OUTPUT}"
+        if [[ "${VIDEO_CODEC_CHOICE}" = "Uncompressed Video" ]] ; then
+            _report -d "Checking file conformance against uncompressed video policy..."
+            STATUS=$(mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_uncompressed.xml" "${VRECORD_OUTPUT}" | xmlstarlet sel -N mc="https://mediaarea.net/mediaconch" -t -v mc:MediaConch/mc:media/mc:policy/@outcome -n)
+            if [[ "$STATUS" = "pass" ]] ; then
+                _report -dt "File passed policy check for uncompressed video."
+            elif [[ "$STATUS" = "fail" ]] ; then
+                _report -wt "File did not pass vrecord policy check for uncompressed video and may not conform to digital preservation standards. Try another file?"
+                mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_uncompressed.xml" "${VRECORD_OUTPUT}" | xmlstarlet fo > "${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml"
+                _report -wt "See ${DIR}/${ID}${SUFFIX}_mediaconchreport.xml for a full MediaConch policy report."
+            else
+                mediaconch -p "${RESOURCE_PATH}/vrecord_policy_uncompressed.xml" "${VRECORD_OUTPUT}"
+            fi
+        elif [[ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" ]] ; then
+            _report -d "Checking file conformance against FFV1 video policy..."
+            STATUS=$(mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_ffv1.xml" "${VRECORD_OUTPUT}" | xmlstarlet sel -N mc="https://mediaarea.net/mediaconch" -t -v mc:MediaConch/mc:media/mc:policy/@outcome -n)
+            if [[ "${STATUS}" = "pass" ]] ; then
+                _report -dt "File passed policy check for FFV1 video."
+            elif [[ "$STATUS" = "fail" ]] ; then
+                _report -wt "File did not pass vrecord policy check for FFV1 video and may not conform to digital preservation standards. Try another file?"
+                mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_ffv1.xml" "${VRECORD_OUTPUT}" | xmlstarlet fo > "${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml"
+                _report -wt "See ${DIR}/${ID}${SUFFIX}_mediaconchreport.xml for a full MediaConch policy report."
+            else
+                mediaconch -p "${RESOURCE_PATH}/vrecord_policy_ffv1.xml" "${VRECORD_OUTPUT}"
+            fi
         fi
-    elif [[ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" ]] ; then
-        _report -d "Checking file conformance against FFV1 video policy..."
-        STATUS=$(mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_ffv1.xml" "${VRECORD_OUTPUT}" | xmlstarlet sel -N mc="https://mediaarea.net/mediaconch" -t -v mc:MediaConch/mc:media/mc:policy/@outcome -n)
-        if [[ "${STATUS}" = "pass" ]] ; then
-            _report -dt "File passed policy check for FFV1 video."
-        elif [[ "$STATUS" = "fail" ]] ; then
-            _report -wt "File did not pass vrecord policy check for FFV1 video and may not conform to digital preservation standards. Try another file?"
-            mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_ffv1.xml" "${VRECORD_OUTPUT}" | xmlstarlet fo > "${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml"
-            _report -wt "See ${DIR}/${ID}${SUFFIX}_mediaconchreport.xml for a full MediaConch policy report."
-        else
-            mediaconch -p "${RESOURCE_PATH}/vrecord_policy_ffv1.xml" "${VRECORD_OUTPUT}"
-        fi
-    fi
     fi
 
     # embed logs in Matroska files
     if "$MKVPROPEDIT_INSTALLED" ; then
-    if [[ "${CONTAINER_CHOICE}" = "Matroska" ]] && [[ "${EMBED_LOGS_CHOICE}" = "Yes" ]] ; then
-        _report -d "Vrecord is attaching logs to your Matroska file:"
-        mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "Capture options selected by user during vrecord process" --add-attachment "${INGESTLOG}"
-        mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "Full FFmpeg output from vrecord capture process" --add-attachment "${FULL_CAPTURE_LOG}"
-        if [[ "${QCTOOLSXML_CHOICE}" = "Yes" ]] ; then
-            mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "QCTools report from vrecord capture process (zipped XML)" --add-attachment "${QCXML}"
+        if [[ "${CONTAINER_CHOICE}" = "Matroska" ]] && [[ "${EMBED_LOGS_CHOICE}" = "Yes" ]] ; then
+            _report -d "Vrecord is attaching logs to your Matroska file:"
+            mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "Capture options selected by user during vrecord process" --add-attachment "${INGESTLOG}"
+            mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "Full FFmpeg output from vrecord capture process" --add-attachment "${FULL_CAPTURE_LOG}"
+            if [[ "${QCTOOLSXML_CHOICE}" = "Yes" ]] ; then
+                mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "QCTools report from vrecord capture process (zipped XML)" --add-attachment "${QCXML}"
+            fi
+            _report -d "Vrecord is done attaching logs to your Matroska file!"
         fi
-        _report -d "Vrecord is done attaching logs to your Matroska file!"
-    fi
     fi
 fi
