@@ -65,7 +65,8 @@ files.
 
 Dependencies: cowsay, amiaopensource/amiaos/decklinksdk,
   amiaopensource/amiaos/ffmpegdecklink, amiaopensource/amiaos/gtkdialog,
-  freetype, gnuplot, mediaconch, mkvtoolnix, mpv, qcli, sdl and xmlstarlet
+  freetype, sdl and xmlstarlet
+Optional Dependencies: gnuplot, mediaconch, mkvtoolnix, mpv, qcli
 
 Usage: ${SCRIPTNAME} [ -g | -e | -r | -p | -a | -x | -v | -h ]
   -g  use the GUI
@@ -177,6 +178,13 @@ else
     exit 1
 fi
 
+# optional dependency checks
+GNUPLOT_INSTALLED="$(if command -v gnuplot >/dev/null ; then echo true ; else echo false ; fi)"
+MEDIACONCH_INSTALLED="$(if command -v mediaconch >/dev/null ; then echo true ; else echo false ; fi)"
+MKVPROPEDIT_INSTALLED="$(if command -v mkvpropedit >/dev/null ; then echo true ; else echo false ; fi)"
+MPV_INSTALLED="$(if command -v mpv >/dev/null ; then echo true ; else echo false ; fi)"
+QCLI_INSTALLED="$(if command -v qcli >/dev/null ; then echo true ; else echo false ; fi)"
+
 # command-line options to set media id and original variables
 OPTIND=1
 while getopts ":herpaxgvI:O:i:" opt ; do
@@ -245,6 +253,10 @@ _gtk_vbox_list() {
                 <label>Scan timecode types</label>
                 <action type=\"exit\">timecode_scan</action>
             </button>"
+        elif [[ "${VARIABLE_NAME}" == "EMBED_LOGS_CHOICE" ]] ; then
+            echo "<sensitive>$(if $MKVPROPEDIT_INSTALLED ; then echo true ; else echo false ; fi)</sensitive>"
+        elif [[ "${VARIABLE_NAME}" == "QCTOOLSXML_CHOICE" ]] ; then
+            echo "<sensitive>$(if $QCLI_INSTALLED ; then echo true ; else echo false ; fi)</sensitive>"
         fi
     }
 
@@ -288,7 +300,11 @@ _edit_prefs() {
   _expand_list2items(){
     LIST=( "$@" )
     for i in "${LIST[@]}" ; do
-      echo "<item>${i}</item>"
+      if [[ "$i" == "Quality Control View (mpv)" ]] && ! $MPV_INSTALLED ; then
+          :
+      else
+        echo "<item>${i}</item>"
+      fi
     done
   }
   _get_index_of_value(){
@@ -361,6 +377,48 @@ AVFOUNDATION_INPUT_GUI="
         </notebook>
         </frame>
         <hbox>
+            <frame Optional Tools>
+                <hbox>
+                    <text>
+                        <label>gnuplot: </label>
+                    </text>
+                    <pixmap stock-icon-size=\"1\" tooltip-text=\"If gnuplot is installed, vrecord can may a graph output from qctools reports.\">
+                        <input file stock=\"$(if $GNUPLOT_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)\"></input>
+                    </pixmap>
+                </hbox>
+                <hbox>
+                    <text>
+                        <label>mediaconch: </label>
+                    </text>
+                    <pixmap stock-icon-size=\"1\" tooltip-text=\"If mediaconch is installed, vrecord can perform checks after capture to ensure the file is as expected.\">
+                        <input file stock=\"$(if $MEDIACONCH_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)\"></input>
+                    </pixmap>
+                </hbox>
+                <hbox>
+                    <text>
+                        <label>mkvpropedit: </label>
+                    </text>
+                    <pixmap stock-icon-size=\"1\" tooltip-text=\"If mkvpropedit is installed, vrecord can embed capture logs into any Matroska recordings.\">
+                        <input file stock=\"$(if $MKVPROPEDIT_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)\"></input>
+                    </pixmap>
+                </hbox>
+                <hbox>
+                    <text>
+                        <label>mpv: </label>
+                    </text>
+                    <pixmap stock-icon-size=\"1\" tooltip-text=\"If mpv is installed, vrecord can offer additional playback view options.\">
+                        <input file stock=\"$(if $MPV_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)\"></input>
+                    </pixmap>
+                </hbox>
+                <hbox>
+                    <text>
+                        <label>qcli: </label>
+                    </text>
+                    <pixmap stock-icon-size=\"1\" tooltip-text=\"If qcli is installed, vrecord can offer options to create QCTools reports during or after capture.\">
+                        <input file stock=\"$(if $QCLI_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)\"></input>
+                    </pixmap>
+                </hbox>
+            </frame>
             <frame Playback options>
                 <hbox space-expand=\"true\">
                     $(_gtk_vbox_list "PLAYBACKVIEW_CHOICE"      "Select View (for recording)"   "${PLAYBACKVIEW_OPTIONS[@]}")
@@ -426,32 +484,34 @@ AVFOUNDATION_INPUT_GUI="
                 </hbox>
             </frame>
         </hbox>
-        <frame Select a recording directory>
-            <hbox>
-                <entry accept=\"directory\">
-                    <variable>DIR</variable>
-                    <default>\"${DIR}\"</default>
-                </entry>
-                <button>
-                    <input file stock=\"gtk-open\"></input>
-                    <variable>DIRBROWSE</variable>
-                    <action type=\"fileselect\">DIR</action>
-                </button>
-            </hbox>
-        </frame>
-        <frame Select a directory for auxiliary files (leave blank to match the recording directory).>
-            <hbox>
-                <entry accept=\"directory\" tooltip-text=\"select the directory for automatically generated logs and checksums\">
-                    <variable>LOGDIR</variable>
-                    <default>\"${LOGDIR}\"</default>
-                </entry>
-                <button>
-                    <input file stock=\"gtk-open\"></input>
-                    <variable>LOGDIRBROWSE</variable>
-                    <action type=\"fileselect\">LOGDIR</action>
-                </button>
-            </hbox>
-        </frame>
+        <hbox>
+            <frame Select a recording directory>
+                <hbox>
+                    <entry accept=\"directory\">
+                        <variable>DIR</variable>
+                        <default>\"${DIR}\"</default>
+                    </entry>
+                    <button>
+                        <input file stock=\"gtk-open\"></input>
+                        <variable>DIRBROWSE</variable>
+                        <action type=\"fileselect\">DIR</action>
+                    </button>
+                </hbox>
+            </frame>
+            <frame Select a directory for auxiliary files (leave blank to match the recording directory).>
+                <hbox>
+                    <entry accept=\"directory\" tooltip-text=\"select the directory for automatically generated logs and checksums\">
+                        <variable>LOGDIR</variable>
+                        <default>\"${LOGDIR}\"</default>
+                    </entry>
+                    <button>
+                        <input file stock=\"gtk-open\"></input>
+                        <variable>LOGDIRBROWSE</variable>
+                        <action type=\"fileselect\">LOGDIR</action>
+                    </button>
+                </hbox>
+            </frame>
+        </hbox>
         <vbox>
             <hbox>
                 <button ok>
@@ -1643,7 +1703,7 @@ if [[ "${QCTOOLSXML_CHOICE}" != "No" ]] ; then
         BRNG_OUTLIERS=$("${ZCAT_COMMAND}" "${QCXML}" | perl -nle 'print if not m{lavfi.(?!signalstats.BRNG)}' | xmlstarlet sel -t -v "count(//tag[@key='lavfi.signalstats.BRNG'][@value>=0.03])" -n)
         AUDIO_PEAK=$("${ZCAT_COMMAND}" "${QCXML}" | grep lavfi.astats.Overall.Peak_level | cut -d '"' -f 4 | sort -n | tail -n 1)
         _writeingestlog "Peak Volume is (dB)" "${AUDIO_PEAK}"
-        if [[ $(which gnuplot) ]] ; then
+        if "$GNUPLOT_INSTALLED" && "$QCLI_INSTALLED" ; then
             _report -d "Vrecord is generating graphs from the QCTools data. One moment please."
             _qcgraphimage "${QCXML}"
         fi
@@ -1703,41 +1763,45 @@ if [[ "${BUFFER_OVERRUN}" -gt 0 ]] ; then
 fi
 
 if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
-  # policy checks with mediaconch
-    if [[ "${VIDEO_CODEC_CHOICE}" = "Uncompressed Video" ]] ; then
-        _report -d "Checking file conformance against uncompressed video policy..."
-        STATUS=$(mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_uncompressed.xml" "${VRECORD_OUTPUT}" | xmlstarlet sel -N mc="https://mediaarea.net/mediaconch" -t -v mc:MediaConch/mc:media/mc:policy/@outcome -n)
-        if [[ "$STATUS" = "pass" ]] ; then
-            _report -dt "File passed policy check for uncompressed video."
-        elif [[ "$STATUS" = "fail" ]] ; then
-            _report -wt "File did not pass vrecord policy check for uncompressed video and may not conform to digital preservation standards. Try another file?"
-            mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_uncompressed.xml" "${VRECORD_OUTPUT}" | xmlstarlet fo > "${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml"
-            _report -wt "See ${DIR}/${ID}${SUFFIX}_mediaconchreport.xml for a full MediaConch policy report."
-        else
-            mediaconch -p "${RESOURCE_PATH}/vrecord_policy_uncompressed.xml" "${VRECORD_OUTPUT}"
-        fi
-    elif [[ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" ]] ; then
-        _report -d "Checking file conformance against FFV1 video policy..."
-        STATUS=$(mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_ffv1.xml" "${VRECORD_OUTPUT}" | xmlstarlet sel -N mc="https://mediaarea.net/mediaconch" -t -v mc:MediaConch/mc:media/mc:policy/@outcome -n)
-        if [[ "${STATUS}" = "pass" ]] ; then
-            _report -dt "File passed policy check for FFV1 video."
-        elif [[ "$STATUS" = "fail" ]] ; then
-            _report -wt "File did not pass vrecord policy check for FFV1 video and may not conform to digital preservation standards. Try another file?"
-            mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_ffv1.xml" "${VRECORD_OUTPUT}" | xmlstarlet fo > "${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml"
-            _report -wt "See ${DIR}/${ID}${SUFFIX}_mediaconchreport.xml for a full MediaConch policy report."
-        else
-            mediaconch -p "${RESOURCE_PATH}/vrecord_policy_ffv1.xml" "${VRECORD_OUTPUT}"
+    # policy checks with mediaconch
+    if "$MEDIACONCH_INSTALLED" ; then
+        if [[ "${VIDEO_CODEC_CHOICE}" = "Uncompressed Video" ]] ; then
+            _report -d "Checking file conformance against uncompressed video policy..."
+            STATUS=$(mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_uncompressed.xml" "${VRECORD_OUTPUT}" | xmlstarlet sel -N mc="https://mediaarea.net/mediaconch" -t -v mc:MediaConch/mc:media/mc:policy/@outcome -n)
+            if [[ "$STATUS" = "pass" ]] ; then
+                _report -dt "File passed policy check for uncompressed video."
+            elif [[ "$STATUS" = "fail" ]] ; then
+                _report -wt "File did not pass vrecord policy check for uncompressed video and may not conform to digital preservation standards. Try another file?"
+                mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_uncompressed.xml" "${VRECORD_OUTPUT}" | xmlstarlet fo > "${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml"
+                _report -wt "See ${DIR}/${ID}${SUFFIX}_mediaconchreport.xml for a full MediaConch policy report."
+            else
+                mediaconch -p "${RESOURCE_PATH}/vrecord_policy_uncompressed.xml" "${VRECORD_OUTPUT}"
+            fi
+        elif [[ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" ]] ; then
+            _report -d "Checking file conformance against FFV1 video policy..."
+            STATUS=$(mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_ffv1.xml" "${VRECORD_OUTPUT}" | xmlstarlet sel -N mc="https://mediaarea.net/mediaconch" -t -v mc:MediaConch/mc:media/mc:policy/@outcome -n)
+            if [[ "${STATUS}" = "pass" ]] ; then
+                _report -dt "File passed policy check for FFV1 video."
+            elif [[ "$STATUS" = "fail" ]] ; then
+                _report -wt "File did not pass vrecord policy check for FFV1 video and may not conform to digital preservation standards. Try another file?"
+                mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_ffv1.xml" "${VRECORD_OUTPUT}" | xmlstarlet fo > "${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml"
+                _report -wt "See ${DIR}/${ID}${SUFFIX}_mediaconchreport.xml for a full MediaConch policy report."
+            else
+                mediaconch -p "${RESOURCE_PATH}/vrecord_policy_ffv1.xml" "${VRECORD_OUTPUT}"
+            fi
         fi
     fi
 
     # embed logs in Matroska files
-    if [[ "${CONTAINER_CHOICE}" = "Matroska" ]] && [[ "${EMBED_LOGS_CHOICE}" = "Yes" ]] ; then
-        _report -d "Vrecord is attaching logs to your Matroska file:"
-        mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "Capture options selected by user during vrecord process" --add-attachment "${INGESTLOG}"
-        mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "Full FFmpeg output from vrecord capture process" --add-attachment "${FULL_CAPTURE_LOG}"
-        if [[ "${QCTOOLSXML_CHOICE}" = "Yes" ]] ; then
-            mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "QCTools report from vrecord capture process (zipped XML)" --add-attachment "${QCXML}"
+    if "$MKVPROPEDIT_INSTALLED" ; then
+        if [[ "${CONTAINER_CHOICE}" = "Matroska" ]] && [[ "${EMBED_LOGS_CHOICE}" = "Yes" ]] ; then
+            _report -d "Vrecord is attaching logs to your Matroska file:"
+            mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "Capture options selected by user during vrecord process" --add-attachment "${INGESTLOG}"
+            mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "Full FFmpeg output from vrecord capture process" --add-attachment "${FULL_CAPTURE_LOG}"
+            if [[ "${QCTOOLSXML_CHOICE}" = "Yes" ]] ; then
+                mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "QCTools report from vrecord capture process (zipped XML)" --add-attachment "${QCXML}"
+            fi
+            _report -d "Vrecord is done attaching logs to your Matroska file!"
         fi
-        _report -d "Vrecord is done attaching logs to your Matroska file!"
     fi
 fi
