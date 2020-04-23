@@ -176,6 +176,8 @@ if [[ "${QUERY_OS_TYPE}" = "Darwin" ]] ; then
     CORE_COUNT="$(_parse_report "Total Number of Cores" "${HARDWARE_REPORT}")"
     OPEN_COMMAND="open"
     ZCAT_COMMAND="gzcat"
+    DECKLINK_DRIVER_PLIST="/Library/Extensions/DeckLink_Driver.kext/Contents/Info.plist"
+    VIDEO_CARD_DRIVER_VERSION="$(defaults read "${DECKLINK_DRIVER_PLIST}" CFBundleVersion)"
 elif [[ "${QUERY_OS_TYPE}" = "Linux" ]] ; then
     OS_TYPE="linux"
     DEFAULTFONT="/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf"
@@ -1599,8 +1601,9 @@ fi
 _writeingestlog "FILE_PATH" "${VRECORD_OUTPUT}"
 
 if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
-    DECKLINK_DRIVER_PLIST=/Library/Extensions/DeckLink_Driver.kext/Contents/Info.plist
-    _writeingestlog "video_card_driver_version" "$(defaults read "${DECKLINK_DRIVER_PLIST}" CFBundleVersion)"
+    if [[ -n "${VIDEO_CARD_DRIVER_VERSION}" ]] ; then
+        _writeingestlog "video_card_driver_version" "${VIDEO_CARD_DRIVER_VERSION}"
+    fi
     _writeingestlog "video_card_name" "${DECKLINK_INPUT_CHOICE}"
 elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
     _writeingestlog "avfoundation_input" "${AVF_INPUT_CHOICE}"
