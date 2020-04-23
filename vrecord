@@ -602,6 +602,25 @@ _gui_return(){
     fi
 }
 
+_report_var(){
+    while [[ "${@}" != "" ]] ; do
+        VAR_NAME="${1}"
+        VAR_VALUE="${!1}"
+        shift
+        if   [[ "$VAR_NAME" == "DECKLINK_INPUT_CHOICE" ]] && [[ "${DEVICE_INPUT_CHOICE}" != "0" ]] ; then
+            :
+        elif [[ "$VAR_NAME" == "AVF_INPUT_CHOICE" ]] && [[ "${DEVICE_INPUT_CHOICE}" != "1" ]] ; then
+            :
+        elif [[ "$VAR_NAME" == "FFV1_SLICE_CHOICE" ]] && [[ "${VIDEO_CODEC_CHOICE}" != "FFV1 version 3" ]] ; then
+            :
+        elif [[ "$VAR_NAME" == "EMBED_LOGS_CHOICE" ]] && [[ "${CONTAINER_CHOICE}" != "Matroska" ]] ; then
+            :
+        else
+            printf " %-24s = %s \n" "$VAR_NAME" "$VAR_VALUE"
+        fi
+    done
+}
+
 # edit mode
 _edit_mode(){
 
@@ -617,33 +636,7 @@ _edit_mode(){
             echo "As auxiliary files directory was left blank, logs will be written to recording directory at ${DIR}."
         fi
         echo "Variables set:"
-        echo "  DEVICE_INPUT_CHOICE = ${DEVICE_INPUT_CHOICE}"
-        echo "  AVF_INPUT_CHOICE = ${AVF_INPUT_CHOICE}"
-        echo "  DECKLINK_INPUT_CHOICE = ${DECKLINK_INPUT_CHOICE}"
-        echo "  DIR = ${DIR}"
-        echo "  LOGDIR = ${LOGDIR}"
-        echo "  CONTAINER_CHOICE = ${CONTAINER_CHOICE}"
-        echo "  VIDEO_INPUT_CHOICE = ${VIDEO_INPUT_CHOICE}"
-        echo "  AUDIO_INPUT_CHOICE = ${AUDIO_INPUT_CHOICE}"
-        echo "  VIDEO_CODEC_CHOICE = ${VIDEO_CODEC_CHOICE}"
-        if [[ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" ]] ; then
-            echo "  FFV1_SLICE_CHOICE  = ${FFV1_SLICE_CHOICE}"
-        fi
-        echo "  AUDIO_CODEC_CHOICE = ${AUDIO_CODEC_CHOICE}"
-        echo "  VIDEO_BIT_DEPTH_CHOICE = ${VIDEO_BIT_DEPTH_CHOICE}"
-        echo "  AUDIO_MAPPING_CHOICE = ${AUDIO_MAPPING_CHOICE}"
-        echo "  TIMECODE_CHOICE = ${TIMECODE_CHOICE}"
-        echo "  STANDARD_CHOICE = ${STANDARD_CHOICE}"
-        echo "  QCTOOLSXML_CHOICE = ${QCTOOLSXML_CHOICE}"
-        echo "  FRAMEMD5_CHOICE = ${FRAMEMD5_CHOICE}"
-        echo "  EMBED_LOGS_CHOICE = ${EMBED_LOGS_CHOICE}"
-        echo "  PLAYBACKVIEW_CHOICE = ${PLAYBACKVIEW_CHOICE}"
-        echo "  PLAYBACKVIEW_CHOICE_PASS = ${PLAYBACKVIEW_CHOICE_PASS}"
-        echo "  DURATION = ${DURATION}"
-        echo "  TECHNICIAN = ${TECHNICIAN}"
-        echo "  PREFIX = ${PREFIX}"
-        echo "  USER_SUFFIX = ${USER_SUFFIX}"
-        echo "  NO_SUFFIX = ${NO_SUFFIX}"
+        _report_var DEVICE_INPUT_CHOICE AVF_INPUT_CHOICE DECKLINK_INPUT_CHOICE DIR LOGDIR CONTAINER_CHOICE VIDEO_INPUT_CHOICE AUDIO_INPUT_CHOICE VIDEO_CODEC_CHOICE FFV1_SLICE_CHOICE AUDIO_CODEC_CHOICE VIDEO_BIT_DEPTH_CHOICE AUDIO_MAPPING_CHOICE TIMECODE_CHOICE STANDARD_CHOICE QCTOOLSXML_CHOICE FRAMEMD5_CHOICE EMBED_LOGS_CHOICE PLAYBACKVIEW_CHOICE PLAYBACKVIEW_CHOICE_PASS DURATION TECHNICIAN PREFIX USER_SUFFIX NO_SUFFIX
         if [[ "${INVERT_PHASE}" = 'true' ]] ; then
             echo -e " \033[101mWARNING: Option to invert phase of second audio channel has been selected\033[0m"
         fi
