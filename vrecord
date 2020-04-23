@@ -102,6 +102,16 @@ _get_iso8601(){
     date +%FT%T
 }
 
+_maketemp(){
+    if [[ "${1}" ]] ; then
+        EXT="${1}"
+    else
+        EXT=""
+    fi
+    echo "$(mktemp -q "/tmp/$(basename "${0}").XXXXXX")${EXT}"
+}
+VRECORD_INPUT_TMP="$(_maketemp .vrecord_input.log)"
+
 _report(){
     local RED="$(tput setaf 1)"    # Red      - For Warnings
     local GREEN="$(tput setaf 2)"  # Green    - For Declarations
@@ -698,20 +708,20 @@ _passthrough_mode(){
     _set_ffplay_options
     if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
         _check_mpv
-        "${FFMPEG_BIN}" -nostats "${GRAB_INPUT[@]}" 2> >(tee /tmp/vrecord_input.log 1>&2) \
+        "${FFMPEG_BIN}" -nostats "${GRAB_INPUT[@]}" 2> >(tee "${VRECORD_INPUT_TMP}" 1>&2) \
         "${PIPE_OUTPUT[@]}" | \
         mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -
     elif [[ "${PLAYBACKVIEW_CHOICE_PASS}" = "Audio + Video" ]] ; then
         if [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
             unset PIPE_OUTPUT[0] && unset PIPE_OUTPUT[1]
-            "${FFMPEG_BIN}" -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_INPUT[@]}" -c copy -f rawvideo - | "${FFMPEG_BIN}" -i - "${PIPE_OUTPUT[@]}" 2> /tmp/vrecord_input.log | \
+            "${FFMPEG_BIN}" -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_INPUT[@]}" -c copy -f rawvideo - | "${FFMPEG_BIN}" -i - "${PIPE_OUTPUT[@]}" 2> "${VRECORD_INPUT_TMP}" | \
             "${FFPLAY_BIN}" -window_title "${WINDOW_NAME}" -f lavfi "movie='pipe\:0':${PLAYBACKFILTER}"
         else
-            "${FFMPEG_BIN}" -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_INPUT[@]}" "${PIPE_OUTPUT[@]}" 2> /tmp/vrecord_input.log | \
+            "${FFMPEG_BIN}" -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_INPUT[@]}" "${PIPE_OUTPUT[@]}" 2> "${VRECORD_INPUT_TMP}" | \
             "${FFPLAY_BIN}" -window_title "${WINDOW_NAME}" -f lavfi "movie='pipe\:0':${PLAYBACKFILTER}"
         fi
     else
-        "${FFPLAY_BIN}" "${FFPLAY_OPTIONS[@]}" 2> >(tee /tmp/vrecord_input.log 1>&2)
+        "${FFPLAY_BIN}" "${FFPLAY_OPTIONS[@]}" 2> >(tee "${VRECORD_INPUT_TMP}" 1>&2)
     fi
     _gui_return
 }
@@ -753,7 +763,7 @@ _writeingestlog(){
 # create a jpeg of qc data graphs for quick assessment
 _qcgraphimage(){
     # get audio data
-    qctools_CONFIGFILE_A="$(/usr/bin/mktemp /tmp/astats_A_XXXXXXXXX).csv"
+    qctools_CONFIGFILE_A="$(_maketemp .astats_A.csv)"
     "${ZCAT_COMMAND}" "$1" | perl -nle 'print if not m{lavfi.(?!astats.Overall.Min_level|astats.Overall.Max_level|astats.Overall.Peak_level|aphasemeter.phase)}' | xmlstarlet select -t -m "//ffprobe:ffprobe/frames/frame[@media_type='audio']" \
        -v "@pkt_pts_time" -o " " \
        -v "tag[@key='lavfi.astats.Overall.Max_level']/@value" -o " " \
@@ -761,7 +771,7 @@ _qcgraphimage(){
        -v "tag[@key='lavfi.astats.Overall.Peak_level']/@value" -o " " \
        -v "tag[@key='lavfi.aphasemeter.phase']/@value" -n > "${qctools_CONFIGFILE_A}"
     # get video data
-    qctools_CONFIGFILE_V="$(/usr/bin/mktemp /tmp/signalstats_V_XXXXXXXXX).csv"
+    qctools_CONFIGFILE_V="$(_maketemp .signalstats.V.csv)"
     "${ZCAT_COMMAND}" "$1" | perl -nle 'print if not m{lavfi.(?!signalstats.BRNG|signalstats.TOUT|signalstats.SATMAX|signalstats.SATAVG|ssim.Y|ssim.U|ssim.V)}' | xmlstarlet select -t -m "//ffprobe:ffprobe/frames/frame[@media_type='video']" \
        -v "@pkt_pts_time" -o " " \
        -v "tag[@key='lavfi.signalstats.TOUT']/@value" -o " " \
@@ -983,7 +993,7 @@ _lookup_choice(){
                 if [[ "${RUNTYPE}" = "passthrough" ]] ; then
                 TIMECODE_OVERLAY=",drawtext=fontfile=${DEFAULTFONT}:x=(w-text_w)*0.5:y=(h-text_h)*0.75:fontcolor=white:box=1:boxcolor=gray@0.7:boxborderw=4:fontsize=22:shadowx=1:shadowy=1:text=%{metadata\\\:timecode\\\:no ${TC_TYPE} timecode}"
                 fi
-                TC_TMP=$(/usr/bin/mktemp /tmp/timecode_XXXXXXXXX)
+                TC_TMP=$(_maketemp .timecode.txt)
                 TC_WRITE=",metadata=mode=print:file=${TC_TMP}"
             fi
             declare TC_TYPE "${TC_TYPE}"
@@ -1083,13 +1093,13 @@ ${PLAYBACK_FILTER_ADJUSTMENT}split=6[a][b][c][d][e][f];\
 [e2]format=yuv422p,geq=lum=60:cb=128:cr=128,\
 scale=180:ih+512,setsar=1/1,\
 drawtext=fontcolor=white:fontsize=22:\
-fontfile=${DEFAULTFONT}:textfile=/tmp/drawtext.txt,\
+fontfile=${DEFAULTFONT}:textfile=${DRAWTEXT_TMP_1},\
 drawtext=fontcolor=white:fontsize=17:\
-fontfile=${DEFAULTFONT}:textfile=/tmp/drawtext2.txt,\
+fontfile=${DEFAULTFONT}:textfile=${DRAWTEXT_TMP_2},\
 drawtext=fontcolor=white:fontsize=52:\
-fontfile=${DEFAULTFONT}:textfile=/tmp/drawtext3.txt[e3];\
+fontfile=${DEFAULTFONT}:textfile=${DRAWTEXT_TMP_3}[e3];\
 [f]scale=iw+512+180:82,format=yuv422p,geq=lum=60:cb=128:cr=128,drawtext=fontcolor=white:fontsize=22:\
-fontfile=${DEFAULTFONT}:textfile=/tmp/vrecord_input.log:\
+fontfile=${DEFAULTFONT}:textfile=${VRECORD_INPUT_TMP}:\
 reload=1:y=82-th[f1];\
 [e3][a1][b1][c1][e1][d1][f1]xstack=inputs=7:layout=0_0|w0_0|w0_h1|w0_h1+h2|w0+w1_0|w0+w1_h1|0_h0" ;;
       "Color Matrix")
@@ -1148,6 +1158,11 @@ _frames_to_hhmmss(){
 }
 
 # set up drawtext.txt files for Visual + Numerical playback view
+
+DRAWTEXT_TMP_1="$(_maketemp .drawtext.1.txt)"
+DRAWTEXT_TMP_2="$(_maketemp .drawtext.2.txt)"
+DRAWTEXT_TMP_3="$(_maketemp .drawtext.3.txt)"
+
 _set_up_drawtext(){
     echo -e "%{pts:hms}
 
@@ -1173,7 +1188,7 @@ _set_up_drawtext(){
  Low  %{metadata:lavfi.signalstats.SATLOW}
  Avg  %{metadata:lavfi.signalstats.SATAVG}
  High %{metadata:lavfi.signalstats.SATHIGH}
- " > /tmp/drawtext.txt
+ " > "${DRAWTEXT_TMP_1}"
 
     echo -e "
 
@@ -1213,7 +1228,7 @@ _set_up_drawtext(){
  VREP     %{metadata:lavfi.signalstats.VREP}
 
 
-" > /tmp/drawtext2.txt
+" > "${DRAWTEXT_TMP_2}"
     echo -e "
 
 
@@ -1234,7 +1249,7 @@ _set_up_drawtext(){
 
 BRNG
 %{metadata:lavfi.signalstats.BRNG}
-" > /tmp/drawtext3.txt
+" > "${DRAWTEXT_TMP_3}"
 }
 
 # select playback view
@@ -1638,7 +1653,7 @@ _set_ffplay_options
 if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
     _check_mpv
     "${RECORD_COMMAND[@]}" \
-        2> >(tee "${FULL_CAPTURE_LOG}" /tmp/vrecord_input.log 1>&2) \
+        2> >(tee "${FULL_CAPTURE_LOG}" "${VRECORD_INPUT_TMP}" 1>&2) \
         | \
         if [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]] ; then
             tee >(mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -) | \
@@ -1648,7 +1663,7 @@ if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
         fi
 else
     "${RECORD_COMMAND[@]}" \
-        2> >(tee "${FULL_CAPTURE_LOG}" /tmp/vrecord_input.log 1>&2) \
+        2> >(tee "${FULL_CAPTURE_LOG}" "${VRECORD_INPUT_TMP}" 1>&2) \
         | \
         if [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]] ; then
             tee >("${FFPLAY_BIN}" "${FFPLAY_OPTIONS[@]}") | \
