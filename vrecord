@@ -102,6 +102,16 @@ _get_iso8601(){
     date +%FT%T
 }
 
+_maketemp(){
+    if [[ "${1}" ]] ; then
+        EXT="${1}"
+    else
+        EXT=""
+    fi
+    echo "$(mktemp -q "/tmp/$(basename "${0}").XXXXXX")${EXT}"
+}
+VRECORD_INPUT_TMP="$(_maketemp .vrecord_input.log)"
+
 _report(){
     local RED="$(tput setaf 1)"    # Red      - For Warnings
     local GREEN="$(tput setaf 2)"  # Green    - For Declarations
@@ -166,6 +176,8 @@ if [[ "${QUERY_OS_TYPE}" = "Darwin" ]] ; then
     CORE_COUNT="$(_parse_report "Total Number of Cores" "${HARDWARE_REPORT}")"
     OPEN_COMMAND="open"
     ZCAT_COMMAND="gzcat"
+    DECKLINK_DRIVER_PLIST="/Library/Extensions/DeckLink_Driver.kext/Contents/Info.plist"
+    VIDEO_CARD_DRIVER_VERSION="$(defaults read "${DECKLINK_DRIVER_PLIST}" CFBundleVersion)"
 elif [[ "${QUERY_OS_TYPE}" = "Linux" ]] ; then
     OS_TYPE="linux"
     DEFAULTFONT="/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf"
@@ -592,15 +604,30 @@ _gui_return(){
     fi
 }
 
+_report_var(){
+    while [[ "${@}" != "" ]] ; do
+        VAR_NAME="${1}"
+        VAR_VALUE="${!1}"
+        shift
+        if   [[ "$VAR_NAME" == "DECKLINK_INPUT_CHOICE" ]] && [[ "${DEVICE_INPUT_CHOICE}" != "0" ]] ; then
+            :
+        elif [[ "$VAR_NAME" == "AVF_INPUT_CHOICE" ]] && [[ "${DEVICE_INPUT_CHOICE}" != "1" ]] ; then
+            :
+        elif [[ "$VAR_NAME" == "FFV1_SLICE_CHOICE" ]] && [[ "${VIDEO_CODEC_CHOICE}" != "FFV1 version 3" ]] ; then
+            :
+        elif [[ "$VAR_NAME" == "EMBED_LOGS_CHOICE" ]] && [[ "${CONTAINER_CHOICE}" != "Matroska" ]] ; then
+            :
+        else
+            printf " %-24s = %s \n" "$VAR_NAME" "$VAR_VALUE"
+        fi
+    done
+}
+
 # edit mode
 _edit_mode(){
 
     _get_decklink_inputs
     _get_avfoundation_inputs
-
-    if [[ ! -d "${GTK_RECENT_DIR}" ]] ; then
-        mkdir -p "${GTK_RECENT_DIR}"
-    fi
     _edit_prefs
     # check that gtkdialog _edit_prefs was exited with OK button
     if [[ "${EXIT}" = "OK" ]] ; then
@@ -611,33 +638,7 @@ _edit_mode(){
             echo "As auxiliary files directory was left blank, logs will be written to recording directory at ${DIR}."
         fi
         echo "Variables set:"
-        echo "  DEVICE_INPUT_CHOICE = ${DEVICE_INPUT_CHOICE}"
-        echo "  AVF_INPUT_CHOICE = ${AVF_INPUT_CHOICE}"
-        echo "  DECKLINK_INPUT_CHOICE = ${DECKLINK_INPUT_CHOICE}"
-        echo "  DIR = ${DIR}"
-        echo "  LOGDIR = ${LOGDIR}"
-        echo "  CONTAINER_CHOICE = ${CONTAINER_CHOICE}"
-        echo "  VIDEO_INPUT_CHOICE = ${VIDEO_INPUT_CHOICE}"
-        echo "  AUDIO_INPUT_CHOICE = ${AUDIO_INPUT_CHOICE}"
-        echo "  VIDEO_CODEC_CHOICE = ${VIDEO_CODEC_CHOICE}"
-        if [[ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" ]] ; then
-            echo "  FFV1_SLICE_CHOICE  = ${FFV1_SLICE_CHOICE}"
-        fi
-        echo "  AUDIO_CODEC_CHOICE = ${AUDIO_CODEC_CHOICE}"
-        echo "  VIDEO_BIT_DEPTH_CHOICE = ${VIDEO_BIT_DEPTH_CHOICE}"
-        echo "  AUDIO_MAPPING_CHOICE = ${AUDIO_MAPPING_CHOICE}"
-        echo "  TIMECODE_CHOICE = ${TIMECODE_CHOICE}"
-        echo "  STANDARD_CHOICE = ${STANDARD_CHOICE}"
-        echo "  QCTOOLSXML_CHOICE = ${QCTOOLSXML_CHOICE}"
-        echo "  FRAMEMD5_CHOICE = ${FRAMEMD5_CHOICE}"
-        echo "  EMBED_LOGS_CHOICE = ${EMBED_LOGS_CHOICE}"
-        echo "  PLAYBACKVIEW_CHOICE = ${PLAYBACKVIEW_CHOICE}"
-        echo "  PLAYBACKVIEW_CHOICE_PASS = ${PLAYBACKVIEW_CHOICE_PASS}"
-        echo "  DURATION = ${DURATION}"
-        echo "  TECHNICIAN = ${TECHNICIAN}"
-        echo "  PREFIX = ${PREFIX}"
-        echo "  USER_SUFFIX = ${USER_SUFFIX}"
-        echo "  NO_SUFFIX = ${NO_SUFFIX}"
+        _report_var DEVICE_INPUT_CHOICE AVF_INPUT_CHOICE DECKLINK_INPUT_CHOICE DIR LOGDIR CONTAINER_CHOICE VIDEO_INPUT_CHOICE AUDIO_INPUT_CHOICE VIDEO_CODEC_CHOICE FFV1_SLICE_CHOICE AUDIO_CODEC_CHOICE VIDEO_BIT_DEPTH_CHOICE AUDIO_MAPPING_CHOICE TIMECODE_CHOICE STANDARD_CHOICE QCTOOLSXML_CHOICE FRAMEMD5_CHOICE EMBED_LOGS_CHOICE PLAYBACKVIEW_CHOICE PLAYBACKVIEW_CHOICE_PASS DURATION TECHNICIAN PREFIX USER_SUFFIX NO_SUFFIX
         if [[ "${INVERT_PHASE}" = 'true' ]] ; then
             echo -e " \033[101mWARNING: Option to invert phase of second audio channel has been selected\033[0m"
         fi
@@ -698,20 +699,20 @@ _passthrough_mode(){
     _set_ffplay_options
     if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
         _check_mpv
-        "${FFMPEG_BIN}" -nostats "${GRAB_INPUT[@]}" 2> >(tee /tmp/vrecord_input.log 1>&2) \
+        "${FFMPEG_BIN}" -nostats "${GRAB_INPUT[@]}" 2> >(tee "${VRECORD_INPUT_TMP}" 1>&2) \
         "${PIPE_OUTPUT[@]}" | \
         mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -
     elif [[ "${PLAYBACKVIEW_CHOICE_PASS}" = "Audio + Video" ]] ; then
         if [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
             unset PIPE_OUTPUT[0] && unset PIPE_OUTPUT[1]
-            "${FFMPEG_BIN}" -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_INPUT[@]}" -c copy -f rawvideo - | "${FFMPEG_BIN}" -i - "${PIPE_OUTPUT[@]}" 2> /tmp/vrecord_input.log | \
+            "${FFMPEG_BIN}" -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_INPUT[@]}" -c copy -f rawvideo - | "${FFMPEG_BIN}" -i - "${PIPE_OUTPUT[@]}" 2> "${VRECORD_INPUT_TMP}" | \
             "${FFPLAY_BIN}" -window_title "${WINDOW_NAME}" -f lavfi "movie='pipe\:0':${PLAYBACKFILTER}"
         else
-            "${FFMPEG_BIN}" -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_INPUT[@]}" "${PIPE_OUTPUT[@]}" 2> /tmp/vrecord_input.log | \
+            "${FFMPEG_BIN}" -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_INPUT[@]}" "${PIPE_OUTPUT[@]}" 2> "${VRECORD_INPUT_TMP}" | \
             "${FFPLAY_BIN}" -window_title "${WINDOW_NAME}" -f lavfi "movie='pipe\:0':${PLAYBACKFILTER}"
         fi
     else
-        "${FFPLAY_BIN}" "${FFPLAY_OPTIONS[@]}" 2> >(tee /tmp/vrecord_input.log 1>&2)
+        "${FFPLAY_BIN}" "${FFPLAY_OPTIONS[@]}" 2> >(tee "${VRECORD_INPUT_TMP}" 1>&2)
     fi
     _gui_return
 }
@@ -753,7 +754,7 @@ _writeingestlog(){
 # create a jpeg of qc data graphs for quick assessment
 _qcgraphimage(){
     # get audio data
-    qctools_CONFIGFILE_A="$(/usr/bin/mktemp /tmp/astats_A_XXXXXXXXX).csv"
+    qctools_CONFIGFILE_A="$(_maketemp .astats_A.csv)"
     "${ZCAT_COMMAND}" "$1" | perl -nle 'print if not m{lavfi.(?!astats.Overall.Min_level|astats.Overall.Max_level|astats.Overall.Peak_level|aphasemeter.phase)}' | xmlstarlet select -t -m "//ffprobe:ffprobe/frames/frame[@media_type='audio']" \
        -v "@pkt_pts_time" -o " " \
        -v "tag[@key='lavfi.astats.Overall.Max_level']/@value" -o " " \
@@ -761,7 +762,7 @@ _qcgraphimage(){
        -v "tag[@key='lavfi.astats.Overall.Peak_level']/@value" -o " " \
        -v "tag[@key='lavfi.aphasemeter.phase']/@value" -n > "${qctools_CONFIGFILE_A}"
     # get video data
-    qctools_CONFIGFILE_V="$(/usr/bin/mktemp /tmp/signalstats_V_XXXXXXXXX).csv"
+    qctools_CONFIGFILE_V="$(_maketemp .signalstats.V.csv)"
     "${ZCAT_COMMAND}" "$1" | perl -nle 'print if not m{lavfi.(?!signalstats.BRNG|signalstats.TOUT|signalstats.SATMAX|signalstats.SATAVG|ssim.Y|ssim.U|ssim.V)}' | xmlstarlet select -t -m "//ffprobe:ffprobe/frames/frame[@media_type='video']" \
        -v "@pkt_pts_time" -o " " \
        -v "tag[@key='lavfi.signalstats.TOUT']/@value" -o " " \
@@ -983,7 +984,7 @@ _lookup_choice(){
                 if [[ "${RUNTYPE}" = "passthrough" ]] ; then
                 TIMECODE_OVERLAY=",drawtext=fontfile=${DEFAULTFONT}:x=(w-text_w)*0.5:y=(h-text_h)*0.75:fontcolor=white:box=1:boxcolor=gray@0.7:boxborderw=4:fontsize=22:shadowx=1:shadowy=1:text=%{metadata\\\:timecode\\\:no ${TC_TYPE} timecode}"
                 fi
-                TC_TMP=$(/usr/bin/mktemp /tmp/timecode_XXXXXXXXX)
+                TC_TMP=$(_maketemp .timecode.txt)
                 TC_WRITE=",metadata=mode=print:file=${TC_TMP}"
             fi
             declare TC_TYPE "${TC_TYPE}"
@@ -1083,13 +1084,13 @@ ${PLAYBACK_FILTER_ADJUSTMENT}split=6[a][b][c][d][e][f];\
 [e2]format=yuv422p,geq=lum=60:cb=128:cr=128,\
 scale=180:ih+512,setsar=1/1,\
 drawtext=fontcolor=white:fontsize=22:\
-fontfile=${DEFAULTFONT}:textfile=/tmp/drawtext.txt,\
+fontfile=${DEFAULTFONT}:textfile=${DRAWTEXT_TMP_1},\
 drawtext=fontcolor=white:fontsize=17:\
-fontfile=${DEFAULTFONT}:textfile=/tmp/drawtext2.txt,\
+fontfile=${DEFAULTFONT}:textfile=${DRAWTEXT_TMP_2},\
 drawtext=fontcolor=white:fontsize=52:\
-fontfile=${DEFAULTFONT}:textfile=/tmp/drawtext3.txt[e3];\
+fontfile=${DEFAULTFONT}:textfile=${DRAWTEXT_TMP_3}[e3];\
 [f]scale=iw+512+180:82,format=yuv422p,geq=lum=60:cb=128:cr=128,drawtext=fontcolor=white:fontsize=22:\
-fontfile=${DEFAULTFONT}:textfile=/tmp/vrecord_input.log:\
+fontfile=${DEFAULTFONT}:textfile=${VRECORD_INPUT_TMP}:\
 reload=1:y=82-th[f1];\
 [e3][a1][b1][c1][e1][d1][f1]xstack=inputs=7:layout=0_0|w0_0|w0_h1|w0_h1+h2|w0+w1_0|w0+w1_h1|0_h0" ;;
       "Color Matrix")
@@ -1148,6 +1149,11 @@ _frames_to_hhmmss(){
 }
 
 # set up drawtext.txt files for Visual + Numerical playback view
+
+DRAWTEXT_TMP_1="$(_maketemp .drawtext.1.txt)"
+DRAWTEXT_TMP_2="$(_maketemp .drawtext.2.txt)"
+DRAWTEXT_TMP_3="$(_maketemp .drawtext.3.txt)"
+
 _set_up_drawtext(){
     echo -e "%{pts:hms}
 
@@ -1173,7 +1179,7 @@ _set_up_drawtext(){
  Low  %{metadata:lavfi.signalstats.SATLOW}
  Avg  %{metadata:lavfi.signalstats.SATAVG}
  High %{metadata:lavfi.signalstats.SATHIGH}
- " > /tmp/drawtext.txt
+ " > "${DRAWTEXT_TMP_1}"
 
     echo -e "
 
@@ -1213,7 +1219,7 @@ _set_up_drawtext(){
  VREP     %{metadata:lavfi.signalstats.VREP}
 
 
-" > /tmp/drawtext2.txt
+" > "${DRAWTEXT_TMP_2}"
     echo -e "
 
 
@@ -1234,7 +1240,7 @@ _set_up_drawtext(){
 
 BRNG
 %{metadata:lavfi.signalstats.BRNG}
-" > /tmp/drawtext3.txt
+" > "${DRAWTEXT_TMP_3}"
 }
 
 # select playback view
@@ -1595,8 +1601,9 @@ fi
 _writeingestlog "FILE_PATH" "${VRECORD_OUTPUT}"
 
 if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
-    DECKLINK_DRIVER_PLIST=/Library/Extensions/DeckLink_Driver.kext/Contents/Info.plist
-    _writeingestlog "video_card_driver_version" "$(defaults read "${DECKLINK_DRIVER_PLIST}" CFBundleVersion)"
+    if [[ -n "${VIDEO_CARD_DRIVER_VERSION}" ]] ; then
+        _writeingestlog "video_card_driver_version" "${VIDEO_CARD_DRIVER_VERSION}"
+    fi
     _writeingestlog "video_card_name" "${DECKLINK_INPUT_CHOICE}"
 elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
     _writeingestlog "avfoundation_input" "${AVF_INPUT_CHOICE}"
@@ -1638,7 +1645,7 @@ _set_ffplay_options
 if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
     _check_mpv
     "${RECORD_COMMAND[@]}" \
-        2> >(tee "${FULL_CAPTURE_LOG}" /tmp/vrecord_input.log 1>&2) \
+        2> >(tee "${FULL_CAPTURE_LOG}" "${VRECORD_INPUT_TMP}" 1>&2) \
         | \
         if [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]] ; then
             tee >(mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -) | \
@@ -1648,7 +1655,7 @@ if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
         fi
 else
     "${RECORD_COMMAND[@]}" \
-        2> >(tee "${FULL_CAPTURE_LOG}" /tmp/vrecord_input.log 1>&2) \
+        2> >(tee "${FULL_CAPTURE_LOG}" "${VRECORD_INPUT_TMP}" 1>&2) \
         | \
         if [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]] ; then
             tee >("${FFPLAY_BIN}" "${FFPLAY_OPTIONS[@]}") | \
