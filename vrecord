@@ -644,8 +644,6 @@ _edit_mode(){
         fi
         if [ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" -a "${CONTAINER_CHOICE}" = "MXF" ] ; then
             echo -e " \033[101mWARNING: Incompatible video codecs and CONTAINERs have been selected\033[0m"
-        elif [ "${VIDEO_CODEC_CHOICE}" = "ProRes" -a "${CONTAINER_CHOICE}" = "MXF" ] ; then
-            echo -e " \033[101mWARNING: Incompatible video codecs and CONTAINERs have been selected\033[0m"
         elif [ "${AUDIO_CODEC_CHOICE}" = "24-bit FLAC" -a "${CONTAINER_CHOICE}" = "QuickTime" ] ; then
             echo -e " \033[101mWARNING: Incompatible audio codecs and CONTAINERs have been selected\033[0m"
         fi
