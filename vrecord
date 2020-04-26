@@ -92,6 +92,7 @@ Advanced options
   -O  Provide a string of output options for the recording ffmpeg to use.
   -i  Provide a file as an input to vrecord, rather than using the
       decklink device. For testing without a decklink device.
+  -G  Share warnings from gtkdialog, otherwise there are suppressed by default.
 
 See also the man page: man ${SCRIPTNAME}
 EOF
@@ -202,7 +203,7 @@ QCLI_INSTALLED="$(if command -v qcli >/dev/null ; then echo true ; else echo fal
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":herpaxgvI:O:i:" opt ; do
+while getopts ":herpaxgvI:O:i:G" opt ; do
     case "${opt}" in
         h) _usage ; exit 0 ;;
         e) RUNTYPE="edit" ;;
@@ -215,6 +216,7 @@ while getopts ":herpaxgvI:O:i:" opt ; do
         I) EXTRAINPUTOPTIONS=(${OPTARG}) ;;
         O) EXTRAOUTPUTOPTIONS=(${OPTARG}) ;;
         i) ALT_INPUT="${OPTARG}" ;;
+        G) VERBOSE_GTKDIALOG="Y" ;;
         :) _report -w "Option -${OPTARG} requires an argument" ; _usage ; exit 1 ;;
         *) _report -w "Error: bad option -${OPTARG}" ; _usage ; exit 1 ;;
     esac
@@ -545,8 +547,11 @@ MAIN_DIALOG=$(cat << GTKFORM
 </window>
 GTKFORM
 )
-
-    RUNTYPE="$(echo "$MAIN_DIALOG" | gtkdialog --center --stdin | grep "^EXIT=" | cut -d= -f2 | sed 's/"//g')"
+    if [[ "${VERBOSE_GTKDIALOG}" = "Y" ]] ; then
+        RUNTYPE="$(echo "$MAIN_DIALOG" | gtkdialog --center --stdin              | grep "^EXIT=" | cut -d= -f2 | sed 's/"//g')"
+    else
+        RUNTYPE="$(echo "$MAIN_DIALOG" | gtkdialog --center --stdin 2> /dev/null | grep "^EXIT=" | cut -d= -f2 | sed 's/"//g')"
+    fi
 
     if [[ "${RUNTYPE}" = "Cancel" ]] || [[ "${RUNTYPE}" = "abort" ]] ; then
         echo "Exiting Vrecord. Goodbye!" && exit 0
@@ -599,8 +604,12 @@ _home_gui(){
     </vbox>
 </window>
 GTKFORM
-)
-    RUNTYPE="$(echo "$HOME_DIALOG" | gtkdialog --center --stdin | grep "^EXIT=" | cut -d= -f2 | sed 's/"//g')"
+)   
+    if [[ "${VERBOSE_GTKDIALOG}" = "Y" ]] ; then
+        RUNTYPE="$(echo "$HOME_DIALOG" | gtkdialog --center --stdin             | grep "^EXIT=" | cut -d= -f2 | sed 's/"//g')"
+    else
+        RUNTYPE="$(echo "$HOME_DIALOG" | gtkdialog --center --stdin 2>/dev/null | grep "^EXIT=" | cut -d= -f2 | sed 's/"//g')"
+    fi
 
     if [[ "${RUNTYPE}" = "Cancel" ]] || [[ "${RUNTYPE}" = "abort" ]] ; then
         echo "Exiting Vrecord. Goodbye!" && exit 0
