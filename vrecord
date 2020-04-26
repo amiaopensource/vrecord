@@ -181,6 +181,9 @@ if [[ "${QUERY_OS_TYPE}" = "Darwin" ]] ; then
 elif [[ "${QUERY_OS_TYPE}" = "Linux" ]] ; then
     OS_TYPE="linux"
     DEFAULTFONT="/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf"
+    if [[ ! -f "${DEFAULTFONT}" ]] ; then
+      _report -wt "vrecord can't find a preferred font to use, please report this error to https://github.com/amiaopensource/vrecord/issues"
+    fi
     HARDWARE_REPORT=$(lscpu)
     CORE_COUNT="$(nproc --all)"
     OPEN_COMMAND="xdg-open"
