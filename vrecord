@@ -379,13 +379,14 @@ AVFOUNDATION_INPUT_GUI="
     </vbox>
 </frame>"
 
-  export MAIN_DIALOG="<window title=\"vrecord configuration\">
+  export MAIN_DIALOG=$(cat << GTKFORM
+  <window title="vrecord configuration">
     <vbox>
         <text>
             <label>Set file recording options.</label>
         </text>
         <frame Input Options>
-        <notebook page=\"${DEVICE_INPUT_CHOICE}\" tab-labels=\"Decklink|DV|\">
+        <notebook page="${DEVICE_INPUT_CHOICE}" tab-labels="Decklink|DV|">
             ${DECKLINK_INPUT_GUI}
             ${AVFOUNDATION_INPUT_GUI}
             <variable>DEVICE_INPUT_CHOICE</variable>
@@ -397,51 +398,51 @@ AVFOUNDATION_INPUT_GUI="
                     <text>
                         <label>gnuplot: </label>
                     </text>
-                    <pixmap stock-icon-size=\"1\" tooltip-text=\"If gnuplot is installed, vrecord can may a graph output from qctools reports.\">
-                        <input file stock=\"$(if $GNUPLOT_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)\"></input>
+                    <pixmap stock-icon-size="1" tooltip-text="If gnuplot is installed, vrecord can may a graph output from qctools reports.">
+                        <input file stock="$(if $GNUPLOT_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)"></input>
                     </pixmap>
                 </hbox>
                 <hbox>
                     <text>
                         <label>mediaconch: </label>
                     </text>
-                    <pixmap stock-icon-size=\"1\" tooltip-text=\"If mediaconch is installed, vrecord can perform checks after capture to ensure the file is as expected.\">
-                        <input file stock=\"$(if $MEDIACONCH_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)\"></input>
+                    <pixmap stock-icon-size="1" tooltip-text="If mediaconch is installed, vrecord can perform checks after capture to ensure the file is as expected.">
+                        <input file stock="$(if $MEDIACONCH_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)"></input>
                     </pixmap>
                 </hbox>
                 <hbox>
                     <text>
                         <label>mkvpropedit: </label>
                     </text>
-                    <pixmap stock-icon-size=\"1\" tooltip-text=\"If mkvpropedit is installed, vrecord can embed capture logs into any Matroska recordings.\">
-                        <input file stock=\"$(if $MKVPROPEDIT_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)\"></input>
+                    <pixmap stock-icon-size="1" tooltip-text="If mkvpropedit is installed, vrecord can embed capture logs into any Matroska recordings.">
+                        <input file stock="$(if $MKVPROPEDIT_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)"></input>
                     </pixmap>
                 </hbox>
                 <hbox>
                     <text>
                         <label>mpv: </label>
                     </text>
-                    <pixmap stock-icon-size=\"1\" tooltip-text=\"If mpv is installed, vrecord can offer additional playback view options.\">
-                        <input file stock=\"$(if $MPV_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)\"></input>
+                    <pixmap stock-icon-size="1" tooltip-text="If mpv is installed, vrecord can offer additional playback view options.">
+                        <input file stock="$(if $MPV_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)"></input>
                     </pixmap>
                 </hbox>
                 <hbox>
                     <text>
                         <label>qcli: </label>
                     </text>
-                    <pixmap stock-icon-size=\"1\" tooltip-text=\"If qcli is installed, vrecord can offer options to create QCTools reports during or after capture.\">
-                        <input file stock=\"$(if $QCLI_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)\"></input>
+                    <pixmap stock-icon-size="1" tooltip-text="If qcli is installed, vrecord can offer options to create QCTools reports during or after capture.">
+                        <input file stock="$(if $QCLI_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)"></input>
                     </pixmap>
                 </hbox>
             </frame>
             <frame Playback options>
-                <hbox space-expand=\"true\">
+                <hbox space-expand="true">
                     $(_gtk_vbox_list "PLAYBACKVIEW_CHOICE"      "Select View (for recording)"   "${PLAYBACKVIEW_OPTIONS[@]}")
                     $(_gtk_vbox_list "PLAYBACKVIEW_CHOICE_PASS" "Select View (for passthrough)" "${PLAYBACKVIEW_PASS_OPTIONS[@]}")
                 </hbox>
             </frame>
             <frame Sidecar file options>
-                <hbox space-expand=\"true\">
+                <hbox space-expand="true">
                     $(_gtk_vbox_list "FRAMEMD5_CHOICE"          "Create frame-level MD5 checksums? (recommended)"       "${FRAMEMD5_OPTIONS[@]}")
                     $(_gtk_vbox_list "QCTOOLSXML_CHOICE"        "Create QCTools XML?"           "${QCTOOLSXML_OPTIONS[@]}")
                 </hbox>
@@ -449,13 +450,13 @@ AVFOUNDATION_INPUT_GUI="
         </hbox>
         <hbox>
             <frame File naming options>
-                <hbox space-expand=\"true\">
+                <hbox space-expand="true">
                     <vbox>
                         <text>
                             <label>Enter an optional file prefix</label>
                         </text>
                         <entry>
-                            <default>\"${PREFIX}\"</default>
+                            <default>"${PREFIX}"</default>
                             <variable>PREFIX</variable>
                         </entry>
                     </vbox>
@@ -464,27 +465,27 @@ AVFOUNDATION_INPUT_GUI="
                             <label>Enter an optional file suffix</label>
                         </text>
                         <entry>
-                            <default>\"${USER_SUFFIX}\"</default>
+                            <default>"${USER_SUFFIX}"</default>
                             <variable>USER_SUFFIX</variable>
                         </entry>
                     </vbox>
                     <vbox>
                         <checkbox>
                             <label>Check this to turn off appending of suffixes</label>
-                            <default>\"${NO_SUFFIX}\"</default>
+                            <default>"${NO_SUFFIX}"</default>
                             <variable>NO_SUFFIX</variable>
                         </checkbox>
                     </vbox>
                 </hbox>
             </frame>
             <frame Recording event options>
-                <hbox space-expand=\"true\">
+                <hbox space-expand="true">
                     <vbox>
                         <text>
                             <label>Set recording time (integer or decimal) in minutes</label>
                         </text>
-                        <entry activates_default=\"true\" tooltip-text=\"Suggested:23 33 63 93. Leave blank for indefinite recording time\">
-                            <default>\"${DURATION}\"</default>
+                        <entry activates_default="true" tooltip-text="Suggested:23 33 63 93. Leave blank for indefinite recording time">
+                            <default>"${DURATION}"</default>
                             <variable>DURATION</variable>
                         </entry>
                     </vbox>
@@ -502,27 +503,27 @@ AVFOUNDATION_INPUT_GUI="
         <hbox>
             <frame Select a recording directory>
                 <hbox>
-                    <entry accept=\"directory\">
+                    <entry accept="directory">
                         <variable>DIR</variable>
-                        <default>\"${DIR}\"</default>
+                        <default>"${DIR}"</default>
                     </entry>
                     <button>
-                        <input file stock=\"gtk-open\"></input>
+                        <input file stock="gtk-open"></input>
                         <variable>DIRBROWSE</variable>
-                        <action type=\"fileselect\">DIR</action>
+                        <action type="fileselect">DIR</action>
                     </button>
                 </hbox>
             </frame>
             <frame Select a directory for auxiliary files (leave blank to match the recording directory).>
                 <hbox>
-                    <entry accept=\"directory\" tooltip-text=\"select the directory for automatically generated logs and checksums\">
+                    <entry accept="directory" tooltip-text="select the directory for automatically generated logs and checksums">
                         <variable>LOGDIR</variable>
-                        <default>\"${LOGDIR}\"</default>
+                        <default>"${LOGDIR}"</default>
                     </entry>
                     <button>
-                        <input file stock=\"gtk-open\"></input>
+                        <input file stock="gtk-open"></input>
                         <variable>LOGDIRBROWSE</variable>
-                        <action type=\"fileselect\">LOGDIR</action>
+                        <action type="fileselect">LOGDIR</action>
                     </button>
                 </hbox>
             </frame>
@@ -536,42 +537,45 @@ AVFOUNDATION_INPUT_GUI="
                 </button>
                 <button>
                     <label>Refresh</label>
-                    <action type=\"exit\">refresh</action>
+                    <action type="exit">refresh</action>
                 </button>
             </hbox>
         </vbox>
     </vbox>
-</window>"
+</window>
+GTKFORM
+)
 
     eval $(gtkdialog --center --program MAIN_DIALOG)
 }
 
 _home_gui(){
-  export HOME_DIALOG="<window title=\"Welcome to Vrecord!\">
+  export HOME_DIALOG=$(cat << GTKFORM
+  <window title="Welcome to Vrecord!">
     <vbox>
         <vbox>
             <hbox>
                 <button>
                     <label>Record</label>
                     <input file>${RESOURCE_PATH}/vrecord_logo.png</input>
-                    <action type=\"exit\">record</action>
+                    <action type="exit">record</action>
                 </button>
                 <button>
                     <label>Passthrough</label>
                     <input file>${RESOURCE_PATH}/vrecord_logo_playback.png</input>
-                    <action type=\"exit\">passthrough</action>
+                    <action type="exit">passthrough</action>
                 </button>
                 <button>
                     <label>Audio Check</label>
                     <input file>${RESOURCE_PATH}/vrecord_logo_audio.png</input>
-                    <action type=\"exit\">audiopassthrough</action>
+                    <action type="exit">audiopassthrough</action>
                 </button>
                 </hbox>
                 <hbox>
                 <button>
                     <label>Edit Settings</label>
                     <input file>${RESOURCE_PATH}/vrecord_logo_edit.png</input>
-                    <action type=\"exit\">edit</action>
+                    <action type="exit">edit</action>
                 </button>
                 <button>
                     <label>Help</label>
@@ -589,7 +593,9 @@ _home_gui(){
             <button cancel></button>
         </hbox>
     </vbox>
-</window>"
+</window>
+GTKFORM
+)
 
   RUNTYPE=$(gtkdialog --center --program=HOME_DIALOG | grep "^EXIT=" | cut -d= -f2 | sed 's/"//g')
 
