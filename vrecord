@@ -379,8 +379,8 @@ AVFOUNDATION_INPUT_GUI="
     </vbox>
 </frame>"
 
-  export MAIN_DIALOG=$(cat << GTKFORM
-  <window title="vrecord configuration">
+MAIN_DIALOG=$(cat << GTKFORM
+<window title="vrecord configuration">
     <vbox>
         <text>
             <label>Set file recording options.</label>
@@ -546,11 +546,15 @@ AVFOUNDATION_INPUT_GUI="
 GTKFORM
 )
 
-    eval $(gtkdialog --center --program MAIN_DIALOG)
+    RUNTYPE="$(echo "$MAIN_DIALOG" | gtkdialog --center --stdin | grep "^EXIT=" | cut -d= -f2 | sed 's/"//g')"
+
+    if [[ "${RUNTYPE}" = "Cancel" ]] || [[ "${RUNTYPE}" = "abort" ]] ; then
+        echo "Exiting Vrecord. Goodbye!" && exit 0
+    fi
 }
 
 _home_gui(){
-  export HOME_DIALOG=$(cat << GTKFORM
+  HOME_DIALOG=$(cat << GTKFORM
   <window title="Welcome to Vrecord!">
     <vbox>
         <vbox>
@@ -596,12 +600,11 @@ _home_gui(){
 </window>
 GTKFORM
 )
+    RUNTYPE="$(echo "$HOME_DIALOG" | gtkdialog --center --stdin | grep "^EXIT=" | cut -d= -f2 | sed 's/"//g')"
 
-  RUNTYPE=$(gtkdialog --center --program=HOME_DIALOG | grep "^EXIT=" | cut -d= -f2 | sed 's/"//g')
-
-  if [[ "${RUNTYPE}" = "Cancel" ]] ; then
-      echo "Exiting Vrecord. Goodbye!" && exit 0
-  fi
+    if [[ "${RUNTYPE}" = "Cancel" ]] || [[ "${RUNTYPE}" = "abort" ]] ; then
+        echo "Exiting Vrecord. Goodbye!" && exit 0
+    fi
 }
 
 # relaunch GUI in GUI mode/exit script in terminal mode
