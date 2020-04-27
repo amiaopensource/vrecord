@@ -42,7 +42,7 @@ Vrecord is open-source software for capturing a video signal and turning it into
 Vrecord uses AMIA Open Source’s [ffmpegdecklink](https://github.com/amiaopensource/homebrew-amiaos/blob/master/ffmpegdecklink.rb) to do its dirty work. Other dependencies are: cowsay, [decklinksdk](https://github.com/amiaopensource/homebrew-amiaos/blob/master/decklinksdk.rb), [gtkdialog](https://github.com/amiaopensource/homebrew-amiaos/blob/master/gtkdialog.rb), freetype, sdl and xmlstarlet. Optional dependencies are: gnuplot, mediaconch, mkvtoolnix, mpv and qcli.
 
 Currently vrecord supports macOS or Linux, and Blackmagic Design capture cards with the Blackmagic driver installed or
-AVFoundation. Some notes on [needed hardware](Resources/Documentation/hardware.md) are provided.
+AVFoundation for DV capture on macOS. Some notes on [needed hardware](Resources/Documentation/hardware.md) are provided.
 
 If you want to see a more detailed description about how to digitize analog videotape see our document on [analog digitization](Resources/Documentation/analog_digitization.md).
 
