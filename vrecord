@@ -343,10 +343,10 @@ _edit_prefs() {
     fi
   }
 
-DECKLINK_INPUT_GUI="
+DECKLINK_INPUT_GUI=$(cat << DECKLINK_FORM
 <frame Decklink input options>
     <vbox>
-        <hbox space-expand=\"true\">
+        <hbox space-expand="true">
             $(_gtk_vbox_list "DECKLINK_INPUT_CHOICE"    "Select Video Card"             "${DECKLINK_DEVICES[@]}")
             $(_gtk_vbox_list "VIDEO_INPUT_CHOICE"       "Select Video Input"            "${VIDEO_INPUT_OPTIONS[@]}")
             $(_gtk_vbox_list "AUDIO_INPUT_CHOICE"       "Select Audio Input"            "${AUDIO_INPUT_OPTIONS[@]}")
@@ -361,7 +361,7 @@ DECKLINK_INPUT_GUI="
             <variable>INVERT_PHASE</variable>
         </checkbox>
         <frame Output file options>
-            <hbox space-expand=\"true\">
+            <hbox space-expand="true">
                 $(_gtk_vbox_list "EMBED_LOGS_CHOICE"        "Embed digitization logs in video file (Matroska ONLY)" "${EMBED_LOGS_OPTIONS[@]}")
                 $(_gtk_vbox_list "CONTAINER_CHOICE"         "Select File Format"            "${CONTAINER_OPTIONS[@]}")
                 $(_gtk_vbox_list "FFV1_SLICE_CHOICE"        "FFV1 Slice Count"              "${FFV1_SLICE_OPTIONS[@]}")
@@ -370,7 +370,9 @@ DECKLINK_INPUT_GUI="
             </hbox>
         </frame>
     </vbox>
-</frame>"
+</frame>
+DECKLINK_FORM
+)
 
 AVFOUNDATION_INPUT_GUI="
 <frame AVFoundation input options>
