@@ -370,6 +370,76 @@ DECKLINK_INPUT_GUI=$(cat << DECKLINK_FORM
                 $(_gtk_vbox_list "AUDIO_CODEC_CHOICE"       "Select Audio Codec"            "${AUDIO_CODEC_OPTIONS[@]}")
             </hbox>
         </frame>
+        <frame RS422 deck control>
+            <hbox>
+                <vbox>
+                    <text>
+                        <label>Status</label>
+                    </text>
+                    <entry editable="false" has-frame="false">
+                        <variable>decklink_status</variable>
+                        <input>deckcontrol getcurrentstate | grep "state:" | cut -c 20-</input>
+                    </entry>
+                </vbox>
+                <vbox>
+                    <text>
+                        <label>Timecode</label>
+                    </text>
+                    <entry editable="false" has-frame="false">
+                        <variable>decklink_timecode</variable>
+                        <input>deckcontrol gettimecode | grep "TC=" | cut -c 4-</input>
+                    </entry>
+                </vbox>
+                <timer milliseconds="true" interval="300" visible="false">
+                     <action>refresh:decklink_status</action>
+                     <action>refresh:decklink_timecode</action>
+                </timer>
+                <hbox>
+                    <button>
+                        <input file stock="gtk-media-rewind"></input>
+                        <action>deckcontrol rewind</action>
+                        <action>refresh:decklink_status</action>
+                        <action>refresh:decklink_timecode</action>
+                    </button>
+                    <button>
+                        <input file stock="gtk-media-previous"></input>
+                        <action>deckcontrol stepback</action>
+                        <action>refresh:decklink_status</action>
+                        <action>refresh:decklink_timecode</action>
+                    </button>
+                    <button>
+                        <input file stock="gtk-media-play"></input>
+                        <action>deckcontrol play</action>
+                        <action>refresh:decklink_status</action>
+                        <action>refresh:decklink_timecode</action>
+                    </button>
+                    <button>
+                        <input file stock="gtk-media-stop"></input>
+                        <action>deckcontrol stop</action>
+                        <action>refresh:decklink_status</action>
+                        <action>refresh:decklink_timecode</action>
+                    </button>
+                    <button>
+                        <input file stock="gtk-media-next"></input>
+                        <action>deckcontrol stepforward</action>
+                        <action>refresh:decklink_status</action>
+                        <action>refresh:decklink_timecode</action>
+                    </button>
+                    <button>
+                        <input file stock="gtk-media-forward"></input>
+                        <action>deckcontrol fastforward</action>
+                        <action>refresh:decklink_status</action>
+                        <action>refresh:decklink_timecode</action>
+                    </button>
+                    <button>
+                        <label>Eject</label>
+                        <action>deckcontrol eject</action>
+                        <action>refresh:decklink_status</action>
+                        <action>refresh:decklink_timecode</action>
+                    </button>
+                </hbox>
+            </hbox>
+        </frame>
     </vbox>
 </frame>
 DECKLINK_FORM
