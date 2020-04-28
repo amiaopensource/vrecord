@@ -66,7 +66,7 @@ files.
 Dependencies: cowsay, amiaopensource/amiaos/decklinksdk,
   amiaopensource/amiaos/ffmpegdecklink, amiaopensource/amiaos/gtkdialog,
   freetype, sdl and xmlstarlet
-Optional Dependencies: gnuplot, mediaconch, mkvtoolnix, mpv, qcli
+Optional Dependencies: deckcontrol, gnuplot, mediaconch, mkvtoolnix, mpv, qcli
 
 Usage: ${SCRIPTNAME} [ -g | -e | -r | -p | -a | -x | -v | -h ]
   -g  use the GUI
@@ -195,6 +195,7 @@ else
 fi
 
 # optional dependency checks
+DECKCONTROL_INSTALLED="$(if command -v deckcontrol >/dev/null ; then echo true ; else echo false ; fi)"
 GNUPLOT_INSTALLED="$(if command -v gnuplot >/dev/null ; then echo true ; else echo false ; fi)"
 MEDIACONCH_INSTALLED="$(if command -v mediaconch >/dev/null ; then echo true ; else echo false ; fi)"
 MKVPROPEDIT_INSTALLED="$(if command -v mkvpropedit >/dev/null ; then echo true ; else echo false ; fi)"
@@ -398,6 +399,14 @@ MAIN_DIALOG=$(cat << GTKFORM
         </frame>
         <hbox>
             <frame Optional Tools>
+                <hbox>
+                    <text>
+                        <label>deckcontrol: </label>
+                    </text>
+                    <pixmap stock-icon-size="1" tooltip-text="If deckcontrol is installed, vrecord can offer an interface to control videodecks via RS422 via a Blackmagic capture device.">
+                        <input file stock="$(if $DECKCONTROL_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)"></input>
+                    </pixmap>
+                </hbox>
                 <hbox>
                     <text>
                         <label>gnuplot: </label>
