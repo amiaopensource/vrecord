@@ -9,9 +9,6 @@ CONFIG_FILE="${HOME}/.${SCRIPTNAME}.conf"
 unset VERSION
 if [[ $(dirname "$(command -v "${0}")") = "/usr/local/bin" ]] ; then
     VERSION=$(TMP=$(brew info vrecord | grep ".*\*$" | grep -Eo "/vrecord/.* \(") ; echo "${TMP:9:(${#TMP}-11)}")
-    RESOURCE_PATH="$(brew --prefix vrecord)"
-else
-    RESOURCE_PATH="${SCRIPTDIR}/Resources"
 fi
 
 _parse_report(){
@@ -24,6 +21,15 @@ _parse_report(){
 QUERY_OS_TYPE="$(uname -s)"
 if [[ "${QUERY_OS_TYPE}" = "Darwin" ]] ; then
     OS_TYPE="macOS"
+    if [[ $(dirname "$(command -v "${0}")") = "/usr/local/bin" ]] ; then
+        if [[ -d "/usr/local/opt/vrecord" ]] ; then
+            RESOURCE_PATH="/usr/local/opt/vrecord"
+        else
+            RESOURCE_PATH="$(brew --prefix vrecord)"
+        fi
+    else
+        RESOURCE_PATH="${SCRIPTDIR}/Resources"
+    fi
     if [[ -f "/Library/Fonts/Andale Mono.ttf" ]] ; then
       DEFAULTFONT="/Library/Fonts/Andale Mono.ttf"
     elif [[ -f "/System/Library/Fonts/Supplemental/Andale Mono.ttf" ]] ; then
@@ -45,6 +51,15 @@ if [[ "${QUERY_OS_TYPE}" = "Darwin" ]] ; then
     VIDEO_CARD_DRIVER_VERSION="$(defaults read "${DECKLINK_DRIVER_PLIST}" CFBundleVersion)"
 elif [[ "${QUERY_OS_TYPE}" = "Linux" ]] ; then
     OS_TYPE="linux"
+    if [[ $(dirname "$(command -v "${0}")") = "/usr/local/bin" ]] ; then
+        if [[ -d "/home/linuxbrew/.linuxbrew/opt/vrecord" ]] ; then
+            RESOURCE_PATH="/home/linuxbrew/.linuxbrew/opt/vrecord"
+        else
+            RESOURCE_PATH="$(brew --prefix vrecord)"
+        fi
+    else
+        RESOURCE_PATH="${SCRIPTDIR}/Resources"
+    fi
     DEFAULTFONT="/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf"
     if [[ ! -f "${DEFAULTFONT}" ]] ; then
       _report -wt "vrecord can't find a preferred font to use, please report this error to https://github.com/amiaopensource/vrecord/issues"
