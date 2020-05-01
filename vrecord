@@ -14,6 +14,50 @@ else
     RESOURCE_PATH="${SCRIPTDIR}/Resources"
 fi
 
+_parse_report(){
+    KEY="${1}"
+    REPORT="${2}"
+    echo "${REPORT}" | grep -i "^[ ]*${KEY}:" | cut -d : -f 2- | awk '{$1=$1;print}'
+}
+
+# Set variables for system differences
+QUERY_OS_TYPE="$(uname -s)"
+if [[ "${QUERY_OS_TYPE}" = "Darwin" ]] ; then
+    OS_TYPE="macOS"
+    if [[ -f "/Library/Fonts/Andale Mono.ttf" ]] ; then
+      DEFAULTFONT="/Library/Fonts/Andale Mono.ttf"
+    elif [[ -f "/System/Library/Fonts/Supplemental/Andale Mono.ttf" ]] ; then
+      DEFAULTFONT="/System/Library/Fonts/Supplemental/Andale Mono.ttf"
+    elif [[ -f "/System/Library/Fonts/Monaco.dfont" ]] ; then
+      DEFAULTFONT="/System/Library/Fonts/Monaco.dfont"
+    elif [[ -f "/Library/Fonts/Microsoft/Lucida Console.ttf" ]] ; then
+      DEFAULTFONT="/Library/Fonts/Microsoft/Lucida\Console.ttf"
+    elif [[ -f "/Library/Fonts/LetterGothicStd.otf" ]] ; then
+      DEFAULTFONT="/Library/Fonts/LetterGothicStd.otf"
+    else
+      _report -wt "vrecord can't find a preferred font to use, please report this error to https://github.com/amiaopensource/vrecord/issues"
+    fi
+    HARDWARE_REPORT=$(system_profiler SPHardwareDataType)
+    CORE_COUNT="$(_parse_report "Total Number of Cores" "${HARDWARE_REPORT}")"
+    OPEN_COMMAND="open"
+    ZCAT_COMMAND="gzcat"
+    DECKLINK_DRIVER_PLIST="/Library/Extensions/DeckLink_Driver.kext/Contents/Info.plist"
+    VIDEO_CARD_DRIVER_VERSION="$(defaults read "${DECKLINK_DRIVER_PLIST}" CFBundleVersion)"
+elif [[ "${QUERY_OS_TYPE}" = "Linux" ]] ; then
+    OS_TYPE="linux"
+    DEFAULTFONT="/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf"
+    if [[ ! -f "${DEFAULTFONT}" ]] ; then
+      _report -wt "vrecord can't find a preferred font to use, please report this error to https://github.com/amiaopensource/vrecord/issues"
+    fi
+    HARDWARE_REPORT=$(lscpu)
+    CORE_COUNT="$(nproc --all)"
+    OPEN_COMMAND="xdg-open"
+    ZCAT_COMMAND="zcat"
+else
+    echo "Unsupported OS, ${QUERY_OS_TYPE}, detected. Exiting."
+    exit 1
+fi
+
 unset INPUTOPTIONS
 unset MIDDLEOPTIONS
 unset SUFFIX
@@ -137,12 +181,6 @@ _report(){
     echo ${ECHOOPT} "${COLOR}${STARTMESSAGE[@]}${MESSAGE}${NC}"
 }
 
-_parse_report(){
-    KEY="${1}"
-    REPORT="${2}"
-    echo "${REPORT}" | grep -i "^[ ]*${KEY}:" | cut -d : -f 2- | awk '{$1=$1;print}'
-}
-
 _cleanup(){
     _report -wt "Vrecord is being stopped at $(_get_iso8601), noting this in the capture log."
     _writeingestlog "exit status" "vrecord was forced to quit early at $(_get_iso8601). Some processing may be incomplete."
@@ -155,44 +193,6 @@ _check_mpv(){
         exit 1
     fi
 }
-
-# Set variables for system differences
-QUERY_OS_TYPE="$(uname -s)"
-if [[ "${QUERY_OS_TYPE}" = "Darwin" ]] ; then
-    OS_TYPE="macOS"
-    if [[ -f "/Library/Fonts/Andale Mono.ttf" ]] ; then
-      DEFAULTFONT="/Library/Fonts/Andale Mono.ttf"
-    elif [[ -f "/System/Library/Fonts/Supplemental/Andale Mono.ttf" ]] ; then
-      DEFAULTFONT="/System/Library/Fonts/Supplemental/Andale Mono.ttf"
-    elif [[ -f "/System/Library/Fonts/Monaco.dfont" ]] ; then
-      DEFAULTFONT="/System/Library/Fonts/Monaco.dfont"
-    elif [[ -f "/Library/Fonts/Microsoft/Lucida Console.ttf" ]] ; then
-      DEFAULTFONT="/Library/Fonts/Microsoft/Lucida\Console.ttf"
-    elif [[ -f "/Library/Fonts/LetterGothicStd.otf" ]] ; then
-      DEFAULTFONT="/Library/Fonts/LetterGothicStd.otf"
-    else
-      _report -wt "vrecord can't find a preferred font to use, please report this error to https://github.com/amiaopensource/vrecord/issues"
-    fi
-    HARDWARE_REPORT=$(system_profiler SPHardwareDataType)
-    CORE_COUNT="$(_parse_report "Total Number of Cores" "${HARDWARE_REPORT}")"
-    OPEN_COMMAND="open"
-    ZCAT_COMMAND="gzcat"
-    DECKLINK_DRIVER_PLIST="/Library/Extensions/DeckLink_Driver.kext/Contents/Info.plist"
-    VIDEO_CARD_DRIVER_VERSION="$(defaults read "${DECKLINK_DRIVER_PLIST}" CFBundleVersion)"
-elif [[ "${QUERY_OS_TYPE}" = "Linux" ]] ; then
-    OS_TYPE="linux"
-    DEFAULTFONT="/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf"
-    if [[ ! -f "${DEFAULTFONT}" ]] ; then
-      _report -wt "vrecord can't find a preferred font to use, please report this error to https://github.com/amiaopensource/vrecord/issues"
-    fi
-    HARDWARE_REPORT=$(lscpu)
-    CORE_COUNT="$(nproc --all)"
-    OPEN_COMMAND="xdg-open"
-    ZCAT_COMMAND="zcat"
-else
-    echo "Unsupported OS, ${QUERY_OS_TYPE}, detected. Exiting."
-    exit 1
-fi
 
 # optional dependency checks
 DECKCONTROL_INSTALLED="$(if command -v deckcontrol >/dev/null ; then echo true ; else echo false ; fi)"
