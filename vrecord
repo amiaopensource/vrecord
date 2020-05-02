@@ -628,15 +628,6 @@ MAIN_DIALOG=$(cat << GTKFORM
 </window>
 GTKFORM
 )
-    if [[ "${VERBOSE_GTKDIALOG}" = "Y" ]] ; then
-        RUNTYPE="$(echo "$MAIN_DIALOG" | gtkdialog --center --stdin              | grep "^EXIT=" | cut -d= -f2 | sed 's/"//g')"
-    else
-        RUNTYPE="$(echo "$MAIN_DIALOG" | gtkdialog --center --stdin 2> /dev/null | grep "^EXIT=" | cut -d= -f2 | sed 's/"//g')"
-    fi
-
-    if [[ "${RUNTYPE}" = "Cancel" ]] || [[ "${RUNTYPE}" = "abort" ]] ; then
-        echo "Exiting Vrecord. Goodbye!" && exit 0
-    fi
 }
 
 _home_gui(){
@@ -731,6 +722,15 @@ _edit_mode(){
     _get_decklink_inputs
     _get_avfoundation_inputs
     _set_up_edit_form
+    if [[ "${VERBOSE_GTKDIALOG}" = "Y" ]] ; then
+        RUNTYPE="$(echo "$MAIN_DIALOG" | gtkdialog --center --stdin              | grep "^EXIT=" | cut -d= -f2 | sed 's/"//g')"
+    else
+        RUNTYPE="$(echo "$MAIN_DIALOG" | gtkdialog --center --stdin 2> /dev/null | grep "^EXIT=" | cut -d= -f2 | sed 's/"//g')"
+    fi
+
+    if [[ "${RUNTYPE}" = "Cancel" ]] || [[ "${RUNTYPE}" = "abort" ]] ; then
+        echo "Exiting Vrecord. Goodbye!" && exit 0
+    fi
     # check that gtkdialog _edit_prefs was exited with OK button
     if [[ "${EXIT}" = "OK" ]] ; then
         _duration_check
