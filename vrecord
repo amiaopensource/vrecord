@@ -716,6 +716,40 @@ _report_var(){
     done
 }
 
+_update_config_file(){
+    _duration_check
+    # report back options
+    if [[ -z "${LOGDIR}" ]] ; then
+        LOGDIR="${DIR}"
+        echo "As auxiliary files directory was left blank, logs will be written to recording directory at ${DIR}."
+    fi
+    echo "Variables set:"
+    _report_var DEVICE_INPUT_CHOICE AVF_INPUT_CHOICE DECKLINK_INPUT_CHOICE DIR LOGDIR CONTAINER_CHOICE VIDEO_INPUT_CHOICE AUDIO_INPUT_CHOICE VIDEO_CODEC_CHOICE FFV1_SLICE_CHOICE AUDIO_CODEC_CHOICE VIDEO_BIT_DEPTH_CHOICE AUDIO_MAPPING_CHOICE TIMECODE_CHOICE STANDARD_CHOICE QCTOOLSXML_CHOICE FRAMEMD5_CHOICE EMBED_LOGS_CHOICE PLAYBACKVIEW_CHOICE PLAYBACKVIEW_CHOICE_PASS DURATION TECHNICIAN PREFIX USER_SUFFIX NO_SUFFIX
+    if [[ "${INVERT_PHASE}" = 'true' ]] ; then
+        echo -e " \033[101mWARNING: Option to invert phase of second audio channel has been selected\033[0m"
+    fi
+    if [ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" -a "${CONTAINER_CHOICE}" = "MXF" ] ; then
+        echo -e " \033[101mWARNING: Incompatible video codecs and CONTAINERs have been selected\033[0m"
+    elif [ "${AUDIO_CODEC_CHOICE}" = "24-bit FLAC" -a "${CONTAINER_CHOICE}" = "QuickTime" ] ; then
+        echo -e " \033[101mWARNING: Incompatible audio codecs and CONTAINERs have been selected\033[0m"
+    fi
+    if [ "${EMBED_LOGS_CHOICE}" = "Yes" -a "${CONTAINER_CHOICE}" != "Matroska" ] ; then
+        _report -w "WARNING: Logs cannot be embedded in non-Matroska files. This vrecord session will generate logs in ${LOGDIR}, but will not embed them in your video file."
+    fi
+    echo ""
+    # write config file
+    {
+        echo "# Set these variables to a valid option or leave as empty quotes (like \"\") to request each run."
+        for COMMENT_LINE in DEVICE_INPUT_CHOICE VIDEO_INPUT_CHOICE AUDIO_INPUT_CHOICE CONTAINER_CHOICE VIDEO_CODEC_CHOICE FFV1_SLICE_CHOICE AUDIO_CODEC_CHOICE\
+        VIDEO_BIT_DEPTH_CHOICE AUDIO_MAPPING_CHOICE TIMECODE_CHOICE STANDARD_CHOICE QCTOOLSXML_CHOICE FRAMEMD5_CHOICE \
+        EMBED_LOGS_CHOICE PLAYBACKVIEW_CHOICE PLAYBACKVIEW_CHOICE_PASS DIR LOGDIR INVERT_PHASE DURATION PREFIX USER_SUFFIX NO_SUFFIX TECHNICIAN \
+        AVF_INPUT_CHOICE DECKLINK_INPUT_CHOICE ; do
+            echo "${COMMENT_LINE}=\"${!COMMENT_LINE}\""
+        done
+    } > "${CONFIG_FILE}"
+    . "${CONFIG_FILE}"
+}
+
 # edit mode
 _edit_mode(){
 
@@ -733,37 +767,8 @@ _edit_mode(){
     fi
     # check that gtkdialog _edit_prefs was exited with OK button
     if [[ "${EXIT}" = "OK" ]] ; then
-        _duration_check
-        # report back options
-        if [[ -z "${LOGDIR}" ]] ; then
-            LOGDIR="${DIR}"
-            echo "As auxiliary files directory was left blank, logs will be written to recording directory at ${DIR}."
         fi
-        echo "Variables set:"
-        _report_var DEVICE_INPUT_CHOICE AVF_INPUT_CHOICE DECKLINK_INPUT_CHOICE DIR LOGDIR CONTAINER_CHOICE VIDEO_INPUT_CHOICE AUDIO_INPUT_CHOICE VIDEO_CODEC_CHOICE FFV1_SLICE_CHOICE AUDIO_CODEC_CHOICE VIDEO_BIT_DEPTH_CHOICE AUDIO_MAPPING_CHOICE TIMECODE_CHOICE STANDARD_CHOICE QCTOOLSXML_CHOICE FRAMEMD5_CHOICE EMBED_LOGS_CHOICE PLAYBACKVIEW_CHOICE PLAYBACKVIEW_CHOICE_PASS DURATION TECHNICIAN PREFIX USER_SUFFIX NO_SUFFIX
-        if [[ "${INVERT_PHASE}" = 'true' ]] ; then
-            echo -e " \033[101mWARNING: Option to invert phase of second audio channel has been selected\033[0m"
         fi
-        if [ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" -a "${CONTAINER_CHOICE}" = "MXF" ] ; then
-            echo -e " \033[101mWARNING: Incompatible video codecs and CONTAINERs have been selected\033[0m"
-        elif [ "${AUDIO_CODEC_CHOICE}" = "24-bit FLAC" -a "${CONTAINER_CHOICE}" = "QuickTime" ] ; then
-            echo -e " \033[101mWARNING: Incompatible audio codecs and CONTAINERs have been selected\033[0m"
-        fi
-        if [ "${EMBED_LOGS_CHOICE}" = "Yes" -a "${CONTAINER_CHOICE}" != "Matroska" ] ; then
-            _report -w "WARNING: Logs cannot be embedded in non-Matroska files. This vrecord session will generate logs in ${LOGDIR}, but will not embed them in your video file."
-        fi
-        echo ""
-        # write config file
-        {
-            echo "# Set these variables to a valid option or leave as empty quotes (like \"\") to request each run."
-            for COMMENT_LINE in DEVICE_INPUT_CHOICE VIDEO_INPUT_CHOICE AUDIO_INPUT_CHOICE CONTAINER_CHOICE VIDEO_CODEC_CHOICE FFV1_SLICE_CHOICE AUDIO_CODEC_CHOICE\
-            VIDEO_BIT_DEPTH_CHOICE AUDIO_MAPPING_CHOICE TIMECODE_CHOICE STANDARD_CHOICE QCTOOLSXML_CHOICE FRAMEMD5_CHOICE \
-            EMBED_LOGS_CHOICE PLAYBACKVIEW_CHOICE PLAYBACKVIEW_CHOICE_PASS DIR LOGDIR INVERT_PHASE DURATION PREFIX USER_SUFFIX NO_SUFFIX TECHNICIAN \
-            AVF_INPUT_CHOICE DECKLINK_INPUT_CHOICE ; do
-                echo "${COMMENT_LINE}=\"${!COMMENT_LINE}\""
-            done
-        } > "${CONFIG_FILE}"
-        . "${CONFIG_FILE}"
     elif [[ "${EXIT}" = "refresh" ]] ; then
         RUNTYPE="edit"
     elif [[ "${EXIT}" = "timecode_scan" ]] ; then
