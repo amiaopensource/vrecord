@@ -532,6 +532,55 @@ MAIN_DIALOG=$(cat << GTKFORM
             </frame>
         </hbox>
         <hbox>
+            <frame Select a recording directory>
+                <hbox>
+                    <entry accept="directory">
+                        <variable>DIR</variable>
+                        <default>"${DIR}"</default>
+                    </entry>
+                    <button>
+                        <input file stock="gtk-open"></input>
+                        <variable>DIRBROWSE</variable>
+                        <action type="fileselect">DIR</action>
+                    </button>
+                </hbox>
+            </frame>
+            <frame Select a directory for auxiliary files (leave blank to match the recording directory).>
+                <hbox>
+                    <entry accept="directory" tooltip-text="select the directory for automatically generated logs and checksums">
+                        <variable>LOGDIR</variable>
+                        <default>"${LOGDIR}"</default>
+                    </entry>
+                    <button>
+                        <input file stock="gtk-open"></input>
+                        <variable>LOGDIRBROWSE</variable>
+                        <action type="fileselect">LOGDIR</action>
+                    </button>
+                </hbox>
+            </frame>
+        </hbox>
+        <hbox>
+            <frame Recording event options>
+                <hbox space-expand="true">
+                    <vbox>
+                        <text>
+                            <label>Enter the name of the person digitizing this tape.</label>
+                        </text>
+                        <entry>
+                            <variable>TECHNICIAN</variable>
+                        </entry>
+                    </vbox>
+                    <vbox>
+                        <text>
+                            <label>Set recording time (integer or decimal) in minutes</label>
+                        </text>
+                        <entry activates_default="true" tooltip-text="Suggested:23 33 63 93. Leave blank for indefinite recording time">
+                            <default>"${DURATION}"</default>
+                            <variable>DURATION</variable>
+                        </entry>
+                    </vbox>
+                </hbox>
+            </frame>
             <frame File naming options>
                 <hbox space-expand="true">
                     <vbox>
@@ -559,55 +608,6 @@ MAIN_DIALOG=$(cat << GTKFORM
                             <variable>NO_SUFFIX</variable>
                         </checkbox>
                     </vbox>
-                </hbox>
-            </frame>
-            <frame Recording event options>
-                <hbox space-expand="true">
-                    <vbox>
-                        <text>
-                            <label>Set recording time (integer or decimal) in minutes</label>
-                        </text>
-                        <entry activates_default="true" tooltip-text="Suggested:23 33 63 93. Leave blank for indefinite recording time">
-                            <default>"${DURATION}"</default>
-                            <variable>DURATION</variable>
-                        </entry>
-                    </vbox>
-                    <vbox>
-                        <text>
-                            <label>Enter the name of the person digitizing this tape.</label>
-                        </text>
-                        <entry>
-                            <variable>TECHNICIAN</variable>
-                        </entry>
-                    </vbox>
-                </hbox>
-            </frame>
-        </hbox>
-        <hbox>
-            <frame Select a recording directory>
-                <hbox>
-                    <entry accept="directory">
-                        <variable>DIR</variable>
-                        <default>"${DIR}"</default>
-                    </entry>
-                    <button>
-                        <input file stock="gtk-open"></input>
-                        <variable>DIRBROWSE</variable>
-                        <action type="fileselect">DIR</action>
-                    </button>
-                </hbox>
-            </frame>
-            <frame Select a directory for auxiliary files (leave blank to match the recording directory).>
-                <hbox>
-                    <entry accept="directory" tooltip-text="select the directory for automatically generated logs and checksums">
-                        <variable>LOGDIR</variable>
-                        <default>"${LOGDIR}"</default>
-                    </entry>
-                    <button>
-                        <input file stock="gtk-open"></input>
-                        <variable>LOGDIRBROWSE</variable>
-                        <action type="fileselect">LOGDIR</action>
-                    </button>
                 </hbox>
             </frame>
         </hbox>
