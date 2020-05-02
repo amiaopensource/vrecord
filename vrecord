@@ -613,13 +613,29 @@ MAIN_DIALOG=$(cat << GTKFORM
         </hbox>
         <vbox>
             <hbox>
-                <button ok>
-                    <variable>OKBUTTON</variable>
+                <button>
+                    <label>Record</label>
+                    <input file stock="gtk-media-record"></input>
+                    <variable>record_button</variable>
+                    <action type="exit">Record</action>
+                </button>
+                <button>
+                    <label>Passthrough</label>
+                    <input file stock="gtk-media-play"></input>
+                    <variable>passthrough_button</variable>
+                    <action type="exit">Passthrough</action>
+                </button>
+                <button>
+                    <label>Home</label>
+                    <input file stock="gtk-index"></input>
+                    <variable>home_button</variable>
+                    <action type="exit">Home</action>
                 </button>
                 <button cancel>
                 </button>
                 <button>
                     <label>Refresh</label>
+                    <input file stock="gtk-refresh"></input>
                     <action type="exit">refresh</action>
                 </button>
             </hbox>
@@ -756,22 +772,46 @@ _edit_mode(){
     _get_decklink_inputs
     _get_avfoundation_inputs
     _set_up_edit_form
-    if [[ "${VERBOSE_GTKDIALOG}" = "Y" ]] ; then
-        RUNTYPE="$(echo "$MAIN_DIALOG" | gtkdialog --center --stdin              | grep "^EXIT=" | cut -d= -f2 | sed 's/"//g')"
-    else
-        RUNTYPE="$(echo "$MAIN_DIALOG" | gtkdialog --center --stdin 2> /dev/null | grep "^EXIT=" | cut -d= -f2 | sed 's/"//g')"
-    fi
 
-    if [[ "${RUNTYPE}" = "Cancel" ]] || [[ "${RUNTYPE}" = "abort" ]] ; then
-        echo "Exiting Vrecord. Goodbye!" && exit 0
+    # run the edit form in gtkdialog
+    if [[ "${VERBOSE_GTKDIALOG}" = "Y" ]] ; then
+        eval "$(echo "$MAIN_DIALOG" | gtkdialog --center --stdin)"
+    else
+        eval "$(echo "$MAIN_DIALOG" | gtkdialog --center --stdin 2> /dev/null)"
     fi
-    # check that gtkdialog _edit_prefs was exited with OK button
-    if [[ "${EXIT}" = "OK" ]] ; then
+    # process the results of the edit form
+    if   [[ "${EXIT}" = "abort" ]] ; then
+        if [[ "${GUI}" = "1" ]] ; then
+            RUNTYPE="GUI"
+            _home_gui
+        else
+            _report -d "Exiting Vrecord. Goodbye!"
+            exit 0
         fi
+    elif [[ "${EXIT}" = "Cancel" ]] ; then
+        if [[ "${GUI}" = "1" ]] ; then
+            RUNTYPE="GUI"
+            _home_gui
+        else
+            _report -d "Editing of preferences was canceled by the user."
+            _report -d "Exiting Vrecord. Goodbye!"
+            exit 0
         fi
+    elif [[ "${EXIT}" = "Record" ]] ; then
+        _update_config_file
+        RUNTYPE="record"
+    elif [[ "${EXIT}" = "Passthrough" ]] ; then
+        _update_config_file
+        RUNTYPE="passthrough"
+    elif [[ "${EXIT}" = "Home" ]] ; then
+        _update_config_file
+        RUNTYPE="GUI"
+        _home_gui
     elif [[ "${EXIT}" = "refresh" ]] ; then
+        _update_config_file
         RUNTYPE="edit"
     elif [[ "${EXIT}" = "timecode_scan" ]] ; then
+        _update_config_file
         _report -dt "Scanning each supported type of timecode."
         for timecode_type in "${TIMECODE_OPTIONS[@]}" ; do
             tc_value="$("${FFPROBE_BIN}" "${GRAB_INPUT[@]}" -timecode_format "${timecode_type}" -show_entries stream_tags=timecode -of default=nw=1:nk=1 2>/dev/null)"
@@ -781,21 +821,9 @@ _edit_mode(){
             echo "${timecode_type}: ${tc_value}"
         done
         RUNTYPE="edit"
-    elif [[ "${EXIT}" = "Cancel" ]] ; then
-        _report -d "Editing of preferences was canceled by the user."
-    fi
-    if [[ "${GUI}" = 1 ]] ; then
-        _home_gui
-    elif [[ "${EXIT}" = "OK" || ${EXIT} = "Cancel" ]] ; then
-        RUNTYPE="record"
-        _report -nd "Press [q] to quit, [p] to enter passthrough mode or any other key to proceed: "
-        read AFTEREDITRESPONSE
-        if [[ "${AFTEREDITRESPONSE}" = "q" ]] ; then
-            _report -d "Bye then"
-            exit 0
-        elif [[ "${AFTEREDITRESPONSE}" = "p" ]] ; then
-            RUNTYPE="passthrough"
-        fi
+    else
+        _report -d -wt "vrecord exited a form in an unexpected way, please report this error to https://github.com/amiaopensource/vrecord/issues"
+        exit 1
     fi
 }
 
