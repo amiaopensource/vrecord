@@ -68,7 +68,11 @@ Dependencies: cowsay, amiaopensource/amiaos/decklinksdk,
   freetype, sdl and xmlstarlet
 Optional Dependencies: deckcontrol, gnuplot, mediaconch, mkvtoolnix, mpv, qcli
 
-Usage: ${SCRIPTNAME} [ -g | -e | -r | -p | -a | -x | -v | -h ]
+Usage: ${SCRIPTNAME} [ -g | -e | -r | -p | -a | -x | -v | -h ] [IDENTIFIER]
+
+  IDENTIFIER will be used for the filenaming of the output files. It is only
+  required in record mode.
+
   -g  use the GUI
   -e  edit the configuration file before recording
   -r  enable record mode [default]
@@ -223,6 +227,7 @@ while getopts ":herpaxgvI:O:i:G" opt ; do
     esac
 done
 shift "$((OPTIND-1))"
+ID="${1}"
 
 _verify_conf_items(){
     # some options to handle situations where an older configuration file needs to store updated options
@@ -562,6 +567,15 @@ MAIN_DIALOG=$(cat << GTKFORM
         <hbox>
             <frame Recording event options>
                 <hbox space-expand="true">
+                    <vbox>
+                        <text>
+                            <label>Name of Recording</label>
+                        </text>
+                        <entry>
+                            <default>"${ID}"</default>
+                            <variable>ID</variable>
+                        </entry>
+                    </vbox>
                     <vbox>
                         <text>
                             <label>Enter the name of the person digitizing this tape.</label>
