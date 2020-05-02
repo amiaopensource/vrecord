@@ -314,7 +314,7 @@ _get_avfoundation_inputs(){
 _get_decklink_inputs
 _get_avfoundation_inputs
 
-_edit_prefs() {
+_set_up_edit_form() {
   _expand_list2items(){
     LIST=( "$@" )
     for i in "${LIST[@]}" ; do
@@ -730,7 +730,7 @@ _edit_mode(){
 
     _get_decklink_inputs
     _get_avfoundation_inputs
-    _edit_prefs
+    _set_up_edit_form
     # check that gtkdialog _edit_prefs was exited with OK button
     if [[ "${EXIT}" = "OK" ]] ; then
         _duration_check
