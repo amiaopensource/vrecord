@@ -127,7 +127,11 @@ Dependencies: cowsay, amiaopensource/amiaos/decklinksdk,
   freetype, sdl and xmlstarlet
 Optional Dependencies: deckcontrol, gnuplot, mediaconch, mkvtoolnix, mpv, qcli
 
-Usage: ${SCRIPTNAME} [ -g | -e | -r | -p | -a | -x | -v | -h ]
+Usage: ${SCRIPTNAME} [ -g | -e | -r | -p | -a | -x | -v | -h ] [IDENTIFIER]
+
+  IDENTIFIER will be used for the filenaming of the output files. It is only
+  required in record mode.
+
   -g  use the GUI
   -e  edit the configuration file before recording
   -r  enable record mode [default]
@@ -238,6 +242,7 @@ while getopts ":herpaxgvI:O:i:G" opt ; do
     esac
 done
 shift "$((OPTIND-1))"
+ID="${1}"
 
 _verify_conf_items(){
     # some options to handle situations where an older configuration file needs to store updated options
@@ -329,7 +334,7 @@ _get_avfoundation_inputs(){
 _get_decklink_inputs
 _get_avfoundation_inputs
 
-_edit_prefs() {
+_set_up_edit_form() {
   _expand_list2items(){
     LIST=( "$@" )
     for i in "${LIST[@]}" ; do
@@ -584,6 +589,64 @@ MAIN_DIALOG=$(cat << GTKFORM
             </frame>
         </hbox>
         <hbox>
+            <frame Select a recording directory>
+                <hbox>
+                    <entry accept="directory">
+                        <variable>DIR</variable>
+                        <default>"${DIR}"</default>
+                    </entry>
+                    <button>
+                        <input file stock="gtk-open"></input>
+                        <variable>DIRBROWSE</variable>
+                        <action type="fileselect">DIR</action>
+                    </button>
+                </hbox>
+            </frame>
+            <frame Select a directory for auxiliary files (leave blank to match the recording directory).>
+                <hbox>
+                    <entry accept="directory" tooltip-text="select the directory for automatically generated logs and checksums">
+                        <variable>LOGDIR</variable>
+                        <default>"${LOGDIR}"</default>
+                    </entry>
+                    <button>
+                        <input file stock="gtk-open"></input>
+                        <variable>LOGDIRBROWSE</variable>
+                        <action type="fileselect">LOGDIR</action>
+                    </button>
+                </hbox>
+            </frame>
+        </hbox>
+        <hbox>
+            <frame Recording event options>
+                <hbox space-expand="true">
+                    <vbox>
+                        <text>
+                            <label>Name of Recording</label>
+                        </text>
+                        <entry>
+                            <default>"${ID}"</default>
+                            <variable>ID</variable>
+                        </entry>
+                    </vbox>
+                    <vbox>
+                        <text>
+                            <label>Enter the name of the person digitizing this tape.</label>
+                        </text>
+                        <entry>
+                            <variable>TECHNICIAN</variable>
+                        </entry>
+                    </vbox>
+                    <vbox>
+                        <text>
+                            <label>Set recording time (integer or decimal) in minutes</label>
+                        </text>
+                        <entry activates_default="true" tooltip-text="Suggested:23 33 63 93. Leave blank for indefinite recording time">
+                            <default>"${DURATION}"</default>
+                            <variable>DURATION</variable>
+                        </entry>
+                    </vbox>
+                </hbox>
+            </frame>
             <frame File naming options>
                 <hbox space-expand="true">
                     <vbox>
@@ -613,65 +676,32 @@ MAIN_DIALOG=$(cat << GTKFORM
                     </vbox>
                 </hbox>
             </frame>
-            <frame Recording event options>
-                <hbox space-expand="true">
-                    <vbox>
-                        <text>
-                            <label>Set recording time (integer or decimal) in minutes</label>
-                        </text>
-                        <entry activates_default="true" tooltip-text="Suggested:23 33 63 93. Leave blank for indefinite recording time">
-                            <default>"${DURATION}"</default>
-                            <variable>DURATION</variable>
-                        </entry>
-                    </vbox>
-                    <vbox>
-                        <text>
-                            <label>Enter the name of the person digitizing this tape.</label>
-                        </text>
-                        <entry>
-                            <variable>TECHNICIAN</variable>
-                        </entry>
-                    </vbox>
-                </hbox>
-            </frame>
-        </hbox>
-        <hbox>
-            <frame Select a recording directory>
-                <hbox>
-                    <entry accept="directory">
-                        <variable>DIR</variable>
-                        <default>"${DIR}"</default>
-                    </entry>
-                    <button>
-                        <input file stock="gtk-open"></input>
-                        <variable>DIRBROWSE</variable>
-                        <action type="fileselect">DIR</action>
-                    </button>
-                </hbox>
-            </frame>
-            <frame Select a directory for auxiliary files (leave blank to match the recording directory).>
-                <hbox>
-                    <entry accept="directory" tooltip-text="select the directory for automatically generated logs and checksums">
-                        <variable>LOGDIR</variable>
-                        <default>"${LOGDIR}"</default>
-                    </entry>
-                    <button>
-                        <input file stock="gtk-open"></input>
-                        <variable>LOGDIRBROWSE</variable>
-                        <action type="fileselect">LOGDIR</action>
-                    </button>
-                </hbox>
-            </frame>
         </hbox>
         <vbox>
             <hbox>
-                <button ok>
-                    <variable>OKBUTTON</variable>
+                <button>
+                    <label>Record</label>
+                    <input file stock="gtk-media-record"></input>
+                    <variable>record_button</variable>
+                    <action type="exit">Record</action>
+                </button>
+                <button>
+                    <label>Passthrough</label>
+                    <input file stock="gtk-media-play"></input>
+                    <variable>passthrough_button</variable>
+                    <action type="exit">Passthrough</action>
+                </button>
+                <button>
+                    <label>Home</label>
+                    <input file stock="gtk-index"></input>
+                    <variable>home_button</variable>
+                    <action type="exit">Home</action>
                 </button>
                 <button cancel>
                 </button>
                 <button>
                     <label>Refresh</label>
+                    <input file stock="gtk-refresh"></input>
                     <action type="exit">refresh</action>
                 </button>
             </hbox>
@@ -680,15 +710,6 @@ MAIN_DIALOG=$(cat << GTKFORM
 </window>
 GTKFORM
 )
-    if [[ "${VERBOSE_GTKDIALOG}" = "Y" ]] ; then
-        RUNTYPE="$(echo "$MAIN_DIALOG" | gtkdialog --center --stdin              | grep "^EXIT=" | cut -d= -f2 | sed 's/"//g')"
-    else
-        RUNTYPE="$(echo "$MAIN_DIALOG" | gtkdialog --center --stdin 2> /dev/null | grep "^EXIT=" | cut -d= -f2 | sed 's/"//g')"
-    fi
-
-    if [[ "${RUNTYPE}" = "Cancel" ]] || [[ "${RUNTYPE}" = "abort" ]] ; then
-        echo "Exiting Vrecord. Goodbye!" && exit 0
-    fi
 }
 
 _home_gui(){
@@ -777,48 +798,86 @@ _report_var(){
     done
 }
 
+_update_config_file(){
+    _duration_check
+    # report back options
+    if [[ -z "${LOGDIR}" ]] ; then
+        LOGDIR="${DIR}"
+        echo "As auxiliary files directory was left blank, logs will be written to recording directory at ${DIR}."
+    fi
+    echo "Variables set:"
+    _report_var DEVICE_INPUT_CHOICE AVF_INPUT_CHOICE DECKLINK_INPUT_CHOICE DIR LOGDIR CONTAINER_CHOICE VIDEO_INPUT_CHOICE AUDIO_INPUT_CHOICE VIDEO_CODEC_CHOICE FFV1_SLICE_CHOICE AUDIO_CODEC_CHOICE VIDEO_BIT_DEPTH_CHOICE AUDIO_MAPPING_CHOICE TIMECODE_CHOICE STANDARD_CHOICE QCTOOLSXML_CHOICE FRAMEMD5_CHOICE EMBED_LOGS_CHOICE PLAYBACKVIEW_CHOICE PLAYBACKVIEW_CHOICE_PASS DURATION TECHNICIAN PREFIX USER_SUFFIX NO_SUFFIX
+    if [[ "${INVERT_PHASE}" = 'true' ]] ; then
+        echo -e " \033[101mWARNING: Option to invert phase of second audio channel has been selected\033[0m"
+    fi
+    if [ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" -a "${CONTAINER_CHOICE}" = "MXF" ] ; then
+        echo -e " \033[101mWARNING: Incompatible video codecs and CONTAINERs have been selected\033[0m"
+    elif [ "${AUDIO_CODEC_CHOICE}" = "24-bit FLAC" -a "${CONTAINER_CHOICE}" = "QuickTime" ] ; then
+        echo -e " \033[101mWARNING: Incompatible audio codecs and CONTAINERs have been selected\033[0m"
+    fi
+    if [ "${EMBED_LOGS_CHOICE}" = "Yes" -a "${CONTAINER_CHOICE}" != "Matroska" ] ; then
+        _report -w "WARNING: Logs cannot be embedded in non-Matroska files. This vrecord session will generate logs in ${LOGDIR}, but will not embed them in your video file."
+    fi
+    echo ""
+    # write config file
+    {
+        echo "# Set these variables to a valid option or leave as empty quotes (like \"\") to request each run."
+        for COMMENT_LINE in DEVICE_INPUT_CHOICE VIDEO_INPUT_CHOICE AUDIO_INPUT_CHOICE CONTAINER_CHOICE VIDEO_CODEC_CHOICE FFV1_SLICE_CHOICE AUDIO_CODEC_CHOICE\
+        VIDEO_BIT_DEPTH_CHOICE AUDIO_MAPPING_CHOICE TIMECODE_CHOICE STANDARD_CHOICE QCTOOLSXML_CHOICE FRAMEMD5_CHOICE \
+        EMBED_LOGS_CHOICE PLAYBACKVIEW_CHOICE PLAYBACKVIEW_CHOICE_PASS DIR LOGDIR INVERT_PHASE DURATION PREFIX USER_SUFFIX NO_SUFFIX TECHNICIAN \
+        AVF_INPUT_CHOICE DECKLINK_INPUT_CHOICE ; do
+            echo "${COMMENT_LINE}=\"${!COMMENT_LINE}\""
+        done
+    } > "${CONFIG_FILE}"
+    . "${CONFIG_FILE}"
+}
+
 # edit mode
 _edit_mode(){
 
     _get_decklink_inputs
     _get_avfoundation_inputs
-    _edit_prefs
-    # check that gtkdialog _edit_prefs was exited with OK button
-    if [[ "${EXIT}" = "OK" ]] ; then
-        _duration_check
-        # report back options
-        if [[ -z "${LOGDIR}" ]] ; then
-            LOGDIR="${DIR}"
-            echo "As auxiliary files directory was left blank, logs will be written to recording directory at ${DIR}."
+    _set_up_edit_form
+
+    # run the edit form in gtkdialog
+    if [[ "${VERBOSE_GTKDIALOG}" = "Y" ]] ; then
+        eval "$(echo "$MAIN_DIALOG" | gtkdialog --center --stdin)"
+    else
+        eval "$(echo "$MAIN_DIALOG" | gtkdialog --center --stdin 2> /dev/null)"
+    fi
+    # process the results of the edit form
+    if   [[ "${EXIT}" = "abort" ]] ; then
+        if [[ "${GUI}" = "1" ]] ; then
+            RUNTYPE="GUI"
+            _home_gui
+        else
+            _report -d "Exiting Vrecord. Goodbye!"
+            exit 0
         fi
-        echo "Variables set:"
-        _report_var DEVICE_INPUT_CHOICE AVF_INPUT_CHOICE DECKLINK_INPUT_CHOICE DIR LOGDIR CONTAINER_CHOICE VIDEO_INPUT_CHOICE AUDIO_INPUT_CHOICE VIDEO_CODEC_CHOICE FFV1_SLICE_CHOICE AUDIO_CODEC_CHOICE VIDEO_BIT_DEPTH_CHOICE AUDIO_MAPPING_CHOICE TIMECODE_CHOICE STANDARD_CHOICE QCTOOLSXML_CHOICE FRAMEMD5_CHOICE EMBED_LOGS_CHOICE PLAYBACKVIEW_CHOICE PLAYBACKVIEW_CHOICE_PASS DURATION TECHNICIAN PREFIX USER_SUFFIX NO_SUFFIX
-        if [[ "${INVERT_PHASE}" = 'true' ]] ; then
-            echo -e " \033[101mWARNING: Option to invert phase of second audio channel has been selected\033[0m"
+    elif [[ "${EXIT}" = "Cancel" ]] ; then
+        if [[ "${GUI}" = "1" ]] ; then
+            RUNTYPE="GUI"
+            _home_gui
+        else
+            _report -d "Editing of preferences was canceled by the user."
+            _report -d "Exiting Vrecord. Goodbye!"
+            exit 0
         fi
-        if [ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" -a "${CONTAINER_CHOICE}" = "MXF" ] ; then
-            echo -e " \033[101mWARNING: Incompatible video codecs and CONTAINERs have been selected\033[0m"
-        elif [ "${AUDIO_CODEC_CHOICE}" = "24-bit FLAC" -a "${CONTAINER_CHOICE}" = "QuickTime" ] ; then
-            echo -e " \033[101mWARNING: Incompatible audio codecs and CONTAINERs have been selected\033[0m"
-        fi
-        if [ "${EMBED_LOGS_CHOICE}" = "Yes" -a "${CONTAINER_CHOICE}" != "Matroska" ] ; then
-            _report -w "WARNING: Logs cannot be embedded in non-Matroska files. This vrecord session will generate logs in ${LOGDIR}, but will not embed them in your video file."
-        fi
-        echo ""
-        # write config file
-        {
-            echo "# Set these variables to a valid option or leave as empty quotes (like \"\") to request each run."
-            for COMMENT_LINE in DEVICE_INPUT_CHOICE VIDEO_INPUT_CHOICE AUDIO_INPUT_CHOICE CONTAINER_CHOICE VIDEO_CODEC_CHOICE FFV1_SLICE_CHOICE AUDIO_CODEC_CHOICE\
-            VIDEO_BIT_DEPTH_CHOICE AUDIO_MAPPING_CHOICE TIMECODE_CHOICE STANDARD_CHOICE QCTOOLSXML_CHOICE FRAMEMD5_CHOICE \
-            EMBED_LOGS_CHOICE PLAYBACKVIEW_CHOICE PLAYBACKVIEW_CHOICE_PASS DIR LOGDIR INVERT_PHASE DURATION PREFIX USER_SUFFIX NO_SUFFIX TECHNICIAN \
-            AVF_INPUT_CHOICE DECKLINK_INPUT_CHOICE ; do
-                echo "${COMMENT_LINE}=\"${!COMMENT_LINE}\""
-            done
-        } > "${CONFIG_FILE}"
-        . "${CONFIG_FILE}"
+    elif [[ "${EXIT}" = "Record" ]] ; then
+        _update_config_file
+        RUNTYPE="record"
+    elif [[ "${EXIT}" = "Passthrough" ]] ; then
+        _update_config_file
+        RUNTYPE="passthrough"
+    elif [[ "${EXIT}" = "Home" ]] ; then
+        _update_config_file
+        RUNTYPE="GUI"
+        _home_gui
     elif [[ "${EXIT}" = "refresh" ]] ; then
+        _update_config_file
         RUNTYPE="edit"
     elif [[ "${EXIT}" = "timecode_scan" ]] ; then
+        _update_config_file
         _report -dt "Scanning each supported type of timecode."
         for timecode_type in "${TIMECODE_OPTIONS[@]}" ; do
             tc_value="$("${FFPROBE_BIN}" "${GRAB_INPUT[@]}" -timecode_format "${timecode_type}" -show_entries stream_tags=timecode -of default=nw=1:nk=1 2>/dev/null)"
@@ -828,21 +887,9 @@ _edit_mode(){
             echo "${timecode_type}: ${tc_value}"
         done
         RUNTYPE="edit"
-    elif [[ "${EXIT}" = "Cancel" ]] ; then
-        _report -d "Editing of preferences was canceled by the user."
-    fi
-    if [[ "${GUI}" = 1 ]] ; then
-        _home_gui
-    elif [[ "${EXIT}" = "OK" || ${EXIT} = "Cancel" ]] ; then
-        RUNTYPE="record"
-        _report -nd "Press [q] to quit, [p] to enter passthrough mode or any other key to proceed: "
-        read AFTEREDITRESPONSE
-        if [[ "${AFTEREDITRESPONSE}" = "q" ]] ; then
-            _report -d "Bye then"
-            exit 0
-        elif [[ "${AFTEREDITRESPONSE}" = "p" ]] ; then
-            RUNTYPE="passthrough"
-        fi
+    else
+        _report -d -wt "vrecord exited a form in an unexpected way, please report this error to https://github.com/amiaopensource/vrecord/issues"
+        exit 1
     fi
 }
 
