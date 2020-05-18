@@ -370,6 +370,24 @@ DECKCONTROL_TIMECODE_TMP="$(_maketemp .deckcontrol.timecode.txt)"
 echo "disabled" > "$DECKCONTROL_STATUS_TMP"
 echo "--:--:--:--" > "$DECKCONTROL_TIMECODE_TMP"
 
+SIDECAR_FILES_GUI="
+<frame Sidecar file options>
+    <hbox space-expand=\"true\">
+        $(_gtk_vbox_list "FRAMEMD5_CHOICE"          "Create frame-level MD5 checksums? (recommended)"       "${FRAMEMD5_OPTIONS[@]}")
+        $(_gtk_vbox_list "QCTOOLSXML_CHOICE"        "Create QCTools XML?"           "${QCTOOLSXML_OPTIONS[@]}")
+    </hbox>
+</frame>
+"
+
+PLAYBACK_OPT_GUI="
+<frame Playback options>
+    <hbox space-expand=\"true\">
+        $(_gtk_vbox_list "PLAYBACKVIEW_CHOICE"      "Select View (for recording)"   "${PLAYBACKVIEW_OPTIONS[@]}")
+        $(_gtk_vbox_list "PLAYBACKVIEW_CHOICE_PASS" "Select View (for passthrough)" "${PLAYBACKVIEW_PASS_OPTIONS[@]}")
+    </hbox>
+</frame>
+"
+
 DECKLINK_INPUT_GUI=$(cat << DECKLINK_FORM
 <frame Decklink input options>
     <vbox>
@@ -575,18 +593,8 @@ MAIN_DIALOG=$(cat << GTKFORM
                     </pixmap>
                 </hbox>
             </frame>
-            <frame Playback options>
-                <hbox space-expand="true">
-                    $(_gtk_vbox_list "PLAYBACKVIEW_CHOICE"      "Select View (for recording)"   "${PLAYBACKVIEW_OPTIONS[@]}")
-                    $(_gtk_vbox_list "PLAYBACKVIEW_CHOICE_PASS" "Select View (for passthrough)" "${PLAYBACKVIEW_PASS_OPTIONS[@]}")
-                </hbox>
-            </frame>
-            <frame Sidecar file options>
-                <hbox space-expand="true">
-                    $(_gtk_vbox_list "FRAMEMD5_CHOICE"          "Create frame-level MD5 checksums? (recommended)"       "${FRAMEMD5_OPTIONS[@]}")
-                    $(_gtk_vbox_list "QCTOOLSXML_CHOICE"        "Create QCTools XML?"           "${QCTOOLSXML_OPTIONS[@]}")
-                </hbox>
-            </frame>
+            ${PLAYBACK_OPT_GUI}
+            ${SIDECAR_FILES_GUI}
         </hbox>
         <hbox>
             <frame Select a recording directory>
