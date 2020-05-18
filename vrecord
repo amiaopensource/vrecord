@@ -385,6 +385,74 @@ DECKCONTROL_TIMECODE_TMP="$(_maketemp .deckcontrol.timecode.txt)"
 echo "disabled" > "$DECKCONTROL_STATUS_TMP"
 echo "--:--:--:--" > "$DECKCONTROL_TIMECODE_TMP"
 
+SIDECAR_FILES_GUI="
+<frame Sidecar file options>
+    <hbox space-expand=\"true\">
+        $(_gtk_vbox_list "FRAMEMD5_CHOICE"          "Create frame-level MD5 checksums? (recommended)"       "${FRAMEMD5_OPTIONS[@]}")
+        $(_gtk_vbox_list "QCTOOLSXML_CHOICE"        "Create QCTools XML?"           "${QCTOOLSXML_OPTIONS[@]}")
+    </hbox>
+</frame>"
+
+PLAYBACK_OPT_GUI="
+<frame Playback options>
+    <hbox space-expand=\"true\">
+        $(_gtk_vbox_list "PLAYBACKVIEW_CHOICE"      "Select View (for recording)"   "${PLAYBACKVIEW_OPTIONS[@]}")
+        $(_gtk_vbox_list "PLAYBACKVIEW_CHOICE_PASS" "Select View (for passthrough)" "${PLAYBACKVIEW_PASS_OPTIONS[@]}")
+    </hbox>
+</frame>"
+
+OPTIONAL_TOOLS_GUI="
+<frame Optional Tools>
+    <hbox>
+        <text>
+            <label>deckcontrol: </label>
+        </text>
+        <pixmap stock-icon-size=\"1\" tooltip-text=\"If deckcontrol is installed, vrecord can offer an interface to control videodecks via RS422 via a Blackmagic capture device.\">
+            <input file stock=\"$(if $DECKCONTROL_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)\"></input>
+        </pixmap>
+    </hbox>
+    <hbox>
+        <text>
+            <label>gnuplot: </label>
+        </text>
+        <pixmap stock-icon-size=\"1\" tooltip-text=\"If gnuplot is installed, vrecord can may a graph output from qctools reports.\">
+            <input file stock=\"$(if $GNUPLOT_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)\"></input>
+        </pixmap>
+    </hbox>
+    <hbox>
+        <text>
+            <label>mediaconch: </label>
+        </text>
+        <pixmap stock-icon-size=\"1\" tooltip-text=\"If mediaconch is installed, vrecord can perform checks after capture to ensure the file is as expected.\">
+            <input file stock=\"$(if $MEDIACONCH_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)\"></input>
+        </pixmap>
+    </hbox>
+    <hbox>
+        <text>
+            <label>mkvpropedit: </label>
+        </text>
+        <pixmap stock-icon-size=\"1\" tooltip-text=\"If mkvpropedit is installed, vrecord can embed capture logs into any Matroska recordings.\">
+            <input file stock=\"$(if $MKVPROPEDIT_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)\"></input>
+        </pixmap>
+    </hbox>
+    <hbox>
+        <text>
+            <label>mpv: </label>
+        </text>
+        <pixmap stock-icon-size=\"1\" tooltip-text=\"If mpv is installed, vrecord can offer additional playback view options.\">
+            <input file stock=\"$(if $MPV_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)\"></input>
+        </pixmap>
+    </hbox>
+    <hbox>
+        <text>
+            <label>qcli: </label>
+        </text>
+        <pixmap stock-icon-size=\"1\" tooltip-text=\"If qcli is installed, vrecord can offer options to create QCTools reports during or after capture.\">
+            <input file stock=\"$(if $QCLI_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)\"></input>
+        </pixmap>
+    </hbox>
+</frame>"
+
 DECKLINK_INPUT_GUI=$(cat << DECKLINK_FORM
 <frame Decklink input options>
     <vbox>
@@ -513,6 +581,11 @@ DECKLINK_INPUT_GUI=$(cat << DECKLINK_FORM
             </hbox>
         </frame>
     </vbox>
+    <hbox>
+      ${OPTIONAL_TOOLS_GUI}
+      ${PLAYBACK_OPT_GUI}
+      ${SIDECAR_FILES_GUI}
+    </hbox>
 </frame>
 DECKLINK_FORM
 )
@@ -551,70 +624,6 @@ MAIN_DIALOG=$(cat << GTKFORM
             <variable>DEVICE_INPUT_CHOICE</variable>
         </notebook>
         </frame>
-        <hbox>
-            <frame Optional Tools>
-                <hbox>
-                    <text>
-                        <label>deckcontrol: </label>
-                    </text>
-                    <pixmap stock-icon-size="1" tooltip-text="If deckcontrol is installed, vrecord can offer an interface to control videodecks via RS422 via a Blackmagic capture device.">
-                        <input file stock="$(if $DECKCONTROL_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)"></input>
-                    </pixmap>
-                </hbox>
-                <hbox>
-                    <text>
-                        <label>gnuplot: </label>
-                    </text>
-                    <pixmap stock-icon-size="1" tooltip-text="If gnuplot is installed, vrecord can may a graph output from qctools reports.">
-                        <input file stock="$(if $GNUPLOT_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)"></input>
-                    </pixmap>
-                </hbox>
-                <hbox>
-                    <text>
-                        <label>mediaconch: </label>
-                    </text>
-                    <pixmap stock-icon-size="1" tooltip-text="If mediaconch is installed, vrecord can perform checks after capture to ensure the file is as expected.">
-                        <input file stock="$(if $MEDIACONCH_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)"></input>
-                    </pixmap>
-                </hbox>
-                <hbox>
-                    <text>
-                        <label>mkvpropedit: </label>
-                    </text>
-                    <pixmap stock-icon-size="1" tooltip-text="If mkvpropedit is installed, vrecord can embed capture logs into any Matroska recordings.">
-                        <input file stock="$(if $MKVPROPEDIT_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)"></input>
-                    </pixmap>
-                </hbox>
-                <hbox>
-                    <text>
-                        <label>mpv: </label>
-                    </text>
-                    <pixmap stock-icon-size="1" tooltip-text="If mpv is installed, vrecord can offer additional playback view options.">
-                        <input file stock="$(if $MPV_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)"></input>
-                    </pixmap>
-                </hbox>
-                <hbox>
-                    <text>
-                        <label>qcli: </label>
-                    </text>
-                    <pixmap stock-icon-size="1" tooltip-text="If qcli is installed, vrecord can offer options to create QCTools reports during or after capture.">
-                        <input file stock="$(if $QCLI_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)"></input>
-                    </pixmap>
-                </hbox>
-            </frame>
-            <frame Playback options>
-                <hbox space-expand="true">
-                    $(_gtk_vbox_list "PLAYBACKVIEW_CHOICE"      "Select View (for recording)"   "${PLAYBACKVIEW_OPTIONS[@]}")
-                    $(_gtk_vbox_list "PLAYBACKVIEW_CHOICE_PASS" "Select View (for passthrough)" "${PLAYBACKVIEW_PASS_OPTIONS[@]}")
-                </hbox>
-            </frame>
-            <frame Sidecar file options>
-                <hbox space-expand="true">
-                    $(_gtk_vbox_list "FRAMEMD5_CHOICE"          "Create frame-level MD5 checksums? (recommended)"       "${FRAMEMD5_OPTIONS[@]}")
-                    $(_gtk_vbox_list "QCTOOLSXML_CHOICE"        "Create QCTools XML?"           "${QCTOOLSXML_OPTIONS[@]}")
-                </hbox>
-            </frame>
-        </hbox>
         <hbox>
             <frame Select a recording directory>
                 <hbox>
