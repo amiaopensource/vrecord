@@ -414,7 +414,11 @@ DECKLINK_INPUT_GUI=$(cat << DECKLINK_FORM
                 $(_gtk_vbox_list "AUDIO_CODEC_CHOICE"       "Select Audio Codec"            "${AUDIO_CODEC_OPTIONS[@]}")
             </hbox>
         </frame>
+        <hbox>
+        ${PLAYBACK_OPT_GUI}
+        ${SIDECAR_FILES_GUI}
         <frame RS422 deck control>
+            <vbox>
             <hbox>
                 <vbox>
                     <togglebutton>
@@ -469,6 +473,9 @@ DECKLINK_INPUT_GUI=$(cat << DECKLINK_FORM
                      <action>refresh:decklink_status</action>
                      <action>refresh:decklink_timecode</action>
                 </timer>
+            </hbox>
+            </vbox>
+            <vbox>
                 <hbox>
                     <button>
                         <variable>deckcontrol_rewind</variable>
@@ -513,8 +520,9 @@ DECKLINK_INPUT_GUI=$(cat << DECKLINK_FORM
                         <action>timeout --foreground 3 deckcontrol eject</action>
                     </button>
                 </hbox>
-            </hbox>
+            </vbox>
         </frame>
+        </hbox>
     </vbox>
 </frame>
 DECKLINK_FORM
@@ -593,8 +601,7 @@ MAIN_DIALOG=$(cat << GTKFORM
                     </pixmap>
                 </hbox>
             </frame>
-            ${PLAYBACK_OPT_GUI}
-            ${SIDECAR_FILES_GUI}
+            
         </hbox>
         <hbox>
             <frame Select a recording directory>
