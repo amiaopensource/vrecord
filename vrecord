@@ -596,7 +596,7 @@ MAIN_DIALOG=$(cat << GTKFORM
             <label>Set file recording options.</label>
         </text>
         <frame Input Options>
-        <notebook page="${DEVICE_INPUT_CHOICE}" tab-labels="Decklink|DV|Config">
+        <notebook page="${DEVICE_INPUT_CHOICE}" tab-labels="Decklink|AVFoundation|Config">
             ${DECKLINK_INPUT_GUI}
             ${AVFOUNDATION_INPUT_GUI}
             ${VRECORD_CONFIG_GUI}
