@@ -330,9 +330,17 @@ _get_avfoundation_inputs(){
         AVFOUNDATION_DEVICES+=("${avf_device}")
     done < <("${FFMPEG_BIN}" -nostdin -hide_banner -f avfoundation -list_devices 1 -i dummy 2>&1 | grep -o "\[[0-9]\].*" | cut -d " " -f2-)
 }
+_get_avfctl_inputs(){
+    # set avfoundation input options
+    unset AVFCTL_DEVICES
+    while read avf_device ; do
+        AVFCTL_DEVICES+=("${avf_device}")
+    done < <(avfctl -list_devices 2>&1 | grep -o "\[[0-9]\] [^:]*")
+}
 
 _get_decklink_inputs
 _get_avfoundation_inputs
+_get_avfctl_inputs
 
 _set_up_edit_form() {
   _expand_list2items(){
@@ -535,6 +543,17 @@ AVFOUNDATION_INPUT_GUI="
     </vbox>
 </frame>"
 
+DVRESCUE_INPUT_GUI=$(cat << DVRESCUEFORM
+<frame AVFoundation input options>
+    <vbox>
+        <hbox space-expand="true">
+            $(_gtk_vbox_list "AVFCTL_INPUT_CHOICE"      "Select a DV Device"           "${AVFCTL_DEVICES[@]}")
+        </hbox>
+    </vbox>
+</frame>
+DVRESCUEFORM
+)
+
 VRECORD_CONFIG_GUI=$(cat << VRECORDCONFIGFORM
 <frame Optional Tools>
     <hbox>
@@ -596,9 +615,10 @@ MAIN_DIALOG=$(cat << GTKFORM
             <label>Set file recording options.</label>
         </text>
         <frame Input Options>
-        <notebook page="${DEVICE_INPUT_CHOICE}" tab-labels="Decklink|AVFoundation|Config">
+        <notebook page="${DEVICE_INPUT_CHOICE}" tab-labels="Decklink|AVFoundation|DVRescue|Config">
             ${DECKLINK_INPUT_GUI}
             ${AVFOUNDATION_INPUT_GUI}
+            ${DVRESCUE_INPUT_GUI}
             ${VRECORD_CONFIG_GUI}
             <variable>DEVICE_INPUT_CHOICE</variable>
         </notebook>
@@ -803,6 +823,8 @@ _report_var(){
             :
         elif [[ "$VAR_NAME" == "AVF_INPUT_CHOICE" ]] && [[ "${DEVICE_INPUT_CHOICE}" != "1" ]] ; then
             :
+        elif [[ "$VAR_NAME" == "AVFCTL_INPUT_CHOICE" ]] && [[ "${DEVICE_INPUT_CHOICE}" != "2" ]] ; then
+            :
         elif [[ "$VAR_NAME" == "FFV1_SLICE_CHOICE" ]] && [[ "${VIDEO_CODEC_CHOICE}" != "FFV1 version 3" ]] ; then
             :
         elif [[ "$VAR_NAME" == "EMBED_LOGS_CHOICE" ]] && [[ "${CONTAINER_CHOICE}" != "Matroska" ]] ; then
@@ -821,7 +843,7 @@ _update_config_file(){
         echo "As auxiliary files directory was left blank, logs will be written to recording directory at ${DIR}."
     fi
     echo "Variables set:"
-    _report_var DEVICE_INPUT_CHOICE AVF_INPUT_CHOICE DECKLINK_INPUT_CHOICE DIR LOGDIR CONTAINER_CHOICE VIDEO_INPUT_CHOICE AUDIO_INPUT_CHOICE VIDEO_CODEC_CHOICE FFV1_SLICE_CHOICE AUDIO_CODEC_CHOICE VIDEO_BIT_DEPTH_CHOICE AUDIO_MAPPING_CHOICE TIMECODE_CHOICE STANDARD_CHOICE QCTOOLSXML_CHOICE FRAMEMD5_CHOICE EMBED_LOGS_CHOICE PLAYBACKVIEW_CHOICE PLAYBACKVIEW_CHOICE_PASS DURATION TECHNICIAN PREFIX USER_SUFFIX NO_SUFFIX
+    _report_var DEVICE_INPUT_CHOICE AVF_INPUT_CHOICE DECKLINK_INPUT_CHOICE AVFCTL_INPUT_CHOICE DIR LOGDIR CONTAINER_CHOICE VIDEO_INPUT_CHOICE AUDIO_INPUT_CHOICE VIDEO_CODEC_CHOICE FFV1_SLICE_CHOICE AUDIO_CODEC_CHOICE VIDEO_BIT_DEPTH_CHOICE AUDIO_MAPPING_CHOICE TIMECODE_CHOICE STANDARD_CHOICE QCTOOLSXML_CHOICE FRAMEMD5_CHOICE EMBED_LOGS_CHOICE PLAYBACKVIEW_CHOICE PLAYBACKVIEW_CHOICE_PASS DURATION TECHNICIAN PREFIX USER_SUFFIX NO_SUFFIX
     if [[ "${INVERT_PHASE}" = 'true' ]] ; then
         echo -e " \033[101mWARNING: Option to invert phase of second audio channel has been selected\033[0m"
     fi
@@ -840,7 +862,7 @@ _update_config_file(){
         for COMMENT_LINE in DEVICE_INPUT_CHOICE VIDEO_INPUT_CHOICE AUDIO_INPUT_CHOICE CONTAINER_CHOICE VIDEO_CODEC_CHOICE FFV1_SLICE_CHOICE AUDIO_CODEC_CHOICE\
         VIDEO_BIT_DEPTH_CHOICE AUDIO_MAPPING_CHOICE TIMECODE_CHOICE STANDARD_CHOICE QCTOOLSXML_CHOICE FRAMEMD5_CHOICE \
         EMBED_LOGS_CHOICE PLAYBACKVIEW_CHOICE PLAYBACKVIEW_CHOICE_PASS DIR LOGDIR INVERT_PHASE DURATION PREFIX USER_SUFFIX NO_SUFFIX TECHNICIAN \
-        AVF_INPUT_CHOICE DECKLINK_INPUT_CHOICE ; do
+        AVF_INPUT_CHOICE AVFCTL_INPUT_CHOICE DECKLINK_INPUT_CHOICE ; do
             echo "${COMMENT_LINE}=\"${!COMMENT_LINE}\""
         done
     } > "${CONFIG_FILE}"
@@ -1560,6 +1582,8 @@ if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
     _review_option "STANDARD_CHOICE" "Which television STANDARD?" "${STANDARD_OPTIONS[@]}"
 elif [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
     _review_option -n "AVF_INPUT_CHOICE" "Which avfoundation input are you using?" "${AVFOUNDATION_DEVICES[@]}"
+elif [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
+    _review_option -n "AVFCTL_INPUT_CHOICE" "Which avfctl input are you using?" "${AVFCTL_DEVICES[@]}"
 fi
 if [[ "${CORE_COUNT}" -le 2 && "${RUNTYPE}" = "record" ]] ; then
     _report -w "Since this computer has only ${CORE_COUNT} cores, the playback will display only half of the frames to reduce CPU. This will not impact the recording."
@@ -1616,6 +1640,15 @@ elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
     MIDDLEOPTIONS+=(-c copy -map 0)
     EXTENSION="dv"
     FORMAT="rawvideo"
+elif [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
+    GRAB_INPUT+=(-f avfoundation)
+    GRAB_INPUT+=(-capture_raw_data true)
+    GRAB_INPUT+=(-drop_late_frames false)
+    GRAB_INPUT+=("${EXTRAINPUTOPTIONS[@]}")
+    GRAB_INPUT+=(-i "${AVF_INPUT_CHOICE}:none")
+    MIDDLEOPTIONS+=(-c copy -map 0)
+    EXTENSION="dv"
+    FORMAT="rawvideo"
 else
     _report "Input unknown"
     exit 1
@@ -1630,6 +1663,12 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
     PIPE_OUTPUT+=(-)
     WINDOW_NAME="mode:${RUNTYPE} - video:'${VIDEO_INPUT}' audio:'${AUDIO_INPUT}' - to end recording press q, esc, or close video window"
 elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
+    PIPE_OUTPUT=(-c copy)
+    PIPE_OUTPUT+=(-map 0)
+    PIPE_OUTPUT+=(-f rawvideo)
+    PIPE_OUTPUT+=(-)
+    WINDOW_NAME="mode:${RUNTYPE} - input:'${AVF_INPUT_CHOICE}' - to end recording press q, esc, or close video window"
+elif [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
     PIPE_OUTPUT=(-c copy)
     PIPE_OUTPUT+=(-map 0)
     PIPE_OUTPUT+=(-f rawvideo)
@@ -1766,6 +1805,9 @@ if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
     _report -d "Summary: ${VIDEOCODECNAME}/${FORMAT} ${PIXEL_FORMAT} file from ${STANDARD} ${VIDEO_INPUT} ${AUDIO_INPUT}. Frame MD5s=${FRAMEMD5_CHOICE}, QCTools XML=${QCTOOLSXML_CHOICE}, and Technician=${TECHNICIAN}. Inputs recorded to ${VRECORD_OUTPUT} and Auxiliary Files created in ${LOGDIR}"
 elif [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
     _report -d "Summary: Copying video from ${AVF_INPUT_CHOICE}. Frame MD5s=${FRAMEMD5_CHOICE}, QCTools XML=${QCTOOLSXML_CHOICE}, and Technician=${TECHNICIAN}. Inputs recorded to ${VRECORD_OUTPUT} and Auxiliary Files created in ${LOGDIR}"
+elif [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
+    _report -d "Summary: Copying video from ${AVFCTL_INPUT_CHOICE}. Frame MD5s=${FRAMEMD5_CHOICE}, QCTools XML=${QCTOOLSXML_CHOICE}, and Technician=${TECHNICIAN}. Inputs recorded to ${VRECORD_OUTPUT} and Auxiliary Files created in ${LOGDIR}"
+
 fi
 
 if [[ "${INVERT_PHASE}" = 'true' ]] ; then
@@ -1821,6 +1863,8 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
     _writeingestlog "video_card_name" "${DECKLINK_INPUT_CHOICE}"
 elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
     _writeingestlog "avfoundation_input" "${AVF_INPUT_CHOICE}"
+elif [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
+    _writeingestlog "avfctl_input" "${AVFCTL_INPUT_CHOICE}"
 fi
 
 echo -e "${LOG_OF_OPTIONS}" >> "${INGESTLOG}"
