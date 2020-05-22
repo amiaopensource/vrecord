@@ -951,7 +951,7 @@ _passthrough_mode(){
             "${FFPLAY_BIN}" -window_title "${WINDOW_NAME}" -f lavfi "movie='pipe\:0':${PLAYBACKFILTER}"
         fi
     elif [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
-        "${FFMPEG_BIN}" -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_INPUT[@]}" "${PIPE_OUTPUT[@]}" 2> /tmp/vrecord_input.log | \
+        "${FFMPEG_BIN}" -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_INPUT[@]}" "${PIPE_OUTPUT[@]}" 2> "${VRECORD_INPUT_TMP}" | \
             "${FFPLAY_BIN}" -window_title "${WINDOW_NAME}" -f lavfi "amovie='pipe\:0',${PLAYBACKFILTER}"
     else
         "${FFPLAY_BIN}" "${FFPLAY_OPTIONS[@]}" 2> >(tee "${VRECORD_INPUT_TMP}" 1>&2)
@@ -1716,6 +1716,11 @@ elif [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
         GRAB_INPUT+=(-i hw:"${AUDIO_DEV_NUM}")
         EXTENSION="${AUDIO_EXT}"
         FORMAT="${AUDIO_EXT}" 
+    elif [[ "${OS_TYPE}" = "macOS" ]] ; then
+        GRAB_INPUT+=(-f avfoundation)
+        GRAB_INPUT+=(-i "none:${AUDIO_DEV_CHOICE}")
+        EXTENSION="${AUDIO_EXT}"
+        FORMAT="${AUDIO_EXT}"
     fi
 else
     _report "Input unknown"
