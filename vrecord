@@ -2072,8 +2072,8 @@ if [[ "${FRAMEMD5_CHOICE}" = "Yes" ]] ; then
         cowsay "$(_report -w "WARNING: There were presentation timestamp discontinuities in the file's frame MD5s for these frame ranges: ${PTS_DISCONTINUITY}. This error may indicate frames dropped by FFmpeg or vrecord. The file may have sync issues.")"
     fi
 elif [[ "${FRAMEMD5_CHOICE}" = "No" ]] ; then
-    FRAMES_ENCODED=$(cat "${LOGDIR}/${ID}"_ffmpeg_*.log | grep -w "frames encoded" | awk '{print $10}' | grep -m 1 [0-9])
-    FRAMES_DECODED=$(cat "${LOGDIR}/${ID}"_ffmpeg_*.log | grep -w "frames decoded" | awk '{print $10}' | grep -m 1 [0-9])
+    FRAMES_ENCODED=$(cat "${LOGDIR}/${FULL_OUTPUT_ID}"_ffmpeg_input.log | grep -w "frames encoded" | awk '{print $10}' | grep -m 1 [0-9])
+    FRAMES_DECODED=$(cat "${LOGDIR}/${FULL_OUTPUT_ID}"_ffmpeg_input.log | grep -w "frames decoded" | awk '{print $10}' | grep -m 1 [0-9])
     if [[ "${FRAMES_ENCODED}" -lt $((FRAMES_DECODED-1)) ]] ; then
         FRAMES_DISCREPANCY=$((FRAMES_DECODED-FRAMES_ENCODED))
         cowsay "$(_report -w "WARNING: There were presentation timestamp discontinuities found in the framemd5s. This error may indicate frames dropped by FFmpeg or vrecord. The file may have sync issues.")"
