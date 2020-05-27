@@ -1846,6 +1846,7 @@ if [[ -f "${VRECORD_OUTPUT}" ]] ; then
     exit
 fi
 
+if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
 _review_option "QCTOOLSXML_CHOICE" "Create QCTools XML?" "${QCTOOLSXML_OPTIONS[@]}"
 if [[ "${OPTION}" != "No" && ! "$(command -v qcli)" ]] ; then
     _report -w "Please install qcli to use the qctools reporting option."
@@ -1859,6 +1860,7 @@ if [[ "${OPTION}" = "Yes" ]] ; then
 fi
 if [[ "${FORMAT}" = "matroska" ]] ; then
     _review_option "EMBED_LOGS_CHOICE" "Embed logs in Matroska file?" "${EMBED_LOGS_OPTIONS[@]}"
+fi
 fi
 
 _duration_check
@@ -1878,8 +1880,10 @@ elif [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
     _report -d "Summary: Copying video from ${AVF_INPUT_CHOICE}. Frame MD5s=${FRAMEMD5_CHOICE}, QCTools XML=${QCTOOLSXML_CHOICE}, and Technician=${TECHNICIAN}. Inputs recorded to ${VRECORD_OUTPUT} and Auxiliary Files created in ${LOGDIR}"
 fi
 
+if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
 if [[ "${INVERT_PHASE}" = 'true' ]] ; then
     echo -e " \033[101mWARNING: Option to invert phase of second audio channel has been selected\033[0m"
+fi
 fi
 _report -q "Hit enter to start recording"
 read
