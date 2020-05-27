@@ -328,7 +328,7 @@ _get_avfoundation_inputs(){
     unset AVFOUNDATION_DEVICES
     while read avf_device ; do
         AVFOUNDATION_DEVICES+=("${avf_device}")
-    done < <("${FFMPEG_BIN}" -nostdin -hide_banner -f avfoundation -list_devices 1 -i dummy 2>&1 | grep -o "\[[0-9]\].*" | cut -d " " -f2-)
+    done < <("${FFMPEG_BIN}" -nostdin -hide_banner -f avfoundation -list_devices 1 -i dummy 2>&1 | grep -A 10 "AVFoundation audio devices" | grep -o "\[[0-9]\].*" | cut -d " " -f2-)
 }
 
 _get_decklink_inputs
