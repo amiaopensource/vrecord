@@ -2027,14 +2027,15 @@ if [[ ! -s "${VRECORD_OUTPUT}" ]] ; then
     fi
 fi
 
-if [[ -f "${TC_TMP}" ]] ; then
-    mv "${TC_TMP}" "${LOGDIR}/${FULL_OUTPUT_ID}_${TC_TYPE}${TIMECODELOGSUFFIX}"
-fi
-
 _writeingestlog "datetime_end" "$(_get_iso8601)"
 trap _cleanup SIGHUP SIGINT SIGTERM
 
 if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
+    # timecode document handling
+    if [[ -f "${TC_TMP}" ]] ; then
+        mv "${TC_TMP}" "${LOGDIR}/${FULL_OUTPUT_ID}_${TC_TYPE}${TIMECODELOGSUFFIX}"
+    fi
+
     # qc tools process
     if [[ "${QCTOOLSXML_CHOICE}" = "Yes, after recording" ]] ; then
         qcli -f signalstats+aphasemeter+astats+ssim -i "${VRECORD_OUTPUT}" -o "${QCXML}"
