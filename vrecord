@@ -406,57 +406,59 @@ PLAYBACK_OPT_GUI="
     </hbox>
 </frame>"
 
-OPTIONAL_TOOLS_GUI="
+OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
 <frame Optional Tools>
     <hbox>
         <text>
             <label>deckcontrol: </label>
         </text>
-        <pixmap stock-icon-size=\"1\" tooltip-text=\"If deckcontrol is installed, vrecord can offer an interface to control videodecks via RS422 via a Blackmagic capture device.\">
-            <input file stock=\"$(if $DECKCONTROL_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)\"></input>
+        <pixmap stock-icon-size="1" tooltip-text="If deckcontrol is installed, vrecord can offer an interface to control videodecks via RS422 via a Blackmagic capture device.">
+            <input file stock="$(if $DECKCONTROL_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)"></input>
         </pixmap>
     </hbox>
     <hbox>
         <text>
             <label>gnuplot: </label>
         </text>
-        <pixmap stock-icon-size=\"1\" tooltip-text=\"If gnuplot is installed, vrecord can may a graph output from qctools reports.\">
-            <input file stock=\"$(if $GNUPLOT_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)\"></input>
+        <pixmap stock-icon-size="1" tooltip-text="If gnuplot is installed, vrecord can may a graph output from qctools reports.">
+            <input file stock="$(if $GNUPLOT_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)"></input>
         </pixmap>
     </hbox>
     <hbox>
         <text>
             <label>mediaconch: </label>
         </text>
-        <pixmap stock-icon-size=\"1\" tooltip-text=\"If mediaconch is installed, vrecord can perform checks after capture to ensure the file is as expected.\">
-            <input file stock=\"$(if $MEDIACONCH_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)\"></input>
+        <pixmap stock-icon-size="1" tooltip-text="If mediaconch is installed, vrecord can perform checks after capture to ensure the file is as expected.">
+            <input file stock="$(if $MEDIACONCH_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)"></input>
         </pixmap>
     </hbox>
     <hbox>
         <text>
             <label>mkvpropedit: </label>
         </text>
-        <pixmap stock-icon-size=\"1\" tooltip-text=\"If mkvpropedit is installed, vrecord can embed capture logs into any Matroska recordings.\">
-            <input file stock=\"$(if $MKVPROPEDIT_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)\"></input>
+        <pixmap stock-icon-size="1" tooltip-text="If mkvpropedit is installed, vrecord can embed capture logs into any Matroska recordings.">
+            <input file stock="$(if $MKVPROPEDIT_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)"></input>
         </pixmap>
     </hbox>
     <hbox>
         <text>
             <label>mpv: </label>
         </text>
-        <pixmap stock-icon-size=\"1\" tooltip-text=\"If mpv is installed, vrecord can offer additional playback view options.\">
-            <input file stock=\"$(if $MPV_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)\"></input>
+        <pixmap stock-icon-size="1" tooltip-text="If mpv is installed, vrecord can offer additional playback view options.">
+            <input file stock="$(if $MPV_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)"></input>
         </pixmap>
     </hbox>
     <hbox>
         <text>
             <label>qcli: </label>
         </text>
-        <pixmap stock-icon-size=\"1\" tooltip-text=\"If qcli is installed, vrecord can offer options to create QCTools reports during or after capture.\">
-            <input file stock=\"$(if $QCLI_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)\"></input>
+        <pixmap stock-icon-size="1" tooltip-text="If qcli is installed, vrecord can offer options to create QCTools reports during or after capture.">
+            <input file stock="$(if $QCLI_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)"></input>
         </pixmap>
     </hbox>
-</frame>"
+</frame>
+CONFIG_FORM
+)
 
 DECKLINK_INPUT_GUI=$(cat << DECKLINK_FORM
 <frame Decklink input options>
