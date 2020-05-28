@@ -1846,19 +1846,21 @@ if [[ -f "${VRECORD_OUTPUT}" ]] ; then
     exit
 fi
 
-_review_option "QCTOOLSXML_CHOICE" "Create QCTools XML?" "${QCTOOLSXML_OPTIONS[@]}"
-if [[ "${OPTION}" != "No" && ! "$(command -v qcli)" ]] ; then
-    _report -w "Please install qcli to use the qctools reporting option."
-    _report -w "Such as \`brew install qcli\`."
-    exit 1
-fi
-_review_option "FRAMEMD5_CHOICE" "Create frame-level MD5 checksums?" "${FRAMEMD5_OPTIONS[@]}"
-if [[ "${OPTION}" = "Yes" ]] ; then
-    FRAMEMD5NAME="${LOGDIR}/${FULL_OUTPUT_ID}.framemd5"
-    EXTRAOUTPUTS=(-an -f framemd5 "${FRAMEMD5NAME}")
-fi
-if [[ "${FORMAT}" = "matroska" ]] ; then
-    _review_option "EMBED_LOGS_CHOICE" "Embed logs in Matroska file?" "${EMBED_LOGS_OPTIONS[@]}"
+if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
+    _review_option "QCTOOLSXML_CHOICE" "Create QCTools XML?" "${QCTOOLSXML_OPTIONS[@]}"
+    if [[ "${OPTION}" != "No" && ! "$(command -v qcli)" ]] ; then
+        _report -w "Please install qcli to use the qctools reporting option."
+        _report -w "Such as \`brew install qcli\`."
+        exit 1
+    fi
+    _review_option "FRAMEMD5_CHOICE" "Create frame-level MD5 checksums?" "${FRAMEMD5_OPTIONS[@]}"
+    if [[ "${OPTION}" = "Yes" ]] ; then
+        FRAMEMD5NAME="${LOGDIR}/${FULL_OUTPUT_ID}.framemd5"
+        EXTRAOUTPUTS=(-an -f framemd5 "${FRAMEMD5NAME}")
+    fi
+    if [[ "${FORMAT}" = "matroska" ]] ; then
+        _review_option "EMBED_LOGS_CHOICE" "Embed logs in Matroska file?" "${EMBED_LOGS_OPTIONS[@]}"
+    fi
 fi
 
 _duration_check
@@ -1876,10 +1878,15 @@ if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
     _report -d "Summary: ${VIDEOCODECNAME}/${FORMAT} ${PIXEL_FORMAT} file from ${STANDARD} ${VIDEO_INPUT} ${AUDIO_INPUT}. Frame MD5s=${FRAMEMD5_CHOICE}, QCTools XML=${QCTOOLSXML_CHOICE}, and Technician=${TECHNICIAN}. Inputs recorded to ${VRECORD_OUTPUT} and Auxiliary Files created in ${LOGDIR}"
 elif [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
     _report -d "Summary: Copying video from ${AVF_INPUT_CHOICE}. Frame MD5s=${FRAMEMD5_CHOICE}, QCTools XML=${QCTOOLSXML_CHOICE}, and Technician=${TECHNICIAN}. Inputs recorded to ${VRECORD_OUTPUT} and Auxiliary Files created in ${LOGDIR}"
+elif [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
+    _report -d "Summary: Recording audio from ${AUDIO_DEV_CHOICE}. Technician=${TECHNICIAN}. Inputs recorded to ${VRECORD_OUTPUT} and Auxiliary Files created in ${LOGDIR}"
+
 fi
 
-if [[ "${INVERT_PHASE}" = 'true' ]] ; then
-    echo -e " \033[101mWARNING: Option to invert phase of second audio channel has been selected\033[0m"
+if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
+    if [[ "${INVERT_PHASE}" = 'true' ]] ; then
+        echo -e " \033[101mWARNING: Option to invert phase of second audio channel has been selected\033[0m"
+    fi
 fi
 _report -q "Hit enter to start recording"
 read
@@ -2020,89 +2027,90 @@ if [[ ! -s "${VRECORD_OUTPUT}" ]] ; then
     fi
 fi
 
-if [[ -f "${TC_TMP}" ]] ; then
-    mv "${TC_TMP}" "${LOGDIR}/${FULL_OUTPUT_ID}_${TC_TYPE}${TIMECODELOGSUFFIX}"
-fi
-
 _writeingestlog "datetime_end" "$(_get_iso8601)"
 trap _cleanup SIGHUP SIGINT SIGTERM
 
-# qc tools process
-if [[ "${QCTOOLSXML_CHOICE}" = "Yes, after recording" ]] ; then
-    qcli -f signalstats+aphasemeter+astats+ssim -i "${VRECORD_OUTPUT}" -o "${QCXML}"
-fi
-if [[ "${QCTOOLSXML_CHOICE}" != "No" ]] ; then
-    _report -d "Vrecord is analyzing your video file. Please be patient."
-    if [[ -s "${QCXML}" ]] ; then
-        if [[ "${PIXEL_FORMAT}" = "yuv422p10" ]] ; then
-            SAT_OUTLIERS=$("${ZCAT_COMMAND}" "${QCXML}" | perl -nle 'print if not m{lavfi.(?!signalstats.SATMAX)}' | xmlstarlet sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>496])" -n)
-        elif [[ "${PIXEL_FORMAT}" = "uyvy422" ]] ; then
-            SAT_OUTLIERS=$("${ZCAT_COMMAND}" "${QCXML}" | perl -nle 'print if not m{lavfi.(?!signalstats.SATMAX)}' | xmlstarlet sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>124])" -n)
-        fi
-        AUD_OUTLIERS=$("${ZCAT_COMMAND}" "${QCXML}" | perl -nle 'print if not m{lavfi.(?!astats.Overall.Peak_level)}' | grep -v "tag key=\"lavfi.[^a]" | xmlstarlet sel -t -v "count(//tag[@key='lavfi.astats.Overall.Peak_level'][@value>=-0.01])" -n)
-        BRNG_OUTLIERS=$("${ZCAT_COMMAND}" "${QCXML}" | perl -nle 'print if not m{lavfi.(?!signalstats.BRNG)}' | xmlstarlet sel -t -v "count(//tag[@key='lavfi.signalstats.BRNG'][@value>=0.03])" -n)
-        AUDIO_PEAK=$("${ZCAT_COMMAND}" "${QCXML}" | grep lavfi.astats.Overall.Peak_level | cut -d '"' -f 4 | sort -n | tail -n 1)
-        _writeingestlog "Peak Volume is (dB)" "${AUDIO_PEAK}"
-        if "$GNUPLOT_INSTALLED" && "$QCLI_INSTALLED" ; then
-            _report -d "Vrecord is generating graphs from the QCTools data. One moment please."
-            _qcgraphimage "${QCXML}"
-        fi
-    else
-        _report -w "qctools XML ${QCXML} is empty or does not exist!"
-    fi
-    if [[ "${SAT_OUTLIERS}" -gt "${SAT_OUTLIER_THRSHLD}" ]] ; then
-        cowsay "$(_report -w "WARNING: Your video file contains ${SAT_OUTLIERS} frames with illegal saturation values. Your deck may require cleaning.")"
-    fi
-    if [[ "${AUD_OUTLIERS}" -gt "${AUD_OUTLIER_THRSHLD}" ]] ; then
-        cowsay "$(_report -w "WARNING: Your video file contains ${AUD_OUTLIERS} frames with clipped audio levels.")"
-    fi
-    if [[ "${BRNG_OUTLIERS}" -gt "${BRNG_OUTLIER_THRSHLD}" ]] ; then
-        cowsay "$(_report -w "WARNING: Your video file contains ${BRNG_OUTLIERS} frames with pixels out of broadcast range.")"
-    fi
-    _report -d "QCTools analysis is complete."
-fi
-
-# check for discontinuities in the Frame MD5s; if user chose not to use Frame MD5s, check for frame discontinuties in the FFmpeg file
-if [[ "${FRAMEMD5_CHOICE}" = "Yes" ]] ; then
-    PTS_DISCONTINUITY=$(cat "${FRAMEMD5NAME}" | grep -v "^#" | cut -d, -f3 | sed 's/ //g' | grep -v "^0$" | awk '{if($1!=p+1){if(p+1==$1-1){printf p+1" "}else{printf p+1"-"$1-1" "}}{p=$1}}')
-    if [[ -z "${PTS_DISCONTINUITY}" ]] ; then
-        _writeingestlog "PTS_DISCONTINUITY" "none"
-    else
-        _writeingestlog "PTS_DISCONTINUITY" "${PTS_DISCONTINUITY}"
-        cowsay "$(_report -w "WARNING: There were presentation timestamp discontinuities in the file's frame MD5s for these frame ranges: ${PTS_DISCONTINUITY}. This error may indicate frames dropped by FFmpeg or vrecord. The file may have sync issues.")"
-    fi
-elif [[ "${FRAMEMD5_CHOICE}" = "No" ]] ; then
-    FRAMES_ENCODED=$(cat "${LOGDIR}/${FULL_OUTPUT_ID}"_ffmpeg_input.log | grep -w "frames encoded" | awk '{print $10}' | grep -m 1 [0-9])
-    FRAMES_DECODED=$(cat "${LOGDIR}/${FULL_OUTPUT_ID}"_ffmpeg_input.log | grep -w "frames decoded" | awk '{print $10}' | grep -m 1 [0-9])
-    if [[ "${FRAMES_ENCODED}" -lt $((FRAMES_DECODED-1)) ]] ; then
-        FRAMES_DISCREPANCY=$((FRAMES_DECODED-FRAMES_ENCODED))
-        cowsay "$(_report -w "WARNING: There were presentation timestamp discontinuities found in the framemd5s. This error may indicate frames dropped by FFmpeg or vrecord. The file may have sync issues.")"
-        _writeingestlog "ffmpeg_missing_frames" "${FRAMES_DISCREPANCY}"
-    else
-        _writeingestlog "ffmpeg_missing_frames" "None"
-    fi
-fi
-
-# check for frames dropped in ffmpeg_input.log
-DROPPED_FRAMES_INSTANCES=$(grep -c "Frames dropped" "${FULL_CAPTURE_LOG}")
-DROPPED_FRAMES_FRAMENUMBERS=$(grep "Frames dropped" "${FULL_CAPTURE_LOG}" | awk '{print $6}' | sed 's/[(#)]//g')
-if [[ "${DROPPED_FRAMES_INSTANCES}" -gt 0 ]] ; then
-    cowsay "$(_report -w "WARNING: FFmpeg Decklink input reported dropped frames in the following ${DROPPED_FRAMES_INSTANCES} locations. This error may indicate an interrupted signal between hardware components. The file may be missing content. With decklink inputs, this cow recommends reviewing your settings in Desktop Video Setup and setting the video and audio inputs to match what those set in vrecord.")"
-    for i in ${DROPPED_FRAMES_FRAMENUMBERS} ; do # do not quote this variable
-        DROPPED_FRAMES_TIMESTAMPS+="$(_frames_to_hhmmss "${i}") "
-    done
-    _report -w "Dropped frames timestamps: ${DROPPED_FRAMES_TIMESTAMPS}"
-    _writeingestlog "DROPPED_FRAMES_TIMESTAMPS" "${DROPPED_FRAMES_TIMESTAMPS}"
-fi
-
-# check for input buffer overrun error
-BUFFER_OVERRUN=$(grep -c "Decklink input buffer overrun" "${FULL_CAPTURE_LOG}")
-if [[ "${BUFFER_OVERRUN}" -gt 0 ]] ; then
-    cowsay "$(_report -w "WARNING: FFmpeg Decklink input reported a buffer overrun. The file is likely missing frames or contains artifacts from the buffer overrun.")"
-    _writeingestlog "Decklink input buffer overrun" "Yes"
-fi
-
 if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
+    # timecode document handling
+    if [[ -f "${TC_TMP}" ]] ; then
+        mv "${TC_TMP}" "${LOGDIR}/${FULL_OUTPUT_ID}_${TC_TYPE}${TIMECODELOGSUFFIX}"
+    fi
+
+    # qc tools process
+    if [[ "${QCTOOLSXML_CHOICE}" = "Yes, after recording" ]] ; then
+        qcli -f signalstats+aphasemeter+astats+ssim -i "${VRECORD_OUTPUT}" -o "${QCXML}"
+    fi
+    if [[ "${QCTOOLSXML_CHOICE}" != "No" ]] ; then
+        _report -d "Vrecord is analyzing your video file. Please be patient."
+        if [[ -s "${QCXML}" ]] ; then
+            if [[ "${PIXEL_FORMAT}" = "yuv422p10" ]] ; then
+                SAT_OUTLIERS=$("${ZCAT_COMMAND}" "${QCXML}" | perl -nle 'print if not m{lavfi.(?!signalstats.SATMAX)}' | xmlstarlet sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>496])" -n)
+            elif [[ "${PIXEL_FORMAT}" = "uyvy422" ]] ; then
+                SAT_OUTLIERS=$("${ZCAT_COMMAND}" "${QCXML}" | perl -nle 'print if not m{lavfi.(?!signalstats.SATMAX)}' | xmlstarlet sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>124])" -n)
+            fi
+            AUD_OUTLIERS=$("${ZCAT_COMMAND}" "${QCXML}" | perl -nle 'print if not m{lavfi.(?!astats.Overall.Peak_level)}' | grep -v "tag key=\"lavfi.[^a]" | xmlstarlet sel -t -v "count(//tag[@key='lavfi.astats.Overall.Peak_level'][@value>=-0.01])" -n)
+            BRNG_OUTLIERS=$("${ZCAT_COMMAND}" "${QCXML}" | perl -nle 'print if not m{lavfi.(?!signalstats.BRNG)}' | xmlstarlet sel -t -v "count(//tag[@key='lavfi.signalstats.BRNG'][@value>=0.03])" -n)
+            AUDIO_PEAK=$("${ZCAT_COMMAND}" "${QCXML}" | grep lavfi.astats.Overall.Peak_level | cut -d '"' -f 4 | sort -n | tail -n 1)
+            _writeingestlog "Peak Volume is (dB)" "${AUDIO_PEAK}"
+            if "$GNUPLOT_INSTALLED" && "$QCLI_INSTALLED" ; then
+                _report -d "Vrecord is generating graphs from the QCTools data. One moment please."
+                _qcgraphimage "${QCXML}"
+            fi
+        else
+            _report -w "qctools XML ${QCXML} is empty or does not exist!"
+        fi
+        if [[ "${SAT_OUTLIERS}" -gt "${SAT_OUTLIER_THRSHLD}" ]] ; then
+            cowsay "$(_report -w "WARNING: Your video file contains ${SAT_OUTLIERS} frames with illegal saturation values. Your deck may require cleaning.")"
+        fi
+        if [[ "${AUD_OUTLIERS}" -gt "${AUD_OUTLIER_THRSHLD}" ]] ; then
+            cowsay "$(_report -w "WARNING: Your video file contains ${AUD_OUTLIERS} frames with clipped audio levels.")"
+        fi
+        if [[ "${BRNG_OUTLIERS}" -gt "${BRNG_OUTLIER_THRSHLD}" ]] ; then
+            cowsay "$(_report -w "WARNING: Your video file contains ${BRNG_OUTLIERS} frames with pixels out of broadcast range.")"
+        fi
+        _report -d "QCTools analysis is complete."
+    fi
+
+    # check for discontinuities in the Frame MD5s; if user chose not to use Frame MD5s, check for frame discontinuties in the FFmpeg file
+    if [[ "${FRAMEMD5_CHOICE}" = "Yes" ]] ; then
+        PTS_DISCONTINUITY=$(cat "${FRAMEMD5NAME}" | grep -v "^#" | cut -d, -f3 | sed 's/ //g' | grep -v "^0$" | awk '{if($1!=p+1){if(p+1==$1-1){printf p+1" "}else{printf p+1"-"$1-1" "}}{p=$1}}')
+        if [[ -z "${PTS_DISCONTINUITY}" ]] ; then
+            _writeingestlog "PTS_DISCONTINUITY" "none"
+        else
+            _writeingestlog "PTS_DISCONTINUITY" "${PTS_DISCONTINUITY}"
+            cowsay "$(_report -w "WARNING: There were presentation timestamp discontinuities in the file's frame MD5s for these frame ranges: ${PTS_DISCONTINUITY}. This error may indicate frames dropped by FFmpeg or vrecord. The file may have sync issues.")"
+        fi
+    elif [[ "${FRAMEMD5_CHOICE}" = "No" ]] ; then
+        FRAMES_ENCODED=$(cat "${LOGDIR}/${FULL_OUTPUT_ID}"_ffmpeg_input.log | grep -w "frames encoded" | awk '{print $10}' | grep -m 1 [0-9])
+        FRAMES_DECODED=$(cat "${LOGDIR}/${FULL_OUTPUT_ID}"_ffmpeg_input.log | grep -w "frames decoded" | awk '{print $10}' | grep -m 1 [0-9])
+        if [[ "${FRAMES_ENCODED}" -lt $((FRAMES_DECODED-1)) ]] ; then
+            FRAMES_DISCREPANCY=$((FRAMES_DECODED-FRAMES_ENCODED))
+            cowsay "$(_report -w "WARNING: There were presentation timestamp discontinuities found in the framemd5s. This error may indicate frames dropped by FFmpeg or vrecord. The file may have sync issues.")"
+            _writeingestlog "ffmpeg_missing_frames" "${FRAMES_DISCREPANCY}"
+        else
+            _writeingestlog "ffmpeg_missing_frames" "None"
+        fi
+    fi
+
+    # check for frames dropped in ffmpeg_input.log
+    DROPPED_FRAMES_INSTANCES=$(grep -c "Frames dropped" "${FULL_CAPTURE_LOG}")
+    DROPPED_FRAMES_FRAMENUMBERS=$(grep "Frames dropped" "${FULL_CAPTURE_LOG}" | awk '{print $6}' | sed 's/[(#)]//g')
+    if [[ "${DROPPED_FRAMES_INSTANCES}" -gt 0 ]] ; then
+        cowsay "$(_report -w "WARNING: FFmpeg Decklink input reported dropped frames in the following ${DROPPED_FRAMES_INSTANCES} locations. This error may indicate an interrupted signal between hardware components. The file may be missing content. With decklink inputs, this cow recommends reviewing your settings in Desktop Video Setup and setting the video and audio inputs to match what those set in vrecord.")"
+        for i in ${DROPPED_FRAMES_FRAMENUMBERS} ; do # do not quote this variable
+            DROPPED_FRAMES_TIMESTAMPS+="$(_frames_to_hhmmss "${i}") "
+        done
+        _report -w "Dropped frames timestamps: ${DROPPED_FRAMES_TIMESTAMPS}"
+        _writeingestlog "DROPPED_FRAMES_TIMESTAMPS" "${DROPPED_FRAMES_TIMESTAMPS}"
+    fi
+
+    # check for input buffer overrun error
+    BUFFER_OVERRUN=$(grep -c "Decklink input buffer overrun" "${FULL_CAPTURE_LOG}")
+    if [[ "${BUFFER_OVERRUN}" -gt 0 ]] ; then
+        cowsay "$(_report -w "WARNING: FFmpeg Decklink input reported a buffer overrun. The file is likely missing frames or contains artifacts from the buffer overrun.")"
+        _writeingestlog "Decklink input buffer overrun" "Yes"
+    fi
+
     # policy checks with mediaconch
     if "$MEDIACONCH_INSTALLED" ; then
         if [[ "${VIDEO_CODEC_CHOICE}" = "Uncompressed Video" ]] ; then
