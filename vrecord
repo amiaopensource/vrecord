@@ -485,34 +485,6 @@ DECKLINK_INPUT_GUI=$(cat << DECKLINK_FORM
             <frame RS422 deck control>
                 <hbox>
                     <vbox>
-                        <togglebutton>
-                            <label>Deck Control</label>
-                            <default>false</default>
-                            <variable>deckcontrol_toggle</variable>
-                            <input file stock="gtk-execute"></input>
-                            <action>if true enable:deckcontrol_timer</action>
-                            <action>if true enable:decklink_status</action>
-                            <action>if true enable:decklink_timecode</action>
-                            <action>if true enable:deckcontrol_rewind</action>
-                            <action>if true enable:deckcontrol_prev</action>
-                            <action>if true enable:deckcontrol_play</action>
-                            <action>if true enable:deckcontrol_stop</action>
-                            <action>if true enable:deckcontrol_next</action>
-                            <action>if true enable:deckcontrol_ff</action>
-                            <action>if true enable:deckcontrol_eject</action>
-                            <action>if false disable:deckcontrol_timer</action>
-                            <action>if false disable:decklink_status</action>
-                            <action>if false disable:decklink_timecode</action>
-                            <action>if false disable:deckcontrol_rewind</action>
-                            <action>if false disable:deckcontrol_prev</action>
-                            <action>if false disable:deckcontrol_play</action>
-                            <action>if false disable:deckcontrol_stop</action>
-                            <action>if false disable:deckcontrol_next</action>
-                            <action>if false disable:deckcontrol_ff</action>
-                            <action>if false disable:deckcontrol_eject</action>
-                        </togglebutton>
-                    </vbox>
-                    <vbox>
                         <text>
                             <label>Status</label>
                         </text>
@@ -537,6 +509,34 @@ DECKLINK_INPUT_GUI=$(cat << DECKLINK_FORM
                          <action>refresh:decklink_status</action>
                          <action>refresh:decklink_timecode</action>
                     </timer>
+                </hbox>
+                <hbox>
+                    <togglebutton>
+                        <label>Deck Control</label>
+                        <default>false</default>
+                        <variable>deckcontrol_toggle</variable>
+                        <input file stock="gtk-execute"></input>
+                        <action>if true enable:deckcontrol_timer</action>
+                        <action>if true enable:decklink_status</action>
+                        <action>if true enable:decklink_timecode</action>
+                        <action>if true enable:deckcontrol_rewind</action>
+                        <action>if true enable:deckcontrol_prev</action>
+                        <action>if true enable:deckcontrol_play</action>
+                        <action>if true enable:deckcontrol_stop</action>
+                        <action>if true enable:deckcontrol_next</action>
+                        <action>if true enable:deckcontrol_ff</action>
+                        <action>if true enable:deckcontrol_eject</action>
+                        <action>if false disable:deckcontrol_timer</action>
+                        <action>if false disable:decklink_status</action>
+                        <action>if false disable:decklink_timecode</action>
+                        <action>if false disable:deckcontrol_rewind</action>
+                        <action>if false disable:deckcontrol_prev</action>
+                        <action>if false disable:deckcontrol_play</action>
+                        <action>if false disable:deckcontrol_stop</action>
+                        <action>if false disable:deckcontrol_next</action>
+                        <action>if false disable:deckcontrol_ff</action>
+                        <action>if false disable:deckcontrol_eject</action>
+                    </togglebutton>
                     <hbox>
                         <button>
                             <variable>deckcontrol_rewind</variable>
