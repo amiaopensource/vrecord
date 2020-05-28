@@ -585,9 +585,6 @@ DECKLINK_INPUT_GUI=$(cat << DECKLINK_FORM
             </frame>
         </hbox>
     </vbox>
-    <hbox>
-      ${OPTIONAL_TOOLS_GUI}
-    </hbox>
 </frame>
 DECKLINK_FORM
 )
@@ -623,10 +620,11 @@ MAIN_DIALOG=$(cat << GTKFORM
             <label>Set file recording options.</label>
         </text>
         <frame Input Options>
-        <notebook page="${DEVICE_INPUT_CHOICE}" tab-labels="Decklink|DV|Audio">
+        <notebook page="${DEVICE_INPUT_CHOICE}" tab-labels="Decklink|DV|Audio|Config">
             ${DECKLINK_INPUT_GUI}
             ${AVFOUNDATION_INPUT_GUI}
             ${AUDIO_INPUT_GUI}
+            ${OPTIONAL_TOOLS_GUI}
             <variable>DEVICE_INPUT_CHOICE</variable>
         </notebook>
         </frame>
