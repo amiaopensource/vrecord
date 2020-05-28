@@ -479,6 +479,9 @@ DECKLINK_INPUT_GUI=$(cat << DECKLINK_FORM
                 $(_gtk_vbox_list "AUDIO_CODEC_CHOICE"       "Select Audio Codec"            "${AUDIO_CODEC_OPTIONS[@]}")
             </hbox>
         </frame>
+        <hbox>
+            ${PLAYBACK_OPT_GUI}
+            ${SIDECAR_FILES_GUI}
         <frame RS422 deck control>
             <hbox>
                 <vbox>
@@ -580,11 +583,10 @@ DECKLINK_INPUT_GUI=$(cat << DECKLINK_FORM
                 </hbox>
             </hbox>
         </frame>
+        </hbox>
     </vbox>
     <hbox>
       ${OPTIONAL_TOOLS_GUI}
-      ${PLAYBACK_OPT_GUI}
-      ${SIDECAR_FILES_GUI}
     </hbox>
 </frame>
 DECKLINK_FORM
