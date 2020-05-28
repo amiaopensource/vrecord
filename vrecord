@@ -40,7 +40,11 @@ if [[ "${QUERY_OS_TYPE}" = "Darwin" ]] ; then
     else
       _report -wt "vrecord can't find a preferred font to use, please report this error to https://github.com/amiaopensource/vrecord/issues"
     fi
-    HARDWARE_REPORT=$(system_profiler SPHardwareDataType)
+    HARDWARE_REPORT_TMP="/tmp/vrecord_system_profiler_SPHardwareDataType.txt"
+    if [[ ! -s "${HARDWARE_REPORT_TMP}" ]] ; then
+        system_profiler SPHardwareDataType > "${HARDWARE_REPORT_TMP}"
+    fi
+    HARDWARE_REPORT="$(cat "${HARDWARE_REPORT_TMP}")"
     CORE_COUNT="$(_parse_report "Total Number of Cores" "${HARDWARE_REPORT}")"
     OPEN_COMMAND="open"
     ZCAT_COMMAND="gzcat"
