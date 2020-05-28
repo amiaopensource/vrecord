@@ -48,8 +48,12 @@ if [[ "${QUERY_OS_TYPE}" = "Darwin" ]] ; then
     CORE_COUNT="$(_parse_report "Total Number of Cores" "${HARDWARE_REPORT}")"
     OPEN_COMMAND="open"
     ZCAT_COMMAND="gzcat"
-    DECKLINK_DRIVER_PLIST="/Library/Extensions/DeckLink_Driver.kext/Contents/Info.plist"
-    VIDEO_CARD_DRIVER_VERSION="$(defaults read "${DECKLINK_DRIVER_PLIST}" CFBundleVersion)"
+    VIDEO_CARD_DRIVER_VERSION_TMP="/tmp/vrecord_decklink_driver_CFBundleVersion.txt"
+    if [[ ! -s "${VIDEO_CARD_DRIVER_VERSION_TMP}" ]] ; then
+        DECKLINK_DRIVER_PLIST="/Library/Extensions/DeckLink_Driver.kext/Contents/Info.plist"
+        defaults read "${DECKLINK_DRIVER_PLIST}" CFBundleVersion > "${VIDEO_CARD_DRIVER_VERSION_TMP}"
+    fi
+    VIDEO_CARD_DRIVER_VERSION="$(cat "${VIDEO_CARD_DRIVER_VERSION_TMP}")"
 elif [[ "${QUERY_OS_TYPE}" = "Linux" ]] ; then
     OS_TYPE="linux"
     if [[ $(dirname "$(command -v "${0}")") = "/usr/local/bin" ]] ; then
