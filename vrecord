@@ -479,9 +479,38 @@ DECKLINK_INPUT_GUI=$(cat << DECKLINK_FORM
                 $(_gtk_vbox_list "AUDIO_CODEC_CHOICE"       "Select Audio Codec"            "${AUDIO_CODEC_OPTIONS[@]}")
             </hbox>
         </frame>
-        <frame RS422 deck control>
-            <hbox>
-                <vbox>
+        <hbox>
+            ${PLAYBACK_OPT_GUI}
+            ${SIDECAR_FILES_GUI}
+            <frame RS422 deck control>
+                <hbox>
+                    <vbox>
+                        <text>
+                            <label>Status</label>
+                        </text>
+                        <entry editable="false" has-frame="false">
+                            <variable>decklink_status</variable>
+                            <input file>"${DECKCONTROL_STATUS_TMP}"</input>
+                        </entry>
+                    </vbox>
+                    <vbox>
+                        <text>
+                            <label>Timecode</label>
+                        </text>
+                        <entry editable="false" has-frame="false">
+                            <variable>decklink_timecode</variable>
+                            <input file>"${DECKCONTROL_TIMECODE_TMP}"</input>
+                        </entry>
+                    </vbox>
+                    <timer milliseconds="true" interval="500" visible="false" disabled="true">
+                         <variable>deckcontrol_timer</variable>
+                         <visible>disabled</visible>
+                         <action>{ timeout --foreground 0.5 deckcontrol getcurrentstate | grep "state:\|detect" | sed 's/VTR control state: //g' > "${DECKCONTROL_STATUS_TMP}" ; timeout 0.5 deckcontrol gettimecode | grep 'TC=' | cut -c 4- > "${DECKCONTROL_TIMECODE_TMP}" ; } &</action>
+                         <action>refresh:decklink_status</action>
+                         <action>refresh:decklink_timecode</action>
+                    </timer>
+                </hbox>
+                <hbox>
                     <togglebutton>
                         <label>Deck Control</label>
                         <default>false</default>
@@ -508,84 +537,54 @@ DECKLINK_INPUT_GUI=$(cat << DECKLINK_FORM
                         <action>if false disable:deckcontrol_ff</action>
                         <action>if false disable:deckcontrol_eject</action>
                     </togglebutton>
-                </vbox>
-                <vbox>
-                    <text>
-                        <label>Status</label>
-                    </text>
-                    <entry editable="false" has-frame="false">
-                        <variable>decklink_status</variable>
-                        <input file>"${DECKCONTROL_STATUS_TMP}"</input>
-                    </entry>
-                </vbox>
-                <vbox>
-                    <text>
-                        <label>Timecode</label>
-                    </text>
-                    <entry editable="false" has-frame="false">
-                        <variable>decklink_timecode</variable>
-                        <input file>"${DECKCONTROL_TIMECODE_TMP}"</input>
-                    </entry>
-                </vbox>
-                <timer milliseconds="true" interval="500" visible="false" disabled="true">
-                     <variable>deckcontrol_timer</variable>
-                     <visible>disabled</visible>
-                     <action>{ timeout --foreground 0.5 deckcontrol getcurrentstate | grep "state:\|detect" | sed 's/VTR control state: //g' > "${DECKCONTROL_STATUS_TMP}" ; timeout 0.5 deckcontrol gettimecode | grep 'TC=' | cut -c 4- > "${DECKCONTROL_TIMECODE_TMP}" ; } &</action>
-                     <action>refresh:decklink_status</action>
-                     <action>refresh:decklink_timecode</action>
-                </timer>
-                <hbox>
-                    <button>
-                        <variable>deckcontrol_rewind</variable>
-                        <input file stock="gtk-media-rewind"></input>
-                        <visible>disabled</visible>
-                        <action>timeout --foreground 3 deckcontrol rewind</action>
-                    </button>
-                    <button>
-                        <variable>deckcontrol_prev</variable>
-                        <input file stock="gtk-media-previous"></input>
-                        <visible>disabled</visible>
-                        <action>timeout --foreground 3 deckcontrol stepback</action>
-                    </button>
-                    <button>
-                        <variable>deckcontrol_play</variable>
-                        <input file stock="gtk-media-play"></input>
-                        <visible>disabled</visible>
-                        <action>timeout --foreground 3 deckcontrol play</action>
-                    </button>
-                    <button>
-                        <variable>deckcontrol_stop</variable>
-                        <input file stock="gtk-media-stop"></input>
-                        <visible>disabled</visible>
-                        <action>timeout --foreground 3 deckcontrol stop</action>
-                    </button>
-                    <button>
-                        <variable>deckcontrol_next</variable>
-                        <input file stock="gtk-media-next"></input>
-                        <visible>disabled</visible>
-                        <action>timeout --foreground 3 deckcontrol stepforward</action>
-                    </button>
-                    <button>
-                        <variable>deckcontrol_ff</variable>
-                        <input file stock="gtk-media-forward"></input>
-                        <visible>disabled</visible>
-                        <action>timeout --foreground 3 deckcontrol fastforward</action>
-                    </button>
-                    <button>
-                        <variable>deckcontrol_eject</variable>
-                        <label>Eject</label>
-                        <visible>disabled</visible>
-                        <action>timeout --foreground 3 deckcontrol eject</action>
-                    </button>
+                    <hbox>
+                        <button>
+                            <variable>deckcontrol_rewind</variable>
+                            <input file stock="gtk-media-rewind"></input>
+                            <visible>disabled</visible>
+                            <action>timeout --foreground 3 deckcontrol rewind</action>
+                        </button>
+                        <button>
+                            <variable>deckcontrol_prev</variable>
+                            <input file stock="gtk-media-previous"></input>
+                            <visible>disabled</visible>
+                            <action>timeout --foreground 3 deckcontrol stepback</action>
+                        </button>
+                        <button>
+                            <variable>deckcontrol_play</variable>
+                            <input file stock="gtk-media-play"></input>
+                            <visible>disabled</visible>
+                            <action>timeout --foreground 3 deckcontrol play</action>
+                        </button>
+                        <button>
+                            <variable>deckcontrol_stop</variable>
+                            <input file stock="gtk-media-stop"></input>
+                            <visible>disabled</visible>
+                            <action>timeout --foreground 3 deckcontrol stop</action>
+                        </button>
+                        <button>
+                            <variable>deckcontrol_next</variable>
+                            <input file stock="gtk-media-next"></input>
+                            <visible>disabled</visible>
+                            <action>timeout --foreground 3 deckcontrol stepforward</action>
+                        </button>
+                        <button>
+                            <variable>deckcontrol_ff</variable>
+                            <input file stock="gtk-media-forward"></input>
+                            <visible>disabled</visible>
+                            <action>timeout --foreground 3 deckcontrol fastforward</action>
+                        </button>
+                        <button>
+                            <variable>deckcontrol_eject</variable>
+                            <label>Eject</label>
+                            <visible>disabled</visible>
+                            <action>timeout --foreground 3 deckcontrol eject</action>
+                        </button>
+                    </hbox>
                 </hbox>
-            </hbox>
-        </frame>
+            </frame>
+        </hbox>
     </vbox>
-    <hbox>
-      ${OPTIONAL_TOOLS_GUI}
-      ${PLAYBACK_OPT_GUI}
-      ${SIDECAR_FILES_GUI}
-    </hbox>
 </frame>
 DECKLINK_FORM
 )
@@ -621,10 +620,11 @@ MAIN_DIALOG=$(cat << GTKFORM
             <label>Set file recording options.</label>
         </text>
         <frame Input Options>
-        <notebook page="${DEVICE_INPUT_CHOICE}" tab-labels="Decklink|DV|Audio">
+        <notebook page="${DEVICE_INPUT_CHOICE}" tab-labels="Decklink|DV|Audio|Config">
             ${DECKLINK_INPUT_GUI}
             ${AVFOUNDATION_INPUT_GUI}
             ${AUDIO_INPUT_GUI}
+            ${OPTIONAL_TOOLS_GUI}
             <variable>DEVICE_INPUT_CHOICE</variable>
         </notebook>
         </frame>
