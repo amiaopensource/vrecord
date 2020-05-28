@@ -111,14 +111,6 @@ MPVOPTS+=(--load-scripts=no)
 MPVOPTS+=(--script="${RESOURCE_PATH}/qcview.lua")
 MPVOPTS+=(--really-quiet)
 
-if [[ "$("${FFMPEG_BIN}" -version 2>&1 | grep "Library not loaded" >/dev/null)" || ! -f "${FFMPEG_BIN}" || ! -f "${FFPLAY_BIN}" ]] ; then
-    echo "Please reinstall 'ffmpegdecklink':"
-    echo "  brew reinstall amiaopensource/amiaos/ffmpegdecklink"
-    echo "Or install a version of ffmpeg that is compiled with decklink support if you wish to use that input."
-    echo "Exiting."
-    exit 1
-fi
-
 _usage(){
     cat <<EOF
 ${SCRIPTNAME} ${VERSION}
@@ -385,8 +377,10 @@ _set_up_edit_form() {
   }
 
 # initialize deckcontrol temp files
+FFMPEG_STATUS_TMP="$(_maketemp .ffmpeg.status.txt)"
 DECKCONTROL_STATUS_TMP="$(_maketemp .deckcontrol.status.txt)"
 DECKCONTROL_TIMECODE_TMP="$(_maketemp .deckcontrol.timecode.txt)"
+echo "" > "${FFMPEG_STATUS_TMP}"
 echo "disabled" > "$DECKCONTROL_STATUS_TMP"
 echo "--:--:--:--" > "$DECKCONTROL_TIMECODE_TMP"
 
@@ -455,6 +449,24 @@ OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
         <pixmap stock-icon-size="1" tooltip-text="If qcli is installed, vrecord can offer options to create QCTools reports during or after capture.">
             <input file stock="$(if $QCLI_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)"></input>
         </pixmap>
+    </hbox>
+    <hbox space-fill="true" space-expand="true">
+        <vbox>
+            <text>
+                <label>FFmpeg Status</label>
+            </text>
+            <vbox scrollable="true" height="240">
+                <text wrap="true" xalign="0" selectable="true">
+                    <variable>ffmpeg_status</variable>
+                    <input file>"${FFMPEG_STATUS_TMP}"</input>
+                </text>
+            </vbox>
+            <button>
+                <label>Check FFmpeg status</label>
+                <action>( echo "Found ffmpeg at ${FFMPEG_BIN}" ; echo ; ${FFMPEG_BIN} -version 2>&1 ) > ${FFMPEG_STATUS_TMP}</action>
+                <action type="refresh">ffmpeg_status</action>
+            </button>
+        </vbox>
     </hbox>
 </frame>
 CONFIG_FORM
