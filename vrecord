@@ -748,7 +748,7 @@ MAIN_DIALOG=$(cat << GTKFORM
                     <label>Passthrough</label>
                     <input file stock="gtk-media-play"></input>
                     <variable>passthrough_button</variable>
-                    <action type="exit">Passthrough</action>
+                    <action type="exit">passthrough</action>
                 </button>
                 <button>
                     <label>Home</label>
@@ -774,8 +774,8 @@ GTKFORM
 export MAIN_DIALOG
 }
 
-  HOME_DIALOG=$(cat << GTKFORM
-  <window title="Welcome to Vrecord!">
+HOME_DIALOG=$(cat << GTKFORM
+<window title="Welcome to Vrecord!">
     <vbox>
         <vbox>
             <hbox>
@@ -823,26 +823,7 @@ export MAIN_DIALOG
 GTKFORM
 )
 export HOME_DIALOG
-_home_gui(){
-    if [[ "${VERBOSE_GTKDIALOG}" = "Y" ]] ; then
-        RUNTYPE="$(echo "$HOME_DIALOG" | gtkdialog --center --stdin             | grep "^EXIT=" | cut -d= -f2 | sed 's/"//g')"
-    else
-        RUNTYPE="$(echo "$HOME_DIALOG" | gtkdialog --center --stdin 2>/dev/null | grep "^EXIT=" | cut -d= -f2 | sed 's/"//g')"
-    fi
 
-    if [[ "${RUNTYPE}" = "Cancel" ]] || [[ "${RUNTYPE}" = "abort" ]] ; then
-        echo "Exiting Vrecord. Goodbye!" && exit 0
-    fi
-}
-
-# relaunch GUI in GUI mode/exit script in terminal mode
-_gui_return(){
-    if [[ "${GUI}" = 1 ]] ; then
-        _home_gui
-    else
-        exit 0
-    fi
-}
 
 _report_var(){
     while [[ "${@}" != "" ]] ; do
@@ -905,19 +886,24 @@ _edit_mode(){
     _set_up_edit_form
 
     # run the edit form in gtkdialog
+    HOME_DIALOG_TMP="${HOME_DIALOG}"
+    MAIN_DIALOG_TMP="${MAIN_DIALOG}"
     if [[ "${VERBOSE_GTKDIALOG}" = "Y" ]] ; then
-        if [[ "$RUNTYPE" = "GUI" ]] ; then
+        if [[ "$RUNTYPE" = "GUI" ]] || [[ "${GUI}" = "1" ]] ; then
             eval "$(echo "$HOME_DIALOG" | gtkdialog --center --stdin)"
         else
             eval "$(echo "$MAIN_DIALOG" | gtkdialog --center --stdin)"
         fi
     else
-        if [[ "$RUNTYPE" = "GUI" ]] ; then
+        if [[ "$RUNTYPE" = "GUI" ]] || [[ "${GUI}" = "1" ]] ; then
             eval "$(echo "$HOME_DIALOG" | gtkdialog --center --stdin 2> /dev/null)"
         else
             eval "$(echo "$MAIN_DIALOG" | gtkdialog --center --stdin 2> /dev/null)"
         fi
     fi
+    HOME_DIALOG="${HOME_DIALOG_TMP}"
+    MAIN_DIALOG="${MAIN_DIALOG_TMP}"
+
     # process the results of the edit form
     if   [[ "${EXIT}" = "abort" ]] ; then
         _report -d "Exiting Vrecord. Goodbye!"
@@ -929,7 +915,7 @@ _edit_mode(){
     elif [[ "${EXIT}" = "Record" ]] ; then
         _update_config_file
         RUNTYPE="record"
-    elif [[ "${EXIT}" = "Passthrough" ]] ; then
+    elif [[ "${EXIT}" = "passthrough" ]] ; then
         _update_config_file
         RUNTYPE="passthrough"
     elif [[ "${EXIT}" = "refresh" ]] ; then
@@ -975,7 +961,6 @@ _passthrough_mode(){
     else
         "${FFPLAY_BIN}" "${FFPLAY_OPTIONS[@]}" 2> >(tee "${VRECORD_INPUT_TMP}" 1>&2)
     fi
-    _gui_return
 }
 
 _audiopassthrough_mode(){
@@ -1588,7 +1573,6 @@ DURATION_OPTIONS=(23 33 63 93)
 PLAYBACKVIEW_OPTIONS=("Unfiltered" "Quality Control View (mpv)" "Broadcast Range Visual" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes")
 PLAYBACKVIEW_PASS_OPTIONS=("Unfiltered" "Quality Control View (mpv)" "Broadcast Range Visual" "Audio + Video" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes")
 
-
 # GUI mode + CLI reset, edit modes
 if [[ "${RUNTYPE}" = "reset" ]] ; then
     _report -q -n "Resetting the configuration will clear ${CONFIG_FILE}. Please enter [Y] to confirm: "
@@ -1784,22 +1768,28 @@ _set_ffplay_options(){
 }
 
 # CLI passthrough and audiopassthrough modes
-if [[ "${RUNTYPE}" = "passthrough" ]] ; then
-    _passthrough_mode
-elif [[ "${RUNTYPE}" = "audiopassthrough" ]] ; then
-    _audiopassthrough_mode
-fi
-
 # GUI mode loops
-while [[ "${GUI}" = 1 ]] && [[ "${RUNTYPE}" != "record" ]] ; do
+if [[ "${GUI}" = 1 ]] ; then
+    while [[ "${RUNTYPE}" != "record" ]] ; do
+        if [[ "${RUNTYPE}" = "passthrough" ]] ; then
+            _passthrough_mode
+            RUNTYPE="GUI"
+        elif [[ "${RUNTYPE}" = "audiopassthrough" ]] ; then
+            _audiopassthrough_mode
+            RUNTYPE="GUI"
+        elif [[ "${RUNTYPE}" = "edit" || "$RUNTYPE" = "GUI" ]] ; then
+            _edit_mode
+        fi
+    done
+else
     if [[ "${RUNTYPE}" = "passthrough" ]] ; then
         _passthrough_mode
+        exit 0
     elif [[ "${RUNTYPE}" = "audiopassthrough" ]] ; then
         _audiopassthrough_mode
-    elif [[ "${RUNTYPE}" = "edit" || "$RUNTYPE" = "GUI" ]] ; then
-        _edit_mode
+        exit 0
     fi
-done
+fi
 
 # record mode
 while [[ -z "${ID}" ]] ; do
