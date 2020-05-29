@@ -3,13 +3,10 @@
 # vrecord
 # Open-source software for capturing a video signal and turning it into a digital file.
 
+VERSION="2020-02-10"
 SCRIPTNAME=$(basename "${0}")
 SCRIPTDIR=$(dirname "${0}")
 CONFIG_FILE="${HOME}/.${SCRIPTNAME}.conf"
-unset VERSION
-if [[ $(dirname "$(command -v "${0}")") = "/usr/local/bin" ]] ; then
-    VERSION=$(TMP=$(brew info vrecord | grep ".*\*$" | grep -Eo "/vrecord/.* \(") ; echo "${TMP:9:(${#TMP}-11)}")
-fi
 
 _parse_report(){
     KEY="${1}"
@@ -43,12 +40,20 @@ if [[ "${QUERY_OS_TYPE}" = "Darwin" ]] ; then
     else
       _report -wt "vrecord can't find a preferred font to use, please report this error to https://github.com/amiaopensource/vrecord/issues"
     fi
-    HARDWARE_REPORT=$(system_profiler SPHardwareDataType)
+    HARDWARE_REPORT_TMP="/tmp/vrecord_system_profiler_SPHardwareDataType.txt"
+    if [[ ! -s "${HARDWARE_REPORT_TMP}" ]] ; then
+        system_profiler SPHardwareDataType > "${HARDWARE_REPORT_TMP}"
+    fi
+    HARDWARE_REPORT="$(cat "${HARDWARE_REPORT_TMP}")"
     CORE_COUNT="$(_parse_report "Total Number of Cores" "${HARDWARE_REPORT}")"
     OPEN_COMMAND="open"
     ZCAT_COMMAND="gzcat"
-    DECKLINK_DRIVER_PLIST="/Library/Extensions/DeckLink_Driver.kext/Contents/Info.plist"
-    VIDEO_CARD_DRIVER_VERSION="$(defaults read "${DECKLINK_DRIVER_PLIST}" CFBundleVersion)"
+    VIDEO_CARD_DRIVER_VERSION_TMP="/tmp/vrecord_decklink_driver_CFBundleVersion.txt"
+    if [[ ! -s "${VIDEO_CARD_DRIVER_VERSION_TMP}" ]] ; then
+        DECKLINK_DRIVER_PLIST="/Library/Extensions/DeckLink_Driver.kext/Contents/Info.plist"
+        defaults read "${DECKLINK_DRIVER_PLIST}" CFBundleVersion > "${VIDEO_CARD_DRIVER_VERSION_TMP}"
+    fi
+    VIDEO_CARD_DRIVER_VERSION="$(cat "${VIDEO_CARD_DRIVER_VERSION_TMP}")"
 elif [[ "${QUERY_OS_TYPE}" = "Linux" ]] ; then
     OS_TYPE="linux"
     if [[ $(dirname "$(command -v "${0}")") = "/usr/local/bin" ]] ; then
@@ -105,14 +110,6 @@ MPVOPTS=(--no-osc)
 MPVOPTS+=(--load-scripts=no)
 MPVOPTS+=(--script="${RESOURCE_PATH}/qcview.lua")
 MPVOPTS+=(--really-quiet)
-
-if [[ "$("${FFMPEG_BIN}" -version 2>&1 | grep "Library not loaded" >/dev/null)" || ! -f "${FFMPEG_BIN}" || ! -f "${FFPLAY_BIN}" ]] ; then
-    echo "Please reinstall 'ffmpegdecklink':"
-    echo "  brew reinstall amiaopensource/amiaos/ffmpegdecklink"
-    echo "Or install a version of ffmpeg that is compiled with decklink support if you wish to use that input."
-    echo "Exiting."
-    exit 1
-fi
 
 _usage(){
     cat <<EOF
@@ -380,8 +377,10 @@ _set_up_edit_form() {
   }
 
 # initialize deckcontrol temp files
+FFMPEG_STATUS_TMP="$(_maketemp .ffmpeg.status.txt)"
 DECKCONTROL_STATUS_TMP="$(_maketemp .deckcontrol.status.txt)"
 DECKCONTROL_TIMECODE_TMP="$(_maketemp .deckcontrol.timecode.txt)"
+echo "" > "${FFMPEG_STATUS_TMP}"
 echo "disabled" > "$DECKCONTROL_STATUS_TMP"
 echo "--:--:--:--" > "$DECKCONTROL_TIMECODE_TMP"
 
@@ -401,57 +400,77 @@ PLAYBACK_OPT_GUI="
     </hbox>
 </frame>"
 
-OPTIONAL_TOOLS_GUI="
+OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
 <frame Optional Tools>
     <hbox>
         <text>
             <label>deckcontrol: </label>
         </text>
-        <pixmap stock-icon-size=\"1\" tooltip-text=\"If deckcontrol is installed, vrecord can offer an interface to control videodecks via RS422 via a Blackmagic capture device.\">
-            <input file stock=\"$(if $DECKCONTROL_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)\"></input>
+        <pixmap stock-icon-size="1" tooltip-text="If deckcontrol is installed, vrecord can offer an interface to control videodecks via RS422 via a Blackmagic capture device.">
+            <input file stock="$(if $DECKCONTROL_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)"></input>
         </pixmap>
     </hbox>
     <hbox>
         <text>
             <label>gnuplot: </label>
         </text>
-        <pixmap stock-icon-size=\"1\" tooltip-text=\"If gnuplot is installed, vrecord can may a graph output from qctools reports.\">
-            <input file stock=\"$(if $GNUPLOT_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)\"></input>
+        <pixmap stock-icon-size="1" tooltip-text="If gnuplot is installed, vrecord can may a graph output from qctools reports.">
+            <input file stock="$(if $GNUPLOT_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)"></input>
         </pixmap>
     </hbox>
     <hbox>
         <text>
             <label>mediaconch: </label>
         </text>
-        <pixmap stock-icon-size=\"1\" tooltip-text=\"If mediaconch is installed, vrecord can perform checks after capture to ensure the file is as expected.\">
-            <input file stock=\"$(if $MEDIACONCH_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)\"></input>
+        <pixmap stock-icon-size="1" tooltip-text="If mediaconch is installed, vrecord can perform checks after capture to ensure the file is as expected.">
+            <input file stock="$(if $MEDIACONCH_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)"></input>
         </pixmap>
     </hbox>
     <hbox>
         <text>
             <label>mkvpropedit: </label>
         </text>
-        <pixmap stock-icon-size=\"1\" tooltip-text=\"If mkvpropedit is installed, vrecord can embed capture logs into any Matroska recordings.\">
-            <input file stock=\"$(if $MKVPROPEDIT_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)\"></input>
+        <pixmap stock-icon-size="1" tooltip-text="If mkvpropedit is installed, vrecord can embed capture logs into any Matroska recordings.">
+            <input file stock="$(if $MKVPROPEDIT_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)"></input>
         </pixmap>
     </hbox>
     <hbox>
         <text>
             <label>mpv: </label>
         </text>
-        <pixmap stock-icon-size=\"1\" tooltip-text=\"If mpv is installed, vrecord can offer additional playback view options.\">
-            <input file stock=\"$(if $MPV_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)\"></input>
+        <pixmap stock-icon-size="1" tooltip-text="If mpv is installed, vrecord can offer additional playback view options.">
+            <input file stock="$(if $MPV_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)"></input>
         </pixmap>
     </hbox>
     <hbox>
         <text>
             <label>qcli: </label>
         </text>
-        <pixmap stock-icon-size=\"1\" tooltip-text=\"If qcli is installed, vrecord can offer options to create QCTools reports during or after capture.\">
-            <input file stock=\"$(if $QCLI_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)\"></input>
+        <pixmap stock-icon-size="1" tooltip-text="If qcli is installed, vrecord can offer options to create QCTools reports during or after capture.">
+            <input file stock="$(if $QCLI_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)"></input>
         </pixmap>
     </hbox>
-</frame>"
+    <hbox space-fill="true" space-expand="true">
+        <vbox>
+            <text>
+                <label>FFmpeg Status</label>
+            </text>
+            <vbox scrollable="true" height="240">
+                <text wrap="true" xalign="0" selectable="true">
+                    <variable>ffmpeg_status</variable>
+                    <input file>"${FFMPEG_STATUS_TMP}"</input>
+                </text>
+            </vbox>
+            <button>
+                <label>Check FFmpeg status</label>
+                <action>( echo "Found ffmpeg at ${FFMPEG_BIN}" ; echo ; ${FFMPEG_BIN} -version 2>&1 ) > ${FFMPEG_STATUS_TMP}</action>
+                <action type="refresh">ffmpeg_status</action>
+            </button>
+        </vbox>
+    </hbox>
+</frame>
+CONFIG_FORM
+)
 
 DECKLINK_INPUT_GUI=$(cat << DECKLINK_FORM
 <frame Decklink input options>
@@ -729,13 +748,13 @@ MAIN_DIALOG=$(cat << GTKFORM
                     <label>Passthrough</label>
                     <input file stock="gtk-media-play"></input>
                     <variable>passthrough_button</variable>
-                    <action type="exit">Passthrough</action>
+                    <action type="exit">passthrough</action>
                 </button>
                 <button>
                     <label>Home</label>
                     <input file stock="gtk-index"></input>
                     <variable>home_button</variable>
-                    <action type="exit">Home</action>
+                    <action type="launch">HOME_DIALOG</action>
                 </button>
                 <button cancel>
                 </button>
@@ -747,14 +766,16 @@ MAIN_DIALOG=$(cat << GTKFORM
             </hbox>
         </vbox>
     </vbox>
+    <variable>MAIN_DIALOG</variable>
+    <action signal="show" type="closewindow">HOME_DIALOG</action>
 </window>
 GTKFORM
 )
+export MAIN_DIALOG
 }
 
-_home_gui(){
-  HOME_DIALOG=$(cat << GTKFORM
-  <window title="Welcome to Vrecord!">
+HOME_DIALOG=$(cat << GTKFORM
+<window title="Welcome to Vrecord!">
     <vbox>
         <vbox>
             <hbox>
@@ -778,7 +799,7 @@ _home_gui(){
                 <button>
                     <label>Edit Settings</label>
                     <input file>${RESOURCE_PATH}/vrecord_logo_edit.png</input>
-                    <action type="exit">edit</action>
+                    <action type="launch">MAIN_DIALOG</action>
                 </button>
                 <button>
                     <label>Help</label>
@@ -796,28 +817,13 @@ _home_gui(){
             <button cancel></button>
         </hbox>
     </vbox>
+    <variable>HOME_DIALOG</variable>
+    <action signal="show" type="closewindow">MAIN_DIALOG</action>
 </window>
 GTKFORM
-)   
-    if [[ "${VERBOSE_GTKDIALOG}" = "Y" ]] ; then
-        RUNTYPE="$(echo "$HOME_DIALOG" | gtkdialog --center --stdin             | grep "^EXIT=" | cut -d= -f2 | sed 's/"//g')"
-    else
-        RUNTYPE="$(echo "$HOME_DIALOG" | gtkdialog --center --stdin 2>/dev/null | grep "^EXIT=" | cut -d= -f2 | sed 's/"//g')"
-    fi
+)
+export HOME_DIALOG
 
-    if [[ "${RUNTYPE}" = "Cancel" ]] || [[ "${RUNTYPE}" = "abort" ]] ; then
-        echo "Exiting Vrecord. Goodbye!" && exit 0
-    fi
-}
-
-# relaunch GUI in GUI mode/exit script in terminal mode
-_gui_return(){
-    if [[ "${GUI}" = 1 ]] ; then
-        _home_gui
-    else
-        exit 0
-    fi
-}
 
 _report_var(){
     while [[ "${@}" != "" ]] ; do
@@ -880,39 +886,38 @@ _edit_mode(){
     _set_up_edit_form
 
     # run the edit form in gtkdialog
+    HOME_DIALOG_TMP="${HOME_DIALOG}"
+    MAIN_DIALOG_TMP="${MAIN_DIALOG}"
     if [[ "${VERBOSE_GTKDIALOG}" = "Y" ]] ; then
-        eval "$(echo "$MAIN_DIALOG" | gtkdialog --center --stdin)"
+        if [[ "$RUNTYPE" = "GUI" ]] || [[ "${GUI}" = "1" ]] ; then
+            eval "$(echo "$HOME_DIALOG" | gtkdialog --center --stdin)"
+        else
+            eval "$(echo "$MAIN_DIALOG" | gtkdialog --center --stdin)"
+        fi
     else
-        eval "$(echo "$MAIN_DIALOG" | gtkdialog --center --stdin 2> /dev/null)"
+        if [[ "$RUNTYPE" = "GUI" ]] || [[ "${GUI}" = "1" ]] ; then
+            eval "$(echo "$HOME_DIALOG" | gtkdialog --center --stdin 2> /dev/null)"
+        else
+            eval "$(echo "$MAIN_DIALOG" | gtkdialog --center --stdin 2> /dev/null)"
+        fi
     fi
+    HOME_DIALOG="${HOME_DIALOG_TMP}"
+    MAIN_DIALOG="${MAIN_DIALOG_TMP}"
+
     # process the results of the edit form
     if   [[ "${EXIT}" = "abort" ]] ; then
-        if [[ "${GUI}" = "1" ]] ; then
-            RUNTYPE="GUI"
-            _home_gui
-        else
-            _report -d "Exiting Vrecord. Goodbye!"
-            exit 0
-        fi
+        _report -d "Exiting Vrecord. Goodbye!"
+        exit 0
     elif [[ "${EXIT}" = "Cancel" ]] ; then
-        if [[ "${GUI}" = "1" ]] ; then
-            RUNTYPE="GUI"
-            _home_gui
-        else
-            _report -d "Editing of preferences was canceled by the user."
-            _report -d "Exiting Vrecord. Goodbye!"
-            exit 0
-        fi
+        _report -d "Editing of preferences was canceled by the user."
+        _report -d "Exiting Vrecord. Goodbye!"
+        exit 0
     elif [[ "${EXIT}" = "Record" ]] ; then
         _update_config_file
         RUNTYPE="record"
-    elif [[ "${EXIT}" = "Passthrough" ]] ; then
+    elif [[ "${EXIT}" = "passthrough" ]] ; then
         _update_config_file
         RUNTYPE="passthrough"
-    elif [[ "${EXIT}" = "Home" ]] ; then
-        _update_config_file
-        RUNTYPE="GUI"
-        _home_gui
     elif [[ "${EXIT}" = "refresh" ]] ; then
         _update_config_file
         RUNTYPE="edit"
@@ -956,7 +961,6 @@ _passthrough_mode(){
     else
         "${FFPLAY_BIN}" "${FFPLAY_OPTIONS[@]}" 2> >(tee "${VRECORD_INPUT_TMP}" 1>&2)
     fi
-    _gui_return
 }
 
 _audiopassthrough_mode(){
@@ -1569,11 +1573,7 @@ DURATION_OPTIONS=(23 33 63 93)
 PLAYBACKVIEW_OPTIONS=("Unfiltered" "Quality Control View (mpv)" "Broadcast Range Visual" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes")
 PLAYBACKVIEW_PASS_OPTIONS=("Unfiltered" "Quality Control View (mpv)" "Broadcast Range Visual" "Audio + Video" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes")
 
-
 # GUI mode + CLI reset, edit modes
-if [[ "${RUNTYPE}" = "GUI" ]] ; then
-    _home_gui
-fi
 if [[ "${RUNTYPE}" = "reset" ]] ; then
     _report -q -n "Resetting the configuration will clear ${CONFIG_FILE}. Please enter [Y] to confirm: "
     read RESET_RESPONSE
@@ -1586,7 +1586,7 @@ if [[ "${RUNTYPE}" = "reset" ]] ; then
         exit 0
     fi
 fi
-while [[ "${RUNTYPE}" = "edit" ]] ; do
+while [[ "${RUNTYPE}" = "edit" || "${RUNTYPE}" = "GUI" ]] ; do
     _edit_mode
 done
 
@@ -1768,22 +1768,28 @@ _set_ffplay_options(){
 }
 
 # CLI passthrough and audiopassthrough modes
-if [[ "${RUNTYPE}" = "passthrough" ]] ; then
-    _passthrough_mode
-elif [[ "${RUNTYPE}" = "audiopassthrough" ]] ; then
-    _audiopassthrough_mode
-fi
-
 # GUI mode loops
-while [[ "${GUI}" = 1 ]] && [[ "${RUNTYPE}" != "record" ]] ; do
+if [[ "${GUI}" = 1 ]] ; then
+    while [[ "${RUNTYPE}" != "record" ]] ; do
+        if [[ "${RUNTYPE}" = "passthrough" ]] ; then
+            _passthrough_mode
+            RUNTYPE="GUI"
+        elif [[ "${RUNTYPE}" = "audiopassthrough" ]] ; then
+            _audiopassthrough_mode
+            RUNTYPE="GUI"
+        elif [[ "${RUNTYPE}" = "edit" || "$RUNTYPE" = "GUI" ]] ; then
+            _edit_mode
+        fi
+    done
+else
     if [[ "${RUNTYPE}" = "passthrough" ]] ; then
         _passthrough_mode
+        exit 0
     elif [[ "${RUNTYPE}" = "audiopassthrough" ]] ; then
         _audiopassthrough_mode
-    elif [[ "${RUNTYPE}" = "edit" ]] ; then
-        _edit_mode
+        exit 0
     fi
-done
+fi
 
 # record mode
 while [[ -z "${ID}" ]] ; do
