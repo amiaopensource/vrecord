@@ -403,11 +403,11 @@ _gtk_vbox_list() {
         if [[ "${VARIABLE_NAME}" == "VIDEO_CODEC_CHOICE" ]] ; then
             echo '<action condition="command_is_true( [ \"$VIDEO_CODEC_CHOICE\" = \"FFV1 version 3\" ] && echo true)">enable:FFV1_SLICE_CHOICE</action>
                   <action condition="command_is_true( [ \"$VIDEO_CODEC_CHOICE\" != \"FFV1 version 3\" ] && echo true)">disable:FFV1_SLICE_CHOICE</action>
-                  <action signal="key-press-event" type="refresh">VRECORD_OUTPUT_NAME</action>'
+                  <action type="refresh">VRECORD_OUTPUT_NAME</action>'
         elif [[ "${VARIABLE_NAME}" == "CONTAINER_CHOICE" ]] ; then
             echo '<action condition="command_is_true( [ \"$CONTAINER_CHOICE\" = \"Matroska\" ] && echo true)">enable:EMBED_LOGS_CHOICE</action>
                   <action condition="command_is_true( [ \"$CONTAINER_CHOICE\" != \"Matroska\" ] && echo true)">disable:EMBED_LOGS_CHOICE</action>
-                  <action signal="key-press-event" type="refresh">VRECORD_OUTPUT_NAME</action>'
+                  <action type="refresh">VRECORD_OUTPUT_NAME</action>'
         fi
     }
 
@@ -785,6 +785,7 @@ export MAIN_DIALOG='
             '"${AUDIO_INPUT_GUI}"'
             '"${OPTIONAL_TOOLS_GUI}"'
             <variable>DEVICE_INPUT_CHOICE</variable>
+            <action signal="button-release-event" type="refresh">VRECORD_OUTPUT_NAME</action>
         </notebook>
         </frame>
         <hbox>
@@ -793,7 +794,7 @@ export MAIN_DIALOG='
                     <entry accept="directory">
                         <variable>DIR</variable>
                         <default>'"${DIR}"'</default>
-                        <action signal="key-press-event" type="refresh">VRECORD_OUTPUT_NAME</action>
+                        <action signal="key-release-event" type="refresh">VRECORD_OUTPUT_NAME</action>
                     </entry>
                     <button>
                         <input file stock="gtk-open"></input>
@@ -826,7 +827,7 @@ export MAIN_DIALOG='
                         <entry>
                             <default>"'"${ID}"'"</default>
                             <variable>ID</variable>
-                            <action signal="key-press-event" type="refresh">VRECORD_OUTPUT_NAME</action>
+                            <action signal="key-release-event" type="refresh">VRECORD_OUTPUT_NAME</action>
                         </entry>
                     </vbox>
                     <vbox>
@@ -857,7 +858,7 @@ export MAIN_DIALOG='
                         <entry>
                             <default>"'"${PREFIX}"'"</default>
                             <variable>PREFIX</variable>
-                            <action signal="key-press-event" type="refresh">VRECORD_OUTPUT_NAME</action>
+                            <action signal="key-release-event" type="refresh">VRECORD_OUTPUT_NAME</action>
                         </entry>
                     </vbox>
                     <vbox>
@@ -867,7 +868,7 @@ export MAIN_DIALOG='
                         <entry>
                             <default>"'"${USER_SUFFIX}"'"</default>
                             <variable>USER_SUFFIX</variable>
-                            <action signal="key-press-event" type="refresh">VRECORD_OUTPUT_NAME</action>
+                            <action signal="key-release-event" type="refresh">VRECORD_OUTPUT_NAME</action>
                         </entry>
                     </vbox>
                     <vbox>
@@ -875,7 +876,7 @@ export MAIN_DIALOG='
                             <label>Check this to turn off appending of suffixes</label>
                             <default>"'"${NO_SUFFIX}"'"</default>
                             <variable>NO_SUFFIX</variable>
-                            <action signal="key-press-event" type="refresh">VRECORD_OUTPUT_NAME</action>
+                            <action signal="key-release-event" type="refresh">VRECORD_OUTPUT_NAME</action>
                         </checkbox>
                     </vbox>
                 </hbox>
