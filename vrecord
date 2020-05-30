@@ -264,6 +264,11 @@ _check_ffmpeg_install(){
         echo "Exiting."
         exit 1
     fi
+    if [[ -z "$("${FFMPEG_BIN}" -nostdin -v 0 -sources decklink)" ]] ; then
+        echo "vrecord is set to use a decklink input but ${FFMPEG_BIN} does not appear to support decklink inputs."
+        echo "Please review installation and troubleshooting information for vrecord or install ffmpegdecklink."
+        exit 1
+    fi
 }
 GTKDIALOG_FUNCTION_DOC
 )
@@ -374,8 +379,6 @@ _get_decklink_inputs(){
     done < <("${FFMPEG_BIN}" -nostdin -v 0 -sources decklink | awk -F'[][]' '{print $2}' | grep -v "^$")
     if [[ "${#DECKLINK_DEVICES[@]}" = 1 ]] ; then # default to first input if only one
       DECKLINK_INPUT_CHOICE="${DECKLINK_DEVICES[0]}"
-    elif [[ -z "$("${FFMPEG_BIN}" -nostdin -v 0 -sources decklink)" ]] ; then
-        FFMPEG_DECKLINK_SUPPORT="N"
     fi
 }
 _get_avfoundation_inputs(){
@@ -1758,11 +1761,7 @@ fi
 if [[ -n "${ALT_INPUT}" ]] ; then
     GRAB_INPUT+=("${EXTRAINPUTOPTIONS[@]}")
     GRAB_INPUT+=(-i "${ALT_INPUT}")
-elif [[ "${DEVICE_INPUT_CHOICE}" = 0 && "${FFMPEG_DECKLINK_SUPPORT}" = "N" ]] ; then
-    echo "vrecord is set to use a decklink input but ${FFMPEG_BIN} does not appear to support decklink inputs."
-    echo "Please review installation and troubleshooting information for vrecord or install ffmpegdecklink."
-    exit 1
-elif [[ "${DEVICE_INPUT_CHOICE}" = 0 && ! "${FFMPEG_DECKLINK_SUPPORT}" = "N" ]] ; then
+elif [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
     GRAB_INPUT+=(-f decklink)
     GRAB_INPUT+=(-draw_bars 0)
     GRAB_INPUT+=(-audio_input "${AUDIO_INPUT}")
