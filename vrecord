@@ -306,6 +306,35 @@ _validate_form(){
     fi
     echo "${VALIDATION_ERRORS}${VALIDATION_WARNINGS}"
 }
+
+_get_output_filename(){
+    # Get user suffix preference of default per video codec
+    if [[ -n "${USER_SUFFIX}" ]] ; then
+        SUFFIX="${USER_SUFFIX}"
+    elif [[ "${NO_SUFFIX}" = 'true' ]] ; then
+        SUFFIX=""
+    else
+        case "${VIDEO_CODEC_CHOICE}" in 
+            "FFV1 version 3")   SUFFIX="_ffv1" ;;
+            "JPEG2000")         SUFFIX="_j2k" ;;
+            "ProRes")           SUFFIX="_prores" ;;
+            "ProRes (HQ)")      SUFFIX="_prores" ;;
+            "h264")             SUFFIX="" ;;
+            "HuffYUV")          SUFFIX="_huff" ;;
+        esac
+    fi
+
+    # Get extension by container choice
+    case "${CONTAINER_CHOICE}" in 
+        "Matroska")             EXTENSION="mkv" ;;
+        "QuickTime")            EXTENSION="mov" ;;
+        "AVI")                  EXTENSION="avi" ;;
+        "MXF")                  EXTENSION="mxf" ;;
+        "MP4")                  EXTENSION="mp4" ;;
+    esac
+
+    echo "${DIR}/${PREFIX}${ID}${SUFFIX}.${EXTENSION}"
+}
 GTKDIALOG_FUNCTION_DOC
 )
 
@@ -373,10 +402,12 @@ _gtk_vbox_list() {
     _get_list_extras(){
         if [[ "${VARIABLE_NAME}" == "VIDEO_CODEC_CHOICE" ]] ; then
             echo '<action condition="command_is_true( [ \"$VIDEO_CODEC_CHOICE\" = \"FFV1 version 3\" ] && echo true)">enable:FFV1_SLICE_CHOICE</action>
-                  <action condition="command_is_true( [ \"$VIDEO_CODEC_CHOICE\" != \"FFV1 version 3\" ] && echo true)">disable:FFV1_SLICE_CHOICE</action>'
+                  <action condition="command_is_true( [ \"$VIDEO_CODEC_CHOICE\" != \"FFV1 version 3\" ] && echo true)">disable:FFV1_SLICE_CHOICE</action>
+                  <action signal="key-press-event" type="refresh">VRECORD_OUTPUT_NAME</action>'
         elif [[ "${VARIABLE_NAME}" == "CONTAINER_CHOICE" ]] ; then
             echo '<action condition="command_is_true( [ \"$CONTAINER_CHOICE\" = \"Matroska\" ] && echo true)">enable:EMBED_LOGS_CHOICE</action>
-                  <action condition="command_is_true( [ \"$CONTAINER_CHOICE\" != \"Matroska\" ] && echo true)">disable:EMBED_LOGS_CHOICE</action>'
+                  <action condition="command_is_true( [ \"$CONTAINER_CHOICE\" != \"Matroska\" ] && echo true)">disable:EMBED_LOGS_CHOICE</action>
+                  <action signal="key-press-event" type="refresh">VRECORD_OUTPUT_NAME</action>'
         fi
     }
 
@@ -762,6 +793,7 @@ export MAIN_DIALOG='
                     <entry accept="directory">
                         <variable>DIR</variable>
                         <default>'"${DIR}"'</default>
+                        <action signal="key-press-event" type="refresh">VRECORD_OUTPUT_NAME</action>
                     </entry>
                     <button>
                         <input file stock="gtk-open"></input>
@@ -794,6 +826,7 @@ export MAIN_DIALOG='
                         <entry>
                             <default>"'"${ID}"'"</default>
                             <variable>ID</variable>
+                            <action signal="key-press-event" type="refresh">VRECORD_OUTPUT_NAME</action>
                         </entry>
                     </vbox>
                     <vbox>
@@ -824,6 +857,7 @@ export MAIN_DIALOG='
                         <entry>
                             <default>"'"${PREFIX}"'"</default>
                             <variable>PREFIX</variable>
+                            <action signal="key-press-event" type="refresh">VRECORD_OUTPUT_NAME</action>
                         </entry>
                     </vbox>
                     <vbox>
@@ -833,6 +867,7 @@ export MAIN_DIALOG='
                         <entry>
                             <default>"'"${USER_SUFFIX}"'"</default>
                             <variable>USER_SUFFIX</variable>
+                            <action signal="key-press-event" type="refresh">VRECORD_OUTPUT_NAME</action>
                         </entry>
                     </vbox>
                     <vbox>
@@ -840,12 +875,22 @@ export MAIN_DIALOG='
                             <label>Check this to turn off appending of suffixes</label>
                             <default>"'"${NO_SUFFIX}"'"</default>
                             <variable>NO_SUFFIX</variable>
+                            <action signal="key-press-event" type="refresh">VRECORD_OUTPUT_NAME</action>
                         </checkbox>
                     </vbox>
                 </hbox>
             </frame>
         </hbox>
         <vbox>
+            <hbox>
+                <text>
+                    <label>Output Filename:</label>
+                </text>
+                <entry editable="false" has-frame="false">
+                    <variable>VRECORD_OUTPUT_NAME</variable>
+                    <input>_get_output_filename</input>
+                </entry>
+            </hbox>
             <hbox>
                 <text>
                     <label>Errors & Warnings:</label>
@@ -902,6 +947,7 @@ export MAIN_DIALOG='
     <action signal="enter-notify-event" type="refresh">VRECORD_FORM_VALIDATION</action>
     <action signal="leave-notify-event" type="refresh">VRECORD_FORM_VALIDATION</action>
     <action signal="show" type="closewindow">HOME_DIALOG</action>
+    <action signal="show" type="refresh">VRECORD_OUTPUT_NAME</action>
 </window>
 '
 }
