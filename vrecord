@@ -596,7 +596,7 @@ DECKLINK_INPUT_GUI=$(cat << DECKLINK_FORM
                     <timer milliseconds="true" interval="500" visible="false" disabled="true">
                          <variable>deckcontrol_timer</variable>
                          <visible>disabled</visible>
-                         <action>{ timeout --foreground 0.5 deckcontrol getcurrentstate | grep "state:\|detect" | sed 's/VTR control state: //g' > "${DECKCONTROL_STATUS_TMP}" ; timeout 0.5 deckcontrol gettimecode | grep 'TC=' | cut -c 4- > "${DECKCONTROL_TIMECODE_TMP}" ; } &</action>
+                         <action>{ timeout --foreground 0.5 deckcontrol getcurrentstate | grep "state:\|detect" | sed "s/VTR control state: //g" > "${DECKCONTROL_STATUS_TMP}" ; timeout 0.5 deckcontrol gettimecode | grep "TC=" | cut -c 4- > "${DECKCONTROL_TIMECODE_TMP}" ; } &</action>
                          <action>refresh:decklink_status</action>
                          <action>refresh:decklink_timecode</action>
                     </timer>
@@ -689,33 +689,33 @@ AVFOUNDATION_INPUT_GUI="
     </vbox>
 </frame>"
 
-AUDIO_INPUT_GUI="
+AUDIO_INPUT_GUI='
 <frame Audio input options>
-  <vbox space-expand=\"true\">
-    <hbox space-expand=\"true\">
-      $(_gtk_vbox_list "AUDIO_DEV_CHOICE"         "Select an Audio Device"           "${AUDIO_DEVICES[@]}")
-      $(_gtk_vbox_list "AUDIO_MODE_CODEC_CHOICE"       "Select Audio Codec"            "${AUDIO_CODEC_OPTIONS[@]:0:2}")
-      $(_gtk_vbox_list "AUDIO_CHANNEL_CHOICE"       "Select Audio Channels"            "${AUDIO_CHANNEL_CHOICE_OPTIONS[@]}")
-      $(_gtk_vbox_list "AUDIO_MODE_SR_CHOICE"       "Select Sampling Rate"            "${AUDIO_MODE_SR_CHOICE_OPTIONS[@]}")
+  <vbox space-expand="true">
+    <hbox space-expand="true">
+      '$(_gtk_vbox_list "AUDIO_DEV_CHOICE"         "Select an Audio Device"           "${AUDIO_DEVICES[@]}")'
+      '$(_gtk_vbox_list "AUDIO_MODE_CODEC_CHOICE"       "Select Audio Codec"            "${AUDIO_CODEC_OPTIONS[@]:0:2}")'
+      '$(_gtk_vbox_list "AUDIO_CHANNEL_CHOICE"       "Select Audio Channels"            "${AUDIO_CHANNEL_CHOICE_OPTIONS[@]}")'
+      '$(_gtk_vbox_list "AUDIO_MODE_SR_CHOICE"       "Select Sampling Rate"            "${AUDIO_MODE_SR_CHOICE_OPTIONS[@]}")'
     </hbox>
   </vbox>
-  <vbox space-expand=\"true\">
-    <pixmap><input file>${RESOURCE_PATH}/audio_mode.gif</input></pixmap>
+  <vbox space-expand="true">
+    <pixmap><input file>'"${RESOURCE_PATH}/audio_mode.gif"'</input></pixmap>
   </vbox>
-</frame>"
+</frame>'
 
-MAIN_DIALOG=$(cat << GTKFORM
+export MAIN_DIALOG='
 <window title="vrecord configuration">
     <vbox>
         <text>
             <label>Set file recording options.</label>
         </text>
         <frame Input Options>
-        <notebook page="${DEVICE_INPUT_CHOICE}" tab-labels="Decklink|DV|Audio|Config">
-            ${DECKLINK_INPUT_GUI}
-            ${AVFOUNDATION_INPUT_GUI}
-            ${AUDIO_INPUT_GUI}
-            ${OPTIONAL_TOOLS_GUI}
+        <notebook page="'"${DEVICE_INPUT_CHOICE}"'" tab-labels="Decklink|DV|Audio|Config">
+            '"${DECKLINK_INPUT_GUI}"'
+            '"${AVFOUNDATION_INPUT_GUI}"'
+            '"${AUDIO_INPUT_GUI}"'
+            '"${OPTIONAL_TOOLS_GUI}"'
             <variable>DEVICE_INPUT_CHOICE</variable>
         </notebook>
         </frame>
@@ -724,7 +724,7 @@ MAIN_DIALOG=$(cat << GTKFORM
                 <hbox>
                     <entry accept="directory">
                         <variable>DIR</variable>
-                        <default>"${DIR}"</default>
+                        <default>'"${DIR}"'</default>
                     </entry>
                     <button>
                         <input file stock="gtk-open"></input>
@@ -737,7 +737,7 @@ MAIN_DIALOG=$(cat << GTKFORM
                 <hbox>
                     <entry accept="directory" tooltip-text="select the directory for automatically generated logs and checksums">
                         <variable>LOGDIR</variable>
-                        <default>"${LOGDIR}"</default>
+                        <default>'"${LOGDIR}"'</default>
                     </entry>
                     <button>
                         <input file stock="gtk-open"></input>
@@ -755,7 +755,7 @@ MAIN_DIALOG=$(cat << GTKFORM
                             <label>Name of Recording</label>
                         </text>
                         <entry>
-                            <default>"${ID}"</default>
+                            <default>"'"${ID}"'"</default>
                             <variable>ID</variable>
                         </entry>
                     </vbox>
@@ -772,7 +772,7 @@ MAIN_DIALOG=$(cat << GTKFORM
                             <label>Set recording time (integer or decimal) in minutes</label>
                         </text>
                         <entry activates_default="true" tooltip-text="Suggested:23 33 63 93. Leave blank for indefinite recording time">
-                            <default>"${DURATION}"</default>
+                            <default>"'"${DURATION}"'"</default>
                             <variable>DURATION</variable>
                         </entry>
                     </vbox>
@@ -785,7 +785,7 @@ MAIN_DIALOG=$(cat << GTKFORM
                             <label>Enter an optional file prefix</label>
                         </text>
                         <entry>
-                            <default>"${PREFIX}"</default>
+                            <default>"'"${PREFIX}"'"</default>
                             <variable>PREFIX</variable>
                         </entry>
                     </vbox>
@@ -794,14 +794,14 @@ MAIN_DIALOG=$(cat << GTKFORM
                             <label>Enter an optional file suffix</label>
                         </text>
                         <entry>
-                            <default>"${USER_SUFFIX}"</default>
+                            <default>"'"${USER_SUFFIX}"'"</default>
                             <variable>USER_SUFFIX</variable>
                         </entry>
                     </vbox>
                     <vbox>
                         <checkbox>
                             <label>Check this to turn off appending of suffixes</label>
-                            <default>"${NO_SUFFIX}"</default>
+                            <default>"'"${NO_SUFFIX}"'"</default>
                             <variable>NO_SUFFIX</variable>
                         </checkbox>
                     </vbox>
@@ -841,9 +841,7 @@ MAIN_DIALOG=$(cat << GTKFORM
     <variable>MAIN_DIALOG</variable>
     <action signal="show" type="closewindow">HOME_DIALOG</action>
 </window>
-GTKFORM
-)
-export MAIN_DIALOG
+'
 }
 
 HOME_DIALOG=$(cat << GTKFORM
