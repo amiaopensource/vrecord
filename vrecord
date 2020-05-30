@@ -968,15 +968,15 @@ _edit_mode(){
 
     if [[ "${VERBOSE_GTKDIALOG}" = "Y" ]] ; then
         if [[ "$RUNTYPE" = "GUI" ]] || [[ "${GUI}" = "1" ]] ; then
-            eval "$(echo "$HOME_DIALOG" | gtkdialog --include="${GTK_INC}" --center --stdin)"
+            eval "$(gtkdialog --include="${GTK_INC}" --program HOME_DIALOG --center)"
         else
-            eval "$(echo "$MAIN_DIALOG" | gtkdialog --include="${GTK_INC}" --center --stdin)"
+            eval "$(gtkdialog --include="${GTK_INC}" --program MAIN_DIALOG --center)"
         fi
     else
         if [[ "$RUNTYPE" = "GUI" ]] || [[ "${GUI}" = "1" ]] ; then
-            eval "$(echo "$HOME_DIALOG" | gtkdialog --include="${GTK_INC}" --center --stdin 2> /dev/null)"
+            eval "$(gtkdialog --include="${GTK_INC}" --program HOME_DIALOG --center 2> /dev/null)"
         else
-            eval "$(echo "$MAIN_DIALOG" | gtkdialog --include="${GTK_INC}" --center --stdin 2> /dev/null)"
+            eval "$(gtkdialog --include="${GTK_INC}" --program MAIN_DIALOG --center 2> /dev/null)"
         fi
     fi
     HOME_DIALOG="${HOME_DIALOG_TMP}"
