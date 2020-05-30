@@ -37,7 +37,7 @@ _include_var(){
 if [[ -f "${VRECORD_VARS_FILE}" ]] ; then
     . "${VRECORD_VARS_FILE}"
 else
-    _include_var VRECORD_VARS_FILE
+    _include_var VRECORD_VARS_FILE CONFIG_FILE
 fi
 
 _setup_env_variables(){
@@ -270,6 +270,42 @@ _check_ffmpeg_install(){
         exit 1
     fi
 }
+
+_update_config_file(){
+    # write config file
+    {
+        echo "# Set these variables to a valid option or leave as empty quotes (like \"\") to request each run."
+        for COMMENT_LINE in DEVICE_INPUT_CHOICE VIDEO_INPUT_CHOICE AUDIO_INPUT_CHOICE CONTAINER_CHOICE VIDEO_CODEC_CHOICE FFV1_SLICE_CHOICE AUDIO_CODEC_CHOICE\
+        AUDIO_DEV_CHOICE AUDIO_MODE_CODEC_CHOICE AUDIO_CHANNEL_CHOICE AUDIO_MODE_SR_CHOICE VIDEO_BIT_DEPTH_CHOICE AUDIO_MAPPING_CHOICE TIMECODE_CHOICE STANDARD_CHOICE QCTOOLSXML_CHOICE FRAMEMD5_CHOICE \
+        EMBED_LOGS_CHOICE PLAYBACKVIEW_CHOICE PLAYBACKVIEW_CHOICE_PASS DIR LOGDIR INVERT_PHASE DURATION PREFIX USER_SUFFIX NO_SUFFIX TECHNICIAN \
+        AVF_INPUT_CHOICE DECKLINK_INPUT_CHOICE ; do
+            echo "${COMMENT_LINE}=\"${!COMMENT_LINE}\""
+        done
+    } > "${CONFIG_FILE}"
+    . "${CONFIG_FILE}"
+}
+
+_validate_form(){
+    VALIDATION_ERRORS=""
+    VALIDATION_WARNINGS=""
+    if [[ "${INVERT_PHASE}" = "true" ]] ; then
+        VALIDATION_WARNINGS+="WARNING: Option to invert phase of second audio channel has been selected.\n"
+    fi
+    if [[ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" ]] && [[ "${CONTAINER_CHOICE}" = "MXF" ]] ; then
+        VALIDATION_ERRORS+="ERROR: Incompatible video codecs and CONTAINERs have been selected.\n"
+    elif [[ "${AUDIO_CODEC_CHOICE}" = "24-bit FLAC" ]] && [[ "${CONTAINER_CHOICE}" = "QuickTime" ]] ; then
+        VALIDATION_ERRORS+="ERROR: Incompatible audio codecs and CONTAINERs have been selected.\n"
+    fi
+    # validate duration
+    if [[ -n "${DURATION}" ]] ; then
+        if ! [[ "${DURATION}" =~ ^$|^[0-9]+$|^[0-9]+\.[0-9]*$|^\.[0-9]+$ ]] ; then
+            VALIDATION_ERRORS+="ERROR: Illegal value for recording time. Input must only be numbers.\n"
+        elif (( $(bc <<< "${DURATION} == 0") )) ; then
+            VALIDATION_ERRORS+="ERROR: A recording duration of zero is invalid.\n"
+        fi
+    fi
+    echo "${VALIDATION_ERRORS}${VALIDATION_WARNINGS}"
+}
 GTKDIALOG_FUNCTION_DOC
 )
 
@@ -349,6 +385,7 @@ _gtk_vbox_list() {
             echo "
             <button>
                 <label>Scan timecode types</label>
+                <action>_update_config_file</action>
                 <action type=\"exit\">timecode_scan</action>
             </button>"
         elif [[ "${VARIABLE_NAME}" == "EMBED_LOGS_CHOICE" ]] ; then
@@ -809,23 +846,33 @@ export MAIN_DIALOG='
             </frame>
         </hbox>
         <vbox>
+            <entry editable="false" has-frame="false">
+                <default>""</default>
+                <variable>VRECORD_FORM_VALIDATION</variable>
+                <input>_validate_form</input>
+            </entry>
+        </vbox>
+        <vbox>
             <hbox>
                 <button>
                     <label>Record</label>
                     <input file stock="gtk-media-record"></input>
                     <variable>record_button</variable>
+                    <action>_update_config_file</action>
                     <action type="exit">Record</action>
                 </button>
                 <button>
                     <label>Passthrough</label>
                     <input file stock="gtk-media-play"></input>
                     <variable>passthrough_button</variable>
+                    <action>_update_config_file</action>
                     <action type="exit">passthrough</action>
                 </button>
                 <button>
                     <label>Home</label>
                     <input file stock="gtk-index"></input>
                     <variable>home_button</variable>
+                    <action>_update_config_file</action>
                     <action type="launch">HOME_DIALOG</action>
                 </button>
                 <button cancel>
@@ -833,12 +880,15 @@ export MAIN_DIALOG='
                 <button>
                     <label>Refresh</label>
                     <input file stock="gtk-refresh"></input>
+                    <action>_update_config_file</action>
                     <action type="exit">refresh</action>
                 </button>
             </hbox>
         </vbox>
     </vbox>
     <variable>MAIN_DIALOG</variable>
+    <action signal="enter-notify-event" type="refresh">VRECORD_FORM_VALIDATION</action>
+    <action signal="leave-notify-event" type="refresh">VRECORD_FORM_VALIDATION</action>
     <action signal="show" type="closewindow">HOME_DIALOG</action>
 </window>
 '
@@ -914,40 +964,6 @@ _report_var(){
     done
 }
 
-_update_config_file(){
-    _duration_check
-    # report back options
-    if [[ -z "${LOGDIR}" ]] ; then
-        LOGDIR="${DIR}"
-        echo "As auxiliary files directory was left blank, logs will be written to recording directory at ${DIR}."
-    fi
-    echo "Variables set:"
-    _report_var DEVICE_INPUT_CHOICE AVF_INPUT_CHOICE DECKLINK_INPUT_CHOICE DIR LOGDIR CONTAINER_CHOICE VIDEO_INPUT_CHOICE AUDIO_INPUT_CHOICE VIDEO_CODEC_CHOICE FFV1_SLICE_CHOICE AUDIO_CODEC_CHOICE AUDIO_CHANNEL_CHOICE AUDIO_MODE_SR_CHOICE AUDIO_VIDEO_BIT_DEPTH_CHOICE AUDIO_MAPPING_CHOICE TIMECODE_CHOICE STANDARD_CHOICE QCTOOLSXML_CHOICE FRAMEMD5_CHOICE EMBED_LOGS_CHOICE PLAYBACKVIEW_CHOICE PLAYBACKVIEW_CHOICE_PASS DURATION TECHNICIAN PREFIX USER_SUFFIX NO_SUFFIX
-    if [[ "${INVERT_PHASE}" = 'true' ]] ; then
-        echo -e " \033[101mWARNING: Option to invert phase of second audio channel has been selected\033[0m"
-    fi
-    if [ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" -a "${CONTAINER_CHOICE}" = "MXF" ] ; then
-        echo -e " \033[101mWARNING: Incompatible video codecs and CONTAINERs have been selected\033[0m"
-    elif [ "${AUDIO_CODEC_CHOICE}" = "24-bit FLAC" -a "${CONTAINER_CHOICE}" = "QuickTime" ] ; then
-        echo -e " \033[101mWARNING: Incompatible audio codecs and CONTAINERs have been selected\033[0m"
-    fi
-    if [ "${EMBED_LOGS_CHOICE}" = "Yes" -a "${CONTAINER_CHOICE}" != "Matroska" ] ; then
-        _report -w "WARNING: Logs cannot be embedded in non-Matroska files. This vrecord session will generate logs in ${LOGDIR}, but will not embed them in your video file."
-    fi
-    echo ""
-    # write config file
-    {
-        echo "# Set these variables to a valid option or leave as empty quotes (like \"\") to request each run."
-        for COMMENT_LINE in DEVICE_INPUT_CHOICE VIDEO_INPUT_CHOICE AUDIO_INPUT_CHOICE CONTAINER_CHOICE VIDEO_CODEC_CHOICE FFV1_SLICE_CHOICE AUDIO_CODEC_CHOICE\
-        AUDIO_DEV_CHOICE AUDIO_MODE_CODEC_CHOICE AUDIO_CHANNEL_CHOICE AUDIO_MODE_SR_CHOICE VIDEO_BIT_DEPTH_CHOICE AUDIO_MAPPING_CHOICE TIMECODE_CHOICE STANDARD_CHOICE QCTOOLSXML_CHOICE FRAMEMD5_CHOICE \
-        EMBED_LOGS_CHOICE PLAYBACKVIEW_CHOICE PLAYBACKVIEW_CHOICE_PASS DIR LOGDIR INVERT_PHASE DURATION PREFIX USER_SUFFIX NO_SUFFIX TECHNICIAN \
-        AVF_INPUT_CHOICE DECKLINK_INPUT_CHOICE ; do
-            echo "${COMMENT_LINE}=\"${!COMMENT_LINE}\""
-        done
-    } > "${CONFIG_FILE}"
-    . "${CONFIG_FILE}"
-}
-
 # edit mode
 _edit_mode(){
 
@@ -988,16 +1004,12 @@ _edit_mode(){
         _report -d "Exiting Vrecord. Goodbye!"
         exit 0
     elif [[ "${EXIT}" = "Record" ]] ; then
-        _update_config_file
         RUNTYPE="record"
     elif [[ "${EXIT}" = "passthrough" ]] ; then
-        _update_config_file
         RUNTYPE="passthrough"
     elif [[ "${EXIT}" = "refresh" ]] ; then
-        _update_config_file
         RUNTYPE="edit"
     elif [[ "${EXIT}" = "timecode_scan" ]] ; then
-        _update_config_file
         _report -dt "Scanning each supported type of timecode."
         for timecode_type in "${TIMECODE_OPTIONS[@]}" ; do
             tc_value="$("${FFPROBE_BIN}" "${GRAB_INPUT[@]}" -timecode_format "${timecode_type}" -show_entries stream_tags=timecode -of default=nw=1:nk=1 2>/dev/null)"
@@ -1042,21 +1054,6 @@ _audiopassthrough_mode(){
     PLAYBACKVIEW_CHOICE_PASS="Audio + Video"
     _lookup_choice "Audio + Video"
     _passthrough_mode
-}
-
-# check validity of duration value
-_duration_check(){
-    # Sets up function to verify validity of duration settings
-    if [[ -n "${DURATION}" ]] ; then
-        if ! [[ "${DURATION}" =~ ^$|^[0-9]+$|^[0-9]+\.[0-9]*$|^\.[0-9]+$ ]] ; then
-            _report -w "Illegal value for recording time. Input must only be numbers."
-            exit 1
-        fi
-        if (( $(bc <<< "${DURATION} == 0") )) ; then
-            _report -w "A recording duration of zero is invalid."
-            exit 1
-        fi
-    fi
 }
 
 # create a capture log of decisions made in vrecord
@@ -1940,7 +1937,6 @@ if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
     fi
 fi
 
-_duration_check
 if [[ -n "${DURATION}" ]] ; then
     DUR_SECONDS=$(bc <<< "${DURATION} * 60" | sed "s/^\./0./")
     INPUTOPTIONS+=(-t "${DUR_SECONDS}")
