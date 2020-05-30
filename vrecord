@@ -958,13 +958,10 @@ _edit_mode(){
     # run the edit form in gtkdialog
     HOME_DIALOG_TMP="${HOME_DIALOG}"
     MAIN_DIALOG_TMP="${MAIN_DIALOG}"
-    
-    if [[ ! -f "${GTK_INC}" ]] ; then
-        GTK_INC="$(_maketemp .vrecord.gtkdialog.inc)"
-        _include_var GTK_INC
-        cat "${VRECORD_VARS_FILE}" > "${GTK_INC}"
-        echo "${GTKDIALOG_FUNCTIONS}" >> "${GTK_INC}"
-    fi
+
+    GTK_INC="$(_maketemp .vrecord.gtkdialog.inc)"
+    cat "${VRECORD_VARS_FILE}" > "${GTK_INC}"
+    echo "${GTKDIALOG_FUNCTIONS}" >> "${GTK_INC}"
 
     if [[ "${VERBOSE_GTKDIALOG}" = "Y" ]] ; then
         if [[ "$RUNTYPE" = "GUI" ]] || [[ "${GUI}" = "1" ]] ; then
