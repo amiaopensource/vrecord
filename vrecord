@@ -24,6 +24,18 @@ _maketemp(){
 }
 VRECORD_INPUT_TMP="$(_maketemp .vrecord_input.log)"
 
+# manage an include file to pass variables to gtkdialog
+VRECORD_VARS_FILE="$(_maketemp .vrecord.inc)"
+_include_var(){
+    while [[ "${@}" != "" ]] ; do
+        VAR_NAME="${1}"
+        VAR_VALUE="${!1}"
+        shift
+        echo "${VAR_NAME}=\"${VAR_VALUE}\"" >> "${VRECORD_VARS_FILE}"
+    done
+}
+_include_var VRECORD_VARS_FILE
+
 # Set variables for system differences
 QUERY_OS_TYPE="$(uname -s)"
 if [[ "${QUERY_OS_TYPE}" = "Darwin" ]] ; then
@@ -121,6 +133,8 @@ MPVOPTS+=(--load-scripts=no)
 MPVOPTS+=(--script="${RESOURCE_PATH}/qcview.lua")
 MPVOPTS+=(--really-quiet)
 
+_include_var CAPTURELOGSUFFIX TIMECODELOGSUFFIX BREW_PREFIX FFMPEG_BIN FFPLAY_BIN FFPROBE_BIN
+
 _usage(){
     cat <<EOF
 ${SCRIPTNAME} ${VERSION}
@@ -209,6 +223,42 @@ _check_mpv(){
         exit 1
     fi
 }
+
+# these functions are appended to an include file that is sent to gtkdialog and allows for functions to be used within gtkdialog actions
+# note that the single-quotes on the here document reference are needed to prevent the variables from expanding
+GTKDIALOG_FUNCTIONS=$(cat << 'GTKDIALOG_FUNCTION_DOC'
+# functions
+_check_ffmpeg_install(){
+    echo "Using ffmpeg at ${FFMPEG_BIN}"
+    echo
+    if [[ ! -f "${FFMPEG_BIN}" ]] ; then
+        echo "${FFMPEG_BIN} is not found. Please install ffmpegdecklink via:"
+        echo "    brew install amiaopensource/amiaos/ffmpegdecklink"
+        echo "Or install a version of ffmpeg that is compiled with decklink support if you wish to use that input."
+        echo
+    fi
+    if [[ ! -f "${FFPLAY_BIN}" ]] ; then
+        echo "${FFPLAY_BIN} is not found."
+        echo
+    fi
+    if [[ ! -f "${FFPROBE_BIN}" ]] ; then
+        echo "${FFPROBE_BIN} is not found."
+        echo
+    fi
+    echo
+    FFMPEG_V="$("${FFMPEG_BIN}" -version 2>&1)"
+    echo "FFmpeg configuration: ${FFMPEG_V}"
+    echo
+    if [[ "$(echo "${FFMPEG_V}" | grep "Library not loaded" >/dev/null)" ]] ; then
+        echo "Please reinstall 'ffmpegdecklink':"
+        echo "    brew reinstall amiaopensource/amiaos/ffmpegdecklink"
+        echo "Or install a version of ffmpeg that is compiled with decklink support if you wish to use that input."
+        echo "Exiting."
+        exit 1
+    fi
+}
+GTKDIALOG_FUNCTION_DOC
+)
 
 # optional dependency checks
 DECKCONTROL_INSTALLED="$(if command -v deckcontrol >/dev/null ; then echo true ; else echo false ; fi)"
@@ -463,7 +513,7 @@ OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
             </vbox>
             <button>
                 <label>Check FFmpeg status</label>
-                <action>( echo "Found ffmpeg at ${FFMPEG_BIN}" ; echo ; ${FFMPEG_BIN} -version 2>&1 ) > ${FFMPEG_STATUS_TMP}</action>
+                <action>_check_ffmpeg_install > ${FFMPEG_STATUS_TMP}</action>
                 <action type="refresh">ffmpeg_status</action>
             </button>
         </vbox>
@@ -888,17 +938,23 @@ _edit_mode(){
     # run the edit form in gtkdialog
     HOME_DIALOG_TMP="${HOME_DIALOG}"
     MAIN_DIALOG_TMP="${MAIN_DIALOG}"
+    
+    GTK_INC="$(_maketemp .vrecord.gtkdialog.inc)"
+    _include_var GTK_INC
+    cat "${VRECORD_VARS_FILE}" > "${GTK_INC}"
+    echo "${GTKDIALOG_FUNCTIONS}" >> "${GTK_INC}"
+    
     if [[ "${VERBOSE_GTKDIALOG}" = "Y" ]] ; then
         if [[ "$RUNTYPE" = "GUI" ]] || [[ "${GUI}" = "1" ]] ; then
-            eval "$(echo "$HOME_DIALOG" | gtkdialog --center --stdin)"
+            eval "$(echo "$HOME_DIALOG" | gtkdialog --include="${GTK_INC}" --center --stdin)"
         else
-            eval "$(echo "$MAIN_DIALOG" | gtkdialog --center --stdin)"
+            eval "$(echo "$MAIN_DIALOG" | gtkdialog --include="${GTK_INC}" --center --stdin)"
         fi
     else
         if [[ "$RUNTYPE" = "GUI" ]] || [[ "${GUI}" = "1" ]] ; then
-            eval "$(echo "$HOME_DIALOG" | gtkdialog --center --stdin 2> /dev/null)"
+            eval "$(echo "$HOME_DIALOG" | gtkdialog --include="${GTK_INC}" --center --stdin 2> /dev/null)"
         else
-            eval "$(echo "$MAIN_DIALOG" | gtkdialog --center --stdin 2> /dev/null)"
+            eval "$(echo "$MAIN_DIALOG" | gtkdialog --include="${GTK_INC}" --center --stdin 2> /dev/null)"
         fi
     fi
     HOME_DIALOG="${HOME_DIALOG_TMP}"
