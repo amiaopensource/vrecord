@@ -25,7 +25,7 @@ _maketemp(){
 VRECORD_INPUT_TMP="$(_maketemp .vrecord_input.log)"
 
 # manage an include file to pass variables to gtkdialog
-VRECORD_VARS_FILE="$(_maketemp .vrecord.inc)"
+VRECORD_VARS_FILE="/tmp/v_$(echo "${0}" | sed -e "s/[^A-Za-z0-9.]/_/g")_variables.txt"
 _include_var(){
     while [[ "${@}" != "" ]] ; do
         VAR_NAME="${1}"
@@ -34,8 +34,13 @@ _include_var(){
         echo "${VAR_NAME}=\"${VAR_VALUE}\"" >> "${VRECORD_VARS_FILE}"
     done
 }
-_include_var VRECORD_VARS_FILE
+if [[ -f "${VRECORD_VARS_FILE}" ]] ; then
+    . "${VRECORD_VARS_FILE}"
+else
+    _include_var VRECORD_VARS_FILE
+fi
 
+_setup_env_variables(){
 # Set variables for system differences
 QUERY_OS_TYPE="$(uname -s)"
 if [[ "${QUERY_OS_TYPE}" = "Darwin" ]] ; then
@@ -62,20 +67,12 @@ if [[ "${QUERY_OS_TYPE}" = "Darwin" ]] ; then
     else
       _report -wt "vrecord can't find a preferred font to use, please report this error to https://github.com/amiaopensource/vrecord/issues"
     fi
-    HARDWARE_REPORT_TMP="/tmp/vrecord_system_profiler_SPHardwareDataType.txt"
-    if [[ ! -s "${HARDWARE_REPORT_TMP}" ]] ; then
-        system_profiler SPHardwareDataType > "${HARDWARE_REPORT_TMP}"
-    fi
-    HARDWARE_REPORT="$(cat "${HARDWARE_REPORT_TMP}")"
+    HARDWARE_REPORT="$(system_profiler SPHardwareDataType)"
     CORE_COUNT="$(_parse_report "Total Number of Cores" "${HARDWARE_REPORT}")"
     OPEN_COMMAND="open"
     ZCAT_COMMAND="gzcat"
-    VIDEO_CARD_DRIVER_VERSION_TMP="/tmp/vrecord_decklink_driver_CFBundleVersion.txt"
-    if [[ ! -s "${VIDEO_CARD_DRIVER_VERSION_TMP}" ]] ; then
-        DECKLINK_DRIVER_PLIST="/Library/Extensions/DeckLink_Driver.kext/Contents/Info.plist"
-        defaults read "${DECKLINK_DRIVER_PLIST}" CFBundleVersion > "${VIDEO_CARD_DRIVER_VERSION_TMP}"
-    fi
-    VIDEO_CARD_DRIVER_VERSION="$(cat "${VIDEO_CARD_DRIVER_VERSION_TMP}")"
+    DECKLINK_DRIVER_PLIST="/Library/Extensions/DeckLink_Driver.kext/Contents/Info.plist"
+    VIDEO_CARD_DRIVER_VERSION="$(defaults read "${DECKLINK_DRIVER_PLIST}" CFBundleVersion)"
 elif [[ "${QUERY_OS_TYPE}" = "Linux" ]] ; then
     OS_TYPE="linux"
     if [[ $(dirname "$(command -v "${0}")") = "/usr/local/bin" ]] ; then
@@ -99,6 +96,11 @@ else
     echo "Unsupported OS, ${QUERY_OS_TYPE}, detected. Exiting."
     exit 1
 fi
+}
+if [[ -z "${OS_TYPE}" ]] ; then
+    _setup_env_variables
+    _include_var OS_TYPE RESOURCE_PATH DEFAULTFONT CORE_COUNT OPEN_COMMAND ZCAT_COMMAND
+fi
 
 unset INPUTOPTIONS
 unset MIDDLEOPTIONS
@@ -106,34 +108,40 @@ unset SUFFIX
 unset DURATION
 unset TECHNICIAN
 RUNTYPE="record"
-CAPTURELOGSUFFIX="_ffmpeg_input.log"
-TIMECODELOGSUFFIX="_frame_timecodes.txt"
 unset EXTRAOUTPUTS
 SAT_OUTLIER_THRSHLD=14
 AUD_OUTLIER_THRSHLD=10
 BRNG_OUTLIER_THRSHLD=14
-if [[ -d "/usr/local/opt/ffmpegdecklink" ]] ; then
-    BREW_PREFIX="/usr/local/opt/ffmpegdecklink"
-elif [[ -d "/home/linuxbrew/.linuxbrew/opt/ffmpegdecklink" ]] ; then
-    BREW_PREFIX="/home/linuxbrew/.linuxbrew/opt/ffmpegdecklink"
-else
-    BREW_PREFIX="$(brew --prefix ffmpegdecklink 2>/dev/null)"
-fi
-if [[ -d "${BREW_PREFIX}/bin" ]] ; then
-    FFMPEG_BIN="${BREW_PREFIX}/bin/ffmpeg-dl"
-    FFPLAY_BIN="${BREW_PREFIX}/bin/ffplay-dl"
-    FFPROBE_BIN="${BREW_PREFIX}/bin/ffprobe-dl"
-else
-    FFMPEG_BIN="$(which ffmpeg)"
-    FFPLAY_BIN="$(which ffplay)"
-    FFPROBE_BIN="$(which ffprobe)"
-fi
 MPVOPTS=(--no-osc)
 MPVOPTS+=(--load-scripts=no)
 MPVOPTS+=(--script="${RESOURCE_PATH}/qcview.lua")
 MPVOPTS+=(--really-quiet)
 
-_include_var CAPTURELOGSUFFIX TIMECODELOGSUFFIX BREW_PREFIX FFMPEG_BIN FFPLAY_BIN FFPROBE_BIN
+_gather_ffmpeg_vars(){
+    CAPTURELOGSUFFIX="_ffmpeg_input.log"
+    TIMECODELOGSUFFIX="_frame_timecodes.txt"
+    if [[ -d "/usr/local/opt/ffmpegdecklink" ]] ; then
+        BREW_PREFIX="/usr/local/opt/ffmpegdecklink"
+    elif [[ -d "/home/linuxbrew/.linuxbrew/opt/ffmpegdecklink" ]] ; then
+        BREW_PREFIX="/home/linuxbrew/.linuxbrew/opt/ffmpegdecklink"
+    else
+        BREW_PREFIX="$(brew --prefix ffmpegdecklink 2>/dev/null)"
+    fi
+    if [[ -d "${BREW_PREFIX}/bin" ]] ; then
+        FFMPEG_BIN="${BREW_PREFIX}/bin/ffmpeg-dl"
+        FFPLAY_BIN="${BREW_PREFIX}/bin/ffplay-dl"
+        FFPROBE_BIN="${BREW_PREFIX}/bin/ffprobe-dl"
+    else
+        FFMPEG_BIN="$(which ffmpeg)"
+        FFPLAY_BIN="$(which ffplay)"
+        FFPROBE_BIN="$(which ffprobe)"
+    fi
+}
+
+if [[ -z "${FFMPEG_BIN}" ]] ; then
+    _gather_ffmpeg_vars
+    _include_var CAPTURELOGSUFFIX TIMECODELOGSUFFIX BREW_PREFIX FFMPEG_BIN FFPLAY_BIN FFPROBE_BIN
+fi
 
 _usage(){
     cat <<EOF
@@ -950,11 +958,13 @@ _edit_mode(){
     HOME_DIALOG_TMP="${HOME_DIALOG}"
     MAIN_DIALOG_TMP="${MAIN_DIALOG}"
     
-    GTK_INC="$(_maketemp .vrecord.gtkdialog.inc)"
-    _include_var GTK_INC
-    cat "${VRECORD_VARS_FILE}" > "${GTK_INC}"
-    echo "${GTKDIALOG_FUNCTIONS}" >> "${GTK_INC}"
-    
+    if [[ ! -f "${GTK_INC}" ]] ; then
+        GTK_INC="$(_maketemp .vrecord.gtkdialog.inc)"
+        _include_var GTK_INC
+        cat "${VRECORD_VARS_FILE}" > "${GTK_INC}"
+        echo "${GTKDIALOG_FUNCTIONS}" >> "${GTK_INC}"
+    fi
+
     if [[ "${VERBOSE_GTKDIALOG}" = "Y" ]] ; then
         if [[ "$RUNTYPE" = "GUI" ]] || [[ "${GUI}" = "1" ]] ; then
             eval "$(echo "$HOME_DIALOG" | gtkdialog --include="${GTK_INC}" --center --stdin)"
