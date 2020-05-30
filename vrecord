@@ -14,6 +14,16 @@ _parse_report(){
     echo "${REPORT}" | grep -i "^[ ]*${KEY}:" | cut -d : -f 2- | awk '{$1=$1;print}'
 }
 
+_maketemp(){
+    if [[ "${1}" ]] ; then
+        EXT="${1}"
+    else
+        EXT=""
+    fi
+    echo "$(mktemp -q "/tmp/$(basename "${0}").XXXXXX")${EXT}"
+}
+VRECORD_INPUT_TMP="$(_maketemp .vrecord_input.log)"
+
 # Set variables for system differences
 QUERY_OS_TYPE="$(uname -s)"
 if [[ "${QUERY_OS_TYPE}" = "Darwin" ]] ; then
@@ -162,16 +172,6 @@ EOF
 _get_iso8601(){
     date +%FT%T
 }
-
-_maketemp(){
-    if [[ "${1}" ]] ; then
-        EXT="${1}"
-    else
-        EXT=""
-    fi
-    echo "$(mktemp -q "/tmp/$(basename "${0}").XXXXXX")${EXT}"
-}
-VRECORD_INPUT_TMP="$(_maketemp .vrecord_input.log)"
 
 _report(){
     local RED="$(tput setaf 1)"    # Red      - For Warnings
