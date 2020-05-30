@@ -313,7 +313,7 @@ _get_output_filename(){
         SUFFIX="${USER_SUFFIX}"
     elif [[ "${NO_SUFFIX}" = 'true' ]] ; then
         SUFFIX=""
-    else
+    elif [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
         case "${VIDEO_CODEC_CHOICE}" in 
             "FFV1 version 3")   SUFFIX="_ffv1" ;;
             "JPEG2000")         SUFFIX="_j2k" ;;
@@ -325,13 +325,20 @@ _get_output_filename(){
     fi
 
     # Get extension by container choice
-    case "${CONTAINER_CHOICE}" in 
-        "Matroska")             EXTENSION="mkv" ;;
-        "QuickTime")            EXTENSION="mov" ;;
-        "AVI")                  EXTENSION="avi" ;;
-        "MXF")                  EXTENSION="mxf" ;;
-        "MP4")                  EXTENSION="mp4" ;;
-    esac
+    if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
+        case "${CONTAINER_CHOICE}" in 
+            "Matroska")             EXTENSION="mkv" ;;
+            "QuickTime")            EXTENSION="mov" ;;
+            "AVI")                  EXTENSION="avi" ;;
+            "MXF")                  EXTENSION="mxf" ;;
+            "MP4")                  EXTENSION="mp4" ;;
+        esac
+    elif [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
+        case "${AUDIO_MODE_CODEC_CHOICE}" in
+            "24-bit PCM")           EXTENSION="wav" ;;
+            "24-bit FLAC")          EXTENSION="flac" ;;
+        esac
+    fi
 
     echo "${DIR}/${PREFIX}${ID}${SUFFIX}.${EXTENSION}"
 }
@@ -408,6 +415,8 @@ _gtk_vbox_list() {
             echo '<action condition="command_is_true( [ \"$CONTAINER_CHOICE\" = \"Matroska\" ] && echo true)">enable:EMBED_LOGS_CHOICE</action>
                   <action condition="command_is_true( [ \"$CONTAINER_CHOICE\" != \"Matroska\" ] && echo true)">disable:EMBED_LOGS_CHOICE</action>
                   <action type="refresh">VRECORD_OUTPUT_NAME</action>'
+        elif  [[ "${VARIABLE_NAME}" == "AUDIO_MODE_CODEC_CHOICE" ]] ; then
+            echo '<action type="refresh">VRECORD_OUTPUT_NAME</action>'
         fi
     }
 
