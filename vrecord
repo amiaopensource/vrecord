@@ -869,6 +869,12 @@ export MAIN_DIALOG='
                     <action type="exit">passthrough</action>
                 </button>
                 <button>
+                    <label>Save Settings</label>
+                    <input file stock="gtk-save"></input>
+                    <variable>save_button</variable>
+                    <action>_update_config_file</action>
+                </button>
+                <button>
                     <label>Home</label>
                     <input file stock="gtk-index"></input>
                     <variable>home_button</variable>
