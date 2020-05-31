@@ -18,6 +18,106 @@ SAT_OUTLIER_THRSHLD=14
 AUD_OUTLIER_THRSHLD=10
 BRNG_OUTLIER_THRSHLD=14
 
+_usage(){
+    cat <<EOF
+${SCRIPTNAME} ${VERSION}
+
+${SCRIPTNAME} will record a file via ffmpeg and the the Blackmagic SDK or
+AVFoundation. It is an interactive script and will create 10 or 8-bit video
+files.
+
+Dependencies: cowsay, amiaopensource/amiaos/decklinksdk,
+  amiaopensource/amiaos/ffmpegdecklink, amiaopensource/amiaos/gtkdialog,
+  freetype, sdl and xmlstarlet
+Optional Dependencies: deckcontrol, gnuplot, mediaconch, mkvtoolnix, mpv, qcli
+
+Usage: ${SCRIPTNAME} [ -g | -e | -r | -p | -a | -x | -v | -h ] [IDENTIFIER]
+
+  IDENTIFIER will be used for the filenaming of the output files. It is only
+  required in record mode.
+
+  -g  use the GUI
+  -e  edit the configuration file before recording
+  -r  enable record mode [default]
+  -p  enable passthrough mode where the video signal coming into the
+      computer can be monitored, but not written to a file. Useful for
+      testing equipment and setting up a tape to bars.
+  -a  enable audio passthrough mode. Identical to passthrough except for
+      the addition of audio bars. Note: Will eventually lag and crash if
+      left on too long.
+  -x  reset the configuration: this will replace the default configuration
+      file at '${CONFIG_FILE}' with an empty one.
+  -v  Run ffmpeg with '-loglevel debug'. Using this option creates a very
+      large log file, so avoid using this option with 'Visual + Numerical'
+      or any playback option that display the log as part of the view.
+  -h  display this help menu
+
+Advanced options
+  -I  Provide a string of input options for the recording ffmpeg to use.
+      For example "vrecord -I '-loglevel trace'" would force an ffmpeg
+      logging level that is usually unaccessible via vrecord preferences.
+  -O  Provide a string of output options for the recording ffmpeg to use.
+  -i  Provide a file as an input to vrecord, rather than using the
+      decklink device. For testing without a decklink device.
+  -G  Share warnings from gtkdialog, otherwise there are suppressed by default.
+  -c  Provide a recording configuration file, rather than the default one at
+      '${CONFIG_FILE}'.
+
+See also the man page: man ${SCRIPTNAME}
+EOF
+}
+
+# local functions
+_get_iso8601(){
+    date +%FT%T
+}
+
+_report(){
+    local RED="$(tput setaf 1)"    # Red      - For Warnings
+    local GREEN="$(tput setaf 2)"  # Green    - For Declarations
+    local BLUE="$(tput setaf 4)"   # Blue     - For Questions
+    local NC="$(tput sgr0)"        # No Color
+    local COLOR=""
+    local STARTMESSAGE=""
+    local ECHOOPT=""
+    OPTIND=1
+    while getopts "qdwstn" opt ; do
+        case "${opt}" in
+            q) COLOR="${BLUE}" ;;                        # question mode, use color blue
+            d) COLOR="${GREEN}" ;;                       # declaration mode, use color green
+            w) COLOR="${RED}" ;;                         # warning mode, use color red
+            s) STARTMESSAGE+=([${SCRIPTNAME}] ) ;;       # prepend scriptname to the message
+            t) STARTMESSAGE+=($(_get_iso8601) '- ' ) ;;  # prepend timestamp to the message
+            n) ECHOOPT="-n" ;;                           # to avoid line breaks after echo
+        esac
+    done
+    shift "$((OPTIND-1))"
+    MESSAGE="${1}"
+    echo ${ECHOOPT} "${COLOR}${STARTMESSAGE[@]}${MESSAGE}${NC}"
+}
+
+# command-line options to set media id and original variables
+OPTIND=1
+while getopts ":herpaxgvI:O:i:G" opt ; do
+    case "${opt}" in
+        h) _usage ; exit 0 ;;
+        e) RUNTYPE="edit" ;;
+        r) RUNTYPE="record" ;;
+        p) RUNTYPE="passthrough" ;;
+        a) RUNTYPE="audiopassthrough" ;;
+        x) RUNTYPE="reset" ;;
+        g) RUNTYPE="GUI" ; GUI=1 ;;
+        v) VERBOSE="true" ;;
+        I) EXTRAINPUTOPTIONS=(${OPTARG}) ;;
+        O) EXTRAOUTPUTOPTIONS=(${OPTARG}) ;;
+        i) ALT_INPUT="${OPTARG}" ;;
+        G) VERBOSE_GTKDIALOG="Y" ;;
+        :) _report -w "Option -${OPTARG} requires an argument" ; _usage ; exit 1 ;;
+        *) _report -w "Error: bad option -${OPTARG}" ; _usage ; exit 1 ;;
+    esac
+done
+shift "$((OPTIND-1))"
+ID="${1}"
 
 _parse_report(){
     KEY="${1}"
@@ -143,82 +243,6 @@ if [[ -z "${FFMPEG_BIN}" ]] ; then
     _gather_ffmpeg_vars
     _include_var CAPTURELOGSUFFIX TIMECODELOGSUFFIX BREW_PREFIX FFMPEG_BIN FFPLAY_BIN FFPROBE_BIN
 fi
-
-_usage(){
-    cat <<EOF
-${SCRIPTNAME} ${VERSION}
-
-${SCRIPTNAME} will record a file via ffmpeg and the the Blackmagic SDK or
-AVFoundation. It is an interactive script and will create 10 or 8-bit video
-files.
-
-Dependencies: cowsay, amiaopensource/amiaos/decklinksdk,
-  amiaopensource/amiaos/ffmpegdecklink, amiaopensource/amiaos/gtkdialog,
-  freetype, sdl and xmlstarlet
-Optional Dependencies: deckcontrol, gnuplot, mediaconch, mkvtoolnix, mpv, qcli
-
-Usage: ${SCRIPTNAME} [ -g | -e | -r | -p | -a | -x | -v | -h ] [IDENTIFIER]
-
-  IDENTIFIER will be used for the filenaming of the output files. It is only
-  required in record mode.
-
-  -g  use the GUI
-  -e  edit the configuration file before recording
-  -r  enable record mode [default]
-  -p  enable passthrough mode where the video signal coming into the
-      computer can be monitored, but not written to a file. Useful for
-      testing equipment and setting up a tape to bars.
-  -a  enable audio passthrough mode. Identical to passthrough except for
-      the addition of audio bars. Note: Will eventually lag and crash if
-      left on too long.
-  -x  reset the configuration: this will replace the default configuration
-      file at '${CONFIG_FILE}' with an empty one.
-  -v  Run ffmpeg with '-loglevel debug'. Using this option creates a very
-      large log file, so avoid using this option with 'Visual + Numerical'
-      or any playback option that display the log as part of the view.
-  -h  display this help menu
-
-Advanced options
-  -I  Provide a string of input options for the recording ffmpeg to use.
-      For example "vrecord -I '-loglevel trace'" would force an ffmpeg
-      logging level that is usually unaccessible via vrecord preferences.
-  -O  Provide a string of output options for the recording ffmpeg to use.
-  -i  Provide a file as an input to vrecord, rather than using the
-      decklink device. For testing without a decklink device.
-  -G  Share warnings from gtkdialog, otherwise there are suppressed by default.
-
-See also the man page: man ${SCRIPTNAME}
-EOF
-}
-
-# local functions
-_get_iso8601(){
-    date +%FT%T
-}
-
-_report(){
-    local RED="$(tput setaf 1)"    # Red      - For Warnings
-    local GREEN="$(tput setaf 2)"  # Green    - For Declarations
-    local BLUE="$(tput setaf 4)"   # Blue     - For Questions
-    local NC="$(tput sgr0)"        # No Color
-    local COLOR=""
-    local STARTMESSAGE=""
-    local ECHOOPT=""
-    OPTIND=1
-    while getopts "qdwstn" opt ; do
-        case "${opt}" in
-            q) COLOR="${BLUE}" ;;                        # question mode, use color blue
-            d) COLOR="${GREEN}" ;;                       # declaration mode, use color green
-            w) COLOR="${RED}" ;;                         # warning mode, use color red
-            s) STARTMESSAGE+=([${SCRIPTNAME}] ) ;;       # prepend scriptname to the message
-            t) STARTMESSAGE+=($(_get_iso8601) '- ' ) ;;  # prepend timestamp to the message
-            n) ECHOOPT="-n" ;;                           # to avoid line breaks after echo
-        esac
-    done
-    shift "$((OPTIND-1))"
-    MESSAGE="${1}"
-    echo ${ECHOOPT} "${COLOR}${STARTMESSAGE[@]}${MESSAGE}${NC}"
-}
 
 _cleanup(){
     _report -wt "Vrecord is being stopped at $(_get_iso8601), noting this in the capture log."
@@ -353,29 +377,6 @@ MEDIACONCH_INSTALLED="$(if command -v mediaconch >/dev/null ; then echo true ; e
 MKVPROPEDIT_INSTALLED="$(if command -v mkvpropedit >/dev/null ; then echo true ; else echo false ; fi)"
 MPV_INSTALLED="$(if command -v mpv >/dev/null ; then echo true ; else echo false ; fi)"
 QCLI_INSTALLED="$(if command -v qcli >/dev/null ; then echo true ; else echo false ; fi)"
-
-# command-line options to set media id and original variables
-OPTIND=1
-while getopts ":herpaxgvI:O:i:G" opt ; do
-    case "${opt}" in
-        h) _usage ; exit 0 ;;
-        e) RUNTYPE="edit" ;;
-        r) RUNTYPE="record" ;;
-        p) RUNTYPE="passthrough" ;;
-        a) RUNTYPE="audiopassthrough" ;;
-        x) RUNTYPE="reset" ;;
-        g) RUNTYPE="GUI" ; GUI=1 ;;
-        v) VERBOSE="true" ;;
-        I) EXTRAINPUTOPTIONS=(${OPTARG}) ;;
-        O) EXTRAOUTPUTOPTIONS=(${OPTARG}) ;;
-        i) ALT_INPUT="${OPTARG}" ;;
-        G) VERBOSE_GTKDIALOG="Y" ;;
-        :) _report -w "Option -${OPTARG} requires an argument" ; _usage ; exit 1 ;;
-        *) _report -w "Error: bad option -${OPTARG}" ; _usage ; exit 1 ;;
-    esac
-done
-shift "$((OPTIND-1))"
-ID="${1}"
 
 _verify_conf_items(){
     # some options to handle situations where an older configuration file needs to store updated options
