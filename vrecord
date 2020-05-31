@@ -98,9 +98,10 @@ _report(){
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":herpaxgvI:O:i:G" opt ; do
+while getopts ":hc:erpaxgvI:O:i:G" opt ; do
     case "${opt}" in
         h) _usage ; exit 0 ;;
+        c) CONFIG_FILE="${OPTARG}" ;;
         e) RUNTYPE="edit" ;;
         r) RUNTYPE="record" ;;
         p) RUNTYPE="passthrough" ;;
@@ -148,7 +149,7 @@ _include_var(){
 if [[ -f "${VRECORD_VARS_FILE}" ]] ; then
     . "${VRECORD_VARS_FILE}"
 else
-    _include_var VRECORD_VARS_FILE CONFIG_FILE
+    _include_var VRECORD_VARS_FILE
 fi
 
 _setup_env_variables(){
@@ -394,10 +395,9 @@ _verify_conf_items(){
 if [[ -f "${CONFIG_FILE}" ]] ; then
     _verify_conf_items "FFV1_SLICE_CHOICE" "${CONFIG_FILE}"
     . "${CONFIG_FILE}"
-elif [[ "${RUNTYPE}" = "record" || "${RUNTYPE}" = "edit" ]] ; then
-    _report -d "No configuration file, restarting in edit mode."
-    touch "${CONFIG_FILE}"
-    exec "${SCRIPTNAME}" -e
+else
+    _report -d "Initiatizing the configuration file at ${CONFIG_FILE}."
+    RUNTYPE="edit"
 fi
 
 _gtk_vbox_list() {
@@ -804,7 +804,7 @@ export MAIN_DIALOG='
                 <hbox>
                     <entry accept="directory">
                         <variable>DIR</variable>
-                        <default>'"${DIR}"'</default>
+                        <default>'"${DIR:-\"\"}"'</default>
                         <action signal="key-release-event" type="refresh">VRECORD_OUTPUT_NAME</action>
                     </entry>
                     <button>
@@ -818,7 +818,7 @@ export MAIN_DIALOG='
                 <hbox>
                     <entry accept="directory" tooltip-text="select the directory for automatically generated logs and checksums">
                         <variable>LOGDIR</variable>
-                        <default>'"${LOGDIR}"'</default>
+                        <default>'"${LOGDIR:-\"\"}"'</default>
                     </entry>
                     <button>
                         <input file stock="gtk-open"></input>
@@ -1047,6 +1047,7 @@ _edit_mode(){
 
     GTK_INC="$(_maketemp .vrecord.gtkdialog.inc)"
     cat "${VRECORD_VARS_FILE}" > "${GTK_INC}"
+    echo "CONFIG_FILE=${CONFIG_FILE}" >> "${GTK_INC}"
     echo "${GTKDIALOG_FUNCTIONS}" >> "${GTK_INC}"
 
     if [[ "${VERBOSE_GTKDIALOG}" = "Y" ]] ; then
