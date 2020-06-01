@@ -1750,6 +1750,10 @@ _review_option(){
     SELECTED="${!1}"
     shift
     CHOICES=("${@}")
+    if [[ ! " ${CHOICES[@]} " =~ " ${SELECTED} " ]]; then
+        _report -w "The configuration file uses an invalid value of ${SELECTED} for ${VALUE_NAME}. Valid values are: ${CHOICES[*]}. Please restart ${SCRIPTNAME} in edit mode (${SCRIPTNAME} -e) or update the configuration file at ${CONFIG_FILE}."
+        exit 2
+    fi
     if [[ "${SELECTED}" ]] ; then
         if [[ "${NO_LOOKUP}" != "Y" ]] ; then
           _lookup_choice "${SELECTED}"
