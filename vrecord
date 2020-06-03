@@ -2007,11 +2007,6 @@ if [[ -n "${DURATION}" ]] ; then
     INPUTOPTIONS+=(-t "${DUR_SECONDS}")
 fi
 
-if [[ -z "${TECHNICIAN}" ]] ; then
-    _report -q -n "Enter the name of the person digitizing the tape or leave blank: "
-    read TECHNICIAN
-fi
-
 if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
     _report -d "Summary: ${VIDEOCODECNAME}/${FORMAT} ${PIXEL_FORMAT} file from ${STANDARD} ${VIDEO_INPUT} ${AUDIO_INPUT}. Frame MD5s=${FRAMEMD5_CHOICE}, QCTools XML=${QCTOOLSXML_CHOICE}, and Technician=${TECHNICIAN}. Inputs recorded to ${VRECORD_OUTPUT} and Auxiliary Files created in ${LOGDIR}"
 elif [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
@@ -2079,9 +2074,7 @@ elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
 fi
 
 echo -e "${LOG_OF_OPTIONS}" >> "${INGESTLOG}"
-if [[ -z "${TECHNICIAN}" ]] ; then
-    _writeingestlog "TECHNICIAN" "N/A"
-else
+if [[ -n "${TECHNICIAN}" ]] ; then
     _writeingestlog "TECHNICIAN" "${TECHNICIAN}"
 fi
 if [[ "${INVERT_PHASE}" = 1 ]] ; then
