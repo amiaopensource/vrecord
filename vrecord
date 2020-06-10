@@ -7,109 +7,16 @@ VERSION="2020-02-10"
 SCRIPTNAME=$(basename "${0}")
 SCRIPTDIR=$(dirname "${0}")
 CONFIG_FILE="${HOME}/.${SCRIPTNAME}.conf"
-
-_parse_report(){
-    KEY="${1}"
-    REPORT="${2}"
-    echo "${REPORT}" | grep -i "^[ ]*${KEY}:" | cut -d : -f 2- | awk '{$1=$1;print}'
-}
-
-# Set variables for system differences
-QUERY_OS_TYPE="$(uname -s)"
-if [[ "${QUERY_OS_TYPE}" = "Darwin" ]] ; then
-    OS_TYPE="macOS"
-    if [[ $(dirname "$(command -v "${0}")") = "/usr/local/bin" ]] ; then
-        if [[ -d "/usr/local/opt/vrecord" ]] ; then
-            RESOURCE_PATH="/usr/local/opt/vrecord"
-        else
-            RESOURCE_PATH="$(brew --prefix vrecord)"
-        fi
-    else
-        RESOURCE_PATH="${SCRIPTDIR}/Resources"
-    fi
-    if [[ -f "/Library/Fonts/Andale Mono.ttf" ]] ; then
-      DEFAULTFONT="/Library/Fonts/Andale Mono.ttf"
-    elif [[ -f "/System/Library/Fonts/Supplemental/Andale Mono.ttf" ]] ; then
-      DEFAULTFONT="/System/Library/Fonts/Supplemental/Andale Mono.ttf"
-    elif [[ -f "/System/Library/Fonts/Monaco.dfont" ]] ; then
-      DEFAULTFONT="/System/Library/Fonts/Monaco.dfont"
-    elif [[ -f "/Library/Fonts/Microsoft/Lucida Console.ttf" ]] ; then
-      DEFAULTFONT="/Library/Fonts/Microsoft/Lucida\Console.ttf"
-    elif [[ -f "/Library/Fonts/LetterGothicStd.otf" ]] ; then
-      DEFAULTFONT="/Library/Fonts/LetterGothicStd.otf"
-    else
-      _report -wt "vrecord can't find a preferred font to use, please report this error to https://github.com/amiaopensource/vrecord/issues"
-    fi
-    HARDWARE_REPORT_TMP="/tmp/vrecord_system_profiler_SPHardwareDataType.txt"
-    if [[ ! -s "${HARDWARE_REPORT_TMP}" ]] ; then
-        system_profiler SPHardwareDataType > "${HARDWARE_REPORT_TMP}"
-    fi
-    HARDWARE_REPORT="$(cat "${HARDWARE_REPORT_TMP}")"
-    CORE_COUNT="$(_parse_report "Total Number of Cores" "${HARDWARE_REPORT}")"
-    OPEN_COMMAND="open"
-    ZCAT_COMMAND="gzcat"
-    VIDEO_CARD_DRIVER_VERSION_TMP="/tmp/vrecord_decklink_driver_CFBundleVersion.txt"
-    if [[ ! -s "${VIDEO_CARD_DRIVER_VERSION_TMP}" ]] ; then
-        DECKLINK_DRIVER_PLIST="/Library/Extensions/DeckLink_Driver.kext/Contents/Info.plist"
-        defaults read "${DECKLINK_DRIVER_PLIST}" CFBundleVersion > "${VIDEO_CARD_DRIVER_VERSION_TMP}"
-    fi
-    VIDEO_CARD_DRIVER_VERSION="$(cat "${VIDEO_CARD_DRIVER_VERSION_TMP}")"
-elif [[ "${QUERY_OS_TYPE}" = "Linux" ]] ; then
-    OS_TYPE="linux"
-    if [[ $(dirname "$(command -v "${0}")") = "/usr/local/bin" ]] ; then
-        if [[ -d "/home/linuxbrew/.linuxbrew/opt/vrecord" ]] ; then
-            RESOURCE_PATH="/home/linuxbrew/.linuxbrew/opt/vrecord"
-        else
-            RESOURCE_PATH="$(brew --prefix vrecord)"
-        fi
-    else
-        RESOURCE_PATH="${SCRIPTDIR}/Resources"
-    fi
-    DEFAULTFONT="/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf"
-    if [[ ! -f "${DEFAULTFONT}" ]] ; then
-      _report -wt "vrecord can't find a preferred font to use, please report this error to https://github.com/amiaopensource/vrecord/issues"
-    fi
-    HARDWARE_REPORT=$(lscpu)
-    CORE_COUNT="$(nproc --all)"
-    OPEN_COMMAND="xdg-open"
-    ZCAT_COMMAND="zcat"
-else
-    echo "Unsupported OS, ${QUERY_OS_TYPE}, detected. Exiting."
-    exit 1
-fi
-
 unset INPUTOPTIONS
 unset MIDDLEOPTIONS
 unset SUFFIX
 unset DURATION
 unset TECHNICIAN
 RUNTYPE="record"
-CAPTURELOGSUFFIX="_ffmpeg_input.log"
-TIMECODELOGSUFFIX="_frame_timecodes.txt"
 unset EXTRAOUTPUTS
 SAT_OUTLIER_THRSHLD=14
 AUD_OUTLIER_THRSHLD=10
 BRNG_OUTLIER_THRSHLD=14
-if [[ -d "/usr/local/opt/ffmpegdecklink" ]] ; then
-    BREW_PREFIX="/usr/local/opt/ffmpegdecklink"
-elif [[ -d "/home/linuxbrew/.linuxbrew/opt/ffmpegdecklink" ]] ; then
-    BREW_PREFIX="/home/linuxbrew/.linuxbrew/opt/ffmpegdecklink"
-else
-    BREW_PREFIX="$(brew --prefix ffmpegdecklink 2>/dev/null)"
-fi
-if [[ -d "${BREW_PREFIX}/bin" ]] ; then
-    FFMPEG_BIN="${BREW_PREFIX}/bin/ffmpeg-dl"
-    FFPLAY_BIN="${BREW_PREFIX}/bin/ffplay-dl"
-    FFPROBE_BIN="${BREW_PREFIX}/bin/ffprobe-dl"
-else
-    FFMPEG_BIN="$(which ffmpeg)"
-    FFPLAY_BIN="$(which ffplay)"
-    FFPROBE_BIN="$(which ffprobe)"
-fi
-MPVOPTS=(--no-osc)
-MPVOPTS+=(--load-scripts=no)
-MPVOPTS+=(--script="${RESOURCE_PATH}/qcview.lua")
-MPVOPTS+=(--really-quiet)
 
 _usage(){
     cat <<EOF
@@ -153,6 +60,8 @@ Advanced options
   -i  Provide a file as an input to vrecord, rather than using the
       decklink device. For testing without a decklink device.
   -G  Share warnings from gtkdialog, otherwise there are suppressed by default.
+  -c  Provide a recording configuration file, rather than the default one at
+      '${CONFIG_FILE}'.
 
 See also the man page: man ${SCRIPTNAME}
 EOF
@@ -162,16 +71,6 @@ EOF
 _get_iso8601(){
     date +%FT%T
 }
-
-_maketemp(){
-    if [[ "${1}" ]] ; then
-        EXT="${1}"
-    else
-        EXT=""
-    fi
-    echo "$(mktemp -q "/tmp/$(basename "${0}").XXXXXX")${EXT}"
-}
-VRECORD_INPUT_TMP="$(_maketemp .vrecord_input.log)"
 
 _report(){
     local RED="$(tput setaf 1)"    # Red      - For Warnings
@@ -197,32 +96,12 @@ _report(){
     echo ${ECHOOPT} "${COLOR}${STARTMESSAGE[@]}${MESSAGE}${NC}"
 }
 
-_cleanup(){
-    _report -wt "Vrecord is being stopped at $(_get_iso8601), noting this in the capture log."
-    _writeingestlog "exit status" "vrecord was forced to quit early at $(_get_iso8601). Some processing may be incomplete."
-}
-
-_check_mpv(){
-    if ! mpv > /dev/null ; then
-        mpv
-        _report -wt "mpv doesn't appear to be running correctly. Try 'brew reinstall mpv'."
-        exit 1
-    fi
-}
-
-# optional dependency checks
-DECKCONTROL_INSTALLED="$(if command -v deckcontrol >/dev/null ; then echo true ; else echo false ; fi)"
-GNUPLOT_INSTALLED="$(if command -v gnuplot >/dev/null ; then echo true ; else echo false ; fi)"
-MEDIACONCH_INSTALLED="$(if command -v mediaconch >/dev/null ; then echo true ; else echo false ; fi)"
-MKVPROPEDIT_INSTALLED="$(if command -v mkvpropedit >/dev/null ; then echo true ; else echo false ; fi)"
-MPV_INSTALLED="$(if command -v mpv >/dev/null ; then echo true ; else echo false ; fi)"
-QCLI_INSTALLED="$(if command -v qcli >/dev/null ; then echo true ; else echo false ; fi)"
-
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":herpaxgvI:O:i:G" opt ; do
+while getopts ":hc:erpaxgvI:O:i:G" opt ; do
     case "${opt}" in
         h) _usage ; exit 0 ;;
+        c) CONFIG_FILE="${OPTARG}" ;;
         e) RUNTYPE="edit" ;;
         r) RUNTYPE="record" ;;
         p) RUNTYPE="passthrough" ;;
@@ -241,6 +120,284 @@ done
 shift "$((OPTIND-1))"
 ID="${1}"
 
+_parse_report(){
+    KEY="${1}"
+    REPORT="${2}"
+    echo "${REPORT}" | grep -i "^[ ]*${KEY}:" | cut -d : -f 2- | awk '{$1=$1;print}'
+}
+
+_maketemp(){
+    if [[ "${1}" ]] ; then
+        EXT="${1}"
+    else
+        EXT=""
+    fi
+    echo "$(mktemp -q "/tmp/$(basename "${0}").XXXXXX")${EXT}"
+}
+VRECORD_INPUT_TMP="$(_maketemp .vrecord_input.log)"
+
+# manage an include file to pass variables to gtkdialog
+VRECORD_VARS_FILE="/tmp/v_$(echo "${0}" | sed -e "s/[^A-Za-z0-9.]/_/g")_variables.txt"
+_include_var(){
+    while [[ "${@}" != "" ]] ; do
+        VAR_NAME="${1}"
+        VAR_VALUE="${!1}"
+        shift
+        echo "${VAR_NAME}=\"${VAR_VALUE}\"" >> "${VRECORD_VARS_FILE}"
+    done
+}
+if [[ -f "${VRECORD_VARS_FILE}" ]] ; then
+    . "${VRECORD_VARS_FILE}"
+else
+    _include_var VRECORD_VARS_FILE
+fi
+
+_setup_env_variables(){
+    # Set variables for system differences
+    QUERY_OS_TYPE="$(uname -s)"
+    if [[ "${QUERY_OS_TYPE}" = "Darwin" ]] ; then
+        OS_TYPE="macOS"
+        if [[ $(dirname "$(command -v "${0}")") = "/usr/local/bin" ]] ; then
+            if [[ -d "/usr/local/opt/vrecord" ]] ; then
+                RESOURCE_PATH="/usr/local/opt/vrecord"
+            else
+                RESOURCE_PATH="$(brew --prefix vrecord)"
+            fi
+        else
+            RESOURCE_PATH="${SCRIPTDIR}/Resources"
+        fi
+        if [[ -f "/Library/Fonts/Andale Mono.ttf" ]] ; then
+          DEFAULTFONT="/Library/Fonts/Andale Mono.ttf"
+        elif [[ -f "/System/Library/Fonts/Supplemental/Andale Mono.ttf" ]] ; then
+          DEFAULTFONT="/System/Library/Fonts/Supplemental/Andale Mono.ttf"
+        elif [[ -f "/System/Library/Fonts/Monaco.dfont" ]] ; then
+          DEFAULTFONT="/System/Library/Fonts/Monaco.dfont"
+        elif [[ -f "/Library/Fonts/Microsoft/Lucida Console.ttf" ]] ; then
+          DEFAULTFONT="/Library/Fonts/Microsoft/Lucida\Console.ttf"
+        elif [[ -f "/Library/Fonts/LetterGothicStd.otf" ]] ; then
+          DEFAULTFONT="/Library/Fonts/LetterGothicStd.otf"
+        else
+          _report -wt "vrecord can't find a preferred font to use, please report this error to https://github.com/amiaopensource/vrecord/issues"
+        fi
+        HARDWARE_REPORT="$(system_profiler SPHardwareDataType)"
+        CORE_COUNT="$(_parse_report "Total Number of Cores" "${HARDWARE_REPORT}")"
+        OPEN_COMMAND="open"
+        ZCAT_COMMAND="gzcat"
+        DECKLINK_DRIVER_PLIST="/Library/Extensions/DeckLink_Driver.kext/Contents/Info.plist"
+        VIDEO_CARD_DRIVER_VERSION="$(defaults read "${DECKLINK_DRIVER_PLIST}" CFBundleVersion)"
+    elif [[ "${QUERY_OS_TYPE}" = "Linux" ]] ; then
+        OS_TYPE="linux"
+        if [[ $(dirname "$(command -v "${0}")") = "/usr/local/bin" ]] ; then
+            if [[ -d "/home/linuxbrew/.linuxbrew/opt/vrecord" ]] ; then
+                RESOURCE_PATH="/home/linuxbrew/.linuxbrew/opt/vrecord"
+            else
+                RESOURCE_PATH="$(brew --prefix vrecord)"
+            fi
+        else
+            RESOURCE_PATH="${SCRIPTDIR}/Resources"
+        fi
+        DEFAULTFONT="/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf"
+        if [[ ! -f "${DEFAULTFONT}" ]] ; then
+          _report -wt "vrecord can't find a preferred font to use, please report this error to https://github.com/amiaopensource/vrecord/issues"
+        fi
+        HARDWARE_REPORT=$(lscpu)
+        CORE_COUNT="$(nproc --all)"
+        OPEN_COMMAND="xdg-open"
+        ZCAT_COMMAND="zcat"
+    else
+        echo "Unsupported OS, ${QUERY_OS_TYPE}, detected. Exiting."
+        exit 1
+    fi
+}
+if [[ -z "${OS_TYPE}" ]] ; then
+    _setup_env_variables
+    _include_var OS_TYPE RESOURCE_PATH DEFAULTFONT CORE_COUNT OPEN_COMMAND ZCAT_COMMAND
+fi
+
+MPVOPTS=(--no-osc)
+MPVOPTS+=(--load-scripts=no)
+MPVOPTS+=(--script="${RESOURCE_PATH}/qcview.lua")
+MPVOPTS+=(--really-quiet)
+
+_gather_ffmpeg_vars(){
+    CAPTURELOGSUFFIX="_ffmpeg_input.log"
+    TIMECODELOGSUFFIX="_frame_timecodes.txt"
+    if [[ -d "/usr/local/opt/ffmpegdecklink" ]] ; then
+        BREW_PREFIX="/usr/local/opt/ffmpegdecklink"
+    elif [[ -d "/home/linuxbrew/.linuxbrew/opt/ffmpegdecklink" ]] ; then
+        BREW_PREFIX="/home/linuxbrew/.linuxbrew/opt/ffmpegdecklink"
+    else
+        BREW_PREFIX="$(brew --prefix ffmpegdecklink 2>/dev/null)"
+    fi
+    if [[ -d "${BREW_PREFIX}/bin" ]] ; then
+        FFMPEG_BIN="${BREW_PREFIX}/bin/ffmpeg-dl"
+        FFPLAY_BIN="${BREW_PREFIX}/bin/ffplay-dl"
+        FFPROBE_BIN="${BREW_PREFIX}/bin/ffprobe-dl"
+    else
+        FFMPEG_BIN="$(which ffmpeg)"
+        FFPLAY_BIN="$(which ffplay)"
+        FFPROBE_BIN="$(which ffprobe)"
+    fi
+}
+
+if [[ -z "${FFMPEG_BIN}" ]] ; then
+    _gather_ffmpeg_vars
+    _include_var CAPTURELOGSUFFIX TIMECODELOGSUFFIX BREW_PREFIX FFMPEG_BIN FFPLAY_BIN FFPROBE_BIN
+fi
+
+_cleanup(){
+    _report -wt "Vrecord is being stopped at $(_get_iso8601), noting this in the capture log."
+    _writeingestlog "exit status" "vrecord was forced to quit early at $(_get_iso8601). Some processing may be incomplete."
+}
+
+_check_mpv(){
+    if ! mpv > /dev/null ; then
+        mpv
+        _report -wt "mpv doesn't appear to be running correctly. Try 'brew reinstall mpv'."
+        exit 1
+    fi
+}
+
+# these functions are appended to an include file that is sent to gtkdialog and allows for functions to be used within gtkdialog actions
+# note that the single-quotes on the here document reference are needed to prevent the variables from expanding
+GTKDIALOG_FUNCTIONS=$(cat << 'GTKDIALOG_FUNCTION_DOC'
+# functions
+_check_ffmpeg_install(){
+    echo "Using ffmpeg at ${FFMPEG_BIN}"
+    echo
+    if [ ! -f "${FFMPEG_BIN}" ] ; then
+        echo "${FFMPEG_BIN} is not found. Please install ffmpegdecklink via:"
+        echo "    brew install amiaopensource/amiaos/ffmpegdecklink"
+        echo "Or install a version of ffmpeg that is compiled with decklink support if you wish to use that input."
+        echo
+    fi
+    if [ ! -f "${FFPLAY_BIN}" ] ; then
+        echo "${FFPLAY_BIN} is not found."
+        echo
+    fi
+    if [ ! -f "${FFPROBE_BIN}" ] ; then
+        echo "${FFPROBE_BIN} is not found."
+        echo
+    fi
+    echo
+    FFMPEG_V="$("${FFMPEG_BIN}" -version 2>&1)"
+    echo "FFmpeg configuration: ${FFMPEG_V}"
+    echo
+    if [ "$(echo "${FFMPEG_V}" | grep "Library not loaded" >/dev/null)" ] ; then
+        echo "Please reinstall 'ffmpegdecklink':"
+        echo "    brew reinstall amiaopensource/amiaos/ffmpegdecklink"
+        echo "Or install a version of ffmpeg that is compiled with decklink support if you wish to use that input."
+        echo "Exiting."
+        exit 1
+    fi
+    if [ -z "$("${FFMPEG_BIN}" -nostdin -v 0 -sources decklink)" ] ; then
+        echo "vrecord is set to use a decklink input but ${FFMPEG_BIN} does not appear to support decklink inputs."
+        echo "Please review installation and troubleshooting information for vrecord or install ffmpegdecklink."
+        exit 1
+    fi
+}
+
+_update_config_file(){
+    # write config file
+    {
+        echo "# Set these variables to a valid option or leave as empty quotes (like \"\") to request each run."
+        echo "DEVICE_INPUT_CHOICE=\"${DEVICE_INPUT_CHOICE}\""
+        echo "VIDEO_INPUT_CHOICE=\"${VIDEO_INPUT_CHOICE}\""
+        echo "AUDIO_INPUT_CHOICE=\"${AUDIO_INPUT_CHOICE}\""
+        echo "CONTAINER_CHOICE=\"${CONTAINER_CHOICE}\""
+        echo "VIDEO_CODEC_CHOICE=\"${VIDEO_CODEC_CHOICE}\""
+        echo "FFV1_SLICE_CHOICE=\"${FFV1_SLICE_CHOICE}\""
+        echo "AUDIO_CODEC_CHOICE=\"${AUDIO_CODEC_CHOICE}\""
+        echo "AUDIO_DEV_CHOICE=\"${AUDIO_DEV_CHOICE}\""
+        echo "AUDIO_MODE_CODEC_CHOICE=\"${AUDIO_MODE_CODEC_CHOICE}\""
+        echo "AUDIO_CHANNEL_CHOICE=\"${AUDIO_CHANNEL_CHOICE}\""
+        echo "AUDIO_MODE_SR_CHOICE=\"${AUDIO_MODE_SR_CHOICE}\""
+        echo "VIDEO_BIT_DEPTH_CHOICE=\"${VIDEO_BIT_DEPTH_CHOICE}\""
+        echo "AUDIO_MAPPING_CHOICE=\"${AUDIO_MAPPING_CHOICE}\""
+        echo "TIMECODE_CHOICE=\"${TIMECODE_CHOICE}\""
+        echo "STANDARD_CHOICE=\"${STANDARD_CHOICE}\""
+        echo "QCTOOLSXML_CHOICE=\"${QCTOOLSXML_CHOICE}\""
+        echo "FRAMEMD5_CHOICE=\"${FRAMEMD5_CHOICE}\""
+        echo "EMBED_LOGS_CHOICE=\"${EMBED_LOGS_CHOICE}\""
+        echo "PLAYBACKVIEW_CHOICE=\"${PLAYBACKVIEW_CHOICE}\""
+        echo "PLAYBACKVIEW_CHOICE_PASS=\"${PLAYBACKVIEW_CHOICE_PASS}\""
+        echo "DIR=\"${DIR}\""
+        echo "LOGDIR=\"${LOGDIR}\""
+        echo "INVERT_PHASE=\"${INVERT_PHASE}\""
+        echo "DURATION=\"${DURATION}\""
+        echo "PREFIX=\"${PREFIX}\""
+        echo "USER_SUFFIX=\"${USER_SUFFIX}\""
+        echo "NO_SUFFIX=\"${NO_SUFFIX}\""
+        echo "TECHNICIAN=\"${TECHNICIAN}\""
+        echo "AVF_INPUT_CHOICE=\"${AVF_INPUT_CHOICE}\""
+        echo "DECKLINK_INPUT_CHOICE=\"${DECKLINK_INPUT_CHOICE}\""
+    } > "${CONFIG_FILE}"
+    . "${CONFIG_FILE}"
+}
+
+_validate_form(){
+    if [ "${INVERT_PHASE}" = "true" ] ; then
+        echo "WARNING: Option to invert phase of second audio channel has been selected.\n"
+    fi
+    if [ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" ] && [ "${CONTAINER_CHOICE}" = "MXF" ] ; then
+        echo "ERROR: Incompatible video codecs and containers have been selected.\n"
+    elif [ "${AUDIO_CODEC_CHOICE}" = "24-bit FLAC" ] && [ "${CONTAINER_CHOICE}" = "QuickTime" ] ; then
+        echo "ERROR: Incompatible audio codecs and containers have been selected.\n"
+    fi
+    # validate duration
+    if [ -n "${DURATION}" ] ; then
+        if ! [ "$(echo "${DURATION} > 0" | bc)" = "1" ] ; then
+            echo "ERROR: Illegal value for recording time. The duration must be a positive number.\n"
+        fi
+    fi
+}
+
+_get_output_filename(){
+    # Get user suffix preference of default per video codec
+    if [ -n "${USER_SUFFIX}" ] ; then
+        SUFFIX="${USER_SUFFIX}"
+    elif [ "${NO_SUFFIX}" = 'true' ] ; then
+        SUFFIX=""
+    elif [ "${DEVICE_INPUT_CHOICE}" = "0" ] ; then
+        case "${VIDEO_CODEC_CHOICE}" in 
+            "FFV1 version 3")   SUFFIX="_ffv1" ;;
+            "JPEG2000")         SUFFIX="_j2k" ;;
+            "ProRes")           SUFFIX="_prores" ;;
+            "ProRes (HQ)")      SUFFIX="_prores" ;;
+            "h264")             SUFFIX="" ;;
+            "HuffYUV")          SUFFIX="_huff" ;;
+        esac
+    fi
+
+    # Get extension by container choice
+    if [ "${DEVICE_INPUT_CHOICE}" = "0" ] ; then
+        case "${CONTAINER_CHOICE}" in 
+            "Matroska")             EXTENSION="mkv" ;;
+            "QuickTime")            EXTENSION="mov" ;;
+            "AVI")                  EXTENSION="avi" ;;
+            "MXF")                  EXTENSION="mxf" ;;
+            "MP4")                  EXTENSION="mp4" ;;
+        esac
+    elif [ "${DEVICE_INPUT_CHOICE}" = "2" ] ; then
+        case "${AUDIO_MODE_CODEC_CHOICE}" in
+            "24-bit PCM")           EXTENSION="wav" ;;
+            "24-bit FLAC")          EXTENSION="flac" ;;
+        esac
+    fi
+
+    echo "${DIR}/${PREFIX}${ID}${SUFFIX}.${EXTENSION}"
+}
+GTKDIALOG_FUNCTION_DOC
+)
+
+# optional dependency checks
+DECKCONTROL_INSTALLED="$(if command -v deckcontrol >/dev/null ; then echo true ; else echo false ; fi)"
+GNUPLOT_INSTALLED="$(if command -v gnuplot >/dev/null ; then echo true ; else echo false ; fi)"
+MEDIACONCH_INSTALLED="$(if command -v mediaconch >/dev/null ; then echo true ; else echo false ; fi)"
+MKVPROPEDIT_INSTALLED="$(if command -v mkvpropedit >/dev/null ; then echo true ; else echo false ; fi)"
+MPV_INSTALLED="$(if command -v mpv >/dev/null ; then echo true ; else echo false ; fi)"
+QCLI_INSTALLED="$(if command -v qcli >/dev/null ; then echo true ; else echo false ; fi)"
+
 _verify_conf_items(){
     # some options to handle situations where an older configuration file needs to store updated options
     CONF_VARIABLE="${1}"
@@ -257,10 +414,9 @@ _verify_conf_items(){
 if [[ -f "${CONFIG_FILE}" ]] ; then
     _verify_conf_items "FFV1_SLICE_CHOICE" "${CONFIG_FILE}"
     . "${CONFIG_FILE}"
-elif [[ "${RUNTYPE}" = "record" || "${RUNTYPE}" = "edit" ]] ; then
-    _report -d "No configuration file, restarting in edit mode."
-    touch "${CONFIG_FILE}"
-    exec "${SCRIPTNAME}" -e
+else
+    _report -d "Initiatizing the configuration file at ${CONFIG_FILE}."
+    RUNTYPE="edit"
 fi
 
 _gtk_vbox_list() {
@@ -274,10 +430,14 @@ _gtk_vbox_list() {
     _get_list_extras(){
         if [[ "${VARIABLE_NAME}" == "VIDEO_CODEC_CHOICE" ]] ; then
             echo '<action condition="command_is_true( [ \"$VIDEO_CODEC_CHOICE\" = \"FFV1 version 3\" ] && echo true)">enable:FFV1_SLICE_CHOICE</action>
-                  <action condition="command_is_true( [ \"$VIDEO_CODEC_CHOICE\" != \"FFV1 version 3\" ] && echo true)">disable:FFV1_SLICE_CHOICE</action>'
+                  <action condition="command_is_true( [ \"$VIDEO_CODEC_CHOICE\" != \"FFV1 version 3\" ] && echo true)">disable:FFV1_SLICE_CHOICE</action>
+                  <action type="refresh">VRECORD_OUTPUT_NAME</action>'
         elif [[ "${VARIABLE_NAME}" == "CONTAINER_CHOICE" ]] ; then
             echo '<action condition="command_is_true( [ \"$CONTAINER_CHOICE\" = \"Matroska\" ] && echo true)">enable:EMBED_LOGS_CHOICE</action>
-                  <action condition="command_is_true( [ \"$CONTAINER_CHOICE\" != \"Matroska\" ] && echo true)">disable:EMBED_LOGS_CHOICE</action>'
+                  <action condition="command_is_true( [ \"$CONTAINER_CHOICE\" != \"Matroska\" ] && echo true)">disable:EMBED_LOGS_CHOICE</action>
+                  <action type="refresh">VRECORD_OUTPUT_NAME</action>'
+        elif  [[ "${VARIABLE_NAME}" == "AUDIO_MODE_CODEC_CHOICE" ]] ; then
+            echo '<action type="refresh">VRECORD_OUTPUT_NAME</action>'
         fi
     }
 
@@ -286,6 +446,7 @@ _gtk_vbox_list() {
             echo "
             <button>
                 <label>Scan timecode types</label>
+                <action>_update_config_file</action>
                 <action type=\"exit\">timecode_scan</action>
             </button>"
         elif [[ "${VARIABLE_NAME}" == "EMBED_LOGS_CHOICE" ]] ; then
@@ -316,8 +477,6 @@ _get_decklink_inputs(){
     done < <("${FFMPEG_BIN}" -nostdin -v 0 -sources decklink | awk -F'[][]' '{print $2}' | grep -v "^$")
     if [[ "${#DECKLINK_DEVICES[@]}" = 1 ]] ; then # default to first input if only one
       DECKLINK_INPUT_CHOICE="${DECKLINK_DEVICES[0]}"
-    elif [[ -z "$("${FFMPEG_BIN}" -nostdin -v 0 -sources decklink)" ]] ; then
-        FFMPEG_DECKLINK_SUPPORT="N"
     fi
 }
 _get_avfoundation_inputs(){
@@ -457,15 +616,26 @@ OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
             </text>
             <vbox scrollable="true" height="240">
                 <text wrap="true" xalign="0" selectable="true">
-                    <variable>ffmpeg_status</variable>
+                    <variable export="false">ffmpeg_status</variable>
                     <input file>"${FFMPEG_STATUS_TMP}"</input>
                 </text>
             </vbox>
             <button>
                 <label>Check FFmpeg status</label>
-                <action>( echo "Found ffmpeg at ${FFMPEG_BIN}" ; echo ; ${FFMPEG_BIN} -version 2>&1 ) > ${FFMPEG_STATUS_TMP}</action>
+                <action>_check_ffmpeg_install > ${FFMPEG_STATUS_TMP}</action>
                 <action type="refresh">ffmpeg_status</action>
             </button>
+        </vbox>
+        <vbox>
+            <text>
+                <label>Environment</label>
+            </text>
+            <vbox scrollable="true" height="240">
+                <text xalign="0" selectable="true">
+                    <variable export="false">vrecord_env</variable>
+                    <input file>"${VRECORD_VARS_FILE}"</input>
+                </text>
+            </vbox>
         </vbox>
     </hbox>
 </frame>
@@ -524,7 +694,7 @@ DECKLINK_INPUT_GUI=$(cat << DECKLINK_FORM
                     <timer milliseconds="true" interval="500" visible="false" disabled="true">
                          <variable>deckcontrol_timer</variable>
                          <visible>disabled</visible>
-                         <action>{ timeout --foreground 0.5 deckcontrol getcurrentstate | grep "state:\|detect" | sed 's/VTR control state: //g' > "${DECKCONTROL_STATUS_TMP}" ; timeout 0.5 deckcontrol gettimecode | grep 'TC=' | cut -c 4- > "${DECKCONTROL_TIMECODE_TMP}" ; } &</action>
+                         <action>{ timeout --foreground 0.5 deckcontrol getcurrentstate | grep "state:\|detect" | sed "s/VTR control state: //g" > "${DECKCONTROL_STATUS_TMP}" ; timeout 0.5 deckcontrol gettimecode | grep "TC=" | cut -c 4- > "${DECKCONTROL_TIMECODE_TMP}" ; } &</action>
                          <action>refresh:decklink_status</action>
                          <action>refresh:decklink_timecode</action>
                     </timer>
@@ -617,34 +787,35 @@ AVFOUNDATION_INPUT_GUI="
     </vbox>
 </frame>"
 
-AUDIO_INPUT_GUI="
+AUDIO_INPUT_GUI='
 <frame Audio input options>
-  <vbox space-expand=\"true\">
-    <hbox space-expand=\"true\">
-      $(_gtk_vbox_list "AUDIO_DEV_CHOICE"         "Select an Audio Device"           "${AUDIO_DEVICES[@]}")
-      $(_gtk_vbox_list "AUDIO_MODE_CODEC_CHOICE"       "Select Audio Codec"            "${AUDIO_CODEC_OPTIONS[@]:0:2}")
-      $(_gtk_vbox_list "AUDIO_CHANNEL_CHOICE"       "Select Audio Channels"            "${AUDIO_CHANNEL_CHOICE_OPTIONS[@]}")
-      $(_gtk_vbox_list "AUDIO_MODE_SR_CHOICE"       "Select Sampling Rate"            "${AUDIO_MODE_SR_CHOICE_OPTIONS[@]}")
+  <vbox space-expand="true">
+    <hbox space-expand="true">
+      '$(_gtk_vbox_list "AUDIO_DEV_CHOICE"         "Select an Audio Device"           "${AUDIO_DEVICES[@]}")'
+      '$(_gtk_vbox_list "AUDIO_MODE_CODEC_CHOICE"       "Select Audio Codec"            "${AUDIO_CODEC_OPTIONS[@]:0:2}")'
+      '$(_gtk_vbox_list "AUDIO_CHANNEL_CHOICE"       "Select Audio Channels"            "${AUDIO_CHANNEL_CHOICE_OPTIONS[@]}")'
+      '$(_gtk_vbox_list "AUDIO_MODE_SR_CHOICE"       "Select Sampling Rate"            "${AUDIO_MODE_SR_CHOICE_OPTIONS[@]}")'
     </hbox>
   </vbox>
-  <vbox space-expand=\"true\">
-    <pixmap><input file>${RESOURCE_PATH}/audio_mode.gif</input></pixmap>
+  <vbox space-expand="true">
+    <pixmap><input file>'"${RESOURCE_PATH}/audio_mode.gif"'</input></pixmap>
   </vbox>
-</frame>"
+</frame>'
 
-MAIN_DIALOG=$(cat << GTKFORM
+export MAIN_DIALOG='
 <window title="vrecord configuration">
     <vbox>
         <text>
             <label>Set file recording options.</label>
         </text>
         <frame Input Options>
-        <notebook page="${DEVICE_INPUT_CHOICE}" tab-labels="Decklink|DV|Audio|Config">
-            ${DECKLINK_INPUT_GUI}
-            ${AVFOUNDATION_INPUT_GUI}
-            ${AUDIO_INPUT_GUI}
-            ${OPTIONAL_TOOLS_GUI}
+        <notebook page="'"${DEVICE_INPUT_CHOICE}"'" tab-labels="Decklink|DV|Audio|Config">
+            '"${DECKLINK_INPUT_GUI}"'
+            '"${AVFOUNDATION_INPUT_GUI}"'
+            '"${AUDIO_INPUT_GUI}"'
+            '"${OPTIONAL_TOOLS_GUI}"'
             <variable>DEVICE_INPUT_CHOICE</variable>
+            <action signal="button-release-event" type="refresh">VRECORD_OUTPUT_NAME</action>
         </notebook>
         </frame>
         <hbox>
@@ -652,7 +823,8 @@ MAIN_DIALOG=$(cat << GTKFORM
                 <hbox>
                     <entry accept="directory">
                         <variable>DIR</variable>
-                        <default>"${DIR}"</default>
+                        <default>'"${DIR:-\"\"}"'</default>
+                        <action signal="key-release-event" type="refresh">VRECORD_OUTPUT_NAME</action>
                     </entry>
                     <button>
                         <input file stock="gtk-open"></input>
@@ -665,7 +837,7 @@ MAIN_DIALOG=$(cat << GTKFORM
                 <hbox>
                     <entry accept="directory" tooltip-text="select the directory for automatically generated logs and checksums">
                         <variable>LOGDIR</variable>
-                        <default>"${LOGDIR}"</default>
+                        <default>'"${LOGDIR:-\"\"}"'</default>
                     </entry>
                     <button>
                         <input file stock="gtk-open"></input>
@@ -683,8 +855,9 @@ MAIN_DIALOG=$(cat << GTKFORM
                             <label>Name of Recording</label>
                         </text>
                         <entry>
-                            <default>"${ID}"</default>
+                            <default>"'"${ID}"'"</default>
                             <variable>ID</variable>
+                            <action signal="key-release-event" type="refresh">VRECORD_OUTPUT_NAME</action>
                         </entry>
                     </vbox>
                     <vbox>
@@ -700,7 +873,7 @@ MAIN_DIALOG=$(cat << GTKFORM
                             <label>Set recording time (integer or decimal) in minutes</label>
                         </text>
                         <entry activates_default="true" tooltip-text="Suggested:23 33 63 93. Leave blank for indefinite recording time">
-                            <default>"${DURATION}"</default>
+                            <default>"'"${DURATION}"'"</default>
                             <variable>DURATION</variable>
                         </entry>
                     </vbox>
@@ -713,8 +886,9 @@ MAIN_DIALOG=$(cat << GTKFORM
                             <label>Enter an optional file prefix</label>
                         </text>
                         <entry>
-                            <default>"${PREFIX}"</default>
+                            <default>"'"${PREFIX}"'"</default>
                             <variable>PREFIX</variable>
+                            <action signal="key-release-event" type="refresh">VRECORD_OUTPUT_NAME</action>
                         </entry>
                     </vbox>
                     <vbox>
@@ -722,15 +896,17 @@ MAIN_DIALOG=$(cat << GTKFORM
                             <label>Enter an optional file suffix</label>
                         </text>
                         <entry>
-                            <default>"${USER_SUFFIX}"</default>
+                            <default>"'"${USER_SUFFIX}"'"</default>
                             <variable>USER_SUFFIX</variable>
+                            <action signal="key-release-event" type="refresh">VRECORD_OUTPUT_NAME</action>
                         </entry>
                     </vbox>
                     <vbox>
                         <checkbox>
                             <label>Check this to turn off appending of suffixes</label>
-                            <default>"${NO_SUFFIX}"</default>
+                            <default>"'"${NO_SUFFIX}"'"</default>
                             <variable>NO_SUFFIX</variable>
+                            <action signal="key-release-event" type="refresh">VRECORD_OUTPUT_NAME</action>
                         </checkbox>
                     </vbox>
                 </hbox>
@@ -738,22 +914,53 @@ MAIN_DIALOG=$(cat << GTKFORM
         </hbox>
         <vbox>
             <hbox>
+                <text>
+                    <label>Output Filename:</label>
+                </text>
+                <entry editable="false" has-frame="false">
+                    <variable>VRECORD_OUTPUT_NAME</variable>
+                    <input>_get_output_filename</input>
+                </entry>
+            </hbox>
+            <hbox>
+                <text>
+                    <label>Errors & Warnings:</label>
+                </text>
+                <vbox scrollable="true" height="28">
+                    <text wrap="false" xalign="0" selectable="true">
+                        <variable export="false">VRECORD_FORM_VALIDATION</variable>
+                        <input>_validate_form</input>
+                    </text>
+                </vbox>
+            </hbox>
+        </vbox>
+        <vbox>
+            <hbox>
                 <button>
                     <label>Record</label>
                     <input file stock="gtk-media-record"></input>
                     <variable>record_button</variable>
+                    <action>_update_config_file</action>
                     <action type="exit">Record</action>
                 </button>
                 <button>
                     <label>Passthrough</label>
                     <input file stock="gtk-media-play"></input>
                     <variable>passthrough_button</variable>
+                    <action>_update_config_file</action>
                     <action type="exit">passthrough</action>
+                </button>
+                <button>
+                    <label>Save Settings</label>
+                    <input file stock="gtk-save"></input>
+                    <variable>save_button</variable>
+                    <action>_update_config_file</action>
                 </button>
                 <button>
                     <label>Home</label>
                     <input file stock="gtk-index"></input>
                     <variable>home_button</variable>
+                    <action>_update_config_file</action>
                     <action type="launch">HOME_DIALOG</action>
                 </button>
                 <button cancel>
@@ -761,17 +968,19 @@ MAIN_DIALOG=$(cat << GTKFORM
                 <button>
                     <label>Refresh</label>
                     <input file stock="gtk-refresh"></input>
+                    <action>_update_config_file</action>
                     <action type="exit">refresh</action>
                 </button>
             </hbox>
         </vbox>
     </vbox>
     <variable>MAIN_DIALOG</variable>
+    <action signal="enter-notify-event" type="refresh">VRECORD_FORM_VALIDATION</action>
+    <action signal="leave-notify-event" type="refresh">VRECORD_FORM_VALIDATION</action>
     <action signal="show" type="closewindow">HOME_DIALOG</action>
+    <action signal="show" type="refresh">VRECORD_OUTPUT_NAME</action>
 </window>
-GTKFORM
-)
-export MAIN_DIALOG
+'
 }
 
 HOME_DIALOG=$(cat << GTKFORM
@@ -844,40 +1053,6 @@ _report_var(){
     done
 }
 
-_update_config_file(){
-    _duration_check
-    # report back options
-    if [[ -z "${LOGDIR}" ]] ; then
-        LOGDIR="${DIR}"
-        echo "As auxiliary files directory was left blank, logs will be written to recording directory at ${DIR}."
-    fi
-    echo "Variables set:"
-    _report_var DEVICE_INPUT_CHOICE AVF_INPUT_CHOICE DECKLINK_INPUT_CHOICE DIR LOGDIR CONTAINER_CHOICE VIDEO_INPUT_CHOICE AUDIO_INPUT_CHOICE VIDEO_CODEC_CHOICE FFV1_SLICE_CHOICE AUDIO_CODEC_CHOICE AUDIO_CHANNEL_CHOICE AUDIO_MODE_SR_CHOICE AUDIO_VIDEO_BIT_DEPTH_CHOICE AUDIO_MAPPING_CHOICE TIMECODE_CHOICE STANDARD_CHOICE QCTOOLSXML_CHOICE FRAMEMD5_CHOICE EMBED_LOGS_CHOICE PLAYBACKVIEW_CHOICE PLAYBACKVIEW_CHOICE_PASS DURATION TECHNICIAN PREFIX USER_SUFFIX NO_SUFFIX
-    if [[ "${INVERT_PHASE}" = 'true' ]] ; then
-        echo -e " \033[101mWARNING: Option to invert phase of second audio channel has been selected\033[0m"
-    fi
-    if [ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" -a "${CONTAINER_CHOICE}" = "MXF" ] ; then
-        echo -e " \033[101mWARNING: Incompatible video codecs and CONTAINERs have been selected\033[0m"
-    elif [ "${AUDIO_CODEC_CHOICE}" = "24-bit FLAC" -a "${CONTAINER_CHOICE}" = "QuickTime" ] ; then
-        echo -e " \033[101mWARNING: Incompatible audio codecs and CONTAINERs have been selected\033[0m"
-    fi
-    if [ "${EMBED_LOGS_CHOICE}" = "Yes" -a "${CONTAINER_CHOICE}" != "Matroska" ] ; then
-        _report -w "WARNING: Logs cannot be embedded in non-Matroska files. This vrecord session will generate logs in ${LOGDIR}, but will not embed them in your video file."
-    fi
-    echo ""
-    # write config file
-    {
-        echo "# Set these variables to a valid option or leave as empty quotes (like \"\") to request each run."
-        for COMMENT_LINE in DEVICE_INPUT_CHOICE VIDEO_INPUT_CHOICE AUDIO_INPUT_CHOICE CONTAINER_CHOICE VIDEO_CODEC_CHOICE FFV1_SLICE_CHOICE AUDIO_CODEC_CHOICE\
-        AUDIO_DEV_CHOICE AUDIO_MODE_CODEC_CHOICE AUDIO_CHANNEL_CHOICE AUDIO_MODE_SR_CHOICE VIDEO_BIT_DEPTH_CHOICE AUDIO_MAPPING_CHOICE TIMECODE_CHOICE STANDARD_CHOICE QCTOOLSXML_CHOICE FRAMEMD5_CHOICE \
-        EMBED_LOGS_CHOICE PLAYBACKVIEW_CHOICE PLAYBACKVIEW_CHOICE_PASS DIR LOGDIR INVERT_PHASE DURATION PREFIX USER_SUFFIX NO_SUFFIX TECHNICIAN \
-        AVF_INPUT_CHOICE DECKLINK_INPUT_CHOICE ; do
-            echo "${COMMENT_LINE}=\"${!COMMENT_LINE}\""
-        done
-    } > "${CONFIG_FILE}"
-    . "${CONFIG_FILE}"
-}
-
 # edit mode
 _edit_mode(){
 
@@ -888,17 +1063,23 @@ _edit_mode(){
     # run the edit form in gtkdialog
     HOME_DIALOG_TMP="${HOME_DIALOG}"
     MAIN_DIALOG_TMP="${MAIN_DIALOG}"
+
+    GTK_INC="$(_maketemp .vrecord.gtkdialog.inc)"
+    cat "${VRECORD_VARS_FILE}" > "${GTK_INC}"
+    echo "CONFIG_FILE=${CONFIG_FILE}" >> "${GTK_INC}"
+    echo "${GTKDIALOG_FUNCTIONS}" >> "${GTK_INC}"
+
     if [[ "${VERBOSE_GTKDIALOG}" = "Y" ]] ; then
         if [[ "$RUNTYPE" = "GUI" ]] || [[ "${GUI}" = "1" ]] ; then
-            eval "$(echo "$HOME_DIALOG" | gtkdialog --center --stdin)"
+            eval "$(gtkdialog --include="${GTK_INC}" --program HOME_DIALOG --center)"
         else
-            eval "$(echo "$MAIN_DIALOG" | gtkdialog --center --stdin)"
+            eval "$(gtkdialog --include="${GTK_INC}" --program MAIN_DIALOG --center)"
         fi
     else
         if [[ "$RUNTYPE" = "GUI" ]] || [[ "${GUI}" = "1" ]] ; then
-            eval "$(echo "$HOME_DIALOG" | gtkdialog --center --stdin 2> /dev/null)"
+            eval "$(gtkdialog --include="${GTK_INC}" --program HOME_DIALOG --center 2> /dev/null)"
         else
-            eval "$(echo "$MAIN_DIALOG" | gtkdialog --center --stdin 2> /dev/null)"
+            eval "$(gtkdialog --include="${GTK_INC}" --program MAIN_DIALOG --center 2> /dev/null)"
         fi
     fi
     HOME_DIALOG="${HOME_DIALOG_TMP}"
@@ -913,16 +1094,12 @@ _edit_mode(){
         _report -d "Exiting Vrecord. Goodbye!"
         exit 0
     elif [[ "${EXIT}" = "Record" ]] ; then
-        _update_config_file
         RUNTYPE="record"
     elif [[ "${EXIT}" = "passthrough" ]] ; then
-        _update_config_file
         RUNTYPE="passthrough"
     elif [[ "${EXIT}" = "refresh" ]] ; then
-        _update_config_file
         RUNTYPE="edit"
     elif [[ "${EXIT}" = "timecode_scan" ]] ; then
-        _update_config_file
         _report -dt "Scanning each supported type of timecode."
         for timecode_type in "${TIMECODE_OPTIONS[@]}" ; do
             tc_value="$("${FFPROBE_BIN}" "${GRAB_INPUT[@]}" -timecode_format "${timecode_type}" -show_entries stream_tags=timecode -of default=nw=1:nk=1 2>/dev/null)"
@@ -967,21 +1144,6 @@ _audiopassthrough_mode(){
     PLAYBACKVIEW_CHOICE_PASS="Audio + Video"
     _lookup_choice "Audio + Video"
     _passthrough_mode
-}
-
-# check validity of duration value
-_duration_check(){
-    # Sets up function to verify validity of duration settings
-    if [[ -n "${DURATION}" ]] ; then
-        if ! [[ "${DURATION}" =~ ^$|^[0-9]+$|^[0-9]+\.[0-9]*$|^\.[0-9]+$ ]] ; then
-            _report -w "Illegal value for recording time. Input must only be numbers."
-            exit 1
-        fi
-        if (( $(bc <<< "${DURATION} == 0") )) ; then
-            _report -w "A recording duration of zero is invalid."
-            exit 1
-        fi
-    fi
 }
 
 # create a capture log of decisions made in vrecord
@@ -1605,54 +1767,48 @@ _review_option(){
     shift "$((OPTIND-1))"
     VALUE_NAME="${1}"
     SELECTED="${!1}"
-    QUERY="${2}"
-    shift 2
+    shift
     CHOICES=("${@}")
+    if [[ ! " ${CHOICES[@]} " =~ " ${SELECTED} " ]]; then
+        _report -w "The configuration file uses an invalid value of ${SELECTED} for ${VALUE_NAME}. Valid values are: ${CHOICES[*]}. Please restart ${SCRIPTNAME} in edit mode (${SCRIPTNAME} -e) or update the configuration file at ${CONFIG_FILE}."
+        exit 2
+    fi
     if [[ "${SELECTED}" ]] ; then
         if [[ "${NO_LOOKUP}" != "Y" ]] ; then
           _lookup_choice "${SELECTED}"
         fi
-        LOG_OF_OPTIONS+="${VALUE_NAME}: ${SELECTED}\n"
-        OPTION="${SELECTED}"
     else
-        _report -q "${QUERY}"
-        PS3="Select an option or 'q' to quit: "
-        select OPTION in "${CHOICES[@]}" ; do
-            if [[ "${NO_LOOKUP}" != "Y" ]] ; then
-              _lookup_choice "${OPTION}" "${REPLY}"
-            fi
-            [[ "${?}" -eq 0 ]] && break
-        done
-        export "${VALUE_NAME}"="${OPTION}"
-        LOG_OF_OPTIONS+="${VALUE_NAME}: ${OPTION}\n"
+        _report -w "The option for ${VALUE_NAME} is not set. Please restart ${SCRIPTNAME} in edit mode (${SCRIPTNAME} -e) or update the configuration file at ${CONFIG_FILE}."
+        exit 3
     fi
+    LOG_OF_OPTIONS+="${VALUE_NAME}: ${SELECTED}\n"
 }
 
 if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
-    _review_option "VIDEO_INPUT_CHOICE" "Which video input are you using?" "${VIDEO_INPUT_OPTIONS[@]}"
-    _review_option "AUDIO_INPUT_CHOICE" "Which audio input are you using?" "${AUDIO_INPUT_OPTIONS[@]}"
-    _review_option "VIDEO_BIT_DEPTH_CHOICE" "Which video bit depth?" "${VIDEO_BITDEPTH_OPTIONS[@]}"
-    _review_option "AUDIO_MAPPING_CHOICE" "Which audio mapping?" "${CHANNEL_MAPPING_OPTIONS[@]}"
+    _review_option "VIDEO_INPUT_CHOICE" "${VIDEO_INPUT_OPTIONS[@]}"
+    _review_option "AUDIO_INPUT_CHOICE" "${AUDIO_INPUT_OPTIONS[@]}"
+    _review_option "VIDEO_BIT_DEPTH_CHOICE" "${VIDEO_BITDEPTH_OPTIONS[@]}"
+    _review_option "AUDIO_MAPPING_CHOICE" "${CHANNEL_MAPPING_OPTIONS[@]}"
     if [[ -z "${ALT_INPUT}" ]] ; then
-        _review_option "TIMECODE_CHOICE" "Which timecode format?" "${TIMECODE_OPTIONS[@]}"
+        _review_option "TIMECODE_CHOICE" "${TIMECODE_OPTIONS[@]}"
     fi
-    _review_option "STANDARD_CHOICE" "Which television STANDARD?" "${STANDARD_OPTIONS[@]}"
+    _review_option "STANDARD_CHOICE" "${STANDARD_OPTIONS[@]}"
 elif [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
-    _review_option -n "AVF_INPUT_CHOICE" "Which avfoundation input are you using?" "${AVFOUNDATION_DEVICES[@]}"
+    _review_option -n "AVF_INPUT_CHOICE" "${AVFOUNDATION_DEVICES[@]}"
 elif [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
-    _review_option -n "AUDIO_DEV_CHOICE" "Which audio input are you using?" "${AUDIO_DEVICES[@]}"
+    _review_option -n "AUDIO_DEV_CHOICE" "${AUDIO_DEVICES[@]}"
 fi
 if [[ "${CORE_COUNT}" -le 2 && "${RUNTYPE}" = "record" ]] ; then
     _report -w "Since this computer has only ${CORE_COUNT} cores, the playback will display only half of the frames to reduce CPU. This will not impact the recording."
     PLAYBACK_FILTER_ADJUSTMENT="select=not(mod(n\,2)),"
 fi
 if [[ "${RUNTYPE}" = "passthrough" ]] && [[ -n "${PLAYBACKVIEW_CHOICE_PASS}" ]] && [[ "${PLAYBACKVIEW_CHOICE_PASS}" != "Unselected" ]] ; then
-  _review_option "PLAYBACKVIEW_CHOICE_PASS" "Which playback view?" "${PLAYBACKVIEW_OPTIONS[@]}"
+  _review_option "PLAYBACKVIEW_CHOICE_PASS" "${PLAYBACKVIEW_OPTIONS[@]}"
 else
-  _review_option "PLAYBACKVIEW_CHOICE" "Which playback view?" "${PLAYBACKVIEW_OPTIONS[@]}"
+  _review_option "PLAYBACKVIEW_CHOICE" "${PLAYBACKVIEW_OPTIONS[@]}"
 fi
 if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
-  if [[ "${OPTION}" = "Full Range Visual" ]] ; then
+  if [[ "${PLAYBACKVIEW_CHOICE}" = "Full Range Visual" ]] ; then
       MIDDLEOPTIONS+=(-color_range jpeg)
   else
       MIDDLEOPTIONS+=(-color_range mpeg)
@@ -1662,9 +1818,9 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
 fi
 MIDDLEOPTIONS+=(${EXTRAOUTPUTOPTIONS[@]})
 if [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
-    _review_option "AUDIO_MODE_CODEC_CHOICE" "Which audio codec?" "${AUDIO_CODEC_OPTIONS[@]}"
-    _review_option "AUDIO_CHANNEL_CHOICE" "Audio channel layout?" "${AUDIO_CHANNEL_CHOICE_OPTIONS[@]}"
-    _review_option "AUDIO_MODE_SR_CHOICE" "Audio sample rate?" "${AUDIO_MODE_SR_CHOICE_OPTIONS[@]}"
+    _review_option "AUDIO_MODE_CODEC_CHOICE" "${AUDIO_CODEC_OPTIONS[@]}"
+    _review_option "AUDIO_CHANNEL_CHOICE" "${AUDIO_CHANNEL_CHOICE_OPTIONS[@]}"
+    _review_option "AUDIO_MODE_SR_CHOICE" "${AUDIO_MODE_SR_CHOICE_OPTIONS[@]}"
     PLAYBACKVIEW_CHOICE_PASS="Audio"
     PLAYBACKVIEW_CHOICE="Audio"
     _lookup_choice "Audio"
@@ -1681,11 +1837,7 @@ fi
 if [[ -n "${ALT_INPUT}" ]] ; then
     GRAB_INPUT+=("${EXTRAINPUTOPTIONS[@]}")
     GRAB_INPUT+=(-i "${ALT_INPUT}")
-elif [[ "${DEVICE_INPUT_CHOICE}" = 0 && "${FFMPEG_DECKLINK_SUPPORT}" = "N" ]] ; then
-    echo "vrecord is set to use a decklink input but ${FFMPEG_BIN} does not appear to support decklink inputs."
-    echo "Please review installation and troubleshooting information for vrecord or install ffmpegdecklink."
-    exit 1
-elif [[ "${DEVICE_INPUT_CHOICE}" = 0 && ! "${FFMPEG_DECKLINK_SUPPORT}" = "N" ]] ; then
+elif [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
     GRAB_INPUT+=(-f decklink)
     GRAB_INPUT+=(-draw_bars 0)
     GRAB_INPUT+=(-audio_input "${AUDIO_INPUT}")
@@ -1826,12 +1978,12 @@ if [[ ! -d "${LOGDIR}" ]] ; then
 fi
 
 if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
-    _review_option "CONTAINER_CHOICE" "Which audiovisual container format?" "${CONTAINER_OPTIONS[@]}"
-    _review_option "VIDEO_CODEC_CHOICE" "Which video codec?" "${VIDEO_CODEC_OPTIONS[@]}"
+    _review_option "CONTAINER_CHOICE" "${CONTAINER_OPTIONS[@]}"
+    _review_option "VIDEO_CODEC_CHOICE" "${VIDEO_CODEC_OPTIONS[@]}"
     if [[ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" ]] ; then
-        _review_option -n "FFV1_SLICE_CHOICE" "FFV1 Slice Count?" "${FFV1_SLICE_OPTIONS[@]}"
+        _review_option -n "FFV1_SLICE_CHOICE" "${FFV1_SLICE_OPTIONS[@]}"
     fi
-    _review_option "AUDIO_CODEC_CHOICE" "Which audio codec?" "${AUDIO_CODEC_OPTIONS[@]}"
+    _review_option "AUDIO_CODEC_CHOICE" "${AUDIO_CODEC_OPTIONS[@]}"
 fi
 
 # Check for user suffix to override automatic settings
@@ -1853,31 +2005,25 @@ if [[ -f "${VRECORD_OUTPUT}" ]] ; then
 fi
 
 if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
-    _review_option "QCTOOLSXML_CHOICE" "Create QCTools XML?" "${QCTOOLSXML_OPTIONS[@]}"
-    if [[ "${OPTION}" != "No" && ! "$(command -v qcli)" ]] ; then
+    _review_option "QCTOOLSXML_CHOICE" "${QCTOOLSXML_OPTIONS[@]}"
+    if [[ "${QCTOOLSXML_CHOICE}" != "No" && ! "$(command -v qcli)" ]] ; then
         _report -w "Please install qcli to use the qctools reporting option."
         _report -w "Such as \`brew install qcli\`."
         exit 1
     fi
-    _review_option "FRAMEMD5_CHOICE" "Create frame-level MD5 checksums?" "${FRAMEMD5_OPTIONS[@]}"
-    if [[ "${OPTION}" = "Yes" ]] ; then
+    _review_option "FRAMEMD5_CHOICE" "${FRAMEMD5_OPTIONS[@]}"
+    if [[ "${FRAMEMD5_CHOICE}" = "Yes" ]] ; then
         FRAMEMD5NAME="${LOGDIR}/${FULL_OUTPUT_ID}.framemd5"
         EXTRAOUTPUTS=(-an -f framemd5 "${FRAMEMD5NAME}")
     fi
     if [[ "${FORMAT}" = "matroska" ]] ; then
-        _review_option "EMBED_LOGS_CHOICE" "Embed logs in Matroska file?" "${EMBED_LOGS_OPTIONS[@]}"
+        _review_option "EMBED_LOGS_CHOICE" "${EMBED_LOGS_OPTIONS[@]}"
     fi
 fi
 
-_duration_check
 if [[ -n "${DURATION}" ]] ; then
     DUR_SECONDS=$(bc <<< "${DURATION} * 60" | sed "s/^\./0./")
     INPUTOPTIONS+=(-t "${DUR_SECONDS}")
-fi
-
-if [[ -z "${TECHNICIAN}" ]] ; then
-    _report -q -n "Enter the name of the person digitizing the tape or leave blank: "
-    read TECHNICIAN
 fi
 
 if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
@@ -1947,9 +2093,7 @@ elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
 fi
 
 echo -e "${LOG_OF_OPTIONS}" >> "${INGESTLOG}"
-if [[ -z "${TECHNICIAN}" ]] ; then
-    _writeingestlog "TECHNICIAN" "N/A"
-else
+if [[ -n "${TECHNICIAN}" ]] ; then
     _writeingestlog "TECHNICIAN" "${TECHNICIAN}"
 fi
 if [[ "${INVERT_PHASE}" = 1 ]] ; then
