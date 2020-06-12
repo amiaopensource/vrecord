@@ -1828,16 +1828,20 @@ fi
 
 # set up input and playback
 _set_up_drawtext
-if [[ "$VERBOSE" = "true" ]] ; then
-    GRAB_INPUT=(-loglevel debug)
-    _report -wt "When running vrecord in verbose mode, avoid using Visual + Numerical option."
-else
-    GRAB_INPUT=(-loglevel info)
-fi
+_set_ffmpeg_loglevel(){
+    if [[ "$VERBOSE" = "true" ]] ; then
+        GRAB_INPUT+=(-loglevel debug)
+        _report -wt "When running vrecord in verbose mode, avoid using Visual + Numerical option."
+    else
+        GRAB_INPUT+=(-loglevel info)
+    fi
+}
+unset GRAB_INPUT
 if [[ -n "${ALT_INPUT}" ]] ; then
     GRAB_INPUT+=("${EXTRAINPUTOPTIONS[@]}")
     GRAB_INPUT+=(-i "${ALT_INPUT}")
 elif [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
+    _set_ffmpeg_loglevel
     GRAB_INPUT+=(-f decklink)
     GRAB_INPUT+=(-draw_bars 0)
     GRAB_INPUT+=(-audio_input "${AUDIO_INPUT}")
@@ -1858,6 +1862,7 @@ elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
     EXTENSION="dv"
     FORMAT="rawvideo"
 elif [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
+    _set_ffmpeg_loglevel
     #Mac Options
     #Linux Options
     if [[ "${OS_TYPE}" = "linux" ]] ; then
