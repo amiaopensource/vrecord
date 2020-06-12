@@ -1151,7 +1151,8 @@ _passthrough_mode(){
         "${FFMPEG_BIN}" -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_INPUT[@]}" "${PIPE_OUTPUT[@]}" 2> "${VRECORD_INPUT_TMP}" | \
             "${FFPLAY_BIN}" -window_title "${WINDOW_NAME}" -f lavfi "amovie='pipe\:0',${PLAYBACKFILTER}"
     else
-        "${FFPLAY_BIN}" "${FFPLAY_OPTIONS[@]}" 2> >(tee "${VRECORD_INPUT_TMP}" 1>&2)
+        _report -d -wt "vrecord exited a form in an unexpected way, please report this error to https://github.com/amiaopensource/vrecord/issues"
+        exit 1
     fi
 }
 
@@ -2154,8 +2155,8 @@ elif [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
     RECORD_COMMAND+=(-f "${FORMAT}" -filter_complex "${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" "${VRECORD_OUTPUT}")
     RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}" -filter_complex "${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" "${PIPE_OUTPUT[@]}")
 else
-  RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
-  RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}" "${PIPE_OUTPUT[@]}")
+    _report -d -wt "vrecord exited a form in an unexpected way (DEVICE_INPUT_CHOICE=${DEVICE_INPUT_CHOICE}), please report this error to https://github.com/amiaopensource/vrecord/issues"
+    exit 1
 fi
 _writeingestlog "FFmpeg command" "${RECORD_COMMAND[@]}"
 _set_ffplay_options
