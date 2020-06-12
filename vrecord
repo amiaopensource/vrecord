@@ -1119,16 +1119,16 @@ _edit_mode(){
 _passthrough_mode(){
     _set_ffplay_options
     if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
-    if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
-        _check_mpv
-        "${FFMPEG_BIN}" -nostats "${GRAB_INPUT[@]}" 2> >(tee "${VRECORD_INPUT_TMP}" 1>&2) \
-        "${PIPE_OUTPUT[@]}" | \
-        mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -
-    elif [[ "${PLAYBACKVIEW_CHOICE_PASS}" = "Audio + Video" ]] ; then
         if [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
             unset PIPE_OUTPUT[0] && unset PIPE_OUTPUT[1]
-            "${FFMPEG_BIN}" -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_INPUT[@]}" -c copy -f rawvideo - | "${FFMPEG_BIN}" -i - "${PIPE_OUTPUT[@]}" 2> "${VRECORD_INPUT_TMP}" | \
-            "${FFPLAY_BIN}" -window_title "${WINDOW_NAME}" -f lavfi "movie='pipe\:0':${PLAYBACKFILTER}"
+        if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
+            _check_mpv
+            "${FFMPEG_BIN}" -nostats "${GRAB_INPUT[@]}" 2> >(tee "${VRECORD_INPUT_TMP}" 1>&2) \
+            "${PIPE_OUTPUT[@]}" | \
+            mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -
+        elif [[ "${PLAYBACKVIEW_CHOICE_PASS}" = "Audio + Video" ]] ; then
+                "${FFMPEG_BIN}" -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_INPUT[@]}" "${PIPE_OUTPUT[@]}" 2> "${VRECORD_INPUT_TMP}" | \
+                "${FFPLAY_BIN}" -window_title "${WINDOW_NAME}" -f lavfi "movie='pipe\:0':${PLAYBACKFILTER}"
         else
             "${FFMPEG_BIN}" -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_INPUT[@]}" "${PIPE_OUTPUT[@]}" 2> "${VRECORD_INPUT_TMP}" | \
             "${FFPLAY_BIN}" -window_title "${WINDOW_NAME}" -f lavfi "movie='pipe\:0':${PLAYBACKFILTER}"
