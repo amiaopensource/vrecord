@@ -2114,26 +2114,30 @@ fi
 _report -d "Close the playback window to stop recording."
 
 # vrecord process!
+if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
+    # DEVICE_INPUT_CHOICE=0 is decklink, other DEVICE_INPUT_CHOICE values don't yet use such filtering
 RECORD_COMMAND=("${FFMPEG_BIN}")
 RECORD_COMMAND+=(-nostdin -nostats "${INPUTOPTIONS[@]}" "${GRAB_INPUT[@]}")
 if [[ -n "${VIDEOCODECNAME}" ]] ; then
     MIDDLEOPTIONS+=(-metadata:s:v:0 encoder="${VIDEOCODECNAME}")
 fi
 RECORD_COMMAND+=("${MIDDLEOPTIONS[@]}")
-if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
-    # DEVICE_INPUT_CHOICE=0 is decklink, other DEVICE_INPUT_CHOICE values don't yet use such filtering
-    RECORD_COMMAND+=(-filter_complex "[0:v:0]${RECORDINGFILTER}${TC_WRITE}; ${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}")
-fi
-
-if [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
-  RECORD_COMMAND+=(-f "${FORMAT}" -filter_complex "${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" "${VRECORD_OUTPUT}")
-  RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}" -filter_complex "${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" "${PIPE_OUTPUT[@]}")
+RECORD_COMMAND+=(-filter_complex "[0:v:0]${RECORDINGFILTER}${TC_WRITE}; ${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}")
+RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
+RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}" "${PIPE_OUTPUT[@]}")
+elif [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
+    RECORD_COMMAND=("${FFMPEG_BIN}")
+    RECORD_COMMAND+=(-nostdin -nostats "${INPUTOPTIONS[@]}" "${GRAB_INPUT[@]}")
+    RECORD_COMMAND+=("${MIDDLEOPTIONS[@]}")
+    RECORD_COMMAND+=(-f "${FORMAT}" -filter_complex "${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" "${VRECORD_OUTPUT}")
+    RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}" -filter_complex "${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" "${PIPE_OUTPUT[@]}")
 else
   RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
   RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}" "${PIPE_OUTPUT[@]}")
 fi
 _writeingestlog "FFmpeg command" "${RECORD_COMMAND[@]}"
 _set_ffplay_options
+if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
 if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
     _check_mpv
     "${RECORD_COMMAND[@]}" \
@@ -2157,6 +2161,12 @@ else
         else
             "${FFPLAY_BIN}" "${FFPLAY_OPTIONS[@]}"
         fi
+fi
+elif [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
+    "${RECORD_COMMAND[@]}" \
+        2> >(tee "${FULL_CAPTURE_LOG}" "${VRECORD_INPUT_TMP}" 1>&2) \
+        | \
+        "${FFPLAY_BIN}" -window_title "${WINDOW_NAME}" -f lavfi "amovie='pipe\:0',${PLAYBACKFILTER}"
 fi
 # capture errors from components of recording pipe
 P1_ERR="${PIPESTATUS[0]}"
