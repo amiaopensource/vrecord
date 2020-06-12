@@ -553,9 +553,11 @@ _set_up_edit_form() {
 FFMPEG_STATUS_TMP="$(_maketemp .ffmpeg.status.txt)"
 DECKCONTROL_STATUS_TMP="$(_maketemp .deckcontrol.status.txt)"
 DECKCONTROL_TIMECODE_TMP="$(_maketemp .deckcontrol.timecode.txt)"
+AVFCTL_STATUS_TMP="$(_maketemp .avfctl.status.txt)"
 echo "" > "${FFMPEG_STATUS_TMP}"
 echo "disabled" > "$DECKCONTROL_STATUS_TMP"
 echo "--:--:--:--" > "$DECKCONTROL_TIMECODE_TMP"
+echo "disabled" > "$AVFCTL_STATUS_TMP"
 
 SIDECAR_FILES_GUI="
 <frame Sidecar file options>
@@ -799,6 +801,72 @@ AVFCTL_INPUT_GUI=$(cat << AVFCTL_FORM
             $(_gtk_vbox_list "AVFCTL_INPUT_CHOICE"         "Select a DV Device"           "${AVFCTL_DEVICES[@]}")
         </hbox>
     </vbox>
+    <frame DV deck control>
+        <hbox>
+            <vbox>
+                <text>
+                    <label>Status</label>
+                </text>
+                <entry editable="false" has-frame="false">
+                    <variable>avfctl_status</variable>
+                    <input file>"${AVFCTL_STATUS_TMP}"</input>
+                </entry>
+            </vbox>
+            <timer milliseconds="true" interval="300" visible="false" disabled="true">
+                 <variable>avfctl_timer</variable>
+                 <visible>disabled</visible>
+                 <action>avfctl -status 2>&1 | grep -o "Device \[.*" | sed "s|Device ||g;s| status||g" > "${AVFCTL_STATUS_TMP}" &</action>
+                 <action>refresh:avfctl_status</action>
+            </timer>
+        </hbox>
+        <hbox>
+            <togglebutton>
+                <label>Deck Control</label>
+                <default>false</default>
+                <variable>avfctl_toggle</variable>
+                <input file stock="gtk-execute"></input>
+                <action>if true enable:avfctl_timer</action>
+                <action>if true enable:avfctl_status</action>
+                <action>if true enable:avfctl_rewind</action>
+                <action>if true enable:avfctl_play</action>
+                <action>if true enable:avfctl_stop</action>
+                <action>if true enable:avfctl_ff</action>
+                <action>if false disable:avfctl_timer</action>
+                <action>if false disable:avfctl_status</action>
+                <action>if false disable:avfctl_rewind</action>
+                <action>if false disable:avfctl_play</action>
+                <action>if false disable:avfctl_stop</action>
+                <action>if false disable:avfctl_ff</action>
+            </togglebutton>
+            <hbox>
+                <button>
+                    <variable>avfctl_rewind</variable>
+                    <input file stock="gtk-media-rewind"></input>
+                    <visible>disabled</visible>
+                    <action>timeout --foreground 3 avfctl -cmd rew</action>
+                </button>
+                <button>
+                    <variable>avfctl_play</variable>
+                    <input file stock="gtk-media-play"></input>
+                    <visible>disabled</visible>
+                    <action>timeout --foreground 3 avfctl -cmd play</action>
+                </button>
+                <button>
+                    <variable>avfctl_stop</variable>
+                    <input file stock="gtk-media-stop"></input>
+                    <visible>disabled</visible>
+                    <action>timeout --foreground 3 avfctl -cmd stop</action>
+                </button>
+                <button>
+                    <variable>avfctl_ff</variable>
+                    <input file stock="gtk-media-forward"></input>
+                    <visible>disabled</visible>
+                    <action>timeout --foreground 3 avfctl -cmd ff</action>
+                </button>
+            </hbox>
+        </hbox>
+    </frame>
+</frame>
 AVFCTL_FORM
 )
 
