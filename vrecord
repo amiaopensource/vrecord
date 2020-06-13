@@ -394,22 +394,12 @@ MKVPROPEDIT_INSTALLED="$(if command -v mkvpropedit >/dev/null ; then echo true ;
 MPV_INSTALLED="$(if command -v mpv >/dev/null ; then echo true ; else echo false ; fi)"
 QCLI_INSTALLED="$(if command -v qcli >/dev/null ; then echo true ; else echo false ; fi)"
 
-_verify_conf_items(){
-    # some options to handle situations where an older configuration file needs to store updated options
-    CONF_VARIABLE="${1}"
-    CONF_FILE="${2}"
-    if [[ "$(grep -c "${CONF_VARIABLE}" "${CONF_FILE}")" = "0" ]] ; then
-        if [[ "${CONF_VARIABLE}" = "FFV1_SLICE_CHOICE" ]] ; then
-            echo "${CONF_VARIABLE}=\"16\"" >> "${CONF_FILE}"
-        else
-            echo "${CONF_VARIABLE}=\"\"" >> "${CONF_FILE}"
-        fi
-    fi
-}
-
 if [[ -f "${CONFIG_FILE}" ]] ; then
-    _verify_conf_items "FFV1_SLICE_CHOICE" "${CONFIG_FILE}"
     . "${CONFIG_FILE}"
+    # set defaults if not set by config file
+    if [[ -z "${FFV1_SLICE_CHOICE}" ]] ; then
+        FFV1_SLICE_CHOICE="16"
+    fi
 else
     _report -d "Initiatizing the configuration file at ${CONFIG_FILE}."
     RUNTYPE="edit"
