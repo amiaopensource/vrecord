@@ -1048,6 +1048,7 @@ export MAIN_DIALOG='
         </vbox>
     </vbox>
     <variable>MAIN_DIALOG</variable>
+    <action signal="show" type="refresh">VRECORD_FORM_VALIDATION</action>
     <action signal="enter-notify-event" type="refresh">VRECORD_FORM_VALIDATION</action>
     <action signal="leave-notify-event" type="refresh">VRECORD_FORM_VALIDATION</action>
     <action signal="show" type="closewindow">HOME_DIALOG</action>
