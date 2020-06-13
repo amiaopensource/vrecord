@@ -8,7 +8,6 @@ SCRIPTNAME=$(basename "${0}")
 SCRIPTDIR=$(dirname "${0}")
 CONFIG_FILE="${HOME}/.${SCRIPTNAME}.conf"
 unset MIDDLEOPTIONS
-unset SUFFIX
 unset DURATION
 unset TECHNICIAN
 RUNTYPE="record"
@@ -353,10 +352,10 @@ _validate_form(){
 
 _get_output_filename(){
     # Get user suffix preference of default per video codec
-    if [ -n "${USER_SUFFIX}" ] ; then
-        SUFFIX="${USER_SUFFIX}"
-    elif [ "${NO_SUFFIX}" = 'true' ] ; then
+    if [ "${NO_SUFFIX}" = 'true' ] ; then
         SUFFIX=""
+    elif [ -n "${USER_SUFFIX}" ] ; then
+        SUFFIX="${USER_SUFFIX}"
     elif [ "${DEVICE_INPUT_CHOICE}" = "0" ] ; then
         case "${VIDEO_CODEC_CHOICE}" in 
             "FFV1 version 3")   SUFFIX="_ffv1" ;;
@@ -2075,10 +2074,11 @@ fi
 
 # Check for user suffix to override automatic settings
 
-if [[ -n "${USER_SUFFIX}" ]] ; then
+
+if [[ "${NO_SUFFIX}" = 'true' ]] ; then
+    SUFFIX=""
+elif [[ -n "${USER_SUFFIX}" ]] ; then
     SUFFIX="${USER_SUFFIX}"
-elif [[ "${NO_SUFFIX}" = 'true' ]] ; then
-    SUFFIX=''
 fi
 
 FULL_OUTPUT_ID="${PREFIX}${ID}${SUFFIX}"
