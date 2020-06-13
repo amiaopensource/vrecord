@@ -8,7 +8,6 @@ SCRIPTNAME=$(basename "${0}")
 SCRIPTDIR=$(dirname "${0}")
 CONFIG_FILE="${HOME}/.${SCRIPTNAME}.conf"
 unset MIDDLEOPTIONS
-unset DURATION
 unset TECHNICIAN
 RUNTYPE="record"
 unset EXTRAOUTPUTS
@@ -1813,7 +1812,6 @@ STANDARD_OPTIONS=("NTSC" "PAL")
 QCTOOLSXML_OPTIONS=("Yes, after recording" "Yes, concurrent with recording" "No")
 FRAMEMD5_OPTIONS=("Yes" "No")
 EMBED_LOGS_OPTIONS=("Yes" "No")
-DURATION_OPTIONS=(23 33 63 93)
 PLAYBACKVIEW_OPTIONS=("Unfiltered" "Quality Control View (mpv)" "Broadcast Range Visual" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes")
 PLAYBACKVIEW_PASS_OPTIONS=("Unfiltered" "Quality Control View (mpv)" "Broadcast Range Visual" "Audio + Video" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes")
 
