@@ -338,6 +338,12 @@ _validate_form(){
     elif [ "${AUDIO_CODEC_CHOICE}" = "24-bit FLAC" ] && [ "${CONTAINER_CHOICE}" = "QuickTime" ] ; then
         echo "ERROR: Incompatible audio codecs and containers have been selected.\n"
     fi
+    if [ ! -d "${DIR}" ] ; then
+        echo "ERROR: The recording directory (${DIR}) does not exist. Create this folder please.\n"
+    fi
+    if [ ! -d "${LOGDIR}" ] && [ -n "${LOGDIR}" ] ; then
+        echo "ERROR: The auxiliary directory (${LOGDIR}) does not exist. Create this folder or leave blank to use the recording directory.\n"
+    fi
     # validate duration
     if [ -n "${DURATION}" ] ; then
         if ! [ "$(echo "${DURATION} > 0" | bc)" = "1" ] ; then
