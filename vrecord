@@ -817,18 +817,26 @@ AVFCTL_INPUT_GUI=$(cat << AVFCTL_FORM
                 <input file stock="gtk-execute"></input>
                 <action>if true enable:avfctl_timer</action>
                 <action>if true enable:avfctl_status</action>
+                <action>if true enable:avfctl_repack</action>
                 <action>if true enable:avfctl_rewind</action>
                 <action>if true enable:avfctl_play</action>
                 <action>if true enable:avfctl_stop</action>
                 <action>if true enable:avfctl_ff</action>
                 <action>if false disable:avfctl_timer</action>
                 <action>if false disable:avfctl_status</action>
+                <action>if false disable:avfctl_repack</action>
                 <action>if false disable:avfctl_rewind</action>
                 <action>if false disable:avfctl_play</action>
                 <action>if false disable:avfctl_stop</action>
                 <action>if false disable:avfctl_ff</action>
             </togglebutton>
             <hbox>
+                <button>
+                    <variable>avfctl_repack</variable>
+                    <label>Repack</label>
+                    <visible>disabled</visible>
+                    <action>{ avfctl -cmd ff -foreground; avfctl -cmd rew; }&</action>
+                </button>
                 <button>
                     <variable>avfctl_rewind</variable>
                     <input file stock="gtk-media-rewind"></input>
