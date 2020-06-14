@@ -2266,7 +2266,7 @@ elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
         2> >(tee "${FULL_CAPTURE_LOG}" "${VRECORD_INPUT_TMP}" 1>&2) | \
         "${FF_RECORD_COMMAND[@]}" \
         2> >(tee "${FULL_CAPTURE_LOG}" "${VRECORD_INPUT_TMP}" 1>&2) | \
-        "${FFPLAY_BIN}" -
+        "${FFPLAY_BIN}" -window_title "${WINDOW_NAME}" -
 elif [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
     "${RECORD_COMMAND[@]}" \
         2> >(tee "${FULL_CAPTURE_LOG}" "${VRECORD_INPUT_TMP}" 1>&2) \
