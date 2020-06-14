@@ -2175,8 +2175,6 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         _writeingestlog "video_card_driver_version" "${VIDEO_CARD_DRIVER_VERSION}"
     fi
     _writeingestlog "video_card_name" "${DECKLINK_INPUT_CHOICE}"
-elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
-    _writeingestlog "avfctl_input" "${AVFCTL_INPUT_CHOICE}"
 fi
 
 echo -e "${LOG_OF_OPTIONS}" >> "${INGESTLOG}"
