@@ -2251,8 +2251,11 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
             fi
     fi
 elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
-    "${RECORD_COMMAND[@]}" | \
-        "${FF_RECORD_COMMAND[@]}" | "${FFPLAY_BIN}" -
+    "${RECORD_COMMAND[@]}" \
+        2> >(tee "${FULL_CAPTURE_LOG}" "${VRECORD_INPUT_TMP}" 1>&2) | \
+        "${FF_RECORD_COMMAND[@]}" \
+        2> >(tee "${FULL_CAPTURE_LOG}" "${VRECORD_INPUT_TMP}" 1>&2) | \
+        "${FFPLAY_BIN}" -
 elif [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
     "${RECORD_COMMAND[@]}" \
         2> >(tee "${FULL_CAPTURE_LOG}" "${VRECORD_INPUT_TMP}" 1>&2) \
