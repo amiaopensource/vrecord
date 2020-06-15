@@ -7,13 +7,7 @@ VERSION="2020-02-10"
 SCRIPTNAME=$(basename "${0}")
 SCRIPTDIR=$(dirname "${0}")
 CONFIG_FILE="${HOME}/.${SCRIPTNAME}.conf"
-unset INPUTOPTIONS
-unset MIDDLEOPTIONS
-unset SUFFIX
-unset DURATION
-unset TECHNICIAN
 RUNTYPE="record"
-unset EXTRAOUTPUTS
 SAT_OUTLIER_THRSHLD=14
 AUD_OUTLIER_THRSHLD=10
 BRNG_OUTLIER_THRSHLD=14
@@ -180,6 +174,13 @@ _setup_env_variables(){
           _report -wt "vrecord can't find a preferred font to use, please report this error to https://github.com/amiaopensource/vrecord/issues"
         fi
         HARDWARE_REPORT="$(system_profiler SPHardwareDataType)"
+        COMPUTER_MODEL_NAME="$(_parse_report "Model Name" "${HARDWARE_REPORT}")"
+        COMPUTER_MODEL_ID="$(_parse_report "Model Identifier" "${HARDWARE_REPORT}")"
+        COMPUTER_PROCESSOR_NAME="$(_parse_report "Processor Name" "${HARDWARE_REPORT}")"
+        COMPUTER_PROCESSOR_SPEED="$(_parse_report "Processor Speed" "${HARDWARE_REPORT}")"
+        COMPUTER_PROCESSOR_COUNT="$(_parse_report "Number of Processors" "${HARDWARE_REPORT}")"
+        COMPUTER_MEMORY="$(_parse_report "Memory" "${HARDWARE_REPORT}")"
+        COMPUTER_SERIAL="$(_parse_report "Serial Number (system)" "${HARDWARE_REPORT}")"
         CORE_COUNT="$(_parse_report "Total Number of Cores" "${HARDWARE_REPORT}")"
         OPEN_COMMAND="open"
         ZCAT_COMMAND="gzcat"
@@ -201,6 +202,7 @@ _setup_env_variables(){
           _report -wt "vrecord can't find a preferred font to use, please report this error to https://github.com/amiaopensource/vrecord/issues"
         fi
         HARDWARE_REPORT=$(lscpu)
+        COMPUTER_MODEL_NAME="$(_parse_report "Model Name" "${HARDWARE_REPORT}")"
         CORE_COUNT="$(nproc --all)"
         OPEN_COMMAND="xdg-open"
         ZCAT_COMMAND="zcat"
@@ -211,7 +213,10 @@ _setup_env_variables(){
 }
 if [[ -z "${OS_TYPE}" ]] ; then
     _setup_env_variables
-    _include_var OS_TYPE RESOURCE_PATH DEFAULTFONT CORE_COUNT OPEN_COMMAND ZCAT_COMMAND
+    _include_var OS_TYPE RESOURCE_PATH DEFAULTFONT CORE_COUNT OPEN_COMMAND ZCAT_COMMAND COMPUTER_MODEL_NAME
+fi
+if [[ "${OS_TYPE}" = "macOS" ]] ; then
+    _include_var COMPUTER_MODEL_ID COMPUTER_PROCESSOR_NAME COMPUTER_PROCESSOR_SPEED COMPUTER_PROCESSOR_COUNT COMPUTER_MEMORY COMPUTER_SERIAL
 fi
 
 MPVOPTS=(--no-osc)
@@ -329,7 +334,7 @@ _update_config_file(){
         echo "USER_SUFFIX=\"${USER_SUFFIX}\""
         echo "NO_SUFFIX=\"${NO_SUFFIX}\""
         echo "TECHNICIAN=\"${TECHNICIAN}\""
-        echo "AVF_INPUT_CHOICE=\"${AVF_INPUT_CHOICE}\""
+        echo "AVFCTL_INPUT_CHOICE=\"${AVFCTL_INPUT_CHOICE}\""
         echo "DECKLINK_INPUT_CHOICE=\"${DECKLINK_INPUT_CHOICE}\""
     } > "${CONFIG_FILE}"
     . "${CONFIG_FILE}"
@@ -344,6 +349,12 @@ _validate_form(){
     elif [ "${AUDIO_CODEC_CHOICE}" = "24-bit FLAC" ] && [ "${CONTAINER_CHOICE}" = "QuickTime" ] ; then
         echo "ERROR: Incompatible audio codecs and containers have been selected.\n"
     fi
+    if [ ! -d "${DIR}" ] ; then
+        echo "ERROR: The recording directory (${DIR}) does not exist. Create this folder please.\n"
+    fi
+    if [ ! -d "${LOGDIR}" ] && [ -n "${LOGDIR}" ] ; then
+        echo "ERROR: The auxiliary directory (${LOGDIR}) does not exist. Create this folder or leave blank to use the recording directory.\n"
+    fi
     # validate duration
     if [ -n "${DURATION}" ] ; then
         if ! [ "$(echo "${DURATION} > 0" | bc)" = "1" ] ; then
@@ -354,10 +365,10 @@ _validate_form(){
 
 _get_output_filename(){
     # Get user suffix preference of default per video codec
-    if [ -n "${USER_SUFFIX}" ] ; then
-        SUFFIX="${USER_SUFFIX}"
-    elif [ "${NO_SUFFIX}" = 'true' ] ; then
+    if [ "${NO_SUFFIX}" = 'true' ] ; then
         SUFFIX=""
+    elif [ -n "${USER_SUFFIX}" ] ; then
+        SUFFIX="${USER_SUFFIX}"
     elif [ "${DEVICE_INPUT_CHOICE}" = "0" ] ; then
         case "${VIDEO_CODEC_CHOICE}" in 
             "FFV1 version 3")   SUFFIX="_ffv1" ;;
@@ -378,6 +389,8 @@ _get_output_filename(){
             "MXF")                  EXTENSION="mxf" ;;
             "MP4")                  EXTENSION="mp4" ;;
         esac
+    elif [ "${DEVICE_INPUT_CHOICE}" = "1" ] ; then
+        EXTENSION="dv"
     elif [ "${DEVICE_INPUT_CHOICE}" = "2" ] ; then
         case "${AUDIO_MODE_CODEC_CHOICE}" in
             "24-bit PCM")           EXTENSION="wav" ;;
@@ -398,22 +411,12 @@ MKVPROPEDIT_INSTALLED="$(if command -v mkvpropedit >/dev/null ; then echo true ;
 MPV_INSTALLED="$(if command -v mpv >/dev/null ; then echo true ; else echo false ; fi)"
 QCLI_INSTALLED="$(if command -v qcli >/dev/null ; then echo true ; else echo false ; fi)"
 
-_verify_conf_items(){
-    # some options to handle situations where an older configuration file needs to store updated options
-    CONF_VARIABLE="${1}"
-    CONF_FILE="${2}"
-    if [[ "$(grep -c "${CONF_VARIABLE}" "${CONF_FILE}")" = "0" ]] ; then
-        if [[ "${CONF_VARIABLE}" = "FFV1_SLICE_CHOICE" ]] ; then
-            echo "${CONF_VARIABLE}=\"16\"" >> "${CONF_FILE}"
-        else
-            echo "${CONF_VARIABLE}=\"\"" >> "${CONF_FILE}"
-        fi
-    fi
-}
-
 if [[ -f "${CONFIG_FILE}" ]] ; then
-    _verify_conf_items "FFV1_SLICE_CHOICE" "${CONFIG_FILE}"
     . "${CONFIG_FILE}"
+    # set defaults if not set by config file
+    if [[ -z "${FFV1_SLICE_CHOICE}" ]] ; then
+        FFV1_SLICE_CHOICE="16"
+    fi
 else
     _report -d "Initiatizing the configuration file at ${CONFIG_FILE}."
     RUNTYPE="edit"
@@ -487,8 +490,20 @@ _get_avfoundation_inputs(){
     done < <("${FFMPEG_BIN}" -nostdin -hide_banner -f avfoundation -list_devices 1 -i dummy 2>&1 | grep -A 10 "AVFoundation audio devices" | grep -o "\[[0-9]\].*" | cut -d " " -f2-)
 }
 
+_get_avfctl_inputs(){
+    # set avfctl input options
+    unset AVFCTL_DEVICES
+    while read avfctl_device ; do
+        AVFCTL_DEVICES+=("${avfctl_device}")
+    done < <(avfctl -list_devices 2>&1 | grep -A 10 "Devices:" | grep -o "\[[0-9]\].*")
+    if [[ "${#AVFCTL_DEVICES[@]}" = 1 ]] ; then # default to first input if only one
+      AVFCTL_INPUT_CHOICE="${AVFCTL_DEVICES[0]}"
+    fi
+}
+
 _get_decklink_inputs
 _get_avfoundation_inputs
+_get_avfctl_inputs
 
 if [[ "${OS_TYPE}" = "linux" ]] ; then
     while read audio_device ; do
@@ -539,9 +554,11 @@ _set_up_edit_form() {
 FFMPEG_STATUS_TMP="$(_maketemp .ffmpeg.status.txt)"
 DECKCONTROL_STATUS_TMP="$(_maketemp .deckcontrol.status.txt)"
 DECKCONTROL_TIMECODE_TMP="$(_maketemp .deckcontrol.timecode.txt)"
+AVFCTL_STATUS_TMP="$(_maketemp .avfctl.status.txt)"
 echo "" > "${FFMPEG_STATUS_TMP}"
 echo "disabled" > "$DECKCONTROL_STATUS_TMP"
 echo "--:--:--:--" > "$DECKCONTROL_TIMECODE_TMP"
+echo "disabled" > "$AVFCTL_STATUS_TMP"
 
 SIDECAR_FILES_GUI="
 <frame Sidecar file options>
@@ -778,14 +795,89 @@ DECKLINK_INPUT_GUI=$(cat << DECKLINK_FORM
 DECKLINK_FORM
 )
 
-AVFOUNDATION_INPUT_GUI="
-<frame AVFoundation input options>
+AVFCTL_INPUT_GUI=$(cat << AVFCTL_FORM
+<frame DVRescue avfctl input options>
     <vbox>
-        <hbox space-expand=\"true\">
-            $(_gtk_vbox_list "AVF_INPUT_CHOICE"         "Select a DV Device"           "${AVFOUNDATION_DEVICES[@]}")
+        <hbox space-expand="true">
+            $(_gtk_vbox_list "AVFCTL_INPUT_CHOICE"         "Select a DV Device"           "${AVFCTL_DEVICES[@]}")
         </hbox>
     </vbox>
-</frame>"
+    <frame DV deck control>
+        <hbox>
+            <vbox>
+                <text>
+                    <label>Status</label>
+                </text>
+                <entry editable="false" has-frame="false">
+                    <variable>avfctl_status</variable>
+                    <input file>"${AVFCTL_STATUS_TMP}"</input>
+                </entry>
+            </vbox>
+            <timer milliseconds="true" interval="300" visible="false" disabled="true">
+                 <variable>avfctl_timer</variable>
+                 <visible>disabled</visible>
+                 <action>avfctl -status 2>&1 | grep -o "Device \[.*" | sed "s|Device ||g;s| status||g" > "${AVFCTL_STATUS_TMP}" &</action>
+                 <action>refresh:avfctl_status</action>
+            </timer>
+        </hbox>
+        <hbox>
+            <togglebutton>
+                <label>Deck Control</label>
+                <default>false</default>
+                <variable>avfctl_toggle</variable>
+                <input file stock="gtk-execute"></input>
+                <action>if true enable:avfctl_timer</action>
+                <action>if true enable:avfctl_status</action>
+                <action>if true enable:avfctl_repack</action>
+                <action>if true enable:avfctl_rewind</action>
+                <action>if true enable:avfctl_play</action>
+                <action>if true enable:avfctl_stop</action>
+                <action>if true enable:avfctl_ff</action>
+                <action>if false disable:avfctl_timer</action>
+                <action>if false disable:avfctl_status</action>
+                <action>if false disable:avfctl_repack</action>
+                <action>if false disable:avfctl_rewind</action>
+                <action>if false disable:avfctl_play</action>
+                <action>if false disable:avfctl_stop</action>
+                <action>if false disable:avfctl_ff</action>
+            </togglebutton>
+            <hbox>
+                <button>
+                    <variable>avfctl_repack</variable>
+                    <label>Repack</label>
+                    <visible>disabled</visible>
+                    <action>{ avfctl -cmd ff -foreground; avfctl -cmd rew; }&</action>
+                </button>
+                <button>
+                    <variable>avfctl_rewind</variable>
+                    <input file stock="gtk-media-rewind"></input>
+                    <visible>disabled</visible>
+                    <action>timeout --foreground 3 avfctl -cmd rew</action>
+                </button>
+                <button>
+                    <variable>avfctl_play</variable>
+                    <input file stock="gtk-media-play"></input>
+                    <visible>disabled</visible>
+                    <action>timeout --foreground 3 avfctl -cmd play</action>
+                </button>
+                <button>
+                    <variable>avfctl_stop</variable>
+                    <input file stock="gtk-media-stop"></input>
+                    <visible>disabled</visible>
+                    <action>timeout --foreground 3 avfctl -cmd stop</action>
+                </button>
+                <button>
+                    <variable>avfctl_ff</variable>
+                    <input file stock="gtk-media-forward"></input>
+                    <visible>disabled</visible>
+                    <action>timeout --foreground 3 avfctl -cmd ff</action>
+                </button>
+            </hbox>
+        </hbox>
+    </frame>
+</frame>
+AVFCTL_FORM
+)
 
 AUDIO_INPUT_GUI='
 <frame Audio input options>
@@ -811,7 +903,7 @@ export MAIN_DIALOG='
         <frame Input Options>
         <notebook page="'"${DEVICE_INPUT_CHOICE}"'" tab-labels="Decklink|DV|Audio|Config">
             '"${DECKLINK_INPUT_GUI}"'
-            '"${AVFOUNDATION_INPUT_GUI}"'
+            '"${AVFCTL_INPUT_GUI}"'
             '"${AUDIO_INPUT_GUI}"'
             '"${OPTIONAL_TOOLS_GUI}"'
             <variable>DEVICE_INPUT_CHOICE</variable>
@@ -975,6 +1067,7 @@ export MAIN_DIALOG='
         </vbox>
     </vbox>
     <variable>MAIN_DIALOG</variable>
+    <action signal="show" type="refresh">VRECORD_FORM_VALIDATION</action>
     <action signal="enter-notify-event" type="refresh">VRECORD_FORM_VALIDATION</action>
     <action signal="leave-notify-event" type="refresh">VRECORD_FORM_VALIDATION</action>
     <action signal="show" type="closewindow">HOME_DIALOG</action>
@@ -1041,7 +1134,7 @@ _report_var(){
         shift
         if   [[ "$VAR_NAME" == "DECKLINK_INPUT_CHOICE" ]] && [[ "${DEVICE_INPUT_CHOICE}" != "0" ]] ; then
             :
-        elif [[ "$VAR_NAME" == "AVF_INPUT_CHOICE" ]] && [[ "${DEVICE_INPUT_CHOICE}" != "1" ]] ; then
+        elif [[ "$VAR_NAME" == "AVFCTL_INPUT_CHOICE" ]] && [[ "${DEVICE_INPUT_CHOICE}" != "1" ]] ; then
             :
         elif [[ "$VAR_NAME" == "FFV1_SLICE_CHOICE" ]] && [[ "${VIDEO_CODEC_CHOICE}" != "FFV1 version 3" ]] ; then
             :
@@ -1118,25 +1211,26 @@ _edit_mode(){
 # passthrough and audiopassthrough modes
 _passthrough_mode(){
     _set_ffplay_options
-    if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
-        _check_mpv
-        "${FFMPEG_BIN}" -nostats "${GRAB_INPUT[@]}" 2> >(tee "${VRECORD_INPUT_TMP}" 1>&2) \
-        "${PIPE_OUTPUT[@]}" | \
-        mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -
-    elif [[ "${PLAYBACKVIEW_CHOICE_PASS}" = "Audio + Video" ]] ; then
-        if [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
-            unset PIPE_OUTPUT[0] && unset PIPE_OUTPUT[1]
-            "${FFMPEG_BIN}" -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_INPUT[@]}" -c copy -f rawvideo - | "${FFMPEG_BIN}" -i - "${PIPE_OUTPUT[@]}" 2> "${VRECORD_INPUT_TMP}" | \
-            "${FFPLAY_BIN}" -window_title "${WINDOW_NAME}" -f lavfi "movie='pipe\:0':${PLAYBACKFILTER}"
+    if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
+        if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
+            _check_mpv
+            "${FFMPEG_BIN}" -nostats "${GRAB_INPUT[@]}" 2> >(tee "${VRECORD_INPUT_TMP}" 1>&2) \
+            "${PIPE_OUTPUT[@]}" | \
+            mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -
+        elif [[ "${PLAYBACKVIEW_CHOICE_PASS}" = "Audio + Video" ]] ; then
+                "${FFMPEG_BIN}" -nostdin -hide_banner -nostats "${GRAB_INPUT[@]}" "${PIPE_OUTPUT[@]}" 2> "${VRECORD_INPUT_TMP}" | \
+                "${FFPLAY_BIN}" -window_title "${WINDOW_NAME}" -f lavfi "movie='pipe\:0':${PLAYBACKFILTER}"
         else
-            "${FFMPEG_BIN}" -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_INPUT[@]}" "${PIPE_OUTPUT[@]}" 2> "${VRECORD_INPUT_TMP}" | \
-            "${FFPLAY_BIN}" -window_title "${WINDOW_NAME}" -f lavfi "movie='pipe\:0':${PLAYBACKFILTER}"
+            "${FFPLAY_BIN}" "${FFPLAY_OPTIONS[@]}" 2> >(tee "${VRECORD_INPUT_TMP}" 1>&2)
         fi
+    elif [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
+        avfctl "${GRAB_INPUT[@]}" | "${FFPLAY_BIN}" -window_title "${WINDOW_NAME}" -
     elif [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
-        "${FFMPEG_BIN}" -nostdin -hide_banner -nostats "${INPUTOPTIONS[@]}" "${GRAB_INPUT[@]}" "${PIPE_OUTPUT[@]}" 2> "${VRECORD_INPUT_TMP}" | \
+        "${FFMPEG_BIN}" -nostdin -hide_banner -nostats "${GRAB_INPUT[@]}" "${PIPE_OUTPUT[@]}" 2> "${VRECORD_INPUT_TMP}" | \
             "${FFPLAY_BIN}" -window_title "${WINDOW_NAME}" -f lavfi "amovie='pipe\:0',${PLAYBACKFILTER}"
     else
-        "${FFPLAY_BIN}" "${FFPLAY_OPTIONS[@]}" 2> >(tee "${VRECORD_INPUT_TMP}" 1>&2)
+        _report -d -wt "vrecord exited a form in an unexpected way, please report this error to https://github.com/amiaopensource/vrecord/issues"
+        exit 1
     fi
 }
 
@@ -1731,7 +1825,6 @@ STANDARD_OPTIONS=("NTSC" "PAL")
 QCTOOLSXML_OPTIONS=("Yes, after recording" "Yes, concurrent with recording" "No")
 FRAMEMD5_OPTIONS=("Yes" "No")
 EMBED_LOGS_OPTIONS=("Yes" "No")
-DURATION_OPTIONS=(23 33 63 93)
 PLAYBACKVIEW_OPTIONS=("Unfiltered" "Quality Control View (mpv)" "Broadcast Range Visual" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes")
 PLAYBACKVIEW_PASS_OPTIONS=("Unfiltered" "Quality Control View (mpv)" "Broadcast Range Visual" "Audio + Video" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes")
 
@@ -1794,7 +1887,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
     fi
     _review_option "STANDARD_CHOICE" "${STANDARD_OPTIONS[@]}"
 elif [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
-    _review_option -n "AVF_INPUT_CHOICE" "${AVFOUNDATION_DEVICES[@]}"
+    _review_option -n "AVFCTL_INPUT_CHOICE" "${AVFCTL_DEVICES[@]}"
 elif [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
     _review_option -n "AUDIO_DEV_CHOICE" "${AUDIO_DEVICES[@]}"
 fi
@@ -1828,16 +1921,20 @@ fi
 
 # set up input and playback
 _set_up_drawtext
-if [[ "$VERBOSE" = "true" ]] ; then
-    GRAB_INPUT=(-loglevel debug)
-    _report -wt "When running vrecord in verbose mode, avoid using Visual + Numerical option."
-else
-    GRAB_INPUT=(-loglevel info)
-fi
+_set_ffmpeg_loglevel(){
+    if [[ "$VERBOSE" = "true" ]] ; then
+        GRAB_INPUT+=(-loglevel debug)
+        _report -wt "When running vrecord in verbose mode, avoid using Visual + Numerical option."
+    else
+        GRAB_INPUT+=(-loglevel info)
+    fi
+}
+unset GRAB_INPUT
 if [[ -n "${ALT_INPUT}" ]] ; then
     GRAB_INPUT+=("${EXTRAINPUTOPTIONS[@]}")
     GRAB_INPUT+=(-i "${ALT_INPUT}")
 elif [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
+    _set_ffmpeg_loglevel
     GRAB_INPUT+=(-f decklink)
     GRAB_INPUT+=(-draw_bars 0)
     GRAB_INPUT+=(-audio_input "${AUDIO_INPUT}")
@@ -1849,15 +1946,15 @@ elif [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
     GRAB_INPUT+=("${EXTRAINPUTOPTIONS[@]}")
     GRAB_INPUT+=(-i "${DECKLINK_INPUT_CHOICE}")
 elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
-    GRAB_INPUT+=(-f avfoundation)
-    GRAB_INPUT+=(-capture_raw_data true)
-    GRAB_INPUT+=(-drop_late_frames false)
-    GRAB_INPUT+=("${EXTRAINPUTOPTIONS[@]}")
-    GRAB_INPUT+=(-i "${AVF_INPUT_CHOICE}:none")
+    AVFCTL_INPUT_INDEX="$(echo "${AVFCTL_INPUT_CHOICE}" | cut -c 2)"
+    GRAB_INPUT+=(-device "${AVFCTL_INPUT_INDEX}")
+    GRAB_INPUT+=(-cmd capture)
+    GRAB_INPUT+=(-)
     MIDDLEOPTIONS+=(-c copy -map 0)
     EXTENSION="dv"
     FORMAT="rawvideo"
 elif [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
+    _set_ffmpeg_loglevel
     #Mac Options
     #Linux Options
     if [[ "${OS_TYPE}" = "linux" ]] ; then
@@ -1892,7 +1989,7 @@ elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
     PIPE_OUTPUT+=(-map 0)
     PIPE_OUTPUT+=(-f rawvideo)
     PIPE_OUTPUT+=(-)
-    WINDOW_NAME="mode:${RUNTYPE} - input:'${AVF_INPUT_CHOICE}' - to end recording press q, esc, or close video window"
+    WINDOW_NAME="mode:${RUNTYPE} - input:'${AVFCTL_INPUT_CHOICE}' - to end recording press q, esc, or close video window"
 elif [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
     PIPE_OUTPUT+=(-c:a pcm_s16le -ar 48k)
     PIPE_OUTPUT+=(-f wav)
@@ -1988,10 +2085,11 @@ fi
 
 # Check for user suffix to override automatic settings
 
-if [[ -n "${USER_SUFFIX}" ]] ; then
+
+if [[ "${NO_SUFFIX}" = 'true' ]] ; then
+    SUFFIX=""
+elif [[ -n "${USER_SUFFIX}" ]] ; then
     SUFFIX="${USER_SUFFIX}"
-elif [[ "${NO_SUFFIX}" = 'true' ]] ; then
-    SUFFIX=''
 fi
 
 FULL_OUTPUT_ID="${PREFIX}${ID}${SUFFIX}"
@@ -2023,13 +2121,13 @@ fi
 
 if [[ -n "${DURATION}" ]] ; then
     DUR_SECONDS=$(bc <<< "${DURATION} * 60" | sed "s/^\./0./")
-    INPUTOPTIONS+=(-t "${DUR_SECONDS}")
+    TIME_LIMIT=(-t "${DUR_SECONDS}")
 fi
 
 if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
     _report -d "Summary: ${VIDEOCODECNAME}/${FORMAT} ${PIXEL_FORMAT} file from ${STANDARD} ${VIDEO_INPUT} ${AUDIO_INPUT}. Frame MD5s=${FRAMEMD5_CHOICE}, QCTools XML=${QCTOOLSXML_CHOICE}, and Technician=${TECHNICIAN}. Inputs recorded to ${VRECORD_OUTPUT} and Auxiliary Files created in ${LOGDIR}"
 elif [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
-    _report -d "Summary: Copying video from ${AVF_INPUT_CHOICE}. Frame MD5s=${FRAMEMD5_CHOICE}, QCTools XML=${QCTOOLSXML_CHOICE}, and Technician=${TECHNICIAN}. Inputs recorded to ${VRECORD_OUTPUT} and Auxiliary Files created in ${LOGDIR}"
+    _report -d "Summary: Copying video from ${AVFCTL_INPUT_CHOICE}. Technician=${TECHNICIAN}. Inputs recorded to ${VRECORD_OUTPUT} and Auxiliary Files created in ${LOGDIR}"
 elif [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
     _report -d "Summary: Recording audio from ${AUDIO_DEV_CHOICE}. Technician=${TECHNICIAN}. Inputs recorded to ${VRECORD_OUTPUT} and Auxiliary Files created in ${LOGDIR}"
 
@@ -2048,14 +2146,14 @@ INGESTLOG="${LOGDIR}/${FULL_OUTPUT_ID}_capture_options.log"
 QCXML="${LOGDIR}/${FULL_OUTPUT_ID}.${EXTENSION}.qctools.xml.gz"
 touch "${INGESTLOG}"
 _writeingestlog "computer_name" "$(uname -n)"
-_writeingestlog "computer_model_name" "$(_parse_report "Model Name" "${HARDWARE_REPORT}")"
+_writeingestlog "computer_model_name" "${COMPUTER_MODEL_NAME}"
 if [[ "${OS_TYPE}" = "macOS" ]] ; then
-    _writeingestlog "computer_model_id" "$(_parse_report "Model Identifier" "${HARDWARE_REPORT}")"
-    _writeingestlog "computer_processor_name" "$(_parse_report "Processor Name" "${HARDWARE_REPORT}")"
-    _writeingestlog "computer_processor_speed" "$(_parse_report "Processor Speed" "${HARDWARE_REPORT}")"
-    _writeingestlog "computer_processor_count" "$(_parse_report "Number of Processors" "${HARDWARE_REPORT}")"
-    _writeingestlog "computer_memory" "$(_parse_report "Memory" "${HARDWARE_REPORT}")"
-    _writeingestlog "computer_serial" "$(_parse_report "Serial Number (system)" "${HARDWARE_REPORT}")"
+    _writeingestlog "computer_model_id" "${COMPUTER_MODEL_ID}"
+    _writeingestlog "computer_processor_name" "${COMPUTER_PROCESSOR_NAME}"
+    _writeingestlog "computer_processor_speed" "${COMPUTER_PROCESSOR_SPEED}"
+    _writeingestlog "computer_processor_count" "${COMPUTER_PROCESSOR_COUNT}"
+    _writeingestlog "computer_memory" "${COMPUTER_MEMORY}"
+    _writeingestlog "computer_serial" "${COMPUTER_SERIAL}"
 fi
 _writeingestlog "computer_cores" "$CORE_COUNT"
 _writeingestlog "user_name" "$(whoami)"
@@ -2088,8 +2186,6 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         _writeingestlog "video_card_driver_version" "${VIDEO_CARD_DRIVER_VERSION}"
     fi
     _writeingestlog "video_card_name" "${DECKLINK_INPUT_CHOICE}"
-elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
-    _writeingestlog "avfoundation_input" "${AVF_INPUT_CHOICE}"
 fi
 
 echo -e "${LOG_OF_OPTIONS}" >> "${INGESTLOG}"
@@ -2109,49 +2205,73 @@ fi
 _report -d "Close the playback window to stop recording."
 
 # vrecord process!
-RECORD_COMMAND=("${FFMPEG_BIN}")
-RECORD_COMMAND+=(-nostdin -nostats "${INPUTOPTIONS[@]}" "${GRAB_INPUT[@]}")
-if [[ -n "${VIDEOCODECNAME}" ]] ; then
-    MIDDLEOPTIONS+=(-metadata:s:v:0 encoder="${VIDEOCODECNAME}")
-fi
-RECORD_COMMAND+=("${MIDDLEOPTIONS[@]}")
 if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
     # DEVICE_INPUT_CHOICE=0 is decklink, other DEVICE_INPUT_CHOICE values don't yet use such filtering
+    RECORD_COMMAND=("${FFMPEG_BIN}")
+    RECORD_COMMAND+=(-nostdin -nostats "${TIME_LIMIT[@]}" "${GRAB_INPUT[@]}")
+    if [[ -n "${VIDEOCODECNAME}" ]] ; then
+        MIDDLEOPTIONS+=(-metadata:s:v:0 encoder="${VIDEOCODECNAME}")
+    fi
+    RECORD_COMMAND+=("${MIDDLEOPTIONS[@]}")
     RECORD_COMMAND+=(-filter_complex "[0:v:0]${RECORDINGFILTER}${TC_WRITE}; ${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}")
-fi
-
-if [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
-  RECORD_COMMAND+=(-f "${FORMAT}" -filter_complex "${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" "${VRECORD_OUTPUT}")
-  RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}" -filter_complex "${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" "${PIPE_OUTPUT[@]}")
+    RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
+    RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}" "${PIPE_OUTPUT[@]}")
+elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
+    RECORD_COMMAND=(avfctl)
+    RECORD_COMMAND+=("${GRAB_INPUT[@]}")
+    FF_RECORD_COMMAND=("${FFMPEG_BIN}" -nostdin -nostats "${TIME_LIMIT[@]}")
+    FF_RECORD_COMMAND+=(-i -)
+    FF_RECORD_COMMAND+=(-map 0:v -c copy)
+    FF_RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
+    FF_RECORD_COMMAND+=(-map 0:v -f rawvideo -c copy -)
+elif [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
+    RECORD_COMMAND=("${FFMPEG_BIN}")
+    RECORD_COMMAND+=(-nostdin -nostats "${TIME_LIMIT[@]}" "${GRAB_INPUT[@]}")
+    RECORD_COMMAND+=("${MIDDLEOPTIONS[@]}")
+    RECORD_COMMAND+=(-f "${FORMAT}" -filter_complex "${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" "${VRECORD_OUTPUT}")
+    RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}" -filter_complex "${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" "${PIPE_OUTPUT[@]}")
 else
-  RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
-  RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}" "${PIPE_OUTPUT[@]}")
+    _report -d -wt "vrecord exited a form in an unexpected way (DEVICE_INPUT_CHOICE=${DEVICE_INPUT_CHOICE}), please report this error to https://github.com/amiaopensource/vrecord/issues"
+    exit 1
 fi
-_writeingestlog "FFmpeg command" "${RECORD_COMMAND[@]}"
+_writeingestlog "Recording command" "${RECORD_COMMAND[@]}"
 _set_ffplay_options
-if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
-    _check_mpv
+if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
+    if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
+        _check_mpv
+        "${RECORD_COMMAND[@]}" \
+            2> >(tee "${FULL_CAPTURE_LOG}" "${VRECORD_INPUT_TMP}" 1>&2) \
+            | \
+            if [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]] ; then
+                tee >(mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -) | \
+                    qcli -f signalstats+aphasemeter+astats+ssim -i - -o "${QCXML}"
+            else
+                mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -
+            fi
+    else
+        "${RECORD_COMMAND[@]}" \
+            2> >(tee "${FULL_CAPTURE_LOG}" "${VRECORD_INPUT_TMP}" 1>&2) \
+            | \
+            if [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]] ; then
+                tee >("${FFPLAY_BIN}" "${FFPLAY_OPTIONS[@]}") | \
+                    qcli -f signalstats+aphasemeter+astats+ssim -i - -o "${QCXML}"
+            elif [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
+                "${FFPLAY_BIN}" -window_title "${WINDOW_NAME}" -f lavfi "amovie='pipe\:0',${PLAYBACKFILTER}"
+            else
+                "${FFPLAY_BIN}" "${FFPLAY_OPTIONS[@]}"
+            fi
+    fi
+elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
+    "${RECORD_COMMAND[@]}" \
+        2> >(tee "${FULL_CAPTURE_LOG}" "${VRECORD_INPUT_TMP}" 1>&2) | \
+        "${FF_RECORD_COMMAND[@]}" \
+        2> >(tee "${FULL_CAPTURE_LOG}" "${VRECORD_INPUT_TMP}" 1>&2) | \
+        "${FFPLAY_BIN}" -window_title "${WINDOW_NAME}" -
+elif [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
     "${RECORD_COMMAND[@]}" \
         2> >(tee "${FULL_CAPTURE_LOG}" "${VRECORD_INPUT_TMP}" 1>&2) \
         | \
-        if [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]] ; then
-            tee >(mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -) | \
-                qcli -f signalstats+aphasemeter+astats+ssim -i - -o "${QCXML}"
-        else
-            mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -
-        fi
-else
-    "${RECORD_COMMAND[@]}" \
-        2> >(tee "${FULL_CAPTURE_LOG}" "${VRECORD_INPUT_TMP}" 1>&2) \
-        | \
-        if [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]] ; then
-            tee >("${FFPLAY_BIN}" "${FFPLAY_OPTIONS[@]}") | \
-                qcli -f signalstats+aphasemeter+astats+ssim -i - -o "${QCXML}"
-        elif [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
-            "${FFPLAY_BIN}" -window_title "${WINDOW_NAME}" -f lavfi "amovie='pipe\:0',${PLAYBACKFILTER}"
-        else
-            "${FFPLAY_BIN}" "${FFPLAY_OPTIONS[@]}"
-        fi
+        "${FFPLAY_BIN}" -window_title "${WINDOW_NAME}" -f lavfi "amovie='pipe\:0',${PLAYBACKFILTER}"
 fi
 # capture errors from components of recording pipe
 P1_ERR="${PIPESTATUS[0]}"
@@ -2162,7 +2282,7 @@ if [[ ! -s "${VRECORD_OUTPUT}" ]] ; then
     if [[ "$P1_ERR" != "0" ]] ; then
         _report -wts "Error: Running: ${RECORD_COMMAND[@]} gave an Error Code - ${P1_ERR}"
         _report -w "Consider reporting this or asking for help at https://github.com/amiaopensource/vrecord/issues"
-        _writeingestlog "FFmpeg command Error" "${P1_ERR}"
+        _writeingestlog "vrecord command Error" "${P1_ERR}"
         exit 1
     fi
     if [[ "$P2_ERR" != "0" && ! -z "$P2_ERR" ]] ; then
