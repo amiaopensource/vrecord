@@ -400,6 +400,12 @@ _get_output_filename(){
 
     echo "${DIR}/${PREFIX}${ID}${SUFFIX}.${EXTENSION}"
 }
+
+_get_decklink_inputs(){
+    # get information on what input device options are available
+    #unset DECKLINK_DEVICES
+    "${FFMPEG_BIN}" -nostdin -v 0 -sources decklink | awk -F'[][]' '{print $2}' | grep -v "^$"
+}
 GTKDIALOG_FUNCTION_DOC
 )
 
@@ -430,7 +436,11 @@ _gtk_vbox_list() {
     shift 3
     OPTION_LIST=("${@}")
     SELECTION="$(_get_index_of_value "${!VARIABLE_NAME}" "${OPTION_LIST[@]}")"
-    LIST="$(_expand_list2items "${OPTION_LIST[@]}")"
+    if [[ "${VARIABLE_NAME}" == "DECKLINK_INPUT_CHOICE" ]] ; then
+        LIST="<input>_get_decklink_inputs</input>"
+    else
+        LIST="$(_expand_list2items "${OPTION_LIST[@]}")"
+    fi
 
     _get_list_extras(){
         if [[ "${VARIABLE_NAME}" == "VIDEO_CODEC_CHOICE" ]] ; then
@@ -458,6 +468,13 @@ _gtk_vbox_list() {
             echo "<sensitive>$(if $MKVPROPEDIT_INSTALLED ; then echo true ; else echo false ; fi)</sensitive>"
         elif [[ "${VARIABLE_NAME}" == "QCTOOLSXML_CHOICE" ]] ; then
             echo "<sensitive>$(if $QCLI_INSTALLED ; then echo true ; else echo false ; fi)</sensitive>"
+        elif [[ "${VARIABLE_NAME}" == "DECKLINK_INPUT_CHOICE" ]] ; then
+            echo "
+            <button>
+                <label>Rescan</label>
+                <action type=\"clear\">DECKLINK_INPUT_CHOICE</action>
+                <action type=\"refresh\">DECKLINK_INPUT_CHOICE</action>
+            </button>"
         fi
     }
 
