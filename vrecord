@@ -424,8 +424,9 @@ fi
 
 _gtk_vbox_list() {
     VARIABLE_NAME="${1}"
-    LABEL="${2}"
-    shift 2
+    WIDTH="${2}"
+    LABEL="${3}"
+    shift 3
     OPTION_LIST=("${@}")
     SELECTION="$(_get_index_of_value "${!VARIABLE_NAME}" "${OPTION_LIST[@]}")"
     LIST="$(_expand_list2items "${OPTION_LIST[@]}")"
@@ -461,9 +462,11 @@ _gtk_vbox_list() {
 
     echo "<vbox>
       <text>
+          <width>${WIDTH}</width>
           <label>${LABEL}</label>
       </text>
       <list selection-mode=\"1\" selected-row=\"${SELECTION}\">
+          <width>${WIDTH}</width>
           <variable>${VARIABLE_NAME}</variable>
           ${LIST}
           $(_get_list_extras)
@@ -563,16 +566,16 @@ echo "disabled" > "$AVFCTL_STATUS_TMP"
 SIDECAR_FILES_GUI="
 <frame Sidecar file options>
     <hbox space-expand=\"true\">
-        $(_gtk_vbox_list "FRAMEMD5_CHOICE"          "Create frame-level MD5 checksums? (recommended)"       "${FRAMEMD5_OPTIONS[@]}")
-        $(_gtk_vbox_list "QCTOOLSXML_CHOICE"        "Create QCTools XML?"           "${QCTOOLSXML_OPTIONS[@]}")
+        $(_gtk_vbox_list "FRAMEMD5_CHOICE"   "100"  "frameMD5s? (recommended)"  "${FRAMEMD5_OPTIONS[@]}")
+        $(_gtk_vbox_list "QCTOOLSXML_CHOICE" "200"  "QCTools XML?"              "${QCTOOLSXML_OPTIONS[@]}")
     </hbox>
 </frame>"
 
 PLAYBACK_OPT_GUI="
 <frame Playback options>
     <hbox space-expand=\"true\">
-        $(_gtk_vbox_list "PLAYBACKVIEW_CHOICE"      "Select View (for recording)"   "${PLAYBACKVIEW_OPTIONS[@]}")
-        $(_gtk_vbox_list "PLAYBACKVIEW_CHOICE_PASS" "Select View (for passthrough)" "${PLAYBACKVIEW_PASS_OPTIONS[@]}")
+        $(_gtk_vbox_list "PLAYBACKVIEW_CHOICE"      "200" "Select View (for recording)"   "${PLAYBACKVIEW_OPTIONS[@]}")
+        $(_gtk_vbox_list "PLAYBACKVIEW_CHOICE_PASS" "200" "Select View (for passthrough)" "${PLAYBACKVIEW_PASS_OPTIONS[@]}")
     </hbox>
 </frame>"
 
@@ -663,13 +666,13 @@ DECKLINK_INPUT_GUI=$(cat << DECKLINK_FORM
 <frame Decklink input options>
     <vbox>
         <hbox space-expand="true">
-            $(_gtk_vbox_list "DECKLINK_INPUT_CHOICE"    "Select Video Card"             "${DECKLINK_DEVICES[@]}")
-            $(_gtk_vbox_list "VIDEO_INPUT_CHOICE"       "Select Video Input"            "${VIDEO_INPUT_OPTIONS[@]}")
-            $(_gtk_vbox_list "AUDIO_INPUT_CHOICE"       "Select Audio Input"            "${AUDIO_INPUT_OPTIONS[@]}")
-            $(_gtk_vbox_list "AUDIO_MAPPING_CHOICE"     "Select Audio Channel Mapping"  "${CHANNEL_MAPPING_OPTIONS[@]}" )
-            $(_gtk_vbox_list "STANDARD_CHOICE"          "Select Standard"               "${STANDARD_OPTIONS[@]}")
-            $(_gtk_vbox_list "VIDEO_BIT_DEPTH_CHOICE"   "Select Video Bit Depth"        "${VIDEO_BITDEPTH_OPTIONS[@]}")
-            $(_gtk_vbox_list "TIMECODE_CHOICE"          "Select timecode format"        "${TIMECODE_OPTIONS[@]}")
+            $(_gtk_vbox_list "DECKLINK_INPUT_CHOICE"    "160" "Select Video Card"             "${DECKLINK_DEVICES[@]}")
+            $(_gtk_vbox_list "VIDEO_INPUT_CHOICE"       "100" "Select Video Input"            "${VIDEO_INPUT_OPTIONS[@]}")
+            $(_gtk_vbox_list "AUDIO_INPUT_CHOICE"       "200" "Select Audio Input"            "${AUDIO_INPUT_OPTIONS[@]}")
+            $(_gtk_vbox_list "AUDIO_MAPPING_CHOICE"     "300" "Select Audio Channel Mapping"  "${CHANNEL_MAPPING_OPTIONS[@]}" )
+            $(_gtk_vbox_list "STANDARD_CHOICE"          "100" "Select Standard"               "${STANDARD_OPTIONS[@]}")
+            $(_gtk_vbox_list "VIDEO_BIT_DEPTH_CHOICE"   "100" "Select Video Bit Depth"        "${VIDEO_BITDEPTH_OPTIONS[@]}")
+            $(_gtk_vbox_list "TIMECODE_CHOICE"          "100" "Select timecode format"        "${TIMECODE_OPTIONS[@]}")
         </hbox>
         <checkbox>
             <label>Invert Second Channel of Audio (WARNING: Do not use this option unless required)</label>
@@ -678,11 +681,11 @@ DECKLINK_INPUT_GUI=$(cat << DECKLINK_FORM
         </checkbox>
         <frame Output file options>
             <hbox space-expand="true">
-                $(_gtk_vbox_list "EMBED_LOGS_CHOICE"        "Embed digitization logs in video file (Matroska ONLY)" "${EMBED_LOGS_OPTIONS[@]}")
-                $(_gtk_vbox_list "CONTAINER_CHOICE"         "Select File Format"            "${CONTAINER_OPTIONS[@]}")
-                $(_gtk_vbox_list "FFV1_SLICE_CHOICE"        "FFV1 Slice Count"              "${FFV1_SLICE_OPTIONS[@]}")
-                $(_gtk_vbox_list "VIDEO_CODEC_CHOICE"       "Select Video Codec"            "${VIDEO_CODEC_OPTIONS[@]}")
-                $(_gtk_vbox_list "AUDIO_CODEC_CHOICE"       "Select Audio Codec"            "${AUDIO_CODEC_OPTIONS[@]}")
+                $(_gtk_vbox_list "EMBED_LOGS_CHOICE"        "100" "Embed digitization logs in video file (Matroska ONLY)" "${EMBED_LOGS_OPTIONS[@]}")
+                $(_gtk_vbox_list "CONTAINER_CHOICE"         "100" "Select File Format"            "${CONTAINER_OPTIONS[@]}")
+                $(_gtk_vbox_list "FFV1_SLICE_CHOICE"        "100" "FFV1 Slice Count"              "${FFV1_SLICE_OPTIONS[@]}")
+                $(_gtk_vbox_list "VIDEO_CODEC_CHOICE"       "160" "Select Video Codec"            "${VIDEO_CODEC_OPTIONS[@]}")
+                $(_gtk_vbox_list "AUDIO_CODEC_CHOICE"       "100" "Select Audio Codec"            "${AUDIO_CODEC_OPTIONS[@]}")
             </hbox>
         </frame>
         <hbox>
@@ -799,7 +802,7 @@ AVFCTL_INPUT_GUI=$(cat << AVFCTL_FORM
 <frame DVRescue avfctl input options>
     <vbox>
         <hbox space-expand="true">
-            $(_gtk_vbox_list "AVFCTL_INPUT_CHOICE"         "Select a DV Device"           "${AVFCTL_DEVICES[@]}")
+            $(_gtk_vbox_list "AVFCTL_INPUT_CHOICE"         "-1" "Select a DV Device"           "${AVFCTL_DEVICES[@]}")
         </hbox>
     </vbox>
     <frame DV deck control>
@@ -883,10 +886,10 @@ AUDIO_INPUT_GUI='
 <frame Audio input options>
   <vbox space-expand="true">
     <hbox space-expand="true">
-      '$(_gtk_vbox_list "AUDIO_DEV_CHOICE"         "Select an Audio Device"           "${AUDIO_DEVICES[@]}")'
-      '$(_gtk_vbox_list "AUDIO_MODE_CODEC_CHOICE"       "Select Audio Codec"            "${AUDIO_CODEC_OPTIONS[@]:0:2}")'
-      '$(_gtk_vbox_list "AUDIO_CHANNEL_CHOICE"       "Select Audio Channels"            "${AUDIO_CHANNEL_CHOICE_OPTIONS[@]}")'
-      '$(_gtk_vbox_list "AUDIO_MODE_SR_CHOICE"       "Select Sampling Rate"            "${AUDIO_MODE_SR_CHOICE_OPTIONS[@]}")'
+      '$(_gtk_vbox_list "AUDIO_DEV_CHOICE"         "-1" "Select an Audio Device"           "${AUDIO_DEVICES[@]}")'
+      '$(_gtk_vbox_list "AUDIO_MODE_CODEC_CHOICE"  "-1" "Select Audio Codec"            "${AUDIO_CODEC_OPTIONS[@]:0:2}")'
+      '$(_gtk_vbox_list "AUDIO_CHANNEL_CHOICE"     "-1" "Select Audio Channels"            "${AUDIO_CHANNEL_CHOICE_OPTIONS[@]}")'
+      '$(_gtk_vbox_list "AUDIO_MODE_SR_CHOICE"     "-1" "Select Sampling Rate"            "${AUDIO_MODE_SR_CHOICE_OPTIONS[@]}")'
     </hbox>
   </vbox>
   <vbox space-expand="true">
