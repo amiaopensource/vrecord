@@ -404,6 +404,7 @@ GTKDIALOG_FUNCTION_DOC
 )
 
 # optional dependency checks
+BMDTOOLS_INSTALLED="$(if command -v bmdcapture >/dev/null ; then echo true ; else echo false ; fi)"
 DECKCONTROL_INSTALLED="$(if command -v deckcontrol >/dev/null ; then echo true ; else echo false ; fi)"
 GNUPLOT_INSTALLED="$(if command -v gnuplot >/dev/null ; then echo true ; else echo false ; fi)"
 MEDIACONCH_INSTALLED="$(if command -v mediaconch >/dev/null ; then echo true ; else echo false ; fi)"
@@ -581,6 +582,14 @@ PLAYBACK_OPT_GUI="
 
 OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
 <frame Optional Tools>
+  <hbox>
+        <text>
+            <label>bmdtools: </label>
+        </text>
+        <pixmap stock-icon-size="1" tooltip-text="If bmdtools is installed, vrecord can offer bmdcapture as an alternate method (to ffmpeg) to receive an input from a Blackmagic capture device.">
+            <input file stock="$(if $BMDTOOLS_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)"></input>
+        </pixmap>
+    </hbox>
     <hbox>
         <text>
             <label>deckcontrol: </label>
