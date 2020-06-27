@@ -22,7 +22,7 @@ files.
 
 Dependencies: cowsay, amiaopensource/amiaos/decklinksdk,
   amiaopensource/amiaos/ffmpegdecklink, amiaopensource/amiaos/gtkdialog,
-  freetype, sdl and xmlstarlet
+  and xmlstarlet
 Optional Dependencies: deckcontrol, gnuplot, mediaconch, mkvtoolnix, mpv, qcli
 
 Usage: ${SCRIPTNAME} [ -g | -e | -r | -p | -a | -x | -v | -h ] [IDENTIFIER]
