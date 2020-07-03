@@ -462,7 +462,6 @@ _gtk_vbox_list() {
 
     echo "<vbox>
       <text>
-          <width>${WIDTH}</width>
           <label>${LABEL}</label>
       </text>
       <list selection-mode=\"1\" selected-row=\"${SELECTION}\">
