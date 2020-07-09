@@ -877,6 +877,9 @@ AVFCTL_INPUT_GUI=$(cat << AVFCTL_FORM
                 </button>
             </hbox>
         </hbox>
+        <vbox space-expand="true">
+            <pixmap><input file>"${RESOURCE_PATH}/dvrecord.png"</input></pixmap>
+        </vbox>
     </frame>
 </frame>
 AVFCTL_FORM
