@@ -330,6 +330,7 @@ _update_config_file(){
         echo "LOGDIR=\"${LOGDIR}\""
         echo "INVERT_PHASE=\"${INVERT_PHASE}\""
         echo "DURATION=\"${DURATION}\""
+        echo "CAPTION_LINE=\"${CAPTION_LINE}\""
         echo "PREFIX=\"${PREFIX}\""
         echo "USER_SUFFIX=\"${USER_SUFFIX}\""
         echo "NO_SUFFIX=\"${NO_SUFFIX}\""
@@ -360,6 +361,18 @@ _validate_form(){
         if ! [ "$(echo "${DURATION} > 0" | bc)" = "1" ] ; then
             echo "ERROR: Illegal value for recording time. The duration must be a positive number.\n"
         fi
+    fi
+    # validate caption line
+    if [ -n "${CAPTION_LINE}" ] ; then
+        if ! [ "$(echo "${CAPTION_LINE} > 0" | bc)" = "1" ] ; then
+            echo "ERROR: Illegal value for the caption line. The select caption line must be a positive number.\n"
+        fi
+    fi
+    # validate caption viewer
+    if [ -z "${CAPTION_LINE}" -a "${PLAYBACKVIEW_CHOICE_PASS}" == "Caption Viewer" ] ; then
+        echo "ERROR: To use the Caption Viewer a caption line value must be set.\n"
+    elif [ -z "${CAPTION_LINE}" -a "${PLAYBACKVIEW_CHOICE" == "Caption Viewer" ] ; then
+        echo "ERROR: To use the Caption Viewer a caption line value must be set.\n"
     fi
 }
 
@@ -685,6 +698,10 @@ DECKLINK_INPUT_GUI=$(cat << DECKLINK_FORM
                 $(_gtk_vbox_list "FFV1_SLICE_CHOICE"        "100" "FFV1 Slice Count"              "${FFV1_SLICE_OPTIONS[@]}")
                 $(_gtk_vbox_list "VIDEO_CODEC_CHOICE"       "160" "Select Video Codec"            "${VIDEO_CODEC_OPTIONS[@]}")
                 $(_gtk_vbox_list "AUDIO_CODEC_CHOICE"       "100" "Select Audio Codec"            "${AUDIO_CODEC_OPTIONS[@]}")
+                <entry activates_default="true" tooltip-text="Specify which line of the input video to review for caption data.">
+                    <default>"${CAPTION_LINE}"</default>
+                    <variable>CAPTION_LINE</variable>
+                </entry>
             </hbox>
         </frame>
         <hbox>
@@ -1685,7 +1702,9 @@ ${PLAYBACK_FILTER_ADJUSTMENT}format=yuv420p10le|yuv422p10le|yuv444p10le|yuv440p1
 [b6]bitplanenoise=bitplane=4,crop=iw/${BITS}:ih:(iw/${BITS})*6:0,lutyuv=u=(maxval/2):v=(maxval/2):y=bitand(val\\,pow(2\\,10-7))*pow(2\\,7),pad=iw:ih+64:0:64,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.0.4}:y=0:fontcolor=white:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.1.4}:y=20:fontcolor=white:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.2.4}:y=40:fontcolor=white:fontsize=20[b6c];\
 [b7]bitplanenoise=bitplane=3,crop=iw/${BITS}:ih:(iw/${BITS})*7:0,lutyuv=u=(maxval/2):v=(maxval/2):y=bitand(val\\,pow(2\\,10-8))*pow(2\\,8),pad=iw:ih+64:0:64,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.0.3}:y=0:fontcolor=silver:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.1.3}:y=20:fontcolor=silver:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.2.3}:y=40:fontcolor=silver:fontsize=20[b7c];\
 ${STACK}" ;;
-
+      "Caption Viewer")
+          PLAYBACKFILTER="\
+format=rgb24,split=3[cv1][cv2][cv3];[cv1]crop=iw:4:0:$((CAPTION_LINE-4)),scale=iw:ih*8:flags=neighbor,drawgrid=w=iw:h=ih/4:t=1:c=green@0.8[cv1o];[cv2]crop=iw:1:0:${CAPTION_LINE},readeia608,scale=iw:4:flags=neighbor,tile=layout=1x120:overlap=119:init_padding=119,setdar=4/3,drawtext=fontfile=${DEFAULTFONT}:fontcolor=white:fontsize=36:box=1:boxcolor=black@0.5:x=(w-tw)/2:y=h*3/4-ascent:text=%{metadata\\\\:lavfi.readeia608.0.cc\\\\:------}[cv2o];[cv3]crop=iw:4:0:$((CAPTION_LINE+1)),scale=iw:ih*8:flags=neighbor,drawgrid=w=iw:h=ih/4:t=1:c=green@0.8[cv3o];[cv1o][cv2o][cv3o]vstack=3,setsar=1/1" ;;
         # others
         "Yes"|"Yes, after recording"|"Yes, concurrent with recording"|"No") ;;
         *)           _report -w "Error: ${1} is not a valid option." ; return 1 ;;
@@ -1827,8 +1846,8 @@ STANDARD_OPTIONS=("NTSC" "PAL")
 QCTOOLSXML_OPTIONS=("Yes, after recording" "Yes, concurrent with recording" "No")
 FRAMEMD5_OPTIONS=("Yes" "No")
 EMBED_LOGS_OPTIONS=("Yes" "No")
-PLAYBACKVIEW_OPTIONS=("Unfiltered" "Quality Control View (mpv)" "Broadcast Range Visual" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes")
-PLAYBACKVIEW_PASS_OPTIONS=("Unfiltered" "Quality Control View (mpv)" "Broadcast Range Visual" "Audio + Video" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes")
+PLAYBACKVIEW_OPTIONS=("Unfiltered" "Quality Control View (mpv)" "Broadcast Range Visual" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes" "Caption Viewer")
+PLAYBACKVIEW_PASS_OPTIONS=("Unfiltered" "Quality Control View (mpv)" "Broadcast Range Visual" "Audio + Video" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes" "Caption Viewer")
 
 # GUI mode + CLI reset, edit modes
 if [[ "${RUNTYPE}" = "reset" ]] ; then

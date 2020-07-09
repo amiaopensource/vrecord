@@ -105,6 +105,8 @@ Vrecord will then prompt you for a unique ID. The ID that you type in will becom
 
 **Bit Planes mode** — Bit Planes mode allows to display the video according to the bit position of each plane.
 
+**Caption Viewer** — For the line selection as the caption line, this view will show that line accross successive frames stacked vertically with a hexademical representation of that line as an EIA608 value. The four lines before and after the selected caption line are also shown above and below the visualization of the caption line.
+
 **Quality Control View mode** — Quality Control View mode can display all the views above, as well as several other quality control tools (waveforms, vectorscopes, and histograms). The menu in QC View shows options tied to keystrokes; pressing the key listed next to the name of the view you want will display that view. This feature means you can switch between several different views during the same transfer. QC View key bindings are as follows:
 
 * Views
