@@ -1,6 +1,6 @@
 # DV Capture
 
-To capture DV formats in vrecord (when installed in macOS), you will need to have your DV deck connected directly to your computer via FireWire input. Make sure your deck is in “Local” mode.   
+To capture DV formats in vrecord (when installed in macOS), you will need to have your DV deck connected directly to your computer via FireWire input. Make sure your deck is in “Local” mode.
 
 ## DV Settings
 
