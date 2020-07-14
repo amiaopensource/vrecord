@@ -12,7 +12,7 @@ To capture DV formats in vrecord (when installed in macOS), you will need to hav
 
 1. Switch from the "Decklink" tab to the "DV" tab under "Input Options" at the top of the configuration window.
 
-![DV  Capture](../dv_vrecord_configuration.jpg "DV Capture") 
+![DV Capture](../dv_vrecord_configuration.jpg "DV Capture") 
 
 1. Select the name of the DV device you want to use from the list.
 
