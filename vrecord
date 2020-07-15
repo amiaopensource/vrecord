@@ -1501,10 +1501,10 @@ _lookup_choice(){
             MIDDLEOPTIONS+=(${S_RATE}) ;;
         "48 kHz")
             S_RATE='-ar 48k'
-            MIDDLEOPTIONS+=("${S_RATE}") ;;
+            MIDDLEOPTIONS+=(${S_RATE}) ;;
         "44.1 kHz")
             S_RATE='-ar 44.1k'
-            MIDDLEOPTIONS+=("${S_RATE}") ;;
+            MIDDLEOPTIONS+=(${S_RATE}) ;;
         # timecode options
         "none"|"rp188vitc"|"rp188vitc2"|"rp188ltc"|"rp188any"|"vitc"|"vitc2"|"serial")
             TC_TYPE="${1}"
