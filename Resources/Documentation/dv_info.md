@@ -22,7 +22,7 @@ To capture DV formats in vrecord (when installed in macOS), you will need to hav
 
 You can then run passthrough and record modes the same as you would with analog videotape. Please note that if the timecode does not start at the very beginning of the tape, the record mode viewer will not open until the timecode is detected (as soon as the counter starts moving on your deck, the viewer window should pop-up)
 
-When using the GUI, environment parameters can be adjusted and errors can be viewed in the Config tab.
+When using the GUI, environment parameters can be adjusted in the Config tab.
 
 ![DV Capture config](../dv_vrecord_configuration2.jpg "DV Capture")  
 
