@@ -558,6 +558,8 @@ _set_up_edit_form() {
     for i in "${LIST[@]}" ; do
       if [[ "$i" == "Quality Control View (mpv)" ]] && ! $MPV_INSTALLED ; then
           :
+      elif [[ "$i" == "bmdcapture" ]] && ! $BMDTOOLS_INSTALLED ; then
+          :
       else
         echo "<item>${i}</item>"
       fi
