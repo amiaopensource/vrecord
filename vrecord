@@ -698,7 +698,7 @@ DECKLINK_INPUT_GUI=$(cat << DECKLINK_FORM
                             <label>Status</label>
                         </text>
                         <entry editable="false" has-frame="false">
-                            <variable>decklink_status</variable>
+                            <variable export="false">decklink_status</variable>
                             <input file>"${DECKCONTROL_STATUS_TMP}"</input>
                         </entry>
                     </vbox>
@@ -707,12 +707,12 @@ DECKLINK_INPUT_GUI=$(cat << DECKLINK_FORM
                             <label>Timecode</label>
                         </text>
                         <entry editable="false" has-frame="false">
-                            <variable>decklink_timecode</variable>
+                            <variable export="false">decklink_timecode</variable>
                             <input file>"${DECKCONTROL_TIMECODE_TMP}"</input>
                         </entry>
                     </vbox>
                     <timer milliseconds="true" interval="500" visible="false" disabled="true">
-                         <variable>deckcontrol_timer</variable>
+                         <variable export="false">deckcontrol_timer</variable>
                          <visible>disabled</visible>
                          <action>{ timeout --foreground 0.5 deckcontrol getcurrentstate | grep "state:\|detect" | sed "s/VTR control state: //g" > "${DECKCONTROL_STATUS_TMP}" ; timeout 0.5 deckcontrol gettimecode | grep "TC=" | cut -c 4- > "${DECKCONTROL_TIMECODE_TMP}" ; } &</action>
                          <action>refresh:decklink_status</action>
