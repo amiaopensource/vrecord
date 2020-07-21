@@ -2355,12 +2355,12 @@ elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
         2> >(tee "${FULL_CAPTURE_LOG}" "${VRECORD_INPUT_TMP}" 1>&2) | \
         "${FF_RECORD_COMMAND[@]}" \
         2> >(tee "${FULL_CAPTURE_LOG}" "${VRECORD_INPUT_TMP}" 1>&2) | \
-        "${FFPLAY_BIN}" -window_title "${WINDOW_NAME}" -
+        "${FFPLAY_BIN}" -
 elif [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
     "${RECORD_COMMAND[@]}" \
         2> >(tee "${FULL_CAPTURE_LOG}" "${VRECORD_INPUT_TMP}" 1>&2) \
         | \
-        "${FFPLAY_BIN}" -window_title "${WINDOW_NAME}" -f lavfi "amovie='pipe\:0',${PLAYBACKFILTER}"
+        "${FFPLAY_BIN}" -f lavfi "amovie='pipe\:0',${PLAYBACKFILTER}"
 fi
 # capture errors from components of recording pipe
 P1_ERR="${PIPESTATUS[0]}"
