@@ -2314,6 +2314,12 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
     RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
     RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}" "${PIPE_OUTPUT[@]}")
     fi
+    if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
+        _check_mpv
+        PLAYER_COMMAND=(mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -)
+    else
+        PLAYER_COMMAND=("${FFPLAY_BIN}" "${FFPLAY_OPTIONS[@]}")
+    fi
 elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
     RECORD_COMMAND=(avfctl)
     RECORD_COMMAND+=("${GRAB_INPUT[@]}")
@@ -2335,30 +2341,15 @@ fi
 _writeingestlog "Recording command" "${RECORD_COMMAND[@]}"
 _set_ffplay_options
 if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
-    if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
-        _check_mpv
         "${RECORD_COMMAND[@]}" \
             2> >(tee "${FULL_CAPTURE_LOG}" "${VRECORD_INPUT_TMP}" 1>&2) \
             | \
             if [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]] ; then
-                tee >(mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -) | \
+                tee >("${PLAYER_COMMAND}") | \
                     qcli -f signalstats+aphasemeter+astats+ssim -i - -o "${QCXML}"
             else
-                mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -
+                "${PLAYER_COMMAND}"
             fi
-    else
-        "${RECORD_COMMAND[@]}" \
-            2> >(tee "${FULL_CAPTURE_LOG}" "${VRECORD_INPUT_TMP}" 1>&2) \
-            | \
-            if [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]] ; then
-                tee >("${FFPLAY_BIN}" "${FFPLAY_OPTIONS[@]}") | \
-                    qcli -f signalstats+aphasemeter+astats+ssim -i - -o "${QCXML}"
-            elif [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
-                "${FFPLAY_BIN}" -window_title "${WINDOW_NAME}" -f lavfi "amovie='pipe\:0',${PLAYBACKFILTER}"
-            else
-                "${FFPLAY_BIN}" "${FFPLAY_OPTIONS[@]}"
-            fi
-    fi
 elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
     "${RECORD_COMMAND[@]}" \
         2> >(tee "${FULL_CAPTURE_LOG}" "${VRECORD_INPUT_TMP}" 1>&2) | \
