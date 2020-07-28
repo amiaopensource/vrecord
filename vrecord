@@ -751,43 +751,43 @@ DECKLINK_INPUT_GUI=$(cat << DECKLINK_FORM
                             <variable export="false">deckcontrol_rewind</variable>
                             <input file stock="gtk-media-rewind"></input>
                             <visible>disabled</visible>
-                            <action>timeout --foreground 3 deckcontrol rewind</action>
+                            <action>timeout --foreground 3 deckcontrol rewind >/dev/null</action>
                         </button>
                         <button>
                             <variable export="false">deckcontrol_prev</variable>
                             <input file stock="gtk-media-previous"></input>
                             <visible>disabled</visible>
-                            <action>timeout --foreground 3 deckcontrol stepback</action>
+                            <action>timeout --foreground 3 deckcontrol stepback >/dev/null</action>
                         </button>
                         <button>
                             <variable export="false">deckcontrol_play</variable>
                             <input file stock="gtk-media-play"></input>
                             <visible>disabled</visible>
-                            <action>timeout --foreground 3 deckcontrol play</action>
+                            <action>timeout --foreground 3 deckcontrol play >/dev/null</action>
                         </button>
                         <button>
                             <variable export="false">deckcontrol_stop</variable>
                             <input file stock="gtk-media-stop"></input>
                             <visible>disabled</visible>
-                            <action>timeout --foreground 3 deckcontrol stop</action>
+                            <action>timeout --foreground 3 deckcontrol stop >/dev/null</action>
                         </button>
                         <button>
                             <variable export="false">deckcontrol_next</variable>
                             <input file stock="gtk-media-next"></input>
                             <visible>disabled</visible>
-                            <action>timeout --foreground 3 deckcontrol stepforward</action>
+                            <action>timeout --foreground 3 deckcontrol stepforward >/dev/null</action>
                         </button>
                         <button>
                             <variable export="false">deckcontrol_ff</variable>
                             <input file stock="gtk-media-forward"></input>
                             <visible>disabled</visible>
-                            <action>timeout --foreground 3 deckcontrol fastforward</action>
+                            <action>timeout --foreground 3 deckcontrol fastforward >/dev/null</action>
                         </button>
                         <button>
                             <variable export="false">deckcontrol_eject</variable>
                             <label>Eject</label>
                             <visible>disabled</visible>
-                            <action>timeout --foreground 3 deckcontrol eject</action>
+                            <action>timeout --foreground 3 deckcontrol eject >/dev/null</action>
                         </button>
                     </hbox>
                 </hbox>
