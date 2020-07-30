@@ -698,7 +698,7 @@ DECKLINK_INPUT_GUI=$(cat << DECKLINK_FORM
                             <label>Status</label>
                         </text>
                         <entry editable="false" has-frame="false">
-                            <variable>decklink_status</variable>
+                            <variable export="false">decklink_status</variable>
                             <input file>"${DECKCONTROL_STATUS_TMP}"</input>
                         </entry>
                     </vbox>
@@ -707,12 +707,12 @@ DECKLINK_INPUT_GUI=$(cat << DECKLINK_FORM
                             <label>Timecode</label>
                         </text>
                         <entry editable="false" has-frame="false">
-                            <variable>decklink_timecode</variable>
+                            <variable export="false">decklink_timecode</variable>
                             <input file>"${DECKCONTROL_TIMECODE_TMP}"</input>
                         </entry>
                     </vbox>
                     <timer milliseconds="true" interval="500" visible="false" disabled="true">
-                         <variable>deckcontrol_timer</variable>
+                         <variable export="false">deckcontrol_timer</variable>
                          <visible>disabled</visible>
                          <action>{ timeout --foreground 0.5 deckcontrol getcurrentstate | grep "state:\|detect" | sed "s/VTR control state: //g" > "${DECKCONTROL_STATUS_TMP}" ; timeout 0.5 deckcontrol gettimecode | grep "TC=" | cut -c 4- > "${DECKCONTROL_TIMECODE_TMP}" ; } &</action>
                          <action>refresh:decklink_status</action>
@@ -723,7 +723,7 @@ DECKLINK_INPUT_GUI=$(cat << DECKLINK_FORM
                     <togglebutton>
                         <label>Deck Control</label>
                         <default>false</default>
-                        <variable>deckcontrol_toggle</variable>
+                        <variable export="false">deckcontrol_toggle</variable>
                         <input file stock="gtk-execute"></input>
                         <action>if true enable:deckcontrol_timer</action>
                         <action>if true enable:decklink_status</action>
@@ -748,46 +748,46 @@ DECKLINK_INPUT_GUI=$(cat << DECKLINK_FORM
                     </togglebutton>
                     <hbox>
                         <button>
-                            <variable>deckcontrol_rewind</variable>
+                            <variable export="false">deckcontrol_rewind</variable>
                             <input file stock="gtk-media-rewind"></input>
                             <visible>disabled</visible>
-                            <action>timeout --foreground 3 deckcontrol rewind</action>
+                            <action>timeout --foreground 3 deckcontrol rewind >/dev/null</action>
                         </button>
                         <button>
-                            <variable>deckcontrol_prev</variable>
+                            <variable export="false">deckcontrol_prev</variable>
                             <input file stock="gtk-media-previous"></input>
                             <visible>disabled</visible>
-                            <action>timeout --foreground 3 deckcontrol stepback</action>
+                            <action>timeout --foreground 3 deckcontrol stepback >/dev/null</action>
                         </button>
                         <button>
-                            <variable>deckcontrol_play</variable>
+                            <variable export="false">deckcontrol_play</variable>
                             <input file stock="gtk-media-play"></input>
                             <visible>disabled</visible>
-                            <action>timeout --foreground 3 deckcontrol play</action>
+                            <action>timeout --foreground 3 deckcontrol play >/dev/null</action>
                         </button>
                         <button>
-                            <variable>deckcontrol_stop</variable>
+                            <variable export="false">deckcontrol_stop</variable>
                             <input file stock="gtk-media-stop"></input>
                             <visible>disabled</visible>
-                            <action>timeout --foreground 3 deckcontrol stop</action>
+                            <action>timeout --foreground 3 deckcontrol stop >/dev/null</action>
                         </button>
                         <button>
-                            <variable>deckcontrol_next</variable>
+                            <variable export="false">deckcontrol_next</variable>
                             <input file stock="gtk-media-next"></input>
                             <visible>disabled</visible>
-                            <action>timeout --foreground 3 deckcontrol stepforward</action>
+                            <action>timeout --foreground 3 deckcontrol stepforward >/dev/null</action>
                         </button>
                         <button>
-                            <variable>deckcontrol_ff</variable>
+                            <variable export="false">deckcontrol_ff</variable>
                             <input file stock="gtk-media-forward"></input>
                             <visible>disabled</visible>
-                            <action>timeout --foreground 3 deckcontrol fastforward</action>
+                            <action>timeout --foreground 3 deckcontrol fastforward >/dev/null</action>
                         </button>
                         <button>
-                            <variable>deckcontrol_eject</variable>
+                            <variable export="false">deckcontrol_eject</variable>
                             <label>Eject</label>
                             <visible>disabled</visible>
-                            <action>timeout --foreground 3 deckcontrol eject</action>
+                            <action>timeout --foreground 3 deckcontrol eject >/dev/null</action>
                         </button>
                     </hbox>
                 </hbox>
@@ -812,12 +812,12 @@ AVFCTL_INPUT_GUI=$(cat << AVFCTL_FORM
                     <label>Status</label>
                 </text>
                 <entry editable="false" has-frame="false">
-                    <variable>avfctl_status</variable>
+                    <variable export="false">avfctl_status</variable>
                     <input file>"${AVFCTL_STATUS_TMP}"</input>
                 </entry>
             </vbox>
             <timer milliseconds="true" interval="300" visible="false" disabled="true">
-                 <variable>avfctl_timer</variable>
+                 <variable export="false">avfctl_timer</variable>
                  <visible>disabled</visible>
                  <action>avfctl -status 2>&1 | grep -o "Device \[.*" | sed "s|Device ||g;s| status||g" > "${AVFCTL_STATUS_TMP}" &</action>
                  <action>refresh:avfctl_status</action>
@@ -827,7 +827,7 @@ AVFCTL_INPUT_GUI=$(cat << AVFCTL_FORM
             <togglebutton>
                 <label>Deck Control</label>
                 <default>false</default>
-                <variable>avfctl_toggle</variable>
+                <variable export="false">avfctl_toggle</variable>
                 <input file stock="gtk-execute"></input>
                 <action>if true enable:avfctl_timer</action>
                 <action>if true enable:avfctl_status</action>
@@ -846,31 +846,31 @@ AVFCTL_INPUT_GUI=$(cat << AVFCTL_FORM
             </togglebutton>
             <hbox>
                 <button>
-                    <variable>avfctl_repack</variable>
+                    <variable export="false">avfctl_repack</variable>
                     <label>Repack</label>
                     <visible>disabled</visible>
                     <action>{ avfctl -cmd ff -foreground; avfctl -cmd rew; }&</action>
                 </button>
                 <button>
-                    <variable>avfctl_rewind</variable>
+                    <variable export="false">avfctl_rewind</variable>
                     <input file stock="gtk-media-rewind"></input>
                     <visible>disabled</visible>
                     <action>timeout --foreground 3 avfctl -cmd rew</action>
                 </button>
                 <button>
-                    <variable>avfctl_play</variable>
+                    <variable export="false">avfctl_play</variable>
                     <input file stock="gtk-media-play"></input>
                     <visible>disabled</visible>
                     <action>timeout --foreground 3 avfctl -cmd play</action>
                 </button>
                 <button>
-                    <variable>avfctl_stop</variable>
+                    <variable export="false">avfctl_stop</variable>
                     <input file stock="gtk-media-stop"></input>
                     <visible>disabled</visible>
                     <action>timeout --foreground 3 avfctl -cmd stop</action>
                 </button>
                 <button>
-                    <variable>avfctl_ff</variable>
+                    <variable export="false">avfctl_ff</variable>
                     <input file stock="gtk-media-forward"></input>
                     <visible>disabled</visible>
                     <action>timeout --foreground 3 avfctl -cmd ff</action>
