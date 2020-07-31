@@ -2353,9 +2353,10 @@ elif [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
 else
     _report_unexpected_error DEVICE_INPUT_CHOICE
 fi
-_writeingestlog "Recording command" "${RECORD_COMMAND[@]}"
 _set_ffplay_options
 if [[ "${VRECORD_STEPS}" = "2" ]] ; then
+    _writeingestlog "Capture-Record command" "${FF_RECORD_COMMAND[@]}"
+    _writeingestlog "Playback command" "${PLAYER_COMMAND[@]}"
     "${RECORD_COMMAND[@]}" 2> >(tee "${FULL_CAPTURE_LOG}" "${VRECORD_INPUT_TMP}" 1>&2) | \
     if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] && [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]]; then
         tee >("${PLAYER_COMMAND[@]}") | qcli -f signalstats+aphasemeter+astats+ssim -i - -o "${QCXML}"
@@ -2363,6 +2364,9 @@ if [[ "${VRECORD_STEPS}" = "2" ]] ; then
         "${PLAYER_COMMAND[@]}"
     fi
 elif [[ "${VRECORD_STEPS}" = "3" ]] ; then
+    _writeingestlog "Capture command" "${RECORD_COMMAND[@]}"
+    _writeingestlog "Record command" "${FF_ RECORD_COMMAND[@]}"
+    _writeingestlog "Playback command" "${PLAYER_COMMAND[@]}"
     "${RECORD_COMMAND[@]}" 2> >(tee "${FULL_CAPTURE_LOG}" "${VRECORD_INPUT_TMP}" 1>&2) | \
     "${FF_RECORD_COMMAND[@]}" 2> >(tee "${FULL_CAPTURE_LOG}" "${VRECORD_INPUT_TMP}" 1>&2) | \
     if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] && [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]]; then
@@ -2374,9 +2378,19 @@ else
     _report_unexpected_error VRECORD_STEPS
 fi
 # capture errors from components of recording pipe
-P1_ERR="${PIPESTATUS[0]}"
-P2_ERR="${PIPESTATUS[1]}"
-P3_ERR="${PIPESTATUS[2]}"
+RESULTING_EXIT_CODES=("${PIPESTATUS[@]}")
+P1_ERR="${RESULTING_EXIT_CODES[0]}"
+P2_ERR="${RESULTING_EXIT_CODES[1]}"
+P3_ERR="${RESULTING_EXIT_CODES[2]}"
+
+if [[ "${VRECORD_STEPS}" = "2" ]] ; then
+    _writeingestlog "Capture-Record exit code" "${P1_ERR}"
+    _writeingestlog "Playback exit code" "${P2_ERR}"
+elif [[ "${VRECORD_STEPS}" = "3" ]] ; then
+    _writeingestlog "Capture exit code" "${P1_ERR}"
+    _writeingestlog "Record exit code" "${P2_ERR}"
+    _writeingestlog "Playback exit code" "${P3_ERR}"
+fi
 
 if [[ ! -s "${VRECORD_OUTPUT}" ]] ; then
     if [[ "$P1_ERR" != "0" ]] ; then
