@@ -2330,6 +2330,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         _check_mpv
         PLAYER_COMMAND=(mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -)
     else
+        _set_ffplay_options
         PLAYER_COMMAND=("${FFPLAY_BIN}" "${FFPLAY_OPTIONS[@]}")
     fi
 elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
@@ -2341,6 +2342,7 @@ elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
     FF_RECORD_COMMAND+=(-map 0:v -c copy)
     FF_RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
     FF_RECORD_COMMAND+=(-map 0:v -f rawvideo -c copy -)
+    _set_ffplay_options
     PLAYER_COMMAND=("${FFPLAY_BIN}" -)
 elif [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
     VRECORD_STEPS="2"
@@ -2349,11 +2351,11 @@ elif [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
     RECORD_COMMAND+=("${MIDDLEOPTIONS[@]}")
     RECORD_COMMAND+=(-f "${FORMAT}" -filter_complex "${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" "${VRECORD_OUTPUT}")
     RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}" -filter_complex "${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" "${PIPE_OUTPUT[@]}")
+    _set_ffplay_options
     PLAYER_COMMAND=("${FFPLAY_BIN}" -f lavfi "amovie='pipe\:0',${PLAYBACKFILTER}")
 else
     _report_unexpected_error DEVICE_INPUT_CHOICE
 fi
-_set_ffplay_options
 if [[ "${VRECORD_STEPS}" = "2" ]] ; then
     _writeingestlog "Capture-Record command" "${FF_RECORD_COMMAND[@]}"
     _writeingestlog "Playback command" "${PLAYER_COMMAND[@]}"
