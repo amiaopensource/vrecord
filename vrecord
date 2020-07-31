@@ -238,7 +238,7 @@ MPVOPTS+=(--script="${RESOURCE_PATH}/qcview.lua")
 MPVOPTS+=(--really-quiet)
 
 _gather_ffmpeg_vars(){
-    CAPTURELOGSUFFIX="_ffmpeg_input.log"
+    CAPTURELOGSUFFIX="_vrecord_input.log"
     TIMECODELOGSUFFIX="_frame_timecodes.txt"
     if [[ -d "/usr/local/opt/ffmpegdecklink" ]] ; then
         BREW_PREFIX="/usr/local/opt/ffmpegdecklink"
