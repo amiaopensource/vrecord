@@ -2314,17 +2314,16 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         FF_RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
         FF_RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}" "${PIPE_OUTPUT[@]}")
     else
-        #TO DO indent
-    VRECORD_STEPS="2"
-    RECORD_COMMAND=("${FFMPEG_BIN}")
-    RECORD_COMMAND+=(-nostdin -nostats "${TIME_LIMIT[@]}" "${GRAB_INPUT[@]}")
-    if [[ -n "${VIDEOCODECNAME}" ]] ; then
-        MIDDLEOPTIONS+=(-metadata:s:v:0 encoder="${VIDEOCODECNAME}")
-    fi
-    RECORD_COMMAND+=("${MIDDLEOPTIONS[@]}")
-    RECORD_COMMAND+=(-filter_complex "[0:v:0]${RECORDINGFILTER}${TC_WRITE}; ${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}")
-    RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
-    RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}" "${PIPE_OUTPUT[@]}")
+        VRECORD_STEPS="2"
+        RECORD_COMMAND=("${FFMPEG_BIN}")
+        RECORD_COMMAND+=(-nostdin -nostats "${TIME_LIMIT[@]}" "${GRAB_INPUT[@]}")
+        if [[ -n "${VIDEOCODECNAME}" ]] ; then
+            MIDDLEOPTIONS+=(-metadata:s:v:0 encoder="${VIDEOCODECNAME}")
+        fi
+        RECORD_COMMAND+=("${MIDDLEOPTIONS[@]}")
+        RECORD_COMMAND+=(-filter_complex "[0:v:0]${RECORDINGFILTER}${TC_WRITE}; ${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}")
+        RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
+        RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}" "${PIPE_OUTPUT[@]}")
     fi
     if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
         _check_mpv
