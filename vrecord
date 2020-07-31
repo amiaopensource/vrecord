@@ -1590,14 +1590,14 @@ _lookup_choice(){
             STANDARD="ntsc"
             if [[ "${DECKLINK_UTILITY_CHOICE}" == "bmdcapture" ]] ; then
                 BMD_STANDARD="$(bmdcapture -h 2>&1 | grep "NTSC.*29.97" | cut -d: -f 1 | sed 's/ //g' | head -n 1)"
+                RECORDINGFILTER+="setfield=bff,"
             fi
             DECKLINK_FPS="30000/1001"
             if [[ "${VIDEO_CODEC_CHOICE}" = "h264" ]] ; then
-                RECORDINGFILTER="crop=w=720:h=480:x=0:y=4,setsar=40/27,setdar=4/3"
+                RECORDINGFILTER+="crop=w=720:h=480:x=0:y=4,"
                 MIDDLEOPTIONS+=(-x264opts bff)
-            else
-                RECORDINGFILTER="setsar=40/27,setdar=4/3"
             fi
+            RECORDINGFILTER+="setsar=40/27,setdar=4/3"
             MIDDLEOPTIONS+=(-color_primaries smpte170m)
             MIDDLEOPTIONS+=(-color_trc bt709)
             MIDDLEOPTIONS+=(-colorspace smpte170m) ;;
@@ -1605,14 +1605,13 @@ _lookup_choice(){
             STANDARD="pal "
             if [[ "${DECKLINK_UTILITY_CHOICE}" == "bmdcapture" ]] ; then
                 BMD_STANDARD="$(bmdcapture -h 2>&1 | grep "PAL.*25" | cut -d: -f 1 | sed 's/ //g' | head -n 1)"
+                RECORDINGFILTER+="setfield=tff,"
             fi
             DECKLINK_FPS="25000/1000"
             if [[ "${VIDEO_CODEC_CHOICE}" = "h264" ]] ; then
-                RECORDINGFILTER="setsar=16/15,setdar=4/3"
                 MIDDLEOPTIONS+=(-x264opts tff)
-            else
-                RECORDINGFILTER="setsar=16/15,setdar=4/3"
             fi
+            RECORDINGFILTER+="setsar=16/15,setdar=4/3"
             MIDDLEOPTIONS+=(-color_primaries bt470bg)
             MIDDLEOPTIONS+=(-color_trc bt709)
             MIDDLEOPTIONS+=(-colorspace bt470bg) ;;
