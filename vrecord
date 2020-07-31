@@ -89,6 +89,19 @@ _report(){
     MESSAGE="${1}"
     echo ${ECHOOPT} "${COLOR}${STARTMESSAGE[@]}${MESSAGE}${NC}"
 }
+_report_unexpected_error(){
+    ERROR_VAR_NAME="${1}"
+    ERROR_VAR_VALUE="${!1}"
+    ERROR_DETAIL="$2"
+    _report -d -wt "vrecord exited a form in an unexpected way (${ERROR_VAR_NAME}=${ERROR_VAR_VALUE}), please report this error to https://github.com/amiaopensource/vrecord/issues"
+    if [[ -n "${ERROR_DETAIL}" ]] ;then
+        _report -d -wt "Error details: ${ERROR_DETAIL}"
+    fi
+    if [[ -f "${INGESTLOG}" ]] ; then
+        _writeingestlog "vrecord command Error" "invalid ${ERROR_VAR_NAME} value of ${ERROR_VAR_VALUE}"
+    fi
+    exit 1
+}
 
 # command-line options to set media id and original variables
 OPTIND=1
@@ -1249,8 +1262,7 @@ _edit_mode(){
         done
         RUNTYPE="edit"
     else
-        _report -d -wt "vrecord exited a form in an unexpected way, please report this error to https://github.com/amiaopensource/vrecord/issues"
-        exit 1
+        _report_unexpected_error EXIT
     fi
 }
 
@@ -1290,8 +1302,7 @@ _passthrough_mode(){
         "${FFMPEG_BIN}" -nostdin -hide_banner -nostats "${GRAB_INPUT[@]}" "${PIPE_OUTPUT[@]}" 2> "${VRECORD_INPUT_TMP}" | \
             "${FFPLAY_BIN}" -window_title "${WINDOW_NAME}" -f lavfi "amovie='pipe\:0',${PLAYBACKFILTER}"
     else
-        _report -d -wt "vrecord exited a form in an unexpected way, please report this error to https://github.com/amiaopensource/vrecord/issues"
-        exit 1
+        _report_unexpected_error DEVICE_INPUT_CHOICE
     fi
 }
 
@@ -2335,8 +2346,7 @@ elif [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
     RECORD_COMMAND+=(-f "${FORMAT}" -filter_complex "${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" "${VRECORD_OUTPUT}")
     RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}" -filter_complex "${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" "${PIPE_OUTPUT[@]}")
 else
-    _report -d -wt "vrecord exited a form in an unexpected way (DEVICE_INPUT_CHOICE=${DEVICE_INPUT_CHOICE}), please report this error to https://github.com/amiaopensource/vrecord/issues"
-    exit 1
+    _report_unexpected_error DEVICE_INPUT_CHOICE
 fi
 _writeingestlog "Recording command" "${RECORD_COMMAND[@]}"
 _set_ffplay_options
@@ -2369,20 +2379,13 @@ P3_ERR="${PIPESTATUS[2]}"
 
 if [[ ! -s "${VRECORD_OUTPUT}" ]] ; then
     if [[ "$P1_ERR" != "0" ]] ; then
-        _report -wts "Error: Running: ${RECORD_COMMAND[@]} gave an Error Code - ${P1_ERR}"
-        _report -w "Consider reporting this or asking for help at https://github.com/amiaopensource/vrecord/issues"
-        _writeingestlog "vrecord command Error" "${P1_ERR}"
-        exit 1
+        _report_unexpected_error P1_ERR "${RECORD_COMMAND[@]} // ${FF_RECORD_COMMAND[@]} // ${PLAYER_COMMAND}"
     fi
     if [[ "$P2_ERR" != "0" && ! -z "$P2_ERR" ]] ; then
-        _report -wts "Error: The second component of vrecord recording process gave an Error Code - ${P2_ERR}"
-        _report -w "Consider reporting this or asking for help at https://github.com/amiaopensource/vrecord/issues"
-        _writeingestlog "vrecord command Error (P2)" "${P2_ERR}"
+        _report_unexpected_error P2_ERR "${RECORD_COMMAND[@]} // ${FF_RECORD_COMMAND[@]} // ${PLAYER_COMMAND}"
     fi
     if [[ "$P3_ERR" != "0" && ! -z "$P3_ERR" ]] ; then
-        _report -wts "Error: The third component of vrecord recording process gave an Error Code - ${P3_ERR}"
-        _report -w "Consider reporting this or asking for help at https://github.com/amiaopensource/vrecord/issues"
-        _writeingestlog "vrecord command Error (P3)" "${P3_ERR}"
+        _report_unexpected_error P3_ERR "${RECORD_COMMAND[@]} // ${FF_RECORD_COMMAND[@]} // ${PLAYER_COMMAND}"
     fi
 fi
 
