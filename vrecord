@@ -2300,6 +2300,7 @@ _report -d "Close the playback window to stop recording."
 if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
     # DEVICE_INPUT_CHOICE=0 is decklink, other DEVICE_INPUT_CHOICE values don't yet use such filtering
     if [[ "${DECKLINK_UTILITY_CHOICE}" == "bmdcapture" ]] ; then
+        VRECORD_STEPS="3"
         RECORD_COMMAND=(bmdcapture)
         # TO DO adjust TIME_LIMIT for bmdcapture
         RECORD_COMMAND+=("${GRAB_INPUT[@]}")
@@ -2314,6 +2315,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         FF_RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}" "${PIPE_OUTPUT[@]}")
     else
         #TO DO indent
+    VRECORD_STEPS="2"
     RECORD_COMMAND=("${FFMPEG_BIN}")
     RECORD_COMMAND+=(-nostdin -nostats "${TIME_LIMIT[@]}" "${GRAB_INPUT[@]}")
     if [[ -n "${VIDEOCODECNAME}" ]] ; then
@@ -2331,6 +2333,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         PLAYER_COMMAND=("${FFPLAY_BIN}" "${FFPLAY_OPTIONS[@]}")
     fi
 elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
+    VRECORD_STEPS="3"
     RECORD_COMMAND=(avfctl)
     RECORD_COMMAND+=("${GRAB_INPUT[@]}")
     FF_RECORD_COMMAND=("${FFMPEG_BIN}" -nostdin -nostats "${TIME_LIMIT[@]}")
@@ -2338,38 +2341,37 @@ elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
     FF_RECORD_COMMAND+=(-map 0:v -c copy)
     FF_RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
     FF_RECORD_COMMAND+=(-map 0:v -f rawvideo -c copy -)
+    PLAYER_COMMAND=("${FFPLAY_BIN}" -)
 elif [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
+    VRECORD_STEPS="2"
     RECORD_COMMAND=("${FFMPEG_BIN}")
     RECORD_COMMAND+=(-nostdin -nostats "${TIME_LIMIT[@]}" "${GRAB_INPUT[@]}")
     RECORD_COMMAND+=("${MIDDLEOPTIONS[@]}")
     RECORD_COMMAND+=(-f "${FORMAT}" -filter_complex "${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" "${VRECORD_OUTPUT}")
     RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}" -filter_complex "${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" "${PIPE_OUTPUT[@]}")
+    PLAYER_COMMAND=("${FFPLAY_BIN}" -f lavfi "amovie='pipe\:0',${PLAYBACKFILTER}")
 else
     _report_unexpected_error DEVICE_INPUT_CHOICE
 fi
 _writeingestlog "Recording command" "${RECORD_COMMAND[@]}"
 _set_ffplay_options
-if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
-        "${RECORD_COMMAND[@]}" \
-            2> >(tee "${FULL_CAPTURE_LOG}" "${VRECORD_INPUT_TMP}" 1>&2) \
-            | \
-            if [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]] ; then
-                tee >("${PLAYER_COMMAND}") | \
-                    qcli -f signalstats+aphasemeter+astats+ssim -i - -o "${QCXML}"
-            else
-                "${PLAYER_COMMAND}"
-            fi
-elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
-    "${RECORD_COMMAND[@]}" \
-        2> >(tee "${FULL_CAPTURE_LOG}" "${VRECORD_INPUT_TMP}" 1>&2) | \
-        "${FF_RECORD_COMMAND[@]}" \
-        2> >(tee "${FULL_CAPTURE_LOG}" "${VRECORD_INPUT_TMP}" 1>&2) | \
-        "${FFPLAY_BIN}" -
-elif [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
-    "${RECORD_COMMAND[@]}" \
-        2> >(tee "${FULL_CAPTURE_LOG}" "${VRECORD_INPUT_TMP}" 1>&2) \
-        | \
-        "${FFPLAY_BIN}" -f lavfi "amovie='pipe\:0',${PLAYBACKFILTER}"
+if [[ "${VRECORD_STEPS}" = "2" ]] ; then
+    "${RECORD_COMMAND[@]}" 2> >(tee "${FULL_CAPTURE_LOG}" "${VRECORD_INPUT_TMP}" 1>&2) | \
+    if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] && [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]]; then
+        tee >("${PLAYER_COMMAND[@]}") | qcli -f signalstats+aphasemeter+astats+ssim -i - -o "${QCXML}"
+    else
+        "${PLAYER_COMMAND[@]}"
+    fi
+elif [[ "${VRECORD_STEPS}" = "3" ]] ; then
+    "${RECORD_COMMAND[@]}" 2> >(tee "${FULL_CAPTURE_LOG}" "${VRECORD_INPUT_TMP}" 1>&2) | \
+    "${FF_RECORD_COMMAND[@]}" 2> >(tee "${FULL_CAPTURE_LOG}" "${VRECORD_INPUT_TMP}" 1>&2) | \
+    if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] && [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]]; then
+        tee >("${PLAYER_COMMAND[@]}") | qcli -f signalstats+aphasemeter+astats+ssim -i - -o "${QCXML}"
+    else
+        "${PLAYER_COMMAND[@]}"
+    fi
+else
+    _report_unexpected_error VRECORD_STEPS
 fi
 # capture errors from components of recording pipe
 P1_ERR="${PIPESTATUS[0]}"
