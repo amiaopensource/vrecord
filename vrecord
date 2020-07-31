@@ -919,7 +919,7 @@ export MAIN_DIALOG='
         <hbox>
             <frame Select a recording directory>
                 <hbox>
-                    <entry accept="directory">
+                    <entry accept="directory" fs-title="Select an existing folder (or drag/drop one below). File System/Volumes for external media.">
                         <variable>DIR</variable>
                         <default>'"${DIR:-\"\"}"'</default>
                         <action signal="key-release-event" type="refresh">VRECORD_OUTPUT_NAME</action>
@@ -933,7 +933,7 @@ export MAIN_DIALOG='
             </frame>
             <frame Select a directory for auxiliary files (leave blank to match the recording directory).>
                 <hbox>
-                    <entry accept="directory" tooltip-text="select the directory for automatically generated logs and checksums">
+                    <entry accept="directory" tooltip-text="select the directory for automatically generated logs and checksums"  \fs-title="Select an existing folder (or drag/drop one below). File System/Volumes for external media.">
                         <variable>LOGDIR</variable>
                         <default>'"${LOGDIR:-\"\"}"'</default>
                     </entry>
