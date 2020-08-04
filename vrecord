@@ -544,6 +544,9 @@ _get_avfctl_inputs(){
     if [[ "${#AVFCTL_DEVICES[@]}" = 1 ]] ; then # default to first input if only one
       AVFCTL_INPUT_CHOICE="${AVFCTL_DEVICES[0]}"
     fi
+    if [[ "${OS_TYPE}" = "linux" ]] ; then
+      AVFCTL_DEVICES+=('Default DV Device')
+    fi
 }
 
 _get_decklink_inputs
@@ -1297,7 +1300,11 @@ _passthrough_mode(){
             fi
         fi
     elif [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
+      if [[ "${OS_TYPE}" = "linux" ]] ; then
+        "${FFPLAY_BIN}" -f iec61883 -i auto -window_title "${WINDOW_NAME}"
+      else
         avfctl "${GRAB_INPUT[@]}" | "${FFPLAY_BIN}" -window_title "${WINDOW_NAME}" -
+      fi
     elif [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
         "${FFMPEG_BIN}" -nostdin -hide_banner -nostats "${GRAB_INPUT[@]}" "${PIPE_OUTPUT[@]}" 2> "${VRECORD_INPUT_TMP}" | \
             "${FFPLAY_BIN}" -window_title "${WINDOW_NAME}" -f lavfi "amovie='pipe\:0',${PLAYBACKFILTER}"
@@ -2333,11 +2340,17 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         PLAYER_COMMAND=("${FFPLAY_BIN}" "${FFPLAY_OPTIONS[@]}")
     fi
 elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
-    VRECORD_STEPS="3"
-    RECORD_COMMAND=(avfctl)
-    RECORD_COMMAND+=("${GRAB_INPUT[@]}")
-    FF_RECORD_COMMAND=("${FFMPEG_BIN}" -nostdin -nostats "${TIME_LIMIT[@]}")
-    FF_RECORD_COMMAND+=(-i -)
+    if [[ "${OS_TYPE}" = "linux" ]] ; then
+      VRECORD_STEPS="2"
+      FF_RECORD_COMMAND=("${FFMPEG_BIN}" -nostdin -nostats "${TIME_LIMIT[@]}" -f iec61883)
+      FF_RECORD_COMMAND+=(-i auto)
+    else
+      VRECORD_STEPS="3"
+      RECORD_COMMAND=(avfctl)
+      RECORD_COMMAND+=("${GRAB_INPUT[@]}")
+      FF_RECORD_COMMAND=("${FFMPEG_BIN}" -nostdin -nostats "${TIME_LIMIT[@]}")
+      FF_RECORD_COMMAND+=(-i -)
+    fi
     FF_RECORD_COMMAND+=(-map 0:v -c copy)
     FF_RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
     FF_RECORD_COMMAND+=(-map 0:v -f rawvideo -c copy -)
