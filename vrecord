@@ -2341,19 +2341,22 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
     fi
 elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
     if [[ "${OS_TYPE}" = "linux" ]] ; then
-      VRECORD_STEPS="2"
-      FF_RECORD_COMMAND=("${FFMPEG_BIN}" -nostdin -nostats "${TIME_LIMIT[@]}" -f iec61883)
-      FF_RECORD_COMMAND+=(-i auto)
+        VRECORD_STEPS="2"
+        RECORD_COMMAND=("${FFMPEG_BIN}" -nostdin -nostats "${TIME_LIMIT[@]}" -f iec61883)
+        RECORD_COMMAND+=(-i auto)
+        RECORD_COMMAND+=(-map 0:v -c copy)
+        RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
+        RECORD_COMMAND+=(-map 0:v -f rawvideo -c copy -)
     else
-      VRECORD_STEPS="3"
-      RECORD_COMMAND=(avfctl)
-      RECORD_COMMAND+=("${GRAB_INPUT[@]}")
-      FF_RECORD_COMMAND=("${FFMPEG_BIN}" -nostdin -nostats "${TIME_LIMIT[@]}")
-      FF_RECORD_COMMAND+=(-i -)
+        VRECORD_STEPS="3"
+        RECORD_COMMAND=(avfctl)
+        RECORD_COMMAND+=("${GRAB_INPUT[@]}")
+        FF_RECORD_COMMAND=("${FFMPEG_BIN}" -nostdin -nostats "${TIME_LIMIT[@]}")
+        FF_RECORD_COMMAND+=(-i -)
+        FF_RECORD_COMMAND+=(-map 0:v -c copy)
+        FF_RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
+        FF_RECORD_COMMAND+=(-map 0:v -f rawvideo -c copy -)
     fi
-    FF_RECORD_COMMAND+=(-map 0:v -c copy)
-    FF_RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
-    FF_RECORD_COMMAND+=(-map 0:v -f rawvideo -c copy -)
     _set_ffplay_options
     PLAYER_COMMAND=("${FFPLAY_BIN}" -)
 elif [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
