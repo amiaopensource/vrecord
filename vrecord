@@ -2102,7 +2102,7 @@ _set_ffplay_options(){
         FFPLAY_OPTIONS+=(-i -)
     fi
     FFPLAY_OPTIONS+=(-window_title "${WINDOW_NAME}")
-    if [[ ! -z "${PLAYBACKFILTER}" ]] ; then
+    if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] && [[ ! -z "${PLAYBACKFILTER}" ]] ; then
         FFPLAY_OPTIONS+=(-vf "${PLAYBACKFILTER}")
     fi
     FFPLAY_OPTIONS+=(-af "channelmap=0|1:stereo")
