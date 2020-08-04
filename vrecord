@@ -2021,7 +2021,7 @@ elif [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         GRAB_INPUT+=(-s 32)
         GRAB_INPUT+=(-p "${BMD_PIXEL_FORMAT}")
         GRAB_INPUT+=(-F "matroska")
-        GRAB_INPUT+=(-d "1")
+        GRAB_INPUT+=(-d "0")
         GRAB_INPUT+=(-f pipe:1)
     else
     ## TO INDENT
