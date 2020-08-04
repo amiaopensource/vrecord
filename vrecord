@@ -2356,7 +2356,7 @@ else
     _report_unexpected_error DEVICE_INPUT_CHOICE
 fi
 if [[ "${VRECORD_STEPS}" = "2" ]] ; then
-    _writeingestlog "Capture-Record command" "${FF_RECORD_COMMAND[@]}"
+    _writeingestlog "Capture-Record command" "${RECORD_COMMAND[@]}"
     _writeingestlog "Playback command" "${PLAYER_COMMAND[@]}"
     "${RECORD_COMMAND[@]}" 2> >(tee "${FULL_CAPTURE_LOG}" "${VRECORD_INPUT_TMP}" 1>&2) | \
     if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] && [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]]; then
