@@ -2366,7 +2366,7 @@ if [[ "${VRECORD_STEPS}" = "2" ]] ; then
     fi
 elif [[ "${VRECORD_STEPS}" = "3" ]] ; then
     _writeingestlog "Capture command" "${RECORD_COMMAND[@]}"
-    _writeingestlog "Record command" "${FF_ RECORD_COMMAND[@]}"
+    _writeingestlog "Record command" "${FF_RECORD_COMMAND[@]}"
     _writeingestlog "Playback command" "${PLAYER_COMMAND[@]}"
     "${RECORD_COMMAND[@]}" 2> >(tee "${FULL_CAPTURE_LOG}" "${VRECORD_INPUT_TMP}" 1>&2) | \
     "${FF_RECORD_COMMAND[@]}" 2> >(tee "${FULL_CAPTURE_LOG}" "${VRECORD_INPUT_TMP}" 1>&2) | \
