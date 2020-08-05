@@ -186,6 +186,7 @@ _setup_env_variables(){
         ZCAT_COMMAND="gzcat"
         DECKLINK_DRIVER_PLIST="/Library/Extensions/DeckLink_Driver.kext/Contents/Info.plist"
         VIDEO_CARD_DRIVER_VERSION="$(defaults read "${DECKLINK_DRIVER_PLIST}" CFBundleVersion)"
+        DIR_SELECTION_DIALOG="Select an existing folder (or drag/drop one below). File System/Volumes for external media."
     elif [[ "${QUERY_OS_TYPE}" = "Linux" ]] ; then
         OS_TYPE="linux"
         if [[ $(dirname "$(command -v "${0}")") = "/usr/local/bin" ]] ; then
@@ -206,6 +207,7 @@ _setup_env_variables(){
         CORE_COUNT="$(nproc --all)"
         OPEN_COMMAND="xdg-open"
         ZCAT_COMMAND="zcat"
+        DIR_SELECTION_DIALOG="Select an existing folder (or drag/drop one below)."
     else
         echo "Unsupported OS, ${QUERY_OS_TYPE}, detected. Exiting."
         exit 1
@@ -213,7 +215,7 @@ _setup_env_variables(){
 }
 if [[ -z "${OS_TYPE}" ]] ; then
     _setup_env_variables
-    _include_var OS_TYPE RESOURCE_PATH DEFAULTFONT CORE_COUNT OPEN_COMMAND ZCAT_COMMAND COMPUTER_MODEL_NAME
+    _include_var OS_TYPE RESOURCE_PATH DEFAULTFONT CORE_COUNT OPEN_COMMAND ZCAT_COMMAND COMPUTER_MODEL_NAME DIR_SELECTION_DIALOG
 fi
 if [[ "${OS_TYPE}" = "macOS" ]] ; then
     _include_var COMPUTER_MODEL_ID COMPUTER_PROCESSOR_NAME COMPUTER_PROCESSOR_SPEED COMPUTER_PROCESSOR_COUNT COMPUTER_MEMORY COMPUTER_SERIAL
@@ -919,7 +921,7 @@ export MAIN_DIALOG='
         <hbox>
             <frame Select a recording directory>
                 <hbox>
-                    <entry accept="directory" fs-title="Select an existing folder (or drag/drop one below). File System/Volumes for external media.">
+                    <entry accept="directory" fs-title="'"${DIR_SELECTION_DIALOG}"'">
                         <variable>DIR</variable>
                         <default>'"${DIR:-\"\"}"'</default>
                         <action signal="key-release-event" type="refresh">VRECORD_OUTPUT_NAME</action>
@@ -933,7 +935,7 @@ export MAIN_DIALOG='
             </frame>
             <frame Select a directory for auxiliary files (leave blank to match the recording directory).>
                 <hbox>
-                    <entry accept="directory" tooltip-text="select the directory for automatically generated logs and checksums"  \fs-title="Select an existing folder (or drag/drop one below). File System/Volumes for external media.">
+                    <entry accept="directory" tooltip-text="select the directory for automatically generated logs and checksums"  \fs-title="'"${DIR_SELECTION_DIALOG}"'">
                         <variable>LOGDIR</variable>
                         <default>'"${LOGDIR:-\"\"}"'</default>
                     </entry>
