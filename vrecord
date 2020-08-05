@@ -22,7 +22,7 @@ files.
 
 Dependencies: cowsay, amiaopensource/amiaos/decklinksdk,
   amiaopensource/amiaos/ffmpegdecklink, amiaopensource/amiaos/gtkdialog,
-  freetype, sdl and xmlstarlet
+  and xmlstarlet
 Optional Dependencies: deckcontrol, gnuplot, mediaconch, mkvtoolnix, mpv, qcli
 
 Usage: ${SCRIPTNAME} [ -g | -e | -r | -p | -a | -x | -v | -h ] [IDENTIFIER]
@@ -88,6 +88,19 @@ _report(){
     shift "$((OPTIND-1))"
     MESSAGE="${1}"
     echo ${ECHOOPT} "${COLOR}${STARTMESSAGE[@]}${MESSAGE}${NC}"
+}
+_report_unexpected_error(){
+    ERROR_VAR_NAME="${1}"
+    ERROR_VAR_VALUE="${!1}"
+    ERROR_DETAIL="$2"
+    _report -d -wt "vrecord exited a form in an unexpected way (${ERROR_VAR_NAME}=${ERROR_VAR_VALUE}), please report this error to https://github.com/amiaopensource/vrecord/issues"
+    if [[ -n "${ERROR_DETAIL}" ]] ;then
+        _report -d -wt "Error details: ${ERROR_DETAIL}"
+    fi
+    if [[ -f "${INGESTLOG}" ]] ; then
+        _writeingestlog "vrecord command Error" "invalid ${ERROR_VAR_NAME} value of ${ERROR_VAR_VALUE}"
+    fi
+    exit 1
 }
 
 # command-line options to set media id and original variables
@@ -225,7 +238,7 @@ MPVOPTS+=(--script="${RESOURCE_PATH}/qcview.lua")
 MPVOPTS+=(--really-quiet)
 
 _gather_ffmpeg_vars(){
-    CAPTURELOGSUFFIX="_ffmpeg_input.log"
+    CAPTURELOGSUFFIX="_vrecord_input.log"
     TIMECODELOGSUFFIX="_frame_timecodes.txt"
     if [[ -d "/usr/local/opt/ffmpegdecklink" ]] ; then
         BREW_PREFIX="/usr/local/opt/ffmpegdecklink"
@@ -336,6 +349,7 @@ _update_config_file(){
         echo "TECHNICIAN=\"${TECHNICIAN}\""
         echo "AVFCTL_INPUT_CHOICE=\"${AVFCTL_INPUT_CHOICE}\""
         echo "DECKLINK_INPUT_CHOICE=\"${DECKLINK_INPUT_CHOICE}\""
+        echo "DECKLINK_UTILITY_CHOICE=\"${DECKLINK_UTILITY_CHOICE}\""
     } > "${CONFIG_FILE}"
     . "${CONFIG_FILE}"
 }
@@ -400,10 +414,21 @@ _get_output_filename(){
 
     echo "${DIR}/${PREFIX}${ID}${SUFFIX}.${EXTENSION}"
 }
+
+_get_decklink_inputs(){
+    # get information on what input device options are available
+    #unset DECKLINK_DEVICES
+    if [[ "${DECKLINK_UTILITY_CHOICE}" == "bmdcapture" ]] ; then
+        bmdcapture -h 2>&1 | grep "^->" | head -n 1 | sed 's/.*-> \(.*\) (.*/\1/'
+    else
+        "${FFMPEG_BIN}" -nostdin -v 0 -sources decklink | awk -F'[][]' '{print $2}' | grep -v "^$"
+    fi
+}
 GTKDIALOG_FUNCTION_DOC
 )
 
 # optional dependency checks
+BMDTOOLS_INSTALLED="$(if command -v bmdcapture >/dev/null ; then echo true ; else echo false ; fi)"
 DECKCONTROL_INSTALLED="$(if command -v deckcontrol >/dev/null ; then echo true ; else echo false ; fi)"
 GNUPLOT_INSTALLED="$(if command -v gnuplot >/dev/null ; then echo true ; else echo false ; fi)"
 MEDIACONCH_INSTALLED="$(if command -v mediaconch >/dev/null ; then echo true ; else echo false ; fi)"
@@ -417,6 +442,9 @@ if [[ -f "${CONFIG_FILE}" ]] ; then
     if [[ -z "${FFV1_SLICE_CHOICE}" ]] ; then
         FFV1_SLICE_CHOICE="16"
     fi
+    if [[ -z "${DECKLINK_UTILITY_CHOICE}" ]] ; then
+        DECKLINK_UTILITY_CHOICE="ffmpeg"
+    fi
 else
     _report -d "Initiatizing the configuration file at ${CONFIG_FILE}."
     RUNTYPE="edit"
@@ -429,7 +457,11 @@ _gtk_vbox_list() {
     shift 3
     OPTION_LIST=("${@}")
     SELECTION="$(_get_index_of_value "${!VARIABLE_NAME}" "${OPTION_LIST[@]}")"
-    LIST="$(_expand_list2items "${OPTION_LIST[@]}")"
+    if [[ "${VARIABLE_NAME}" == "DECKLINK_INPUT_CHOICE" ]] ; then
+        LIST="<input>_get_decklink_inputs</input>"
+    else
+        LIST="$(_expand_list2items "${OPTION_LIST[@]}")"
+    fi
 
     _get_list_extras(){
         if [[ "${VARIABLE_NAME}" == "VIDEO_CODEC_CHOICE" ]] ; then
@@ -442,6 +474,10 @@ _gtk_vbox_list() {
                   <action type="refresh">VRECORD_OUTPUT_NAME</action>'
         elif  [[ "${VARIABLE_NAME}" == "AUDIO_MODE_CODEC_CHOICE" ]] ; then
             echo '<action type="refresh">VRECORD_OUTPUT_NAME</action>'
+        elif  [[ "${VARIABLE_NAME}" == "DECKLINK_UTILITY_CHOICE" ]] ; then
+          echo '<action condition="command_is_true( [ \"$DECKLINK_UTILITY_CHOICE\" = \"bmdcapture\" ] && echo true)">disable:TIMECODE_CHOICE</action>
+                <action condition="command_is_true( [ \"$DECKLINK_UTILITY_CHOICE\" != \"bmdcapture\" ] && echo true)">enable:TIMECODE_CHOICE</action>
+                <action type="refresh">VRECORD_OUTPUT_NAME</action>'
         fi
     }
 
@@ -457,12 +493,18 @@ _gtk_vbox_list() {
             echo "<sensitive>$(if $MKVPROPEDIT_INSTALLED ; then echo true ; else echo false ; fi)</sensitive>"
         elif [[ "${VARIABLE_NAME}" == "QCTOOLSXML_CHOICE" ]] ; then
             echo "<sensitive>$(if $QCLI_INSTALLED ; then echo true ; else echo false ; fi)</sensitive>"
+        elif [[ "${VARIABLE_NAME}" == "DECKLINK_INPUT_CHOICE" ]] ; then
+            echo "
+            <button>
+                <label>Rescan</label>
+                <action type=\"clear\">DECKLINK_INPUT_CHOICE</action>
+                <action type=\"refresh\">DECKLINK_INPUT_CHOICE</action>
+            </button>"
         fi
     }
 
     echo "<vbox>
       <text>
-          <width>${WIDTH}</width>
           <label>${LABEL}</label>
       </text>
       <list selection-mode=\"1\" selected-row=\"${SELECTION}\">
@@ -529,6 +571,8 @@ _set_up_edit_form() {
     for i in "${LIST[@]}" ; do
       if [[ "$i" == "Quality Control View (mpv)" ]] && ! $MPV_INSTALLED ; then
           :
+      elif [[ "$i" == "bmdcapture" ]] && ! $BMDTOOLS_INSTALLED ; then
+          :
       else
         echo "<item>${i}</item>"
       fi
@@ -581,6 +625,14 @@ PLAYBACK_OPT_GUI="
 
 OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
 <frame Optional Tools>
+  <hbox>
+        <text>
+            <label>bmdtools: </label>
+        </text>
+        <pixmap stock-icon-size="1" tooltip-text="If bmdtools is installed, vrecord can offer bmdcapture as an alternate method (to ffmpeg) to receive an input from a Blackmagic capture device.">
+            <input file stock="$(if $BMDTOOLS_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)"></input>
+        </pixmap>
+    </hbox>
     <hbox>
         <text>
             <label>deckcontrol: </label>
@@ -666,6 +718,7 @@ DECKLINK_INPUT_GUI=$(cat << DECKLINK_FORM
 <frame Decklink input options>
     <vbox>
         <hbox space-expand="true">
+            $(_gtk_vbox_list "DECKLINK_UTILITY_CHOICE"  "100" "Select Input Utility"          "${DECKLINK_UTILITIES[@]}")
             $(_gtk_vbox_list "DECKLINK_INPUT_CHOICE"    "160" "Select Video Card"             "${DECKLINK_DEVICES[@]}")
             $(_gtk_vbox_list "VIDEO_INPUT_CHOICE"       "100" "Select Video Input"            "${VIDEO_INPUT_OPTIONS[@]}")
             $(_gtk_vbox_list "AUDIO_INPUT_CHOICE"       "200" "Select Audio Input"            "${AUDIO_INPUT_OPTIONS[@]}")
@@ -714,7 +767,7 @@ DECKLINK_INPUT_GUI=$(cat << DECKLINK_FORM
                     <timer milliseconds="true" interval="500" visible="false" disabled="true">
                          <variable export="false">deckcontrol_timer</variable>
                          <visible>disabled</visible>
-                         <action>{ timeout --foreground 0.5 deckcontrol getcurrentstate | grep "state:\|detect" | sed "s/VTR control state: //g" > "${DECKCONTROL_STATUS_TMP}" ; timeout 0.5 deckcontrol gettimecode | grep "TC=" | cut -c 4- > "${DECKCONTROL_TIMECODE_TMP}" ; } &</action>
+                         <action>{ deckcontrol getcurrentstate | grep "state:\|detect" | sed "s/VTR control state: //g" > "${DECKCONTROL_STATUS_TMP}" ; deckcontrol gettimecode | grep "TC=" | cut -c 4- > "${DECKCONTROL_TIMECODE_TMP}" ; } &</action>
                          <action>refresh:decklink_status</action>
                          <action>refresh:decklink_timecode</action>
                     </timer>
@@ -751,43 +804,43 @@ DECKLINK_INPUT_GUI=$(cat << DECKLINK_FORM
                             <variable export="false">deckcontrol_rewind</variable>
                             <input file stock="gtk-media-rewind"></input>
                             <visible>disabled</visible>
-                            <action>timeout --foreground 3 deckcontrol rewind >/dev/null</action>
+                            <action>deckcontrol rewind & >/dev/null</action>
                         </button>
                         <button>
                             <variable export="false">deckcontrol_prev</variable>
                             <input file stock="gtk-media-previous"></input>
                             <visible>disabled</visible>
-                            <action>timeout --foreground 3 deckcontrol stepback >/dev/null</action>
+                            <action>deckcontrol stepback & >/dev/null</action>
                         </button>
                         <button>
                             <variable export="false">deckcontrol_play</variable>
                             <input file stock="gtk-media-play"></input>
                             <visible>disabled</visible>
-                            <action>timeout --foreground 3 deckcontrol play >/dev/null</action>
+                            <action>deckcontrol play & >/dev/null</action>
                         </button>
                         <button>
                             <variable export="false">deckcontrol_stop</variable>
                             <input file stock="gtk-media-stop"></input>
                             <visible>disabled</visible>
-                            <action>timeout --foreground 3 deckcontrol stop >/dev/null</action>
+                            <action>deckcontrol stop & >/dev/null</action>
                         </button>
                         <button>
                             <variable export="false">deckcontrol_next</variable>
                             <input file stock="gtk-media-next"></input>
                             <visible>disabled</visible>
-                            <action>timeout --foreground 3 deckcontrol stepforward >/dev/null</action>
+                            <action>deckcontrol stepforward & >/dev/null</action>
                         </button>
                         <button>
                             <variable export="false">deckcontrol_ff</variable>
                             <input file stock="gtk-media-forward"></input>
                             <visible>disabled</visible>
-                            <action>timeout --foreground 3 deckcontrol fastforward >/dev/null</action>
+                            <action>deckcontrol fastforward & >/dev/null</action>
                         </button>
                         <button>
                             <variable export="false">deckcontrol_eject</variable>
                             <label>Eject</label>
                             <visible>disabled</visible>
-                            <action>timeout --foreground 3 deckcontrol eject >/dev/null</action>
+                            <action>deckcontrol eject & >/dev/null</action>
                         </button>
                     </hbox>
                 </hbox>
@@ -855,25 +908,25 @@ AVFCTL_INPUT_GUI=$(cat << AVFCTL_FORM
                     <variable export="false">avfctl_rewind</variable>
                     <input file stock="gtk-media-rewind"></input>
                     <visible>disabled</visible>
-                    <action>timeout --foreground 3 avfctl -cmd rew</action>
+                    <action>avfctl -cmd rew &</action>
                 </button>
                 <button>
                     <variable export="false">avfctl_play</variable>
                     <input file stock="gtk-media-play"></input>
                     <visible>disabled</visible>
-                    <action>timeout --foreground 3 avfctl -cmd play</action>
+                    <action>avfctl -cmd play &</action>
                 </button>
                 <button>
                     <variable export="false">avfctl_stop</variable>
                     <input file stock="gtk-media-stop"></input>
                     <visible>disabled</visible>
-                    <action>timeout --foreground 3 avfctl -cmd stop</action>
+                    <action>avfctl -cmd stop &</action>
                 </button>
                 <button>
                     <variable export="false">avfctl_ff</variable>
                     <input file stock="gtk-media-forward"></input>
                     <visible>disabled</visible>
-                    <action>timeout --foreground 3 avfctl -cmd ff</action>
+                    <action>avfctl -cmd ff &</action>
                 </button>
             </hbox>
         </hbox>
@@ -1209,8 +1262,7 @@ _edit_mode(){
         done
         RUNTYPE="edit"
     else
-        _report -d -wt "vrecord exited a form in an unexpected way, please report this error to https://github.com/amiaopensource/vrecord/issues"
-        exit 1
+        _report_unexpected_error EXIT
     fi
 }
 
@@ -1220,14 +1272,29 @@ _passthrough_mode(){
     if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
         if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
             _check_mpv
+            if [[ "${DECKLINK_UTILITY_CHOICE}" == "bmdcapture" ]] ; then
+                bmdcapture "${GRAB_INPUT[@]}"
+            else
+                # TO INDENT
             "${FFMPEG_BIN}" -nostats "${GRAB_INPUT[@]}" 2> >(tee "${VRECORD_INPUT_TMP}" 1>&2) \
-            "${PIPE_OUTPUT[@]}" | \
+            "${PIPE_OUTPUT[@]}"
+            fi | \
             mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -
         elif [[ "${PLAYBACKVIEW_CHOICE_PASS}" = "Audio + Video" ]] ; then
-                "${FFMPEG_BIN}" -nostdin -hide_banner -nostats "${GRAB_INPUT[@]}" "${PIPE_OUTPUT[@]}" 2> "${VRECORD_INPUT_TMP}" | \
+            if [[ "${DECKLINK_UTILITY_CHOICE}" == "bmdcapture" ]] ; then
+                bmdcapture "${GRAB_INPUT[@]}"
+            else
+                "${FFMPEG_BIN}" -nostdin -hide_banner -nostats "${GRAB_INPUT[@]}" "${PIPE_OUTPUT[@]}" 2> "${VRECORD_INPUT_TMP}"
+            fi | \
                 "${FFPLAY_BIN}" -window_title "${WINDOW_NAME}" -f lavfi "movie='pipe\:0':${PLAYBACKFILTER}"
         else
+            if [[ "${DECKLINK_UTILITY_CHOICE}" == "bmdcapture" ]] ; then
+                bmdcapture "${GRAB_INPUT[@]}" | \
+                    "${FFPLAY_BIN}" - -window_title "${WINDOW_NAME}" -vf "${PLAYBACKFILTER}"
+            else
+                # TO INDENT
             "${FFPLAY_BIN}" "${FFPLAY_OPTIONS[@]}" 2> >(tee "${VRECORD_INPUT_TMP}" 1>&2)
+            fi
         fi
     elif [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
         avfctl "${GRAB_INPUT[@]}" | "${FFPLAY_BIN}" -window_title "${WINDOW_NAME}" -
@@ -1235,8 +1302,7 @@ _passthrough_mode(){
         "${FFMPEG_BIN}" -nostdin -hide_banner -nostats "${GRAB_INPUT[@]}" "${PIPE_OUTPUT[@]}" 2> "${VRECORD_INPUT_TMP}" | \
             "${FFPLAY_BIN}" -window_title "${WINDOW_NAME}" -f lavfi "amovie='pipe\:0',${PLAYBACKFILTER}"
     else
-        _report -d -wt "vrecord exited a form in an unexpected way, please report this error to https://github.com/amiaopensource/vrecord/issues"
-        exit 1
+        _report_unexpected_error DEVICE_INPUT_CHOICE
     fi
 }
 
@@ -1379,15 +1445,15 @@ _lookup_choice(){
     esac
     case "${1}" in
         # video inputs
-        "Composite") VIDEO_INPUT="composite" ;;
-        "SDI")       VIDEO_INPUT="sdi" ;;
-        "Component") VIDEO_INPUT="component" ;;
-        "S-Video")   VIDEO_INPUT="s_video" ;;
+        "Composite") VIDEO_INPUT="composite" ; BMD_VIDEO_INPUT="1" ;;
+        "SDI")       VIDEO_INPUT="sdi";        BMD_VIDEO_INPUT="4" ;;
+        "Component") VIDEO_INPUT="component";  BMD_VIDEO_INPUT="2" ;;
+        "S-Video")   VIDEO_INPUT="s_video";    BMD_VIDEO_INPUT="6" ;;
 
         # audio inputs
-        "Analog")                  AUDIO_INPUT="analog" ;;
-        "SDI Embedded Audio")      AUDIO_INPUT="embedded" ;;
-        "Digital Audio (AES/EBU)") AUDIO_INPUT="aes_ebu" ;;
+        "Analog")                  AUDIO_INPUT="analog" ;   BMD_AUDIO_INPUT="1" ;;
+        "SDI Embedded Audio")      AUDIO_INPUT="embedded" ; BMD_AUDIO_INPUT="2"  ;;
+        "Digital Audio (AES/EBU)") AUDIO_INPUT="aes_ebu" ;  BMD_AUDIO_INPUT="3"  ;;
 
         # container
         "QuickTime")
@@ -1447,8 +1513,8 @@ _lookup_choice(){
             SUFFIX="_huff" ;;
 
         # video pixel format and bit depth
-        "10 bit") PIXEL_FORMAT="yuv422p10" ;;
-        "8 bit")  PIXEL_FORMAT="uyvy422" ;;
+        "10 bit") PIXEL_FORMAT="yuv422p10" ; BMD_PIXEL_FORMAT="yuv10" ;;
+        "8 bit")  PIXEL_FORMAT="uyvy422" ;   BMD_PIXEL_FORMAT="yuv8" ;;
 
         # audio codec
         "24-bit PCM")
@@ -1522,25 +1588,30 @@ _lookup_choice(){
         # video standard
         "NTSC")
             STANDARD="ntsc"
+            if [[ "${DECKLINK_UTILITY_CHOICE}" == "bmdcapture" ]] ; then
+                BMD_STANDARD="$(bmdcapture -h 2>&1 | grep "NTSC.*29.97" | cut -d: -f 1 | sed 's/ //g' | head -n 1)"
+                RECORDINGFILTER+="setfield=bff,"
+            fi
             DECKLINK_FPS="30000/1001"
             if [[ "${VIDEO_CODEC_CHOICE}" = "h264" ]] ; then
-                RECORDINGFILTER="crop=w=720:h=480:x=0:y=4,setsar=40/27,setdar=4/3"
+                RECORDINGFILTER+="crop=w=720:h=480:x=0:y=4,"
                 MIDDLEOPTIONS+=(-x264opts bff)
-            else
-                RECORDINGFILTER="setsar=40/27,setdar=4/3"
             fi
+            RECORDINGFILTER+="setsar=40/27,setdar=4/3"
             MIDDLEOPTIONS+=(-color_primaries smpte170m)
             MIDDLEOPTIONS+=(-color_trc bt709)
             MIDDLEOPTIONS+=(-colorspace smpte170m) ;;
         "PAL")
             STANDARD="pal "
+            if [[ "${DECKLINK_UTILITY_CHOICE}" == "bmdcapture" ]] ; then
+                BMD_STANDARD="$(bmdcapture -h 2>&1 | grep "PAL.*25" | cut -d: -f 1 | sed 's/ //g' | head -n 1)"
+                RECORDINGFILTER+="setfield=tff,"
+            fi
             DECKLINK_FPS="25000/1000"
             if [[ "${VIDEO_CODEC_CHOICE}" = "h264" ]] ; then
-                RECORDINGFILTER="setsar=16/15,setdar=4/3"
                 MIDDLEOPTIONS+=(-x264opts tff)
-            else
-                RECORDINGFILTER="setsar=16/15,setdar=4/3"
             fi
+            RECORDINGFILTER+="setsar=16/15,setdar=4/3"
             MIDDLEOPTIONS+=(-color_primaries bt470bg)
             MIDDLEOPTIONS+=(-color_trc bt709)
             MIDDLEOPTIONS+=(-colorspace bt470bg) ;;
@@ -1816,6 +1887,7 @@ drawgrid=w=32:h=32:t=1:c=white@0.1,\
 drawgrid=w=256:h=256:t=1:c=white@0.2"
 
 # list of selections for each vrecord option
+DECKLINK_UTILITIES=("ffmpeg" "bmdcapture")
 VIDEO_INPUT_OPTIONS=("Composite" "SDI" "Component" "S-Video")
 AUDIO_INPUT_OPTIONS=("Analog" "SDI Embedded Audio" "Digital Audio (AES/EBU)")
 CONTAINER_OPTIONS=("QuickTime" "Matroska" "AVI" "MXF" "MP4")
@@ -1884,6 +1956,7 @@ _review_option(){
 }
 
 if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
+    _review_option -n "DECKLINK_UTILITY_CHOICE" "${DECKLINK_UTILITIES[@]}"
     _review_option "VIDEO_INPUT_CHOICE" "${VIDEO_INPUT_OPTIONS[@]}"
     _review_option "AUDIO_INPUT_CHOICE" "${AUDIO_INPUT_OPTIONS[@]}"
     _review_option "VIDEO_BIT_DEPTH_CHOICE" "${VIDEO_BITDEPTH_OPTIONS[@]}"
@@ -1940,6 +2013,18 @@ if [[ -n "${ALT_INPUT}" ]] ; then
     GRAB_INPUT+=("${EXTRAINPUTOPTIONS[@]}")
     GRAB_INPUT+=(-i "${ALT_INPUT}")
 elif [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
+    if [[ "${DECKLINK_UTILITY_CHOICE}" == "bmdcapture" ]] ; then
+        GRAB_INPUT+=(-A "${BMD_AUDIO_INPUT}")
+        GRAB_INPUT+=(-V "${BMD_VIDEO_INPUT}")
+        GRAB_INPUT+=(-m "${BMD_STANDARD}")
+        GRAB_INPUT+=(-c 8)
+        GRAB_INPUT+=(-s 32)
+        GRAB_INPUT+=(-p "${BMD_PIXEL_FORMAT}")
+        GRAB_INPUT+=(-F "matroska")
+        GRAB_INPUT+=(-d "0")
+        GRAB_INPUT+=(-f pipe:1)
+    else
+    ## TO INDENT
     _set_ffmpeg_loglevel
     GRAB_INPUT+=(-f decklink)
     GRAB_INPUT+=(-draw_bars 0)
@@ -1951,6 +2036,7 @@ elif [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
     GRAB_INPUT+=(-raw_format "${PIXEL_FORMAT}")
     GRAB_INPUT+=("${EXTRAINPUTOPTIONS[@]}")
     GRAB_INPUT+=(-i "${DECKLINK_INPUT_CHOICE}")
+    fi
 elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
     AVFCTL_INPUT_INDEX="$(echo "${AVFCTL_INPUT_CHOICE}" | cut -c 2)"
     GRAB_INPUT+=(-device "${AVFCTL_INPUT_INDEX}")
@@ -2016,7 +2102,7 @@ _set_ffplay_options(){
         FFPLAY_OPTIONS+=(-i -)
     fi
     FFPLAY_OPTIONS+=(-window_title "${WINDOW_NAME}")
-    if [[ ! -z "${PLAYBACKFILTER}" ]] ; then
+    if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] && [[ ! -z "${PLAYBACKFILTER}" ]] ; then
         FFPLAY_OPTIONS+=(-vf "${PLAYBACKFILTER}")
     fi
     FFPLAY_OPTIONS+=(-af "channelmap=0|1:stereo")
@@ -2213,16 +2299,41 @@ _report -d "Close the playback window to stop recording."
 # vrecord process!
 if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
     # DEVICE_INPUT_CHOICE=0 is decklink, other DEVICE_INPUT_CHOICE values don't yet use such filtering
-    RECORD_COMMAND=("${FFMPEG_BIN}")
-    RECORD_COMMAND+=(-nostdin -nostats "${TIME_LIMIT[@]}" "${GRAB_INPUT[@]}")
-    if [[ -n "${VIDEOCODECNAME}" ]] ; then
-        MIDDLEOPTIONS+=(-metadata:s:v:0 encoder="${VIDEOCODECNAME}")
+    if [[ "${DECKLINK_UTILITY_CHOICE}" == "bmdcapture" ]] ; then
+        VRECORD_STEPS="3"
+        RECORD_COMMAND=(bmdcapture)
+        # TO DO adjust TIME_LIMIT for bmdcapture
+        RECORD_COMMAND+=("${GRAB_INPUT[@]}")
+        FF_RECORD_COMMAND=("${FFMPEG_BIN}" -nostdin -nostats "${TIME_LIMIT[@]}")
+        FF_RECORD_COMMAND+=(-i -)
+        if [[ -n "${VIDEOCODECNAME}" ]] ; then
+            MIDDLEOPTIONS+=(-metadata:s:v:0 encoder="${VIDEOCODECNAME}")
+        fi
+        FF_RECORD_COMMAND+=("${MIDDLEOPTIONS[@]}")
+        FF_RECORD_COMMAND+=(-filter_complex "[0:v:0]${RECORDINGFILTER}${TC_WRITE}; ${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}")
+        FF_RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
+        FF_RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}" "${PIPE_OUTPUT[@]}")
+    else
+        VRECORD_STEPS="2"
+        RECORD_COMMAND=("${FFMPEG_BIN}")
+        RECORD_COMMAND+=(-nostdin -nostats "${TIME_LIMIT[@]}" "${GRAB_INPUT[@]}")
+        if [[ -n "${VIDEOCODECNAME}" ]] ; then
+            MIDDLEOPTIONS+=(-metadata:s:v:0 encoder="${VIDEOCODECNAME}")
+        fi
+        RECORD_COMMAND+=("${MIDDLEOPTIONS[@]}")
+        RECORD_COMMAND+=(-filter_complex "[0:v:0]${RECORDINGFILTER}${TC_WRITE}; ${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}")
+        RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
+        RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}" "${PIPE_OUTPUT[@]}")
     fi
-    RECORD_COMMAND+=("${MIDDLEOPTIONS[@]}")
-    RECORD_COMMAND+=(-filter_complex "[0:v:0]${RECORDINGFILTER}${TC_WRITE}; ${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}")
-    RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
-    RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}" "${PIPE_OUTPUT[@]}")
+    if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
+        _check_mpv
+        PLAYER_COMMAND=(mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -)
+    else
+        _set_ffplay_options
+        PLAYER_COMMAND=("${FFPLAY_BIN}" "${FFPLAY_OPTIONS[@]}")
+    fi
 elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
+    VRECORD_STEPS="3"
     RECORD_COMMAND=(avfctl)
     RECORD_COMMAND+=("${GRAB_INPUT[@]}")
     FF_RECORD_COMMAND=("${FFMPEG_BIN}" -nostdin -nostats "${TIME_LIMIT[@]}")
@@ -2230,76 +2341,67 @@ elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
     FF_RECORD_COMMAND+=(-map 0:v -c copy)
     FF_RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
     FF_RECORD_COMMAND+=(-map 0:v -f rawvideo -c copy -)
+    _set_ffplay_options
+    PLAYER_COMMAND=("${FFPLAY_BIN}" "${FFPLAY_OPTIONS[@]}")
 elif [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
+    VRECORD_STEPS="2"
     RECORD_COMMAND=("${FFMPEG_BIN}")
     RECORD_COMMAND+=(-nostdin -nostats "${TIME_LIMIT[@]}" "${GRAB_INPUT[@]}")
     RECORD_COMMAND+=("${MIDDLEOPTIONS[@]}")
     RECORD_COMMAND+=(-f "${FORMAT}" -filter_complex "${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" "${VRECORD_OUTPUT}")
     RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}" -filter_complex "${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" "${PIPE_OUTPUT[@]}")
+    _set_ffplay_options
+    PLAYER_COMMAND=("${FFPLAY_BIN}" -f lavfi "amovie='pipe\:0',${PLAYBACKFILTER}")
 else
-    _report -d -wt "vrecord exited a form in an unexpected way (DEVICE_INPUT_CHOICE=${DEVICE_INPUT_CHOICE}), please report this error to https://github.com/amiaopensource/vrecord/issues"
-    exit 1
+    _report_unexpected_error DEVICE_INPUT_CHOICE
 fi
-_writeingestlog "Recording command" "${RECORD_COMMAND[@]}"
-_set_ffplay_options
-if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
-    if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
-        _check_mpv
-        "${RECORD_COMMAND[@]}" \
-            2> >(tee "${FULL_CAPTURE_LOG}" "${VRECORD_INPUT_TMP}" 1>&2) \
-            | \
-            if [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]] ; then
-                tee >(mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -) | \
-                    qcli -f signalstats+aphasemeter+astats+ssim -i - -o "${QCXML}"
-            else
-                mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -
-            fi
+if [[ "${VRECORD_STEPS}" = "2" ]] ; then
+    _writeingestlog "Capture-Record command" "${RECORD_COMMAND[@]}"
+    _writeingestlog "Playback command" "${PLAYER_COMMAND[@]}"
+    "${RECORD_COMMAND[@]}" 2> >(tee "${FULL_CAPTURE_LOG}" "${VRECORD_INPUT_TMP}" 1>&2) | \
+    if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] && [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]]; then
+        tee >("${PLAYER_COMMAND[@]}") | qcli -f signalstats+aphasemeter+astats+ssim -i - -o "${QCXML}"
     else
-        "${RECORD_COMMAND[@]}" \
-            2> >(tee "${FULL_CAPTURE_LOG}" "${VRECORD_INPUT_TMP}" 1>&2) \
-            | \
-            if [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]] ; then
-                tee >("${FFPLAY_BIN}" "${FFPLAY_OPTIONS[@]}") | \
-                    qcli -f signalstats+aphasemeter+astats+ssim -i - -o "${QCXML}"
-            elif [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
-                "${FFPLAY_BIN}" -window_title "${WINDOW_NAME}" -f lavfi "amovie='pipe\:0',${PLAYBACKFILTER}"
-            else
-                "${FFPLAY_BIN}" "${FFPLAY_OPTIONS[@]}"
-            fi
+        "${PLAYER_COMMAND[@]}"
     fi
-elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
-    "${RECORD_COMMAND[@]}" \
-        2> >(tee "${FULL_CAPTURE_LOG}" "${VRECORD_INPUT_TMP}" 1>&2) | \
-        "${FF_RECORD_COMMAND[@]}" \
-        2> >(tee "${FULL_CAPTURE_LOG}" "${VRECORD_INPUT_TMP}" 1>&2) | \
-        "${FFPLAY_BIN}" -window_title "${WINDOW_NAME}" -
-elif [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
-    "${RECORD_COMMAND[@]}" \
-        2> >(tee "${FULL_CAPTURE_LOG}" "${VRECORD_INPUT_TMP}" 1>&2) \
-        | \
-        "${FFPLAY_BIN}" -window_title "${WINDOW_NAME}" -f lavfi "amovie='pipe\:0',${PLAYBACKFILTER}"
+elif [[ "${VRECORD_STEPS}" = "3" ]] ; then
+    _writeingestlog "Capture command" "${RECORD_COMMAND[@]}"
+    _writeingestlog "Record command" "${FF_RECORD_COMMAND[@]}"
+    _writeingestlog "Playback command" "${PLAYER_COMMAND[@]}"
+    "${RECORD_COMMAND[@]}" 2> >(tee "${FULL_CAPTURE_LOG}" "${VRECORD_INPUT_TMP}" 1>&2) | \
+    "${FF_RECORD_COMMAND[@]}" 2> >(tee "${FULL_CAPTURE_LOG}" "${VRECORD_INPUT_TMP}" 1>&2) | \
+    if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] && [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]]; then
+        tee >("${PLAYER_COMMAND[@]}") | qcli -f signalstats+aphasemeter+astats+ssim -i - -o "${QCXML}"
+    else
+        "${PLAYER_COMMAND[@]}"
+    fi
+else
+    _report_unexpected_error VRECORD_STEPS
 fi
 # capture errors from components of recording pipe
-P1_ERR="${PIPESTATUS[0]}"
-P2_ERR="${PIPESTATUS[1]}"
-P3_ERR="${PIPESTATUS[2]}"
+RESULTING_EXIT_CODES=("${PIPESTATUS[@]}")
+P1_ERR="${RESULTING_EXIT_CODES[0]}"
+P2_ERR="${RESULTING_EXIT_CODES[1]}"
+P3_ERR="${RESULTING_EXIT_CODES[2]}"
+
+if [[ "${VRECORD_STEPS}" = "2" ]] ; then
+    _writeingestlog "Capture-Record exit code" "${P1_ERR}"
+    _writeingestlog "Playback exit code" "${P2_ERR}"
+elif [[ "${VRECORD_STEPS}" = "3" ]] ; then
+    _writeingestlog "Capture exit code" "${P1_ERR}"
+    _writeingestlog "Record exit code" "${P2_ERR}"
+    _writeingestlog "Playback exit code" "${P3_ERR}"
+fi
 
 if [[ ! -s "${VRECORD_OUTPUT}" ]] ; then
     if [[ "$P1_ERR" != "0" ]] ; then
-        _report -wts "Error: Running: ${RECORD_COMMAND[@]} gave an Error Code - ${P1_ERR}"
-        _report -w "Consider reporting this or asking for help at https://github.com/amiaopensource/vrecord/issues"
-        _writeingestlog "vrecord command Error" "${P1_ERR}"
-        exit 1
+        _report_unexpected_error P1_ERR "${RECORD_COMMAND[@]} // ${FF_RECORD_COMMAND[@]} // ${PLAYER_COMMAND}"
     fi
     if [[ "$P2_ERR" != "0" && ! -z "$P2_ERR" ]] ; then
-        _report -wts "Error: The second component of vrecord recording process gave an Error Code - ${P2_ERR}"
-        _report -w "Consider reporting this or asking for help at https://github.com/amiaopensource/vrecord/issues"
-        _writeingestlog "vrecord command Error (P2)" "${P2_ERR}"
+        _report_unexpected_error P2_ERR "${RECORD_COMMAND[@]} // ${FF_RECORD_COMMAND[@]} // ${PLAYER_COMMAND}"
     fi
     if [[ "$P3_ERR" != "0" && ! -z "$P3_ERR" ]] ; then
-        _report -wts "Error: The third component of vrecord recording process gave an Error Code - ${P3_ERR}"
-        _report -w "Consider reporting this or asking for help at https://github.com/amiaopensource/vrecord/issues"
-        _writeingestlog "vrecord command Error (P3)" "${P3_ERR}"
+        _report_unexpected_error P3_ERR "${RECORD_COMMAND[@]} // ${FF_RECORD_COMMAND[@]} // ${PLAYER_COMMAND}"
     fi
 fi
 
