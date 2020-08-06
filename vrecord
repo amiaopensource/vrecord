@@ -856,6 +856,21 @@ DECKLINK_INPUT_GUI=$(cat << DECKLINK_FORM
 DECKLINK_FORM
 )
 
+# Set DV Control variables
+if [[ "${OS_TYPE}" = "linux" ]] ; then
+        DV_REPACK_CMD='{ avfctl -cmd ff -foreground; avfctl -cmd rew; }'
+        DV_RW_CMD='dvcont rewind '
+        DV_PLAY_CMD='dvcont play '
+        DV_STOP_CMD='dvcont stop '
+        DV_FF_CMD='dvcont ff '
+    elif [[ "${OS_TYPE}" = "macOS" ]] ; then
+        DV_REPACK_CMD='{ avfctl -cmd ff -foreground; avfctl -cmd rew; }'
+        DV_RW_CMD='avfctl -cmd rew '
+        DV_PLAY_CMD='avfctl -cmd play '
+        DV_STOP_CMD='avfctl -cmd stop '
+        DV_FF_CMD='avfctl -cmd ff '
+fi
+
 AVFCTL_INPUT_GUI=$(cat << AVFCTL_FORM
 <frame DVRescue avfctl input options>
     <vbox>
@@ -907,31 +922,31 @@ AVFCTL_INPUT_GUI=$(cat << AVFCTL_FORM
                     <variable export="false">avfctl_repack</variable>
                     <label>Repack</label>
                     <visible>disabled</visible>
-                    <action>{ avfctl -cmd ff -foreground; avfctl -cmd rew; }&</action>
+                    <action>${DV_REPACK_CMD}&</action>
                 </button>
                 <button>
                     <variable export="false">avfctl_rewind</variable>
                     <input file stock="gtk-media-rewind"></input>
                     <visible>disabled</visible>
-                    <action>avfctl -cmd rew &</action>
+                    <action>${DV_RW_CMD}&</action>
                 </button>
                 <button>
                     <variable export="false">avfctl_play</variable>
                     <input file stock="gtk-media-play"></input>
                     <visible>disabled</visible>
-                    <action>avfctl -cmd play &</action>
+                    <action>${DV_PLAY_CMD}&</action>
                 </button>
                 <button>
                     <variable export="false">avfctl_stop</variable>
                     <input file stock="gtk-media-stop"></input>
                     <visible>disabled</visible>
-                    <action>avfctl -cmd stop &</action>
+                    <action>${DV_STOP_CMD}&</action>
                 </button>
                 <button>
                     <variable export="false">avfctl_ff</variable>
                     <input file stock="gtk-media-forward"></input>
                     <visible>disabled</visible>
-                    <action>avfctl -cmd ff &</action>
+                    <action>${DV_FF_CMD}&</action>
                 </button>
             </hbox>
         </hbox>
