@@ -870,7 +870,7 @@ if [[ "${OS_TYPE}" = "linux" ]] ; then
         DV_PLAY_CMD='avfctl -cmd play '
         DV_STOP_CMD='avfctl -cmd stop '
         DV_FF_CMD='avfctl -cmd ff '
-        STATUS_CMD="avfctl -status 2>&1 | grep -o "Device \[.*" | sed 's|Device ||g;s| status||g'"
+        STATUS_CMD="avfctl -status 2>&1 | grep -o 'Device \[.*' | sed 's|Device ||g;s| status||g'"
 fi
 
 AVFCTL_INPUT_GUI=$(cat << AVFCTL_FORM
