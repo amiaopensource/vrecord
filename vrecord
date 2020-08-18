@@ -858,17 +858,19 @@ DECKLINK_FORM
 
 # Set DV Control variables
 if [[ "${OS_TYPE}" = "linux" ]] ; then
-        DV_REPACK_CMD='{ avfctl -cmd ff -foreground; avfctl -cmd rew; }'
+        DV_REPACK_CMD=""
         DV_RW_CMD='dvcont rewind '
         DV_PLAY_CMD='dvcont play '
         DV_STOP_CMD='dvcont stop '
         DV_FF_CMD='dvcont ff '
+        STATUS_CMD='dvcont status '
     elif [[ "${OS_TYPE}" = "macOS" ]] ; then
         DV_REPACK_CMD='{ avfctl -cmd ff -foreground; avfctl -cmd rew; }'
         DV_RW_CMD='avfctl -cmd rew '
         DV_PLAY_CMD='avfctl -cmd play '
         DV_STOP_CMD='avfctl -cmd stop '
         DV_FF_CMD='avfctl -cmd ff '
+        STATUS_CMD="avfctl -status 2>&1 | grep -o "Device \[.*" | sed 's|Device ||g;s| status||g'"
 fi
 
 AVFCTL_INPUT_GUI=$(cat << AVFCTL_FORM
@@ -892,7 +894,7 @@ AVFCTL_INPUT_GUI=$(cat << AVFCTL_FORM
             <timer milliseconds="true" interval="300" visible="false" disabled="true">
                  <variable export="false">avfctl_timer</variable>
                  <visible>disabled</visible>
-                 <action>avfctl -status 2>&1 | grep -o "Device \[.*" | sed "s|Device ||g;s| status||g" > "${AVFCTL_STATUS_TMP}" &</action>
+                 <action>${STATUS_CMD} > "${AVFCTL_STATUS_TMP}" &</action>
                  <action>refresh:avfctl_status</action>
             </timer>
         </hbox>
