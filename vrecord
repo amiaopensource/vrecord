@@ -174,17 +174,17 @@ _setup_env_variables(){
             RESOURCE_PATH="${SCRIPTDIR}/Resources"
         fi
         if [[ -f "/Library/Fonts/Andale Mono.ttf" ]] ; then
-          DEFAULTFONT="/Library/Fonts/Andale Mono.ttf"
+            DEFAULTFONT="/Library/Fonts/Andale Mono.ttf"
         elif [[ -f "/System/Library/Fonts/Supplemental/Andale Mono.ttf" ]] ; then
-          DEFAULTFONT="/System/Library/Fonts/Supplemental/Andale Mono.ttf"
+            DEFAULTFONT="/System/Library/Fonts/Supplemental/Andale Mono.ttf"
         elif [[ -f "/System/Library/Fonts/Monaco.dfont" ]] ; then
-          DEFAULTFONT="/System/Library/Fonts/Monaco.dfont"
+            DEFAULTFONT="/System/Library/Fonts/Monaco.dfont"
         elif [[ -f "/Library/Fonts/Microsoft/Lucida Console.ttf" ]] ; then
-          DEFAULTFONT="/Library/Fonts/Microsoft/Lucida\Console.ttf"
+            DEFAULTFONT="/Library/Fonts/Microsoft/Lucida\Console.ttf"
         elif [[ -f "/Library/Fonts/LetterGothicStd.otf" ]] ; then
-          DEFAULTFONT="/Library/Fonts/LetterGothicStd.otf"
+            DEFAULTFONT="/Library/Fonts/LetterGothicStd.otf"
         else
-          _report -wt "vrecord can't find a preferred font to use, please report this error to https://github.com/amiaopensource/vrecord/issues"
+            _report -wt "vrecord can't find a preferred font to use, please report this error to https://github.com/amiaopensource/vrecord/issues"
         fi
         HARDWARE_REPORT="$(system_profiler SPHardwareDataType)"
         COMPUTER_MODEL_NAME="$(_parse_report "Model Name" "${HARDWARE_REPORT}")"
@@ -523,10 +523,10 @@ _get_decklink_inputs(){
     # get information on what input device options are available
     unset DECKLINK_DEVICES
     while read decklink_device ; do
-      DECKLINK_DEVICES+=("${decklink_device}")
+        DECKLINK_DEVICES+=("${decklink_device}")
     done < <("${FFMPEG_BIN}" -nostdin -v 0 -sources decklink | awk -F'[][]' '{print $2}' | grep -v "^$")
     if [[ "${#DECKLINK_DEVICES[@]}" = 1 ]] ; then # default to first input if only one
-      DECKLINK_INPUT_CHOICE="${DECKLINK_DEVICES[0]}"
+        DECKLINK_INPUT_CHOICE="${DECKLINK_DEVICES[0]}"
     fi
 }
 _get_avfoundation_inputs(){
@@ -544,10 +544,10 @@ _get_avfctl_inputs(){
         AVFCTL_DEVICES+=("${avfctl_device}")
     done < <(avfctl -list_devices 2>&1 | grep -A 10 "Devices:" | grep -o "\[[0-9]\].*")
     if [[ "${#AVFCTL_DEVICES[@]}" = 1 ]] ; then # default to first input if only one
-      AVFCTL_INPUT_CHOICE="${AVFCTL_DEVICES[0]}"
+        AVFCTL_INPUT_CHOICE="${AVFCTL_DEVICES[0]}"
     fi
     if [[ "${OS_TYPE}" = "linux" ]] ; then
-      AVFCTL_DEVICES+=('Default DV Device')
+        AVFCTL_DEVICES+=('Default DV Device')
     fi
 }
 
@@ -579,7 +579,7 @@ _set_up_edit_form() {
       elif [[ "$i" == "bmdcapture" ]] && ! $BMDTOOLS_INSTALLED ; then
           :
       else
-        echo "<item>${i}</item>"
+          echo "<item>${i}</item>"
       fi
     done
   }
@@ -592,13 +592,13 @@ _set_up_edit_form() {
     INDEX=0
     MATCH=""
     for ITEM in "${LIST[@]}" ; do
-      if [[ "${VALUE}" = "${ITEM}" ]] ; then
-        MATCH="$INDEX"
-      fi
-      (( ++INDEX ))
+        if [[ "${VALUE}" = "${ITEM}" ]] ; then
+            MATCH="$INDEX"
+        fi
+        (( ++INDEX ))
     done
     if [[ -n "${MATCH}" ]] ; then
-      echo -n "${MATCH}"
+        echo -n "${MATCH}"
     fi
   }
 
