@@ -174,17 +174,17 @@ _setup_env_variables(){
             RESOURCE_PATH="${SCRIPTDIR}/Resources"
         fi
         if [[ -f "/Library/Fonts/Andale Mono.ttf" ]] ; then
-          DEFAULTFONT="/Library/Fonts/Andale Mono.ttf"
+            DEFAULTFONT="/Library/Fonts/Andale Mono.ttf"
         elif [[ -f "/System/Library/Fonts/Supplemental/Andale Mono.ttf" ]] ; then
-          DEFAULTFONT="/System/Library/Fonts/Supplemental/Andale Mono.ttf"
+            DEFAULTFONT="/System/Library/Fonts/Supplemental/Andale Mono.ttf"
         elif [[ -f "/System/Library/Fonts/Monaco.dfont" ]] ; then
-          DEFAULTFONT="/System/Library/Fonts/Monaco.dfont"
+            DEFAULTFONT="/System/Library/Fonts/Monaco.dfont"
         elif [[ -f "/Library/Fonts/Microsoft/Lucida Console.ttf" ]] ; then
-          DEFAULTFONT="/Library/Fonts/Microsoft/Lucida\Console.ttf"
+            DEFAULTFONT="/Library/Fonts/Microsoft/Lucida\Console.ttf"
         elif [[ -f "/Library/Fonts/LetterGothicStd.otf" ]] ; then
-          DEFAULTFONT="/Library/Fonts/LetterGothicStd.otf"
+            DEFAULTFONT="/Library/Fonts/LetterGothicStd.otf"
         else
-          _report -wt "vrecord can't find a preferred font to use, please report this error to https://github.com/amiaopensource/vrecord/issues"
+            _report -wt "vrecord can't find a preferred font to use, please report this error to https://github.com/amiaopensource/vrecord/issues"
         fi
         HARDWARE_REPORT="$(system_profiler SPHardwareDataType)"
         COMPUTER_MODEL_NAME="$(_parse_report "Model Name" "${HARDWARE_REPORT}")"
