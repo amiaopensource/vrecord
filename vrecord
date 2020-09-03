@@ -278,156 +278,8 @@ _check_mpv(){
     fi
 }
 
-# these functions are appended to an include file that is sent to gtkdialog and allows for functions to be used within gtkdialog actions
-# note that the single-quotes on the here document reference are needed to prevent the variables from expanding
-GTKDIALOG_FUNCTIONS=$(cat << 'GTKDIALOG_FUNCTION_DOC'
-# functions
-_check_ffmpeg_install(){
-    echo "Using ffmpeg at ${FFMPEG_BIN}"
-    echo
-    if [ ! -f "${FFMPEG_BIN}" ] ; then
-        echo "${FFMPEG_BIN} is not found. Please install ffmpegdecklink via:"
-        echo "    brew install amiaopensource/amiaos/ffmpegdecklink"
-        echo "Or install a version of ffmpeg that is compiled with decklink support if you wish to use that input."
-        echo
-    fi
-    if [ ! -f "${FFPLAY_BIN}" ] ; then
-        echo "${FFPLAY_BIN} is not found."
-        echo
-    fi
-    if [ ! -f "${FFPROBE_BIN}" ] ; then
-        echo "${FFPROBE_BIN} is not found."
-        echo
-    fi
-    echo
-    FFMPEG_V="$("${FFMPEG_BIN}" -version 2>&1)"
-    echo "FFmpeg configuration: ${FFMPEG_V}"
-    echo
-    if [ "$(echo "${FFMPEG_V}" | grep "Library not loaded" >/dev/null)" ] ; then
-        echo "Please reinstall 'ffmpegdecklink':"
-        echo "    brew reinstall amiaopensource/amiaos/ffmpegdecklink"
-        echo "Or install a version of ffmpeg that is compiled with decklink support if you wish to use that input."
-        echo "Exiting."
-        exit 1
-    fi
-    if [ -z "$("${FFMPEG_BIN}" -nostdin -v 0 -sources decklink)" ] ; then
-        echo "vrecord is set to use a decklink input but ${FFMPEG_BIN} does not appear to support decklink inputs."
-        echo "Please review installation and troubleshooting information for vrecord or install ffmpegdecklink."
-        exit 1
-    fi
-}
-
-_update_config_file(){
-    # write config file
-    {
-        echo "# Set these variables to a valid option or leave as empty quotes (like \"\") to request each run."
-        echo "DEVICE_INPUT_CHOICE=\"${DEVICE_INPUT_CHOICE}\""
-        echo "VIDEO_INPUT_CHOICE=\"${VIDEO_INPUT_CHOICE}\""
-        echo "AUDIO_INPUT_CHOICE=\"${AUDIO_INPUT_CHOICE}\""
-        echo "CONTAINER_CHOICE=\"${CONTAINER_CHOICE}\""
-        echo "VIDEO_CODEC_CHOICE=\"${VIDEO_CODEC_CHOICE}\""
-        echo "FFV1_SLICE_CHOICE=\"${FFV1_SLICE_CHOICE}\""
-        echo "AUDIO_CODEC_CHOICE=\"${AUDIO_CODEC_CHOICE}\""
-        echo "AUDIO_DEV_CHOICE=\"${AUDIO_DEV_CHOICE}\""
-        echo "AUDIO_MODE_CODEC_CHOICE=\"${AUDIO_MODE_CODEC_CHOICE}\""
-        echo "AUDIO_CHANNEL_CHOICE=\"${AUDIO_CHANNEL_CHOICE}\""
-        echo "AUDIO_MODE_SR_CHOICE=\"${AUDIO_MODE_SR_CHOICE}\""
-        echo "VIDEO_BIT_DEPTH_CHOICE=\"${VIDEO_BIT_DEPTH_CHOICE}\""
-        echo "AUDIO_MAPPING_CHOICE=\"${AUDIO_MAPPING_CHOICE}\""
-        echo "TIMECODE_CHOICE=\"${TIMECODE_CHOICE}\""
-        echo "STANDARD_CHOICE=\"${STANDARD_CHOICE}\""
-        echo "QCTOOLSXML_CHOICE=\"${QCTOOLSXML_CHOICE}\""
-        echo "FRAMEMD5_CHOICE=\"${FRAMEMD5_CHOICE}\""
-        echo "EMBED_LOGS_CHOICE=\"${EMBED_LOGS_CHOICE}\""
-        echo "PLAYBACKVIEW_CHOICE=\"${PLAYBACKVIEW_CHOICE}\""
-        echo "PLAYBACKVIEW_CHOICE_PASS=\"${PLAYBACKVIEW_CHOICE_PASS}\""
-        echo "DIR=\"${DIR}\""
-        echo "LOGDIR=\"${LOGDIR}\""
-        echo "INVERT_PHASE=\"${INVERT_PHASE}\""
-        echo "DURATION=\"${DURATION}\""
-        echo "PREFIX=\"${PREFIX}\""
-        echo "USER_SUFFIX=\"${USER_SUFFIX}\""
-        echo "NO_SUFFIX=\"${NO_SUFFIX}\""
-        echo "TECHNICIAN=\"${TECHNICIAN}\""
-        echo "AVFCTL_INPUT_CHOICE=\"${AVFCTL_INPUT_CHOICE}\""
-        echo "DECKLINK_INPUT_CHOICE=\"${DECKLINK_INPUT_CHOICE}\""
-        echo "DECKLINK_UTILITY_CHOICE=\"${DECKLINK_UTILITY_CHOICE}\""
-    } > "${CONFIG_FILE}"
-    . "${CONFIG_FILE}"
-}
-
-_validate_form(){
-    if [ "${INVERT_PHASE}" = "true" ] ; then
-        echo "WARNING: Option to invert phase of second audio channel has been selected.\n"
-    fi
-    if [ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" ] && [ "${CONTAINER_CHOICE}" = "MXF" ] ; then
-        echo "ERROR: Incompatible video codecs and containers have been selected.\n"
-    elif [ "${AUDIO_CODEC_CHOICE}" = "24-bit FLAC" ] && [ "${CONTAINER_CHOICE}" = "QuickTime" ] ; then
-        echo "ERROR: Incompatible audio codecs and containers have been selected.\n"
-    fi
-    if [ ! -d "${DIR}" ] ; then
-        echo "ERROR: The recording directory (${DIR}) does not exist. Create this folder please.\n"
-    fi
-    if [ ! -d "${LOGDIR}" ] && [ -n "${LOGDIR}" ] ; then
-        echo "ERROR: The auxiliary directory (${LOGDIR}) does not exist. Create this folder or leave blank to use the recording directory.\n"
-    fi
-    # validate duration
-    if [ -n "${DURATION}" ] ; then
-        if ! [ "$(echo "${DURATION} > 0" | bc)" = "1" ] ; then
-            echo "ERROR: Illegal value for recording time. The duration must be a positive number.\n"
-        fi
-    fi
-}
-
-_get_output_filename(){
-    # Get user suffix preference of default per video codec
-    if [ "${NO_SUFFIX}" = 'true' ] ; then
-        SUFFIX=""
-    elif [ -n "${USER_SUFFIX}" ] ; then
-        SUFFIX="${USER_SUFFIX}"
-    elif [ "${DEVICE_INPUT_CHOICE}" = "0" ] ; then
-        case "${VIDEO_CODEC_CHOICE}" in
-            "FFV1 version 3")   SUFFIX="_ffv1" ;;
-            "JPEG2000")         SUFFIX="_j2k" ;;
-            "ProRes")           SUFFIX="_prores" ;;
-            "ProRes (HQ)")      SUFFIX="_prores" ;;
-            "h264")             SUFFIX="" ;;
-            "HuffYUV")          SUFFIX="_huff" ;;
-        esac
-    fi
-
-    # Get extension by container choice
-    if [ "${DEVICE_INPUT_CHOICE}" = "0" ] ; then
-        case "${CONTAINER_CHOICE}" in
-            "Matroska")             EXTENSION="mkv" ;;
-            "QuickTime")            EXTENSION="mov" ;;
-            "AVI")                  EXTENSION="avi" ;;
-            "MXF")                  EXTENSION="mxf" ;;
-            "MP4")                  EXTENSION="mp4" ;;
-        esac
-    elif [ "${DEVICE_INPUT_CHOICE}" = "1" ] ; then
-        EXTENSION="dv"
-    elif [ "${DEVICE_INPUT_CHOICE}" = "2" ] ; then
-        case "${AUDIO_MODE_CODEC_CHOICE}" in
-            "24-bit PCM")           EXTENSION="wav" ;;
-            "24-bit FLAC")          EXTENSION="flac" ;;
-        esac
-    fi
-
-    echo "${DIR}/${PREFIX}${ID}${SUFFIX}.${EXTENSION}"
-}
-
-_get_decklink_inputs(){
-    # get information on what input device options are available
-    #unset DECKLINK_DEVICES
-    if [[ "${DECKLINK_UTILITY_CHOICE}" == "bmdcapture" ]] ; then
-        bmdcapture -h 2>&1 | grep "^->" | head -n 1 | sed 's/.*-> \(.*\) (.*/\1/'
-    else
-        "${FFMPEG_BIN}" -nostdin -v 0 -sources decklink | awk -F'[][]' '{print $2}' | grep -v "^$"
-    fi
-}
-GTKDIALOG_FUNCTION_DOC
-)
+SHARED_FUNCTIONS_FILE="${RESOURCE_PATH}/vrecord_functions"
+. "${SHARED_FUNCTIONS_FILE}"
 
 # optional dependency checks
 BMDTOOLS_INSTALLED="$(if command -v bmdcapture >/dev/null ; then echo true ; else echo false ; fi)"
@@ -1241,7 +1093,7 @@ _edit_mode(){
     GTK_INC="$(_maketemp .vrecord.gtkdialog.inc)"
     cat "${VRECORD_VARS_FILE}" > "${GTK_INC}"
     echo "CONFIG_FILE=${CONFIG_FILE}" >> "${GTK_INC}"
-    echo "${GTKDIALOG_FUNCTIONS}" >> "${GTK_INC}"
+    cat "${SHARED_FUNCTIONS_FILE}" >> "${GTK_INC}"
 
     if [[ "${VERBOSE_GTKDIALOG}" = "Y" ]] ; then
         if [[ "$RUNTYPE" = "GUI" ]] || [[ "${GUI}" = "1" ]] ; then
