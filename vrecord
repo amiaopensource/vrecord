@@ -4,8 +4,8 @@
 # Open-source software for capturing a video signal and turning it into a digital file.
 
 VERSION="2020-08-05"
-SCRIPTNAME=$(basename "${0}")
-SCRIPTDIR=$(dirname "${0}")
+SCRIPTNAME="$(basename "${0}")"
+SCRIPTDIR="$(dirname "${0}")"
 CONFIG_FILE="${HOME}/.${SCRIPTNAME}.conf"
 RUNTYPE="record"
 SAT_OUTLIER_THRSHLD=14
