@@ -509,7 +509,7 @@ _setup_vrecord_process(){
             else
                 VRECORD_STEPS="1" # Steps: player
             fi
-            if [[ "${PLAYBACKVIEW_CHOICE_PASS}" = "Audio + Video" ]] ; then
+            if [[ "${PLAYBACKVIEW_CHOICE_PASS}" = "Audio + Video" ]] && [[ "${RUNTYPE}" = "passthrough" ]] ; then
                 VRECORD_STEPS="$((VRECORD_STEPS+1))"
             fi
             RECORD_COMMAND=("${FFMPEG_BIN}")
@@ -579,7 +579,9 @@ _setup_vrecord_process(){
         FFPLAY_OPTIONS+=(-stats)
         FFPLAY_OPTIONS+=(-autoexit)
         FFPLAY_OPTIONS+=(-window_title "${WINDOW_NAME}")
-        if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] && [[ "${PLAYBACKVIEW_CHOICE_PASS}" = "Audio + Video" ]] ; then
+        if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] && [[ "${PLAYBACKVIEW_CHOICE_PASS}" = "Audio + Video" ]] && [[ "${RUNTYPE}" = "passthrough" ]] ; then
+            FFPLAY_OPTIONS+=(-f lavfi "amovie='pipe\:0':${PLAYBACKFILTER}")
+        elif [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] && [[ "${PLAYBACKVIEW_CHOICE}" = "Audio + Video" ]] && [[ "${RUNTYPE}" = "record" ]] ; then
             FFPLAY_OPTIONS+=(-f lavfi "amovie='pipe\:0':${PLAYBACKFILTER}")
         elif [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
             FFPLAY_OPTIONS+=(-f lavfi "amovie='pipe\:0',${PLAYBACKFILTER}")
@@ -1904,7 +1906,7 @@ STANDARD_OPTIONS=("NTSC" "PAL")
 QCTOOLSXML_OPTIONS=("Yes, after recording" "Yes, concurrent with recording" "No")
 FRAMEMD5_OPTIONS=("Yes" "No")
 EMBED_LOGS_OPTIONS=("Yes" "No")
-PLAYBACKVIEW_OPTIONS=("Unfiltered" "Broadcast Range Visual" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes")
+PLAYBACKVIEW_OPTIONS=("Unfiltered" "Broadcast Range Visual" "Audio + Video" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes")
 PLAYBACKVIEW_PASS_OPTIONS=("Unfiltered" "Broadcast Range Visual" "Audio + Video" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes")
 if $MPV_INSTALLED ; then
     PLAYBACKVIEW_OPTIONS+=("Quality Control View (mpv)")
