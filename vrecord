@@ -1696,6 +1696,20 @@ ${SHOW_SPECTUM}\
 ${VOLUME_OVERLAY}\
 ${AP_MAP}" ;;
         "Audio + Video")
+if [[ "${RUNTYPE}" = "record" ]] ; then
+    PLAYBACKFILTER="streams=dv+da[vid][aud],\
+    [aud]asplit=2[aud1][out1];\
+    [aud1]astats=metadata=1:reset=2,adrawgraph=m1=lavfi.astats.1.Peak_level:m2=lavfi.astats.2.Peak_level:max=0:min=-40.0:size=750x300:bg=Black:slide=scroll[aud2];\
+    [aud2]drawtext=fontfile=${DEFAULTFONT}:box=1: text=Channel 1\\\: %{metadata\\\:lavfi.astats.1.Peak_level}
+Channel 2\\\: %{metadata\\\:lavfi.astats.2.Peak_level}:x=325:y=250:fontcolor=black:fontsize=25[aud3];\
+    [vid]${PLAYBACK_FILTER_ADJUSTMENT}split=5[a][b][c][d][e];\
+    [a]copy${TIMECODE_OVERLAY}[a1];\
+    [b]field=top,${WAVEFORM_FILTER}[b1];\
+    [c]field=bottom,${WAVEFORM_FILTER}[c1];\
+    [d]${VECTORSCOPE_FILTER}[d1];\
+    [e]scale=512:ih,signalstats=out=brng[e1];\
+    [a1][b1][c1][e1][d1][aud3]xstack=inputs=6:layout=0_0|0_h0|0_h0+h1|w0_0|w0_h0|0_h0+h1+h2[out0]"
+else
             VECTORSCOPE_FILTER="\
 format=yuv422p,\
 vectorscope=i=0.04:mode=color2:c=1:envelope=instant:graticule=green:flags=name,\
@@ -1731,7 +1745,8 @@ ${CHANNEL_PARAMS},\
 [vid3]field=bottom,${WAVEFORM_FILTER}[BFIELD],\
 [vid4]${VECTORSCOPE_FILTER}[vector],\
 [vidscale][c1]overlay=10:10[x],\
-${AP_MAP}" ;;
+${AP_MAP}"
+fi ;;
         "Broadcast Range Visual")
             PLAYBACKFILTER="\
 ${PLAYBACK_FILTER_ADJUSTMENT}split=5[a][b][c][d][e];\
