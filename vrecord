@@ -1659,8 +1659,6 @@ if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
 fi
 
 # Check for user suffix to override automatic settings
-
-
 if [[ "${NO_SUFFIX}" = 'true' ]] ; then
     SUFFIX=""
 elif [[ -n "${USER_SUFFIX}" ]] ; then
