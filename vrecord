@@ -2111,6 +2111,8 @@ read
 # create log of vrecord decisions
 INGESTLOG="${LOGDIR}/${FULL_OUTPUT_ID}_capture_options.log"
 QCXML="${LOGDIR}/${FULL_OUTPUT_ID}.${EXTENSION}.qctools.xml.gz"
+QCLI_COMMAND_PIPE=(qcli -f signalstats+aphasemeter+astats+ssim -i - -o "${QCXML}")
+QCLI_COMMAND_FILE=(qcli -f signalstats+aphasemeter+astats+ssim -i "${VRECORD_OUTPUT}" -o "${QCXML}")
 touch "${INGESTLOG}"
 _writeingestlog "computer_name" "$(uname -n)"
 _writeingestlog "computer_model_name" "${COMPUTER_MODEL_NAME}"
@@ -2244,7 +2246,7 @@ if [[ "${VRECORD_STEPS}" = "2" ]] ; then
     _writeingestlog "Playback command" "${PLAYER_COMMAND[@]}"
     "${RECORD_COMMAND[@]}" 2> >(tee "${FULL_CAPTURE_LOG}" "${VRECORD_INPUT_TMP}" 1>&2) | \
     if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] && [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]]; then
-        tee >("${PLAYER_COMMAND[@]}") | qcli -f signalstats+aphasemeter+astats+ssim -i - -o "${QCXML}"
+        tee >("${PLAYER_COMMAND[@]}") | "${QCLI_COMMAND_PIPE[@]}"
     else
         "${PLAYER_COMMAND[@]}"
     fi
@@ -2255,7 +2257,7 @@ elif [[ "${VRECORD_STEPS}" = "3" ]] ; then
     "${RECORD_COMMAND[@]}" 2> >(tee "${FULL_CAPTURE_LOG}" "${VRECORD_INPUT_TMP}" 1>&2) | \
     "${FF_RECORD_COMMAND[@]}" 2> >(tee "${FULL_CAPTURE_LOG}" "${VRECORD_INPUT_TMP}" 1>&2) | \
     if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] && [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]]; then
-        tee >("${PLAYER_COMMAND[@]}") | qcli -f signalstats+aphasemeter+astats+ssim -i - -o "${QCXML}"
+        tee >("${PLAYER_COMMAND[@]}") | "${QCLI_COMMAND_PIPE[@]}"
     else
         "${PLAYER_COMMAND[@]}"
     fi
@@ -2300,7 +2302,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
 
     # qc tools process
     if [[ "${QCTOOLSXML_CHOICE}" = "Yes, after recording" ]] ; then
-        qcli -f signalstats+aphasemeter+astats+ssim -i "${VRECORD_OUTPUT}" -o "${QCXML}"
+        "${QCLI_COMMAND_FILE[@]}"
     fi
     if [[ "${QCTOOLSXML_CHOICE}" != "No" ]] ; then
         _report -d "Vrecord is analyzing your video file. Please be patient."
