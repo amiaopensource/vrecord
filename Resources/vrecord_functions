@@ -292,7 +292,6 @@ _setup_vrecord_process(){
         RECORD_COMMAND+=("${MIDDLEOPTIONS[@]}")
         RECORD_COMMAND+=(-f "${FORMAT}" -filter_complex "${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" "${VRECORD_OUTPUT}")
         RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}" -filter_complex "${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" "${PIPE_OUTPUT[@]}")
-        _set_ffplay_options
         PLAYER_COMMAND=("${FFPLAY_BIN}" -f lavfi "amovie='pipe\:0',${PLAYBACKFILTER}")
     else
         _report_unexpected_error DEVICE_INPUT_CHOICE
