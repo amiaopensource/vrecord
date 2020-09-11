@@ -622,6 +622,98 @@ ${STACK}" ;;
     esac
 }
 
+_review_option(){
+    unset NO_LOOKUP
+    OPTIND=1
+    while getopts "n" opt ; do
+        case "${opt}" in
+            n) NO_LOOKUP="Y" #also the SELECTED value to be used as-is rather than lookup what it means
+        esac
+    done
+    shift "$((OPTIND-1))"
+    VALUE_NAME="${1}"
+    SELECTED="${!1}"
+    shift
+    CHOICES=("${@}")
+    if [[ ! " ${CHOICES[@]} " =~ " ${SELECTED} " ]]; then
+        _report -w "The configuration file uses an invalid value of ${SELECTED} for ${VALUE_NAME}. Valid values are: ${CHOICES[*]}. Please restart ${SCRIPTNAME} in edit mode (${SCRIPTNAME} -e) or update the configuration file at ${CONFIG_FILE}."
+        exit 2
+    fi
+    if [[ "${SELECTED}" ]] ; then
+        if [[ "${NO_LOOKUP}" != "Y" ]] ; then
+          _lookup_choice "${SELECTED}"
+        fi
+    else
+        _report -w "The option for ${VALUE_NAME} is not set. Please restart ${SCRIPTNAME} in edit mode (${SCRIPTNAME} -e) or update the configuration file at ${CONFIG_FILE}."
+        exit 3
+    fi
+    LOG_OF_OPTIONS+="${VALUE_NAME}: ${SELECTED}\n"
+}
+
+_review_all_options(){
+    if [[ "${INVERT_PHASE}" = 'true' ]] ; then
+        PHASE_VALUE="-1*"
+    fi
+    if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
+        _review_option -n "DECKLINK_UTILITY_CHOICE" "${DECKLINK_UTILITIES[@]}"
+        _review_option "VIDEO_INPUT_CHOICE" "${VIDEO_INPUT_OPTIONS[@]}"
+        _review_option "AUDIO_INPUT_CHOICE" "${AUDIO_INPUT_OPTIONS[@]}"
+        _review_option "VIDEO_BIT_DEPTH_CHOICE" "${VIDEO_BITDEPTH_OPTIONS[@]}"
+        _review_option "AUDIO_MAPPING_CHOICE" "${CHANNEL_MAPPING_OPTIONS[@]}"
+        if [[ -z "${ALT_INPUT}" ]] ; then
+            _review_option "TIMECODE_CHOICE" "${TIMECODE_OPTIONS[@]}"
+        fi
+        _review_option "STANDARD_CHOICE" "${STANDARD_OPTIONS[@]}"
+    elif [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
+        _review_option -n "AVFCTL_INPUT_CHOICE" "${AVFCTL_DEVICES[@]}"
+    elif [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
+        _review_option -n "AUDIO_DEV_CHOICE" "${AUDIO_DEVICES[@]}"
+    fi
+    if [[ "${CORE_COUNT}" -le 2 && "${RUNTYPE}" = "record" ]] ; then
+        _report -w "Since this computer has only ${CORE_COUNT} cores, the playback will display only half of the frames to reduce CPU. This will not impact the recording."
+        PLAYBACK_FILTER_ADJUSTMENT="select=not(mod(n\,2)),"
+    fi
+    if [[ "${RUNTYPE}" = "passthrough" ]] && [[ -n "${PLAYBACKVIEW_CHOICE_PASS}" ]] && [[ "${PLAYBACKVIEW_CHOICE_PASS}" != "Unselected" ]] ; then
+        _review_option "PLAYBACKVIEW_CHOICE_PASS" "${PLAYBACKVIEW_PASS_OPTIONS[@]}"
+    else
+        _review_option "PLAYBACKVIEW_CHOICE" "${PLAYBACKVIEW_OPTIONS[@]}"
+    fi
+    if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
+        if [[ "${PLAYBACKVIEW_CHOICE}" = "Full Range Visual" ]] ; then
+            MIDDLEOPTIONS+=(-color_range jpeg)
+        else
+            MIDDLEOPTIONS+=(-color_range mpeg)
+        fi
+        MIDDLEOPTIONS+=(-metadata creation_time=now)
+    fi
+    MIDDLEOPTIONS+=(${EXTRAOUTPUTOPTIONS[@]})
+    if [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
+        _review_option "AUDIO_MODE_CODEC_CHOICE" "${AUDIO_CODEC_OPTIONS[@]}"
+        _review_option "AUDIO_CHANNEL_CHOICE" "${AUDIO_CHANNEL_CHOICE_OPTIONS[@]}"
+        _review_option "AUDIO_MODE_SR_CHOICE" "${AUDIO_MODE_SR_CHOICE_OPTIONS[@]}"
+        PLAYBACKVIEW_CHOICE_PASS="Audio"
+        PLAYBACKVIEW_CHOICE="Audio"
+        _lookup_choice "Audio"
+    fi
+}
+
+_set_ffplay_options(){
+    FFPLAY_OPTIONS=(-v info)
+    FFPLAY_OPTIONS+=(-hide_banner)
+    FFPLAY_OPTIONS+=(-stats)
+    FFPLAY_OPTIONS+=(-autoexit)
+    if [[ "${RUNTYPE}" = "passthrough" ]] ; then
+        FFPLAY_OPTIONS+=("${GRAB_INPUT[@]}")
+    else
+        FFPLAY_OPTIONS+=(-i -)
+    fi
+    FFPLAY_OPTIONS+=(-window_title "${WINDOW_NAME}")
+    if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] && [[ ! -z "${PLAYBACKFILTER}" ]] ; then
+        FFPLAY_OPTIONS+=(-vf "${PLAYBACKFILTER}")
+    fi
+    FFPLAY_OPTIONS+=(-af "channelmap=0|1:stereo")
+}
+
 _frames_to_hhmmss(){
     H=$(echo "${i} / (60 * 60 * ${DECKLINK_FPS})" | bc)
     M=$(echo "(${i} - (${H}*60 * 60 * ${DECKLINK_FPS})) / (60 * ${DECKLINK_FPS})" | bc)
