@@ -1699,16 +1699,15 @@ ${AP_MAP}" ;;
 if [[ "${RUNTYPE}" = "record" ]] ; then
     PLAYBACKFILTER="streams=dv+da[vid][aud],\
     [aud]asplit=2[aud1][out1];\
-    [aud1]astats=metadata=1:reset=2,adrawgraph=m1=lavfi.astats.1.Peak_level:m2=lavfi.astats.2.Peak_level:max=0:min=-40.0:size=1232x200:bg=Black:slide=scroll[aud2];\
-    [aud2]drawtext=fontfile=${DEFAULTFONT}:box=1: text=Channel 1\\\: %{metadata\\\:lavfi.astats.1.Peak_level}
-Channel 2\\\: %{metadata\\\:lavfi.astats.2.Peak_level}:x=530:y=150:fontcolor=black:fontsize=25[aud3];\
+    [aud1]showvolume=dm=5400[aud2];\
     [vid]${PLAYBACK_FILTER_ADJUSTMENT}split=5[a][b][c][d][e];\
     [a]copy${TIMECODE_OVERLAY}[a1];\
     [b]field=top,${WAVEFORM_FILTER}[b1];\
     [c]field=bottom,${WAVEFORM_FILTER}[c1];\
     [d]${VECTORSCOPE_FILTER}[d1];\
     [e]scale=512:ih,signalstats=out=brng[e1];\
-    [a1][b1][c1][e1][d1][aud3]xstack=inputs=6:layout=0_0|0_h0|0_h0+h1|w0_0|w0_h0|0_h0+h1+h2[out0]"
+    [a1][b1][c1][e1][d1]xstack=inputs=5:layout=0_0|0_h0|0_h0+h1|w0_0|w0_h0[vidstack];\
+    [vidstack][aud2]overlay=10:10[out0]"
 else
     VECTORSCOPE_FILTER="\
     format=yuv422p,\
