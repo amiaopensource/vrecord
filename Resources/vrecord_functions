@@ -212,6 +212,7 @@ _get_output_filename(){
 }
 
 _setup_vrecord_process(){
+    _review_all_options
     if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         # DEVICE_INPUT_CHOICE=0 is decklink, other DEVICE_INPUT_CHOICE values don't yet use such filtering
         if [[ "${DECKLINK_UTILITY_CHOICE}" == "bmdcapture" ]] ; then
@@ -694,6 +695,99 @@ _review_all_options(){
         PLAYBACKVIEW_CHOICE_PASS="Audio"
         PLAYBACKVIEW_CHOICE="Audio"
         _lookup_choice "Audio"
+    fi
+
+    # set up input and playback
+    _set_up_drawtext
+    _set_ffmpeg_loglevel(){
+        if [[ "$VERBOSE" = "true" ]] ; then
+            GRAB_INPUT+=(-loglevel debug)
+            _report -wt "When running vrecord in verbose mode, avoid using Visual + Numerical option."
+        else
+            GRAB_INPUT+=(-loglevel info)
+        fi
+    }
+    unset GRAB_INPUT
+    if [[ -n "${ALT_INPUT}" ]] ; then
+        GRAB_INPUT+=("${EXTRAINPUTOPTIONS[@]}")
+        GRAB_INPUT+=(-i "${ALT_INPUT}")
+    elif [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
+        if [[ "${DECKLINK_UTILITY_CHOICE}" == "bmdcapture" ]] ; then
+            GRAB_INPUT+=(-A "${BMD_AUDIO_INPUT}")
+            GRAB_INPUT+=(-V "${BMD_VIDEO_INPUT}")
+            GRAB_INPUT+=(-m "${BMD_STANDARD}")
+            GRAB_INPUT+=(-c 8)
+            GRAB_INPUT+=(-s 32)
+            GRAB_INPUT+=(-p "${BMD_PIXEL_FORMAT}")
+            GRAB_INPUT+=(-F "matroska")
+            GRAB_INPUT+=(-d "0")
+            GRAB_INPUT+=(-f pipe:1)
+        else
+            _set_ffmpeg_loglevel
+            GRAB_INPUT+=(-f decklink)
+            GRAB_INPUT+=(-draw_bars 0)
+            GRAB_INPUT+=(-audio_input "${AUDIO_INPUT}")
+            GRAB_INPUT+=(-video_input "${VIDEO_INPUT}")
+            GRAB_INPUT+=(-format_code "${STANDARD}")
+            GRAB_INPUT+=(-channels 8)
+            GRAB_INPUT+=(-audio_depth 32)
+            GRAB_INPUT+=(-raw_format "${PIXEL_FORMAT}")
+            GRAB_INPUT+=("${EXTRAINPUTOPTIONS[@]}")
+            GRAB_INPUT+=(-i "${DECKLINK_INPUT_CHOICE}")
+        fi
+    elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
+        AVFCTL_INPUT_INDEX="$(echo "${AVFCTL_INPUT_CHOICE}" | cut -c 2)"
+        GRAB_INPUT+=(-device "${AVFCTL_INPUT_INDEX}")
+        GRAB_INPUT+=(-cmd capture)
+        GRAB_INPUT+=(-)
+        MIDDLEOPTIONS+=(-c copy -map 0)
+        EXTENSION="dv"
+        FORMAT="rawvideo"
+    elif [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
+        _set_ffmpeg_loglevel
+        #Mac Options
+        #Linux Options
+        if [[ "${OS_TYPE}" = "linux" ]] ; then
+            _get_audio_dev_num
+            GRAB_INPUT+=(-f alsa)
+            GRAB_INPUT+=(-acodec pcm_s32le -ac 2)
+            GRAB_INPUT+=(${S_RATE})
+            GRAB_INPUT+=(-i hw:"${AUDIO_DEV_NUM}")
+            EXTENSION="${AUDIO_EXT}"
+            FORMAT="${AUDIO_EXT}"
+        elif [[ "${OS_TYPE}" = "macOS" ]] ; then
+            GRAB_INPUT+=(-f avfoundation)
+            GRAB_INPUT+=(-i "none:${AUDIO_DEV_CHOICE}")
+            EXTENSION="${AUDIO_EXT}"
+            FORMAT="${AUDIO_EXT}"
+        fi
+    else
+        _report "Input unknown"
+        exit 1
+    fi
+
+    if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
+        PIPE_OUTPUT=(-c copy)
+        PIPE_OUTPUT+=(-c:a pcm_s24le)
+        PIPE_OUTPUT+=(-map 0)
+        PIPE_OUTPUT+=(-f matroska)
+        PIPE_OUTPUT+=(-write_crc32 0)
+        PIPE_OUTPUT+=(-live true)
+        PIPE_OUTPUT+=(-)
+        WINDOW_NAME="mode:${RUNTYPE} - video:'${VIDEO_INPUT}' audio:'${AUDIO_INPUT}' - to end recording press q, esc, or close video window"
+    elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
+        PIPE_OUTPUT=(-c copy)
+        PIPE_OUTPUT+=(-map 0)
+        PIPE_OUTPUT+=(-f rawvideo)
+        PIPE_OUTPUT+=(-)
+        WINDOW_NAME="mode:${RUNTYPE} - input:'${AVFCTL_INPUT_CHOICE}' - to end recording press q, esc, or close video window"
+    elif [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
+        PIPE_OUTPUT+=(-c:a pcm_s16le -ar 48k)
+        PIPE_OUTPUT+=(-f wav)
+        PIPE_OUTPUT+=(-)
+    else
+        _report "Input unknown"
+        exit 1
     fi
 }
 
