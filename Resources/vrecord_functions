@@ -213,6 +213,22 @@ _get_output_filename(){
 
 _setup_vrecord_process(){
     _review_all_options
+    _set_ffplay_options(){
+        FFPLAY_OPTIONS=(-v info)
+        FFPLAY_OPTIONS+=(-hide_banner)
+        FFPLAY_OPTIONS+=(-stats)
+        FFPLAY_OPTIONS+=(-autoexit)
+        if [[ "${RUNTYPE}" = "passthrough" ]] ; then
+            FFPLAY_OPTIONS+=("${GRAB_INPUT[@]}")
+        else
+            FFPLAY_OPTIONS+=(-i -)
+        fi
+        FFPLAY_OPTIONS+=(-window_title "${WINDOW_NAME}")
+        if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] && [[ ! -z "${PLAYBACKFILTER}" ]] ; then
+            FFPLAY_OPTIONS+=(-vf "${PLAYBACKFILTER}")
+        fi
+        FFPLAY_OPTIONS+=(-af "channelmap=0|1:stereo")
+    }
     if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         # DEVICE_INPUT_CHOICE=0 is decklink, other DEVICE_INPUT_CHOICE values don't yet use such filtering
         if [[ "${DECKLINK_UTILITY_CHOICE}" == "bmdcapture" ]] ; then
@@ -789,23 +805,6 @@ _review_all_options(){
         _report "Input unknown"
         exit 1
     fi
-}
-
-_set_ffplay_options(){
-    FFPLAY_OPTIONS=(-v info)
-    FFPLAY_OPTIONS+=(-hide_banner)
-    FFPLAY_OPTIONS+=(-stats)
-    FFPLAY_OPTIONS+=(-autoexit)
-    if [[ "${RUNTYPE}" = "passthrough" ]] ; then
-        FFPLAY_OPTIONS+=("${GRAB_INPUT[@]}")
-    else
-        FFPLAY_OPTIONS+=(-i -)
-    fi
-    FFPLAY_OPTIONS+=(-window_title "${WINDOW_NAME}")
-    if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] && [[ ! -z "${PLAYBACKFILTER}" ]] ; then
-        FFPLAY_OPTIONS+=(-vf "${PLAYBACKFILTER}")
-    fi
-    FFPLAY_OPTIONS+=(-af "channelmap=0|1:stereo")
 }
 
 _frames_to_hhmmss(){
