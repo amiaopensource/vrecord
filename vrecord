@@ -1087,43 +1087,14 @@ _edit_mode(){
 
 # passthrough and audiopassthrough modes
 _passthrough_mode(){
-    _set_ffplay_options
-    if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
-        if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
-            _check_mpv
-            if [[ "${DECKLINK_UTILITY_CHOICE}" == "bmdcapture" ]] ; then
-                bmdcapture "${GRAB_INPUT[@]}"
-            else
-                "${FFMPEG_BIN}" -nostats "${GRAB_INPUT[@]}" 2> >(tee "${VRECORD_INPUT_TMP}" 1>&2) \
-                "${PIPE_OUTPUT[@]}"
-            fi | \
-            mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -
-        elif [[ "${PLAYBACKVIEW_CHOICE_PASS}" = "Audio + Video" ]] ; then
-            if [[ "${DECKLINK_UTILITY_CHOICE}" == "bmdcapture" ]] ; then
-                bmdcapture "${GRAB_INPUT[@]}"
-            else
-                "${FFMPEG_BIN}" -nostdin -hide_banner -nostats "${GRAB_INPUT[@]}" "${PIPE_OUTPUT[@]}" 2> "${VRECORD_INPUT_TMP}"
-            fi | \
-                "${FFPLAY_BIN}" -window_title "${WINDOW_NAME}" -f lavfi "movie='pipe\:0':${PLAYBACKFILTER}"
-        else
-            if [[ "${DECKLINK_UTILITY_CHOICE}" == "bmdcapture" ]] ; then
-                bmdcapture "${GRAB_INPUT[@]}" | \
-                    "${FFPLAY_BIN}" - -window_title "${WINDOW_NAME}" -vf "${PLAYBACKFILTER}"
-            else
-                "${FFPLAY_BIN}" "${FFPLAY_OPTIONS[@]}" 2> >(tee "${VRECORD_INPUT_TMP}" 1>&2)
-            fi
-        fi
-    elif [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
-      if [[ "${OS_TYPE}" = "linux" ]] ; then
-        "${FFPLAY_BIN}" -f iec61883 -i auto -window_title "${WINDOW_NAME}"
-      else
-        avfctl "${GRAB_INPUT[@]}" | "${FFPLAY_BIN}" -window_title "${WINDOW_NAME}" -
-      fi
-    elif [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
-        "${FFMPEG_BIN}" -nostdin -hide_banner -nostats "${GRAB_INPUT[@]}" "${PIPE_OUTPUT[@]}" 2> "${VRECORD_INPUT_TMP}" | \
-            "${FFPLAY_BIN}" -window_title "${WINDOW_NAME}" -f lavfi "amovie='pipe\:0',${PLAYBACKFILTER}"
+    _setup_vrecord_process
+    if [[ "${VRECORD_STEPS}" = "1" ]] ; then
+        "${PLAYER_COMMAND[@]}" 2> >(tee "${VRECORD_INPUT_TMP}" 1>&2)
+    elif [[ "${VRECORD_STEPS}" = "2" ]] ; then
+        echo "${RECORD_COMMAND[@]} xxx ${PLAYER_COMMAND[@]}"
+        "${RECORD_COMMAND[@]}" 2> >(tee "${VRECORD_INPUT_TMP}" 1>&2) | "${PLAYER_COMMAND[@]}"
     else
-        _report_unexpected_error DEVICE_INPUT_CHOICE
+        _report_unexpected_error VRECORD_STEPS
     fi
 }
 
