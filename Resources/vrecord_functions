@@ -783,9 +783,9 @@ _review_all_options(){
         fi
         _review_option "STANDARD_CHOICE" "${STANDARD_OPTIONS[@]}"
     elif [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
-        _review_option -n "AVFCTL_INPUT_CHOICE" "${AVFCTL_DEVICES[@]}"
+        :
     elif [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
-        _review_option -n "AUDIO_DEV_CHOICE" "${AUDIO_DEVICES[@]}"
+        :
     fi
     if [[ "${CORE_COUNT}" -le 2 && "${RUNTYPE}" = "record" ]] ; then
         _report -w "Since this computer has only ${CORE_COUNT} cores, the playback will display only half of the frames to reduce CPU. This will not impact the recording."
