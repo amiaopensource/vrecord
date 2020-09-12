@@ -410,6 +410,16 @@ _get_decklink_inputs(){
     fi
 }
 
+_get_avfctl_input_list(){
+    # set avfctl input options
+    unset AVFCTL_DEVICES
+    if [[ "${OS_TYPE}" = "linux" ]] ; then
+        echo "Default DV Device"
+    else
+        avfctl -list_devices 2>&1 | grep -A 10 "Devices:" | grep -o "\[[0-9]\].*"
+    fi
+}
+
 # decipher vrecord options as specified by user
 _lookup_choice(){
     case "${2}" in
