@@ -92,6 +92,7 @@ _parse_report(){
 }
 
 _maketemp(){
+    # moved to functions file but kept here as it is used before the function file is called
     if [[ "${1}" ]] ; then
         EXT="${1}"
     else

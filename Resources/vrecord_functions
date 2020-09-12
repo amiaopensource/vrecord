@@ -25,6 +25,15 @@ _get_iso8601(){
     date +%FT%T
 }
 
+_maketemp(){
+    if [[ "${1}" ]] ; then
+        EXT="${1}"
+    else
+        EXT=""
+    fi
+    echo "$(mktemp -q "/tmp/$(basename "${0}").XXXXXX")${EXT}"
+}
+
 _report(){
     local RED="$(tput setaf 1)"    # Red      - For Warnings
     local GREEN="$(tput setaf 2)"  # Green    - For Declarations
