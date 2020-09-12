@@ -917,8 +917,7 @@ export MAIN_DIALOG='
                     <label>Passthrough</label>
                     <input file stock="gtk-media-play"></input>
                     <variable>passthrough_button</variable>
-                    <action>_update_config_file</action>
-                    <action type="exit">passthrough</action>
+                    <action>_passthrough_command</action>
                 </button>
                 <button>
                     <label>Save Settings</label>
@@ -967,7 +966,7 @@ HOME_DIALOG=$(cat << GTKFORM
                 <button>
                     <label>Passthrough</label>
                     <input file>${RESOURCE_PATH}/vrecord_logo_playback.png</input>
-                    <action type="exit">passthrough</action>
+                    <action>_passthrough_command</action>
                 </button>
                 <button>
                     <label>Audio Check</label>

@@ -343,6 +343,19 @@ _setup_vrecord_process(){
     fi
 }
 
+_passthrough_command(){
+    RUNTYPE="passthrough"
+    _setup_vrecord_process
+    if [[ "${VRECORD_STEPS}" = "1" ]] ; then
+        "${PLAYER_COMMAND[@]}" 2> "${VRECORD_INPUT_TMP}"
+    elif [[ "${VRECORD_STEPS}" = "2" ]] ; then
+        trap 'kill $RECORD_PID; rm -f RECORD_PIPE' EXIT
+        mkfifo RECORD_PIPE
+        "${RECORD_COMMAND[@]}" 2> "${VRECORD_INPUT_TMP}" > RECORD_PIPE & RECORD_PID=$!
+        "${PLAYER_COMMAND[@]}" < RECORD_PIPE
+    fi
+}
+
 _set_up_drawtext(){
     # set up drawtext.txt files for Visual + Numerical playback view
     DRAWTEXT_TMP_1="$(_maketemp .drawtext.1.txt)"
