@@ -1091,7 +1091,6 @@ _passthrough_mode(){
     if [[ "${VRECORD_STEPS}" = "1" ]] ; then
         "${PLAYER_COMMAND[@]}" 2> >(tee "${VRECORD_INPUT_TMP}" 1>&2)
     elif [[ "${VRECORD_STEPS}" = "2" ]] ; then
-        echo "${RECORD_COMMAND[@]} xxx ${PLAYER_COMMAND[@]}"
         "${RECORD_COMMAND[@]}" 2> >(tee "${VRECORD_INPUT_TMP}" 1>&2) | "${PLAYER_COMMAND[@]}"
     else
         _report_unexpected_error VRECORD_STEPS
