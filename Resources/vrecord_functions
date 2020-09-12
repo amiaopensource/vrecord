@@ -372,7 +372,12 @@ _set_up_drawtext(){
     echo " HUE(med) %{metadata:lavfi.signalstats.HUEMED}
  HUE(avg) %{metadata:lavfi.signalstats.HUEAVG}
  TOUT     %{metadata:lavfi.signalstats.TOUT}
- VREP     %{metadata:lavfi.signalstats.VREP}" > "${DRAWTEXT_TMP_2}"
+ VREP     %{metadata:lavfi.signalstats.VREP}
+ 
+ Used Bitdepths
+ Y        %{metadata:lavfi.signalstats.YBITDEPTH}
+ U        %{metadata:lavfi.signalstats.UBITDEPTH}
+ V        %{metadata:lavfi.signalstats.VBITDEPTH}" > "${DRAWTEXT_TMP_2}"
 
     echo "BRNG
 %{metadata:lavfi.signalstats.BRNG}" > "${DRAWTEXT_TMP_3}"
@@ -667,7 +672,7 @@ fontfile=${DEFAULTFONT}:textfile=${DRAWTEXT_TMP_1},\
 drawtext=fontcolor=white:fontsize=17:\
 fontfile=${DEFAULTFONT}:textfile=${DRAWTEXT_TMP_2}:y=480,\
 drawtext=fontcolor=white:fontsize=52:\
-fontfile=${DEFAULTFONT}:textfile=${DRAWTEXT_TMP_3}:y=580[e3];\
+fontfile=${DEFAULTFONT}:textfile=${DRAWTEXT_TMP_3}:y=640[e3];\
 [f]scale=iw+512+180:82,format=yuv422p,geq=lum=60:cb=128:cr=128,drawtext=fontcolor=white:fontsize=22:\
 fontfile=${DEFAULTFONT}:textfile=${VRECORD_INPUT_TMP}:\
 reload=1:y=82-th[f1];\
