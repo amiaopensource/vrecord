@@ -294,6 +294,10 @@ _setup_vrecord_process(){
         if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
             _check_mpv
             PLAYER_COMMAND=(mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -)
+        elif [[ "${RUNTYPE}" = "record" ]] && [[ "${PLAYBACKVIEW_CHOICE}" = "Audio + Video" ]] ; then
+            PLAYER_COMMAND=("${FFPLAY_BIN}" -window_title "${WINDOW_NAME}" -f lavfi "amovie='pipe\:0':${PLAYBACKFILTER}")
+        elif [[ "${PLAYBACKVIEW_CHOICE_PASS}" = "Audio + Video" ]] ; then
+            PLAYER_COMMAND=("${FFPLAY_BIN}" -window_title "${WINDOW_NAME}" -f lavfi "amovie='pipe\:0':${PLAYBACKFILTER}")
         else
             _set_ffplay_options
             PLAYER_COMMAND=("${FFPLAY_BIN}" "${FFPLAY_OPTIONS[@]}")
