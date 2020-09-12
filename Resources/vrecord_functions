@@ -367,69 +367,15 @@ _set_up_drawtext(){
   SAT
  Low  %{metadata:lavfi.signalstats.SATLOW}
  Avg  %{metadata:lavfi.signalstats.SATAVG}
- High %{metadata:lavfi.signalstats.SATHIGH}
- " > "${DRAWTEXT_TMP_1}"
+ High %{metadata:lavfi.signalstats.SATHIGH}" > "${DRAWTEXT_TMP_1}"
 
-    echo "
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- HUE(med) %{metadata:lavfi.signalstats.HUEMED}
+    echo " HUE(med) %{metadata:lavfi.signalstats.HUEMED}
  HUE(avg) %{metadata:lavfi.signalstats.HUEAVG}
  TOUT     %{metadata:lavfi.signalstats.TOUT}
- VREP     %{metadata:lavfi.signalstats.VREP}
+ VREP     %{metadata:lavfi.signalstats.VREP}" > "${DRAWTEXT_TMP_2}"
 
-
-" > "${DRAWTEXT_TMP_2}"
-    echo "
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-BRNG
-%{metadata:lavfi.signalstats.BRNG}
-" > "${DRAWTEXT_TMP_3}"
+    echo "BRNG
+%{metadata:lavfi.signalstats.BRNG}" > "${DRAWTEXT_TMP_3}"
 }
 
 _get_decklink_inputs(){
@@ -719,9 +665,9 @@ scale=180:ih+512,setsar=1/1,\
 drawtext=fontcolor=white:fontsize=22:\
 fontfile=${DEFAULTFONT}:textfile=${DRAWTEXT_TMP_1},\
 drawtext=fontcolor=white:fontsize=17:\
-fontfile=${DEFAULTFONT}:textfile=${DRAWTEXT_TMP_2},\
+fontfile=${DEFAULTFONT}:textfile=${DRAWTEXT_TMP_2}:y=480,\
 drawtext=fontcolor=white:fontsize=52:\
-fontfile=${DEFAULTFONT}:textfile=${DRAWTEXT_TMP_3}[e3];\
+fontfile=${DEFAULTFONT}:textfile=${DRAWTEXT_TMP_3}:y=580[e3];\
 [f]scale=iw+512+180:82,format=yuv422p,geq=lum=60:cb=128:cr=128,drawtext=fontcolor=white:fontsize=22:\
 fontfile=${DEFAULTFONT}:textfile=${VRECORD_INPUT_TMP}:\
 reload=1:y=82-th[f1];\
