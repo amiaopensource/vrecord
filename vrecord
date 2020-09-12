@@ -100,7 +100,6 @@ _maketemp(){
     fi
     echo "$(mktemp -q "/tmp/$(basename "${0}").XXXXXX")${EXT}"
 }
-VRECORD_INPUT_TMP="$(_maketemp .vrecord_input.log)"
 
 # manage an include file to pass variables to gtkdialog
 VRECORD_VARS_FILE="/tmp/v_$(echo "${0}" | sed -e "s/[^A-Za-z0-9.]/_/g")_variables.txt"

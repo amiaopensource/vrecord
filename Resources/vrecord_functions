@@ -953,3 +953,5 @@ _frames_to_hhmmss(){
     Sm=$(echo "${S}" | cut -d. -f2 | bc)
     printf "%02d:%02d:%02d.%03d\n" "${H}" "${M}" "${Ss}" "${Sm}"
 }
+
+VRECORD_INPUT_TMP="$(_maketemp .vrecord_input.log)"
