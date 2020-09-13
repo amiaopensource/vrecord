@@ -233,7 +233,7 @@ _setup_vrecord_process(){
         # DEVICE_INPUT_CHOICE=0 is decklink, other DEVICE_INPUT_CHOICE values don't yet use such filtering
         if [[ "${DECKLINK_UTILITY_CHOICE}" == "bmdcapture" ]] ; then
             if [[ "${RUNTYPE}" = "record" ]] ; then
-            VRECORD_STEPS="3"
+                VRECORD_STEPS="3"
             else
                 VRECORD_STEPS="2" # RECORD_COMMAND piped to PLAYER_COMMAND
             fi
@@ -252,7 +252,7 @@ _setup_vrecord_process(){
             FF_RECORD_COMMAND+=(-filter_complex "${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" "${PIPE_OUTPUT[@]}")
         else
             if [[ "${RUNTYPE}" = "record" ]] ; then
-            VRECORD_STEPS="2"
+                VRECORD_STEPS="2"
             else
                 VRECORD_STEPS="1" # only PLAYER_COMMAND
             fi
@@ -277,7 +277,7 @@ _setup_vrecord_process(){
     elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
         if [[ "${OS_TYPE}" = "linux" ]] ; then
             if [[ "${RUNTYPE}" = "record" ]] ; then
-            VRECORD_STEPS="2"
+                VRECORD_STEPS="2"
             else
                 VRECORD_STEPS="1" # only PLAYER_COMMAND
             fi
@@ -300,12 +300,12 @@ _setup_vrecord_process(){
     elif [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
         VRECORD_STEPS="2"
         if [[ "${RUNTYPE}" = "record" ]] ; then
-        RECORD_COMMAND=("${FFMPEG_BIN}")
-        RECORD_COMMAND+=(-nostdin -nostats "${TIME_LIMIT[@]}" "${GRAB_INPUT[@]}")
-        RECORD_COMMAND+=("${MIDDLEOPTIONS[@]}")
-        RECORD_COMMAND+=(-f "${FORMAT}" -filter_complex "${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" "${VRECORD_OUTPUT}")
-        RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}" -filter_complex "${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" "${PIPE_OUTPUT[@]}")
-        PLAYER_COMMAND=("${FFPLAY_BIN}" -f lavfi "amovie='pipe\:0',${PLAYBACKFILTER}")
+            RECORD_COMMAND=("${FFMPEG_BIN}")
+            RECORD_COMMAND+=(-nostdin -nostats "${TIME_LIMIT[@]}" "${GRAB_INPUT[@]}")
+            RECORD_COMMAND+=("${MIDDLEOPTIONS[@]}")
+            RECORD_COMMAND+=(-f "${FORMAT}" -filter_complex "${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" "${VRECORD_OUTPUT}")
+            RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}" -filter_complex "${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" "${PIPE_OUTPUT[@]}")
+            PLAYER_COMMAND=("${FFPLAY_BIN}" -f lavfi "amovie='pipe\:0',${PLAYBACKFILTER}")
         else
             RECORD_COMMAND=("${FFMPEG_BIN}" -nostdin -hide_banner -nostats "${GRAB_INPUT[@]}" "${PIPE_OUTPUT[@]}")
             PLAYER_COMMAND=("${FFPLAY_BIN}" -window_title "${WINDOW_NAME}" -f lavfi "amovie='pipe\:0',${PLAYBACKFILTER}")
