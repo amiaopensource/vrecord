@@ -93,6 +93,10 @@ _cleanup(){
 }
 
 _check_mpv(){
+    MPVOPTS=(--no-osc)
+    MPVOPTS+=(--load-scripts=no)
+    MPVOPTS+=(--script="${RESOURCE_PATH}/qcview.lua")
+    MPVOPTS+=(--really-quiet)
     if ! mpv > /dev/null ; then
         mpv
         _report -wt "mpv doesn't appear to be running correctly. Try 'brew reinstall mpv'."
