@@ -296,6 +296,15 @@ _setup_vrecord_process(){
             RECORD_COMMAND+=(-filter_complex "${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" "${PIPE_OUTPUT[@]}")
         fi
         if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
+            if [[ "${VRECORD_STEPS}" = "1" ]] ; then
+                # reassign RECORD_COMMAND and VRECORD_STEPS
+                VRECORD_STEPS="2"
+                if [[ "${DECKLINK_UTILITY_CHOICE}" == "bmdcapture" ]] ; then
+                    RECORD_COMMAND=(bmdcapture "${GRAB_INPUT[@]}")
+                else
+                    RECORD_COMMAND=("${FFMPEG_BIN}" -nostdin -nostats "${GRAB_INPUT[@]}" "${PIPE_OUTPUT[@]}")
+                fi
+            fi
             _check_mpv
             PLAYER_COMMAND=(mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -)
         elif [[ "${RUNTYPE}" = "record" ]] && [[ "${PLAYBACKVIEW_CHOICE}" = "Audio + Video" ]] ; then
