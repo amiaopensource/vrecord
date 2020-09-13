@@ -776,6 +776,26 @@ AUDIO_INPUT_GUI='
   </vbox>
 </frame>'
 
+if [[ "${VERBOSE_GTKDIALOG}" = "Y" ]] ; then
+    DEBUGGER='<hbox>
+    <text>
+        <label>Debug:</label>
+    </text>
+    <vbox scrollable="true">
+        <text wrap="true" xalign="0" selectable="true">
+            <variable export="false">debug_report</variable>
+            <input>_debug_report</input>
+        </text>
+    </vbox>
+    <button>
+        <label>Refresh</label>
+        <action type="refresh">debug_report</action>
+    </button>
+</hbox>'
+else
+    DEBUGGER=""
+fi
+
 export MAIN_DIALOG='
 <window title="vrecord configuration">
     <vbox>
@@ -907,6 +927,7 @@ export MAIN_DIALOG='
                     </text>
                 </vbox>
             </hbox>
+            '"${DEBUGGER}"'
         </vbox>
         <vbox>
             <hbox>

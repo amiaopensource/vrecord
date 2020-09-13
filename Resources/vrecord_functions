@@ -351,6 +351,15 @@ _setup_vrecord_process(){
     fi
 }
 
+_debug_report(){
+    RUNTYPE="passthrough"
+    _setup_vrecord_process
+    echo "Steps: ${VRECORD_STEPS}"
+    echo "Capture: ${RECORD_COMMAND[@]}"
+    echo "Record: ${FF_RECORD_COMMAND[@]}"
+    echo "Player: ${PLAYER_COMMAND[@]}"
+}
+
 _passthrough_command(){
     RUNTYPE="passthrough"
     _setup_vrecord_process
