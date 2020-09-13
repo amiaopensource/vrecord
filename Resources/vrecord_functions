@@ -365,11 +365,17 @@ _passthrough_command(){
     _setup_vrecord_process
     if [[ "${VRECORD_STEPS}" = "1" ]] ; then
         "${PLAYER_COMMAND[@]}" 2> "${VRECORD_INPUT_TMP}"
-    elif [[ "${VRECORD_STEPS}" = "2" ]] ; then
+    elif [[ "${VRECORD_STEPS}" = "2" ]] && [[ "${DECKLINK_UTILITY_CHOICE}" == "bmdcapture" ]] ; then
+        # exception for bmdcapture since it doesn't terminate when the successive piped utility terminates
+        if [[ -f RECORD_PIPE ]] ; then
+            rm RECORD_PIPE
+        fi
         trap 'kill $RECORD_PID; rm -f RECORD_PIPE' EXIT
         mkfifo RECORD_PIPE
         "${RECORD_COMMAND[@]}" 2> "${VRECORD_INPUT_TMP}" > RECORD_PIPE & RECORD_PID=$!
         "${PLAYER_COMMAND[@]}" < RECORD_PIPE
+    elif [[ "${VRECORD_STEPS}" = "2" ]] ; then
+        "${RECORD_COMMAND[@]}" 2> "${VRECORD_INPUT_TMP}" | "${PLAYER_COMMAND[@]}"
     fi
 }
 
