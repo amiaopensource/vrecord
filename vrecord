@@ -1689,8 +1689,8 @@ else
     PRINT_PHASE=",drawtext=fontfile=${DEFAULTFONT}:box=1:text=Phase\\\: %{metadata\\\:lavfi.aphasemeter.phase}:x=135:y=380:fontcolor=black"
     PRINT_CHANNELS_1_2=",drawtext=fontfile=${DEFAULTFONT}:text=Ch.1/2:x=10: y=10:fontcolor=white"
     AUDIO_SPLIT='7[a][b][c][d][e][f][out1],'
-    WAVEFORM="[e]astats=metadata=1:reset=1,adrawgraph=m1=lavfi.astats.1.Min_level:m2=lavfi.astats.1.Max_level:size=700x160:bg=Black:fg1=0xFFFF0000:fg2=0xFFFF0000:slide=scroll:min=-32767:max=32767[wav1],\
-    [f]astats=metadata=1:reset=1,adrawgraph=m1=lavfi.astats.2.Min_level:m2=lavfi.astats.2.Max_level:size=700x160:bg=Black:fg1=0xFF00FF00:fg2=0xFF00FF00:slide=scroll:min=-32767:max=32767[wav2]"
+    WAVEFORM="[e]astats=metadata=1:reset=1,adrawgraph=m1=lavfi.astats.1.Min_level:m2=lavfi.astats.1.Max_level:size=800x200:bg=Black:fg1=0xFFFF0000:fg2=0xFFFF0000:slide=scroll:min=-32767:max=32767[wav1],\
+    [f]astats=metadata=1:reset=1,adrawgraph=m1=lavfi.astats.2.Min_level:m2=lavfi.astats.2.Max_level:size=800x200:bg=Black:fg1=0xFF00FF00:fg2=0xFF00FF00:slide=scroll:min=-32767:max=32767[wav2]"
     CHANNEL_PARAMS="[b]avectorscope=s=320x400${PRINT_CHANNELS_1_2}[b1],"
     AP_MAP='[a1][b1][x][wav1][wav2]xstack=inputs=5:layout=0_0|w0_0|0_h0|w0+w1_0|w0+w1_h3,fps=25[out0]'
     PHASE_LOCATION='x=135:y=380'
