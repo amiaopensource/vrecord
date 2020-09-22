@@ -435,9 +435,15 @@ _setup_vrecord_process(){
             GRAB_INPUT+=(-acodec pcm_s32le -ac 2)
             GRAB_INPUT+=(${S_RATE})
             GRAB_INPUT+=(-i hw:"${AUDIO_DEV_NUM}")
-        elif [[ "${OS_TYPE}" = "macOS" ]] ; then
+        elif [[ "${OS_TYPE}" = "macOS" ]] && [[ "${AUDIO_DEV_CHOICE}" != *"Blackmagic"* ]] ; then
             GRAB_INPUT+=(-f avfoundation)
             GRAB_INPUT+=(-i "none:${AUDIO_DEV_CHOICE}")
+        elif [[ "${OS_TYPE}" = "macOS" ]] && [[ "${AUDIO_DEV_CHOICE}" == *"Blackmagic"* ]] ; then
+            GRAB_INPUT+=(-f decklink)
+            GRAB_INPUT+=(-channels 2)
+            GRAB_INPUT+=(-audio_depth 32)
+            GRAB_INPUT+=(-i "${DECKLINK_INPUT_CHOICE}")
+            GRAB_INPUT+=(-vn)
         fi
     else
         _report "Input unknown"
