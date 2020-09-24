@@ -429,7 +429,7 @@ _setup_vrecord_process(){
         _set_ffmpeg_loglevel
         #Mac Options
         #Linux Options
-        if [[ "${OS_TYPE}" = "linux" ]] ; then
+        if [[ "${OS_TYPE}" = "linux" ]] && [[ "${AUDIO_DEV_CHOICE}" != *"Blackmagic"* ]] ; then
             _get_audio_dev_num
             GRAB_INPUT+=(-f alsa)
             GRAB_INPUT+=(-acodec pcm_s32le -ac 2)
@@ -438,7 +438,7 @@ _setup_vrecord_process(){
         elif [[ "${OS_TYPE}" = "macOS" ]] && [[ "${AUDIO_DEV_CHOICE}" != *"Blackmagic"* ]] ; then
             GRAB_INPUT+=(-f avfoundation)
             GRAB_INPUT+=(-i "none:${AUDIO_DEV_CHOICE}")
-        elif [[ "${OS_TYPE}" = "macOS" ]] && [[ "${AUDIO_DEV_CHOICE}" == *"Blackmagic"* ]] ; then
+        elif [[ "${AUDIO_DEV_CHOICE}" == *"Blackmagic"* ]] ; then
             GRAB_INPUT+=(-f decklink)
             GRAB_INPUT+=(-channels 2)
             GRAB_INPUT+=(-audio_depth 32)
