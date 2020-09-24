@@ -1653,13 +1653,11 @@ _frames_to_hhmmss(){
     printf "%02d:%02d:%02d.%03d\n" "${H}" "${M}" "${Ss}" "${Sm}"
 }
 
-# set up drawtext.txt files for Visual + Numerical playback view
-
-DRAWTEXT_TMP_1="$(_maketemp .drawtext.1.txt)"
-DRAWTEXT_TMP_2="$(_maketemp .drawtext.2.txt)"
-DRAWTEXT_TMP_3="$(_maketemp .drawtext.3.txt)"
-
 _set_up_drawtext(){
+    # set up drawtext.txt files for Visual + Numerical playback view
+    DRAWTEXT_TMP_1="$(_maketemp .drawtext.1.txt)"
+    DRAWTEXT_TMP_2="$(_maketemp .drawtext.2.txt)"
+    DRAWTEXT_TMP_3="$(_maketemp .drawtext.3.txt)"
     echo -e "%{pts:hms}
 
   Y
