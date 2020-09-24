@@ -320,6 +320,28 @@ _gtk_vbox_list() {
     </vbox>"
 }
 
+_gtk_comboboxtext(){
+    VARIABLE_NAME="${1}"
+    LABEL="${3}"
+    shift 3
+    OPTION_LIST=("${@}")
+    SELECTION="$(_get_index_of_value "${!VARIABLE_NAME}" "${OPTION_LIST[@]}")"
+    if [[ "${VARIABLE_NAME}" == "DECKLINK_INPUT_CHOICE" ]] ; then
+        LIST="<input>_get_decklink_inputs</input>"
+    else
+        LIST="$(_expand_list2items "${OPTION_LIST[@]}")"
+    fi
+    echo "<hbox>
+      <text>
+          <label>${LABEL}</label>
+      </text>
+      <comboboxtext allow-empty=\"false\" value-in-list=\"true\" button-sensitivity=\"1\" focus-on-click=\"false\" selection-mode=\"1\" selected-row=\"${SELECTION}\">
+          <variable>${VARIABLE_NAME}</variable>
+          ${LIST}
+      </comboboxtext>
+    </hbox>"
+}
+
 _get_decklink_inputs(){
     # get information on what input device options are available
     unset DECKLINK_DEVICES
@@ -526,11 +548,13 @@ DECKLINK_INPUT_GUI=$(cat << DECKLINK_FORM
         <hbox space-expand="true">
             $(_gtk_vbox_list "DECKLINK_UTILITY_CHOICE"  "100" "Select Input Utility"          "${DECKLINK_UTILITIES[@]}")
             $(_gtk_vbox_list "DECKLINK_INPUT_CHOICE"    "160" "Select Video Card"             "${DECKLINK_DEVICES[@]}")
-            $(_gtk_vbox_list "VIDEO_INPUT_CHOICE"       "100" "Select Video Input"            "${VIDEO_INPUT_OPTIONS[@]}")
-            $(_gtk_vbox_list "AUDIO_INPUT_CHOICE"       "200" "Select Audio Input"            "${AUDIO_INPUT_OPTIONS[@]}")
-            $(_gtk_vbox_list "AUDIO_MAPPING_CHOICE"     "300" "Select Audio Channel Mapping"  "${CHANNEL_MAPPING_OPTIONS[@]}" )
-            $(_gtk_vbox_list "STANDARD_CHOICE"          "100" "Select Standard"               "${STANDARD_OPTIONS[@]}")
-            $(_gtk_vbox_list "VIDEO_BIT_DEPTH_CHOICE"   "100" "Select Video Bit Depth"        "${VIDEO_BITDEPTH_OPTIONS[@]}")
+            <vbox>
+                $(_gtk_comboboxtext "VIDEO_INPUT_CHOICE"       "100" "Select Video Input"            "${VIDEO_INPUT_OPTIONS[@]}")
+                $(_gtk_comboboxtext "AUDIO_INPUT_CHOICE"       "200" "Select Audio Input"            "${AUDIO_INPUT_OPTIONS[@]}")
+                $(_gtk_comboboxtext "AUDIO_MAPPING_CHOICE"     "300" "Select Audio Channel Mapping"  "${CHANNEL_MAPPING_OPTIONS[@]}" )
+                $(_gtk_comboboxtext "STANDARD_CHOICE"          "100" "Select Standard"               "${STANDARD_OPTIONS[@]}")
+                $(_gtk_comboboxtext "VIDEO_BIT_DEPTH_CHOICE"   "100" "Select Video Bit Depth"        "${VIDEO_BITDEPTH_OPTIONS[@]}")
+            </vbox>
             $(_gtk_vbox_list "TIMECODE_CHOICE"          "100" "Select timecode format"        "${TIMECODE_OPTIONS[@]}")
         </hbox>
         <checkbox>
