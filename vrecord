@@ -1658,7 +1658,7 @@ _set_up_drawtext(){
     DRAWTEXT_TMP_1="$(_maketemp .drawtext.1.txt)"
     DRAWTEXT_TMP_2="$(_maketemp .drawtext.2.txt)"
     DRAWTEXT_TMP_3="$(_maketemp .drawtext.3.txt)"
-    echo -e "%{pts:hms}
+    echo "%{pts:hms}
 
   Y
  Low  %{metadata:lavfi.signalstats.YLOW}
@@ -1684,7 +1684,7 @@ _set_up_drawtext(){
  High %{metadata:lavfi.signalstats.SATHIGH}
  " > "${DRAWTEXT_TMP_1}"
 
-    echo -e "
+    echo "
 
 
 
@@ -1723,7 +1723,7 @@ _set_up_drawtext(){
 
 
 " > "${DRAWTEXT_TMP_2}"
-    echo -e "
+    echo "
 
 
 
