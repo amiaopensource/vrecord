@@ -234,11 +234,6 @@ if [[ "${OS_TYPE}" = "macOS" ]] ; then
     _include_var COMPUTER_MODEL_ID COMPUTER_PROCESSOR_NAME COMPUTER_PROCESSOR_SPEED COMPUTER_PROCESSOR_COUNT COMPUTER_MEMORY COMPUTER_SERIAL
 fi
 
-MPVOPTS=(--no-osc)
-MPVOPTS+=(--load-scripts=no)
-MPVOPTS+=(--script="${RESOURCE_PATH}/qcview.lua")
-MPVOPTS+=(--really-quiet)
-
 _gather_ffmpeg_vars(){
     CAPTURELOGSUFFIX="_vrecord_input.log"
     TIMECODELOGSUFFIX="_frame_timecodes.txt"
@@ -271,6 +266,10 @@ _cleanup(){
 }
 
 _check_mpv(){
+    MPVOPTS=(--no-osc)
+    MPVOPTS+=(--load-scripts=no)
+    MPVOPTS+=(--script="${RESOURCE_PATH}/qcview.lua")
+    MPVOPTS+=(--really-quiet)
     if ! mpv > /dev/null ; then
         mpv
         _report -wt "mpv doesn't appear to be running correctly. Try 'brew reinstall mpv'."
