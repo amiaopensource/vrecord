@@ -1578,6 +1578,7 @@ ${PLAYBACK_FILTER_ADJUSTMENT}split=5[a][b][c][d][e];\
 [e]format=yuv444p,pseudocolor=if(between(1\,val\,amax)+between(val\,254\,amax)\,65\,-1):if(between(1\,val\,amax)+between(val\,254\,amax)\,100\,-1):if(between(1\,val\,amax)+between(val\,254\,amax)\,212\,-1),scale=512:ih[e1];\
 [a1][b1][c1][e1][d1]xstack=inputs=5:layout=0_0|0_h0|0_h0+h1|w0_0|w0_h0" ;;
       "Visual + Numerical")
+          _set_up_drawtext
           PLAYBACKFILTER="\
 ${PLAYBACK_FILTER_ADJUSTMENT}split=6[a][b][c][d][e][f];\
 [a]copy${TIMECODE_OVERLAY}[a1];\
@@ -1875,7 +1876,6 @@ if [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
 fi
 
 # set up input and playback
-_set_up_drawtext
 _set_ffmpeg_loglevel(){
     if [[ "$VERBOSE" = "true" ]] ; then
         GRAB_INPUT+=(-loglevel debug)
