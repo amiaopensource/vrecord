@@ -327,9 +327,13 @@ _gtk_vbox_list() {
         elif  [[ "${VARIABLE_NAME}" == "AUDIO_MODE_CODEC_CHOICE" ]] ; then
             echo '<action type="refresh">VRECORD_OUTPUT_NAME</action>'
         elif  [[ "${VARIABLE_NAME}" == "DECKLINK_UTILITY_CHOICE" ]] ; then
-          echo '<action condition="command_is_true( [ \"$DECKLINK_UTILITY_CHOICE\" = \"bmdcapture\" ] && echo true)">disable:TIMECODE_CHOICE</action>
+            echo '<action condition="command_is_true( [ \"$DECKLINK_UTILITY_CHOICE\" = \"bmdcapture\" ] && echo true)">disable:TIMECODE_CHOICE</action>
                 <action condition="command_is_true( [ \"$DECKLINK_UTILITY_CHOICE\" != \"bmdcapture\" ] && echo true)">enable:TIMECODE_CHOICE</action>
                 <action type="refresh">VRECORD_OUTPUT_NAME</action>'
+        elif [[ "${VARIABLE_NAME}" == "AUDIO_DEV_CHOICE" ]] ; then
+            echo '<action condition="command_is_true( [[ \"$AUDIO_DEV_CHOICE\" != *\"Blackmagic\"* ]] && echo true)">enable:AUDIO_MODE_SR_CHOICE</action>
+                  <action condition="command_is_true( [[ \"$AUDIO_DEV_CHOICE\" == *\"Blackmagic\"* ]] && echo true)">disable:AUDIO_MODE_SR_CHOICE</action>
+                  <action type="refresh">VRECORD_OUTPUT_NAME</action>'
         fi
     }
 
@@ -444,6 +448,7 @@ _setup_vrecord_process(){
             GRAB_INPUT+=(-audio_depth 32)
             GRAB_INPUT+=(-i "${DECKLINK_INPUT_CHOICE}")
             GRAB_INPUT+=(-vn)
+            GRAB_INPUT+=(-ar 48k)
         fi
     else
         _report "Input unknown"
