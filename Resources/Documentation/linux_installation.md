@@ -48,7 +48,7 @@ The following instructions aim to minimize use of linuxbrew installs for package
 
 ### Install additional vrecord dependencies via Homebrew
 * `brew install decklinksdk && brew install ffmpegdecklink --with-iec61883 && brew install gtkdialog`
-* `brew install --ignore-dependencies vrecord`
+* `brew install vrecord`
 
 ### Fix conflicting SDL2 dependencies
 * `brew uninstall --ignore-dependencies sdl2`
