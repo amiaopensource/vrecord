@@ -1902,48 +1902,48 @@ _review_option(){
 }
 
 _review_all_options(){
-if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
-    _review_option -n "DECKLINK_UTILITY_CHOICE" "${DECKLINK_UTILITIES[@]}"
-    _review_option "VIDEO_INPUT_CHOICE" "${VIDEO_INPUT_OPTIONS[@]}"
-    _review_option "AUDIO_INPUT_CHOICE" "${AUDIO_INPUT_OPTIONS[@]}"
-    _review_option "VIDEO_BIT_DEPTH_CHOICE" "${VIDEO_BITDEPTH_OPTIONS[@]}"
-    _review_option "AUDIO_MAPPING_CHOICE" "${CHANNEL_MAPPING_OPTIONS[@]}"
-    if [[ -z "${ALT_INPUT}" ]] ; then
-        _review_option "TIMECODE_CHOICE" "${TIMECODE_OPTIONS[@]}"
+    if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
+        _review_option -n "DECKLINK_UTILITY_CHOICE" "${DECKLINK_UTILITIES[@]}"
+        _review_option "VIDEO_INPUT_CHOICE" "${VIDEO_INPUT_OPTIONS[@]}"
+        _review_option "AUDIO_INPUT_CHOICE" "${AUDIO_INPUT_OPTIONS[@]}"
+        _review_option "VIDEO_BIT_DEPTH_CHOICE" "${VIDEO_BITDEPTH_OPTIONS[@]}"
+        _review_option "AUDIO_MAPPING_CHOICE" "${CHANNEL_MAPPING_OPTIONS[@]}"
+        if [[ -z "${ALT_INPUT}" ]] ; then
+            _review_option "TIMECODE_CHOICE" "${TIMECODE_OPTIONS[@]}"
+        fi
+        _review_option "STANDARD_CHOICE" "${STANDARD_OPTIONS[@]}"
+    elif [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
+        _review_option -n "AVFCTL_INPUT_CHOICE" "${AVFCTL_DEVICES[@]}"
+    elif [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
+        _review_option -n "AUDIO_DEV_CHOICE" "${AUDIO_DEVICES[@]}"
     fi
-    _review_option "STANDARD_CHOICE" "${STANDARD_OPTIONS[@]}"
-elif [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
-    _review_option -n "AVFCTL_INPUT_CHOICE" "${AVFCTL_DEVICES[@]}"
-elif [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
-    _review_option -n "AUDIO_DEV_CHOICE" "${AUDIO_DEVICES[@]}"
-fi
-if [[ "${CORE_COUNT}" -le 2 && "${RUNTYPE}" = "record" ]] ; then
-    _report -w "Since this computer has only ${CORE_COUNT} cores, the playback will display only half of the frames to reduce CPU. This will not impact the recording."
-    PLAYBACK_FILTER_ADJUSTMENT="select=not(mod(n\,2)),"
-fi
-if [[ "${RUNTYPE}" = "passthrough" ]] && [[ -n "${PLAYBACKVIEW_CHOICE_PASS}" ]] && [[ "${PLAYBACKVIEW_CHOICE_PASS}" != "Unselected" ]] ; then
-  _review_option "PLAYBACKVIEW_CHOICE_PASS" "${PLAYBACKVIEW_PASS_OPTIONS[@]}"
-else
-  _review_option "PLAYBACKVIEW_CHOICE" "${PLAYBACKVIEW_OPTIONS[@]}"
-fi
-if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
-  if [[ "${PLAYBACKVIEW_CHOICE}" = "Full Range Visual" ]] ; then
-      MIDDLEOPTIONS+=(-color_range jpeg)
-  else
-      MIDDLEOPTIONS+=(-color_range mpeg)
-  fi
+    if [[ "${CORE_COUNT}" -le 2 && "${RUNTYPE}" = "record" ]] ; then
+        _report -w "Since this computer has only ${CORE_COUNT} cores, the playback will display only half of the frames to reduce CPU. This will not impact the recording."
+        PLAYBACK_FILTER_ADJUSTMENT="select=not(mod(n\,2)),"
+    fi
+    if [[ "${RUNTYPE}" = "passthrough" ]] && [[ -n "${PLAYBACKVIEW_CHOICE_PASS}" ]] && [[ "${PLAYBACKVIEW_CHOICE_PASS}" != "Unselected" ]] ; then
+      _review_option "PLAYBACKVIEW_CHOICE_PASS" "${PLAYBACKVIEW_PASS_OPTIONS[@]}"
+    else
+      _review_option "PLAYBACKVIEW_CHOICE" "${PLAYBACKVIEW_OPTIONS[@]}"
+    fi
+    if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
+      if [[ "${PLAYBACKVIEW_CHOICE}" = "Full Range Visual" ]] ; then
+          MIDDLEOPTIONS+=(-color_range jpeg)
+      else
+          MIDDLEOPTIONS+=(-color_range mpeg)
+      fi
 
-  MIDDLEOPTIONS+=(-metadata creation_time=now)
-fi
-MIDDLEOPTIONS+=(${EXTRAOUTPUTOPTIONS[@]})
-if [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
-    _review_option "AUDIO_MODE_CODEC_CHOICE" "${AUDIO_CODEC_OPTIONS[@]}"
-    _review_option "AUDIO_CHANNEL_CHOICE" "${AUDIO_CHANNEL_CHOICE_OPTIONS[@]}"
-    _review_option "AUDIO_MODE_SR_CHOICE" "${AUDIO_MODE_SR_CHOICE_OPTIONS[@]}"
-    PLAYBACKVIEW_CHOICE_PASS="Audio"
-    PLAYBACKVIEW_CHOICE="Audio"
-    _lookup_choice "Audio"
-fi
+      MIDDLEOPTIONS+=(-metadata creation_time=now)
+    fi
+    MIDDLEOPTIONS+=(${EXTRAOUTPUTOPTIONS[@]})
+    if [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
+        _review_option "AUDIO_MODE_CODEC_CHOICE" "${AUDIO_CODEC_OPTIONS[@]}"
+        _review_option "AUDIO_CHANNEL_CHOICE" "${AUDIO_CHANNEL_CHOICE_OPTIONS[@]}"
+        _review_option "AUDIO_MODE_SR_CHOICE" "${AUDIO_MODE_SR_CHOICE_OPTIONS[@]}"
+        PLAYBACKVIEW_CHOICE_PASS="Audio"
+        PLAYBACKVIEW_CHOICE="Audio"
+        _lookup_choice "Audio"
+    fi
 }
 
 _review_all_options
