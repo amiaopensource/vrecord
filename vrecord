@@ -1901,6 +1901,7 @@ _review_option(){
     LOG_OF_OPTIONS+="${VALUE_NAME}: ${SELECTED}\n"
 }
 
+_review_all_options(){
 if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
     _review_option -n "DECKLINK_UTILITY_CHOICE" "${DECKLINK_UTILITIES[@]}"
     _review_option "VIDEO_INPUT_CHOICE" "${VIDEO_INPUT_OPTIONS[@]}"
@@ -1943,6 +1944,9 @@ if [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
     PLAYBACKVIEW_CHOICE="Audio"
     _lookup_choice "Audio"
 fi
+}
+
+_review_all_options
 
 # set up input and playback
 _set_up_drawtext
