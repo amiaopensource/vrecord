@@ -40,19 +40,24 @@ The following instructions aim to minimize use of linuxbrew installs for package
  - Add linuxbrew to path with: 
 ~~~
  test -d ~/.linuxbrew && eval $(~/.linuxbrew/bin/brew shellenv)
+
  test -d /home/linuxbrew/.linuxbrew && eval $(/home/linuxbrew/.linuxbrew/bin/brew shellenv)
+
  test -r ~/.bash_profile && echo "eval \$($(brew --prefix)/bin/brew shellenv)" >> ~/.bashrc
  ~~~
+
+  - Alternately some issues (such as the sdl2 conflict) have been avoided by adding Linuxbrew lower down in the path order than the Linuxbrew instructions call for (Such as by editing `/etc/environment` to include `/home/linuxbrew/.linuxbrew/bin` after the other $PATH directories.) Your mileage may vary!
  * Add the AMIA Open Source tap for Homebrew:
    - `brew tap amiaopensource/amiaos`
 
-### Install additional vrecord dependencies via Homebrew
+### Install additional vrecord dependencies via Brew
 * `brew install decklinksdk && brew install ffmpegdecklink --with-iec61883 && brew install gtkdialog`
-* `brew install --ignore-dependencies vrecord`
+* `brew install vrecord`
 
 ### Fix conflicting SDL2 dependencies
 * `brew uninstall --ignore-dependencies sdl2`
 * `sudo apt install libsdl2-dev`
+* This step may not be required if Brew has been configured lower in $PATH than standard system directories.
 
 ## via RPM (tested on CentOS 7/8 and Fedora 31)
 This method is maintained by [Jonáš Svatoš](mailto:jonas.svatos@nfa.cz) at [Národní filmový archiv](https://github.com/NFAcz)
