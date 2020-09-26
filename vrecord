@@ -1869,10 +1869,6 @@ while [[ "${RUNTYPE}" = "edit" || "${RUNTYPE}" = "GUI" ]] ; do
     _edit_mode
 done
 
-if [[ "${INVERT_PHASE}" = 'true' ]] ; then
-    PHASE_VALUE="-1*"
-fi
-
 _review_option(){
     unset NO_LOOKUP
     OPTIND=1
@@ -1902,6 +1898,9 @@ _review_option(){
 }
 
 _review_all_options(){
+    if [[ "${INVERT_PHASE}" = 'true' ]] ; then
+        PHASE_VALUE="-1*"
+    fi
     if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
         _review_option -n "DECKLINK_UTILITY_CHOICE" "${DECKLINK_UTILITIES[@]}"
         _review_option "VIDEO_INPUT_CHOICE" "${VIDEO_INPUT_OPTIONS[@]}"
