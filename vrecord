@@ -1989,10 +1989,10 @@ elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
         GRAB_INPUT+=(-f iec61883)
         GRAB_INPUT+=(-i auto)
     elif [[ "${OS_TYPE}" = "macOS" ]] ; then
-    AVFCTL_INPUT_INDEX="$(echo "${AVFCTL_INPUT_CHOICE}" | cut -c 2)"
-    GRAB_INPUT+=(-device "${AVFCTL_INPUT_INDEX}")
-    GRAB_INPUT+=(-cmd capture)
-    GRAB_INPUT+=(-)
+        AVFCTL_INPUT_INDEX="$(echo "${AVFCTL_INPUT_CHOICE}" | cut -c 2)"
+        GRAB_INPUT+=(-device "${AVFCTL_INPUT_INDEX}")
+        GRAB_INPUT+=(-cmd capture)
+        GRAB_INPUT+=(-)
     fi
     MIDDLEOPTIONS+=(-c copy -map 0)
     EXTENSION="dv"
