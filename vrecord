@@ -410,8 +410,7 @@ _setup_vrecord_process(){
     elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
         if [[ "${OS_TYPE}" = "linux" ]] ; then
             VRECORD_STEPS="2"
-            RECORD_COMMAND=("${FFMPEG_BIN}" -nostdin -nostats "${TIME_LIMIT[@]}" -f iec61883)
-            RECORD_COMMAND+=(-i auto)
+            RECORD_COMMAND=("${FFMPEG_BIN}" -nostdin -nostats "${TIME_LIMIT[@]}" "${GRAB_INPUT[@]}")
             RECORD_COMMAND+=(-map 0:v -c copy)
             RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
             RECORD_COMMAND+=(-map 0:v -f rawvideo -c copy -)
@@ -1986,10 +1985,15 @@ elif [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         GRAB_INPUT+=(-i "${DECKLINK_INPUT_CHOICE}")
     fi
 elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
+    if [[ "${OS_TYPE}" = "linux" ]] ; then
+        GRAB_INPUT+=(-f iec61883)
+        GRAB_INPUT+=(-i auto)
+    elif [[ "${OS_TYPE}" = "macOS" ]] ; then
     AVFCTL_INPUT_INDEX="$(echo "${AVFCTL_INPUT_CHOICE}" | cut -c 2)"
     GRAB_INPUT+=(-device "${AVFCTL_INPUT_INDEX}")
     GRAB_INPUT+=(-cmd capture)
     GRAB_INPUT+=(-)
+    fi
     MIDDLEOPTIONS+=(-c copy -map 0)
     EXTENSION="dv"
     FORMAT="rawvideo"
