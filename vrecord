@@ -1945,6 +1945,7 @@ fi
 
 if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
     PIPE_OUTPUT=(-c copy)
+    PIPE_OUTPUT+=(-c:a pcm_s24le)
     PIPE_OUTPUT+=(-map 0)
     PIPE_OUTPUT+=(-f matroska)
     PIPE_OUTPUT+=(-write_crc32 0)
@@ -2051,8 +2052,6 @@ if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
 fi
 
 # Check for user suffix to override automatic settings
-
-
 if [[ "${NO_SUFFIX}" = 'true' ]] ; then
     SUFFIX=""
 elif [[ -n "${USER_SUFFIX}" ]] ; then
@@ -2111,6 +2110,8 @@ read
 # create log of vrecord decisions
 INGESTLOG="${LOGDIR}/${FULL_OUTPUT_ID}_capture_options.log"
 QCXML="${LOGDIR}/${FULL_OUTPUT_ID}.${EXTENSION}.qctools.xml.gz"
+QCLI_COMMAND_PIPE=(qcli -f signalstats+aphasemeter+astats+ssim -i - -o "${QCXML}")
+QCLI_COMMAND_FILE=(qcli -f signalstats+aphasemeter+astats+ssim -i "${VRECORD_OUTPUT}" -o "${QCXML}")
 touch "${INGESTLOG}"
 _writeingestlog "computer_name" "$(uname -n)"
 _writeingestlog "computer_model_name" "${COMPUTER_MODEL_NAME}"
@@ -2242,9 +2243,9 @@ fi
 if [[ "${VRECORD_STEPS}" = "2" ]] ; then
     _writeingestlog "Capture-Record command" "${RECORD_COMMAND[@]}"
     _writeingestlog "Playback command" "${PLAYER_COMMAND[@]}"
-    "${RECORD_COMMAND[@]}" 2> >(tee "${FULL_CAPTURE_LOG}" "${VRECORD_INPUT_TMP}" 1>&2) | \
+    "${RECORD_COMMAND[@]}" 2> >(tee "${VRECORD_INPUT_TMP}" 1>&2) | \
     if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] && [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]]; then
-        tee >("${PLAYER_COMMAND[@]}") | qcli -f signalstats+aphasemeter+astats+ssim -i - -o "${QCXML}"
+        tee >("${PLAYER_COMMAND[@]}") | "${QCLI_COMMAND_PIPE[@]}"
     else
         "${PLAYER_COMMAND[@]}"
     fi
@@ -2252,10 +2253,10 @@ elif [[ "${VRECORD_STEPS}" = "3" ]] ; then
     _writeingestlog "Capture command" "${RECORD_COMMAND[@]}"
     _writeingestlog "Record command" "${FF_RECORD_COMMAND[@]}"
     _writeingestlog "Playback command" "${PLAYER_COMMAND[@]}"
-    "${RECORD_COMMAND[@]}" 2> >(tee "${FULL_CAPTURE_LOG}" "${VRECORD_INPUT_TMP}" 1>&2) | \
-    "${FF_RECORD_COMMAND[@]}" 2> >(tee "${FULL_CAPTURE_LOG}" "${VRECORD_INPUT_TMP}" 1>&2) | \
+    "${RECORD_COMMAND[@]}" 2> >(tee "${VRECORD_INPUT_TMP}" 1>&2) | \
+    "${FF_RECORD_COMMAND[@]}" 2> >(tee "${VRECORD_INPUT_TMP}" 1>&2) | \
     if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] && [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]]; then
-        tee >("${PLAYER_COMMAND[@]}") | qcli -f signalstats+aphasemeter+astats+ssim -i - -o "${QCXML}"
+        tee >("${PLAYER_COMMAND[@]}") | "${QCLI_COMMAND_PIPE[@]}"
     else
         "${PLAYER_COMMAND[@]}"
     fi
@@ -2289,6 +2290,7 @@ if [[ ! -s "${VRECORD_OUTPUT}" ]] ; then
     fi
 fi
 
+mv "${VRECORD_INPUT_TMP}" "${FULL_CAPTURE_LOG}"
 _writeingestlog "datetime_end" "$(_get_iso8601)"
 trap _cleanup SIGHUP SIGINT SIGTERM
 
@@ -2300,7 +2302,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
 
     # qc tools process
     if [[ "${QCTOOLSXML_CHOICE}" = "Yes, after recording" ]] ; then
-        qcli -f signalstats+aphasemeter+astats+ssim -i "${VRECORD_OUTPUT}" -o "${QCXML}"
+        "${QCLI_COMMAND_FILE[@]}"
     fi
     if [[ "${QCTOOLSXML_CHOICE}" != "No" ]] ; then
         _report -d "Vrecord is analyzing your video file. Please be patient."
