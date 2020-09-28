@@ -370,6 +370,75 @@ _gtk_vbox_list() {
     </vbox>"
 }
 
+_setup_vrecord_process(){
+    if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
+        # DEVICE_INPUT_CHOICE=0 is decklink, other DEVICE_INPUT_CHOICE values don't yet use such filtering
+        if [[ "${DECKLINK_UTILITY_CHOICE}" == "bmdcapture" ]] ; then
+            VRECORD_STEPS="3"
+            RECORD_COMMAND=(bmdcapture)
+            # TO DO adjust TIME_LIMIT for bmdcapture
+            RECORD_COMMAND+=("${GRAB_INPUT[@]}")
+            FF_RECORD_COMMAND=("${FFMPEG_BIN}" -nostdin -nostats "${TIME_LIMIT[@]}")
+            FF_RECORD_COMMAND+=(-i -)
+            if [[ -n "${VIDEOCODECNAME}" ]] ; then
+                MIDDLEOPTIONS+=(-metadata:s:v:0 encoder="${VIDEOCODECNAME}")
+            fi
+            FF_RECORD_COMMAND+=("${MIDDLEOPTIONS[@]}")
+            FF_RECORD_COMMAND+=(-filter_complex "[0:v:0]${RECORDINGFILTER}${TC_WRITE}; ${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}")
+            FF_RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
+            FF_RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}" "${PIPE_OUTPUT[@]}")
+        else
+            VRECORD_STEPS="2"
+            RECORD_COMMAND=("${FFMPEG_BIN}")
+            RECORD_COMMAND+=(-nostdin -nostats "${TIME_LIMIT[@]}" "${GRAB_INPUT[@]}")
+            if [[ -n "${VIDEOCODECNAME}" ]] ; then
+                MIDDLEOPTIONS+=(-metadata:s:v:0 encoder="${VIDEOCODECNAME}")
+            fi
+            RECORD_COMMAND+=("${MIDDLEOPTIONS[@]}")
+            RECORD_COMMAND+=(-filter_complex "[0:v:0]${RECORDINGFILTER}${TC_WRITE}; ${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}")
+            RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
+            RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}" "${PIPE_OUTPUT[@]}")
+        fi
+        if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
+            _check_mpv
+            PLAYER_COMMAND=(mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -)
+        else
+            _set_ffplay_options
+            PLAYER_COMMAND=("${FFPLAY_BIN}" "${FFPLAY_OPTIONS[@]}")
+        fi
+    elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
+        if [[ "${OS_TYPE}" = "linux" ]] ; then
+            VRECORD_STEPS="2"
+            RECORD_COMMAND=("${FFMPEG_BIN}" -nostdin -nostats "${TIME_LIMIT[@]}" "${GRAB_INPUT[@]}")
+            RECORD_COMMAND+=(-map 0:v -c copy)
+            RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
+            RECORD_COMMAND+=(-map 0:v -f rawvideo -c copy -)
+        else
+            VRECORD_STEPS="3"
+            RECORD_COMMAND=(avfctl)
+            RECORD_COMMAND+=("${GRAB_INPUT[@]}")
+            FF_RECORD_COMMAND=("${FFMPEG_BIN}" -nostdin -nostats "${TIME_LIMIT[@]}")
+            FF_RECORD_COMMAND+=(-i -)
+            FF_RECORD_COMMAND+=(-map 0:v -c copy)
+            FF_RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
+            FF_RECORD_COMMAND+=(-map 0:v -f rawvideo -c copy -)
+        fi
+        _set_ffplay_options
+        PLAYER_COMMAND=("${FFPLAY_BIN}" "${FFPLAY_OPTIONS[@]}")
+    elif [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
+        VRECORD_STEPS="2"
+        RECORD_COMMAND=("${FFMPEG_BIN}")
+        RECORD_COMMAND+=(-nostdin -nostats "${TIME_LIMIT[@]}" "${GRAB_INPUT[@]}")
+        RECORD_COMMAND+=("${MIDDLEOPTIONS[@]}")
+        RECORD_COMMAND+=(-f "${FORMAT}" -filter_complex "${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" "${VRECORD_OUTPUT}")
+        RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}" -filter_complex "${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" "${PIPE_OUTPUT[@]}")
+        _set_ffplay_options
+        PLAYER_COMMAND=("${FFPLAY_BIN}" -f lavfi "amovie='pipe\:0',${PLAYBACKFILTER}")
+    else
+        _report_unexpected_error DEVICE_INPUT_CHOICE
+    fi
+}
+
 _get_decklink_inputs(){
     # get information on what input device options are available
     unset DECKLINK_DEVICES
@@ -1747,10 +1816,6 @@ while [[ "${RUNTYPE}" = "edit" || "${RUNTYPE}" = "GUI" ]] ; do
     _edit_mode
 done
 
-if [[ "${INVERT_PHASE}" = 'true' ]] ; then
-    PHASE_VALUE="-1*"
-fi
-
 _review_option(){
     unset NO_LOOKUP
     OPTIND=1
@@ -1779,48 +1844,55 @@ _review_option(){
     LOG_OF_OPTIONS+="${VALUE_NAME}: ${SELECTED}\n"
 }
 
-if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
-    _review_option -n "DECKLINK_UTILITY_CHOICE" "${DECKLINK_UTILITIES[@]}"
-    _review_option "VIDEO_INPUT_CHOICE" "${VIDEO_INPUT_OPTIONS[@]}"
-    _review_option "AUDIO_INPUT_CHOICE" "${AUDIO_INPUT_OPTIONS[@]}"
-    _review_option "VIDEO_BIT_DEPTH_CHOICE" "${VIDEO_BITDEPTH_OPTIONS[@]}"
-    _review_option "AUDIO_MAPPING_CHOICE" "${CHANNEL_MAPPING_OPTIONS[@]}"
-    if [[ -z "${ALT_INPUT}" ]] ; then
-        _review_option "TIMECODE_CHOICE" "${TIMECODE_OPTIONS[@]}"
+_review_all_options(){
+    if [[ "${INVERT_PHASE}" = 'true' ]] ; then
+        PHASE_VALUE="-1*"
     fi
-    _review_option "STANDARD_CHOICE" "${STANDARD_OPTIONS[@]}"
-elif [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
-    _review_option -n "AVFCTL_INPUT_CHOICE" "${AVFCTL_DEVICES[@]}"
-elif [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
-    _review_option -n "AUDIO_DEV_CHOICE" "${AUDIO_DEVICES[@]}"
-fi
-if [[ "${CORE_COUNT}" -le 2 && "${RUNTYPE}" = "record" ]] ; then
-    _report -w "Since this computer has only ${CORE_COUNT} cores, the playback will display only half of the frames to reduce CPU. This will not impact the recording."
-    PLAYBACK_FILTER_ADJUSTMENT="select=not(mod(n\,2)),"
-fi
-if [[ "${RUNTYPE}" = "passthrough" ]] && [[ -n "${PLAYBACKVIEW_CHOICE_PASS}" ]] && [[ "${PLAYBACKVIEW_CHOICE_PASS}" != "Unselected" ]] ; then
-  _review_option "PLAYBACKVIEW_CHOICE_PASS" "${PLAYBACKVIEW_PASS_OPTIONS[@]}"
-else
-  _review_option "PLAYBACKVIEW_CHOICE" "${PLAYBACKVIEW_OPTIONS[@]}"
-fi
-if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
-  if [[ "${PLAYBACKVIEW_CHOICE}" = "Full Range Visual" ]] ; then
-      MIDDLEOPTIONS+=(-color_range jpeg)
-  else
-      MIDDLEOPTIONS+=(-color_range mpeg)
-  fi
+    if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
+        _review_option -n "DECKLINK_UTILITY_CHOICE" "${DECKLINK_UTILITIES[@]}"
+        _review_option "VIDEO_INPUT_CHOICE" "${VIDEO_INPUT_OPTIONS[@]}"
+        _review_option "AUDIO_INPUT_CHOICE" "${AUDIO_INPUT_OPTIONS[@]}"
+        _review_option "VIDEO_BIT_DEPTH_CHOICE" "${VIDEO_BITDEPTH_OPTIONS[@]}"
+        _review_option "AUDIO_MAPPING_CHOICE" "${CHANNEL_MAPPING_OPTIONS[@]}"
+        if [[ -z "${ALT_INPUT}" ]] ; then
+            _review_option "TIMECODE_CHOICE" "${TIMECODE_OPTIONS[@]}"
+        fi
+        _review_option "STANDARD_CHOICE" "${STANDARD_OPTIONS[@]}"
+    elif [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
+        _review_option -n "AVFCTL_INPUT_CHOICE" "${AVFCTL_DEVICES[@]}"
+    elif [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
+        _review_option -n "AUDIO_DEV_CHOICE" "${AUDIO_DEVICES[@]}"
+    fi
+    if [[ "${CORE_COUNT}" -le 2 && "${RUNTYPE}" = "record" ]] ; then
+        _report -w "Since this computer has only ${CORE_COUNT} cores, the playback will display only half of the frames to reduce CPU. This will not impact the recording."
+        PLAYBACK_FILTER_ADJUSTMENT="select=not(mod(n\,2)),"
+    fi
+    if [[ "${RUNTYPE}" = "passthrough" ]] && [[ -n "${PLAYBACKVIEW_CHOICE_PASS}" ]] && [[ "${PLAYBACKVIEW_CHOICE_PASS}" != "Unselected" ]] ; then
+      _review_option "PLAYBACKVIEW_CHOICE_PASS" "${PLAYBACKVIEW_PASS_OPTIONS[@]}"
+    else
+      _review_option "PLAYBACKVIEW_CHOICE" "${PLAYBACKVIEW_OPTIONS[@]}"
+    fi
+    if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
+      if [[ "${PLAYBACKVIEW_CHOICE}" = "Full Range Visual" ]] ; then
+          MIDDLEOPTIONS+=(-color_range jpeg)
+      else
+          MIDDLEOPTIONS+=(-color_range mpeg)
+      fi
 
-  MIDDLEOPTIONS+=(-metadata creation_time=now)
-fi
-MIDDLEOPTIONS+=(${EXTRAOUTPUTOPTIONS[@]})
-if [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
-    _review_option "AUDIO_MODE_CODEC_CHOICE" "${AUDIO_CODEC_OPTIONS[@]}"
-    _review_option "AUDIO_CHANNEL_CHOICE" "${AUDIO_CHANNEL_CHOICE_OPTIONS[@]}"
-    _review_option "AUDIO_MODE_SR_CHOICE" "${AUDIO_MODE_SR_CHOICE_OPTIONS[@]}"
-    PLAYBACKVIEW_CHOICE_PASS="Audio"
-    PLAYBACKVIEW_CHOICE="Audio"
-    _lookup_choice "Audio"
-fi
+      MIDDLEOPTIONS+=(-metadata creation_time=now)
+    fi
+    MIDDLEOPTIONS+=(${EXTRAOUTPUTOPTIONS[@]})
+    if [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
+        _review_option "AUDIO_MODE_CODEC_CHOICE" "${AUDIO_CODEC_OPTIONS[@]}"
+        _review_option "AUDIO_CHANNEL_CHOICE" "${AUDIO_CHANNEL_CHOICE_OPTIONS[@]}"
+        _review_option "AUDIO_MODE_SR_CHOICE" "${AUDIO_MODE_SR_CHOICE_OPTIONS[@]}"
+        PLAYBACKVIEW_CHOICE_PASS="Audio"
+        PLAYBACKVIEW_CHOICE="Audio"
+        _lookup_choice "Audio"
+    fi
+}
+
+_review_all_options
 
 # set up input and playback
 _set_ffmpeg_loglevel(){
@@ -1860,10 +1932,15 @@ elif [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         GRAB_INPUT+=(-i "${DECKLINK_INPUT_CHOICE}")
     fi
 elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
-    AVFCTL_INPUT_INDEX="$(echo "${AVFCTL_INPUT_CHOICE}" | cut -c 2)"
-    GRAB_INPUT+=(-device "${AVFCTL_INPUT_INDEX}")
-    GRAB_INPUT+=(-cmd capture)
-    GRAB_INPUT+=(-)
+    if [[ "${OS_TYPE}" = "linux" ]] ; then
+        GRAB_INPUT+=(-f iec61883)
+        GRAB_INPUT+=(-i auto)
+    elif [[ "${OS_TYPE}" = "macOS" ]] ; then
+        AVFCTL_INPUT_INDEX="$(echo "${AVFCTL_INPUT_CHOICE}" | cut -c 2)"
+        GRAB_INPUT+=(-device "${AVFCTL_INPUT_INDEX}")
+        GRAB_INPUT+=(-cmd capture)
+        GRAB_INPUT+=(-)
+    fi
     MIDDLEOPTIONS+=(-c copy -map 0)
     EXTENSION="dv"
     FORMAT="rawvideo"
@@ -2120,73 +2197,7 @@ fi
 _report -d "Close the playback window to stop recording."
 
 # vrecord process!
-if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
-    # DEVICE_INPUT_CHOICE=0 is decklink, other DEVICE_INPUT_CHOICE values don't yet use such filtering
-    if [[ "${DECKLINK_UTILITY_CHOICE}" == "bmdcapture" ]] ; then
-        VRECORD_STEPS="3"
-        RECORD_COMMAND=(bmdcapture)
-        # TO DO adjust TIME_LIMIT for bmdcapture
-        RECORD_COMMAND+=("${GRAB_INPUT[@]}")
-        FF_RECORD_COMMAND=("${FFMPEG_BIN}" -nostdin -nostats "${TIME_LIMIT[@]}")
-        FF_RECORD_COMMAND+=(-i -)
-        if [[ -n "${VIDEOCODECNAME}" ]] ; then
-            MIDDLEOPTIONS+=(-metadata:s:v:0 encoder="${VIDEOCODECNAME}")
-        fi
-        FF_RECORD_COMMAND+=("${MIDDLEOPTIONS[@]}")
-        FF_RECORD_COMMAND+=(-filter_complex "[0:v:0]${RECORDINGFILTER}${TC_WRITE}; ${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}")
-        FF_RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
-        FF_RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}" "${PIPE_OUTPUT[@]}")
-    else
-        VRECORD_STEPS="2"
-        RECORD_COMMAND=("${FFMPEG_BIN}")
-        RECORD_COMMAND+=(-nostdin -nostats "${TIME_LIMIT[@]}" "${GRAB_INPUT[@]}")
-        if [[ -n "${VIDEOCODECNAME}" ]] ; then
-            MIDDLEOPTIONS+=(-metadata:s:v:0 encoder="${VIDEOCODECNAME}")
-        fi
-        RECORD_COMMAND+=("${MIDDLEOPTIONS[@]}")
-        RECORD_COMMAND+=(-filter_complex "[0:v:0]${RECORDINGFILTER}${TC_WRITE}; ${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}")
-        RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
-        RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}" "${PIPE_OUTPUT[@]}")
-    fi
-    if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
-        _check_mpv
-        PLAYER_COMMAND=(mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -)
-    else
-        _set_ffplay_options
-        PLAYER_COMMAND=("${FFPLAY_BIN}" "${FFPLAY_OPTIONS[@]}")
-    fi
-elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
-    if [[ "${OS_TYPE}" = "linux" ]] ; then
-        VRECORD_STEPS="2"
-        RECORD_COMMAND=("${FFMPEG_BIN}" -nostdin -nostats "${TIME_LIMIT[@]}" -f iec61883)
-        RECORD_COMMAND+=(-i auto)
-        RECORD_COMMAND+=(-map 0:v -c copy)
-        RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
-        RECORD_COMMAND+=(-map 0:v -f rawvideo -c copy -)
-    else
-        VRECORD_STEPS="3"
-        RECORD_COMMAND=(avfctl)
-        RECORD_COMMAND+=("${GRAB_INPUT[@]}")
-        FF_RECORD_COMMAND=("${FFMPEG_BIN}" -nostdin -nostats "${TIME_LIMIT[@]}")
-        FF_RECORD_COMMAND+=(-i -)
-        FF_RECORD_COMMAND+=(-map 0:v -c copy)
-        FF_RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
-        FF_RECORD_COMMAND+=(-map 0:v -f rawvideo -c copy -)
-    fi
-    _set_ffplay_options
-    PLAYER_COMMAND=("${FFPLAY_BIN}" "${FFPLAY_OPTIONS[@]}")
-elif [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
-    VRECORD_STEPS="2"
-    RECORD_COMMAND=("${FFMPEG_BIN}")
-    RECORD_COMMAND+=(-nostdin -nostats "${TIME_LIMIT[@]}" "${GRAB_INPUT[@]}")
-    RECORD_COMMAND+=("${MIDDLEOPTIONS[@]}")
-    RECORD_COMMAND+=(-f "${FORMAT}" -filter_complex "${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" "${VRECORD_OUTPUT}")
-    RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}" -filter_complex "${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" "${PIPE_OUTPUT[@]}")
-    _set_ffplay_options
-    PLAYER_COMMAND=("${FFPLAY_BIN}" -f lavfi "amovie='pipe\:0',${PLAYBACKFILTER}")
-else
-    _report_unexpected_error DEVICE_INPUT_CHOICE
-fi
+_setup_vrecord_process
 if [[ "${VRECORD_STEPS}" = "2" ]] ; then
     _writeingestlog "Capture-Record command" "${RECORD_COMMAND[@]}"
     _writeingestlog "Playback command" "${PLAYER_COMMAND[@]}"
