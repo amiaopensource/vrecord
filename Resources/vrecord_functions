@@ -145,3 +145,13 @@ _get_decklink_inputs(){
         "${FFMPEG_BIN}" -nostdin -v 0 -sources decklink | awk -F'[][]' '{print $2}' | grep -v "^$"
     fi
 }
+
+_get_avfctl_input_list(){
+    # set avfctl input options
+    unset AVFCTL_DEVICES
+    if [[ "${OS_TYPE}" = "linux" ]] ; then
+        echo "Default DV Device"
+    else
+        avfctl -list_devices 2>&1 | grep -A 10 "Devices:" | grep -o "\[[0-9]\].*"
+    fi
+}
