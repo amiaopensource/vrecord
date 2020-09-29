@@ -312,6 +312,8 @@ _gtk_vbox_list() {
     SELECTION="$(_get_index_of_value "${!VARIABLE_NAME}" "${OPTION_LIST[@]}")"
     if [[ "${VARIABLE_NAME}" == "DECKLINK_INPUT_CHOICE" ]] ; then
         LIST="<input>_get_decklink_inputs</input>"
+    elif [[ "${VARIABLE_NAME}" == "AVFCTL_INPUT_CHOICE" ]] ; then
+        LIST="<input>_get_avfctl_input_list</input>"
     else
         LIST="$(_expand_list2items "${OPTION_LIST[@]}")"
     fi
@@ -352,6 +354,13 @@ _gtk_vbox_list() {
                 <label>Rescan</label>
                 <action type=\"clear\">DECKLINK_INPUT_CHOICE</action>
                 <action type=\"refresh\">DECKLINK_INPUT_CHOICE</action>
+            </button>"
+        elif [[ "${VARIABLE_NAME}" == "AVFCTL_INPUT_CHOICE" ]] ; then
+            echo "
+            <button>
+                <label>Rescan</label>
+                <action type=\"clear\">AVFCTL_INPUT_CHOICE</action>
+                <action type=\"refresh\">AVFCTL_INPUT_CHOICE</action>
             </button>"
         fi
     }
