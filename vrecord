@@ -376,7 +376,7 @@ _setup_vrecord_process(){
         FFPLAY_OPTIONS+=(-hide_banner)
         FFPLAY_OPTIONS+=(-stats)
         FFPLAY_OPTIONS+=(-autoexit)
-        if [[ "${RUNTYPE}" = "passthrough" ]] ; then
+        if [[ "${RUNTYPE}" = "passthrough" && "${VRECORD_STEPS}" = "1" ]] ; then
             FFPLAY_OPTIONS+=("${GRAB_INPUT[@]}")
         else
             FFPLAY_OPTIONS+=(-i -)
@@ -480,8 +480,12 @@ _setup_vrecord_process(){
     if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         # DEVICE_INPUT_CHOICE=0 is decklink, other DEVICE_INPUT_CHOICE values don't yet use such filtering
         if [[ "${DECKLINK_UTILITY_CHOICE}" == "bmdcapture" ]] ; then
-            VRECORD_STEPS="3"
-            RECORD_COMMAND=(bmdcapture)
+            if [[ "${RUNTYPE}" = "record" ]] ; then
+                VRECORD_STEPS="3" # Steps: record | ff_record | player
+            else
+                VRECORD_STEPS="2" # Steps: record | player
+            fi
+            RECORD_COMMAND=("bmdcapture")
             # TO DO adjust TIME_LIMIT for bmdcapture
             RECORD_COMMAND+=("${GRAB_INPUT[@]}")
             FF_RECORD_COMMAND=("${FFMPEG_BIN}" -nostdin -nostats "${TIME_LIMIT[@]}")
@@ -494,7 +498,11 @@ _setup_vrecord_process(){
             FF_RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
             FF_RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}" "${PIPE_OUTPUT[@]}")
         else
-            VRECORD_STEPS="2"
+            if [[ "${RUNTYPE}" = "record" ]] ; then
+                VRECORD_STEPS="2" # Steps: record | player
+            else
+                VRECORD_STEPS="1" # Steps: player
+            fi
             RECORD_COMMAND=("${FFMPEG_BIN}")
             RECORD_COMMAND+=(-nostdin -nostats "${TIME_LIMIT[@]}" "${GRAB_INPUT[@]}")
             if [[ -n "${VIDEOCODECNAME}" ]] ; then
@@ -514,13 +522,21 @@ _setup_vrecord_process(){
         fi
     elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
         if [[ "${OS_TYPE}" = "linux" ]] ; then
-            VRECORD_STEPS="2"
+            if [[ "${RUNTYPE}" = "record" ]] ; then
+                VRECORD_STEPS="2" # Steps: record | player
+            else
+                VRECORD_STEPS="1" # Steps: player
+            fi
             RECORD_COMMAND=("${FFMPEG_BIN}" -nostdin -nostats "${TIME_LIMIT[@]}" "${GRAB_INPUT[@]}")
             RECORD_COMMAND+=(-map 0:v -c copy)
             RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
             RECORD_COMMAND+=(-map 0:v -f rawvideo -c copy -)
         else
-            VRECORD_STEPS="3"
+            if [[ "${RUNTYPE}" = "record" ]] ; then
+                VRECORD_STEPS="3" # Steps: record | ff_record | player
+            else
+                VRECORD_STEPS="2" # Steps: record | player
+            fi
             RECORD_COMMAND=(avfctl)
             RECORD_COMMAND+=("${GRAB_INPUT[@]}")
             FF_RECORD_COMMAND=("${FFMPEG_BIN}" -nostdin -nostats "${TIME_LIMIT[@]}")
@@ -532,12 +548,14 @@ _setup_vrecord_process(){
         _set_ffplay_options
         PLAYER_COMMAND=("${FFPLAY_BIN}" "${FFPLAY_OPTIONS[@]}")
     elif [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
-        VRECORD_STEPS="2"
+        VRECORD_STEPS="2" # Steps: record | player (record is adjusted if actually recording)
         RECORD_COMMAND=("${FFMPEG_BIN}")
         RECORD_COMMAND+=(-nostdin -nostats "${TIME_LIMIT[@]}" "${GRAB_INPUT[@]}")
         RECORD_COMMAND+=("${MIDDLEOPTIONS[@]}")
-        RECORD_COMMAND+=(-f "${FORMAT}" -filter_complex "${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" "${VRECORD_OUTPUT}")
-        RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}" -filter_complex "${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" "${PIPE_OUTPUT[@]}")
+        if [[ "${RUNTYPE}" = "record" ]] ; then
+            RECORD_COMMAND+=(-f "${FORMAT}" -filter_complex "${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" "${VRECORD_OUTPUT}")
+        fi
+        RECORD_COMMAND+=(-filter_complex "${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" "${PIPE_OUTPUT[@]}")
         _set_ffplay_options
         PLAYER_COMMAND=("${FFPLAY_BIN}" -f lavfi "amovie='pipe\:0',${PLAYBACKFILTER}")
     else
@@ -1317,42 +1335,10 @@ _edit_mode(){
 # passthrough and audiopassthrough modes
 _passthrough_mode(){
     _setup_vrecord_process
-    if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
-        if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
-            _check_mpv
-            if [[ "${DECKLINK_UTILITY_CHOICE}" == "bmdcapture" ]] ; then
-                bmdcapture "${GRAB_INPUT[@]}"
-            else
-                "${FFMPEG_BIN}" -nostats "${GRAB_INPUT[@]}" 2> >(tee "${VRECORD_INPUT_TMP}" 1>&2) \
-                "${PIPE_OUTPUT[@]}"
-            fi | \
-            mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -
-        elif [[ "${PLAYBACKVIEW_CHOICE_PASS}" = "Audio + Video" ]] ; then
-            if [[ "${DECKLINK_UTILITY_CHOICE}" == "bmdcapture" ]] ; then
-                bmdcapture "${GRAB_INPUT[@]}"
-            else
-                "${FFMPEG_BIN}" -nostdin -hide_banner -nostats "${GRAB_INPUT[@]}" "${PIPE_OUTPUT[@]}" 2> "${VRECORD_INPUT_TMP}"
-            fi | \
-                "${FFPLAY_BIN}" -window_title "${WINDOW_NAME}" -f lavfi "movie='pipe\:0':${PLAYBACKFILTER}"
-        else
-            if [[ "${DECKLINK_UTILITY_CHOICE}" == "bmdcapture" ]] ; then
-                bmdcapture "${GRAB_INPUT[@]}" | \
-                    "${FFPLAY_BIN}" - -window_title "${WINDOW_NAME}" -vf "${PLAYBACKFILTER}"
-            else
-                "${FFPLAY_BIN}" "${FFPLAY_OPTIONS[@]}" 2> >(tee "${VRECORD_INPUT_TMP}" 1>&2)
-            fi
-        fi
-    elif [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
-      if [[ "${OS_TYPE}" = "linux" ]] ; then
-        "${FFPLAY_BIN}" -f iec61883 -i auto -window_title "${WINDOW_NAME}"
-      else
-        avfctl "${GRAB_INPUT[@]}" | "${FFPLAY_BIN}" -window_title "${WINDOW_NAME}" -
-      fi
-    elif [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
-        "${FFMPEG_BIN}" -nostdin -hide_banner -nostats "${GRAB_INPUT[@]}" "${PIPE_OUTPUT[@]}" 2> "${VRECORD_INPUT_TMP}" | \
-            "${FFPLAY_BIN}" -window_title "${WINDOW_NAME}" -f lavfi "amovie='pipe\:0',${PLAYBACKFILTER}"
-    else
-        _report_unexpected_error DEVICE_INPUT_CHOICE
+    if [[ "${VRECORD_STEPS}" = "1" ]] ; then
+        "${PLAYER_COMMAND[@]}" 2> "${VRECORD_INPUT_TMP}"
+    elif [[ "${VRECORD_STEPS}" = "2" ]] ; then
+        "${RECORD_COMMAND[@]}" 2> "${VRECORD_INPUT_TMP}" | "${PLAYER_COMMAND[@]}"
     fi
 }
 
@@ -1702,7 +1688,7 @@ format=yuv422p,\
 vectorscope=i=0.04:mode=color2:c=1:envelope=instant:graticule=green:flags=name,\
 scale=400:400"
 if [[ "${AUDIO_MAPPING_CHOICE}" = '2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, Channels 3 & 4 -> 2nd Track Stereo)' ]] ; then
-    PRINT_PHASE=",drawtext=fontfile=${DEFAULTFONT}:box=1: text=Phase\\\: %{metadata\\\:lavfi.aphasemeter.phase}:x=135:y=1 80:fontcolor=black"
+    PRINT_PHASE=",drawtext=fontfile=${DEFAULTFONT}:box=1: text=Phase\\\: %{metadata\\\:lavfi.aphasemeter.phase}:x=135:y=180:fontcolor=black"
     PRINT_CHANNELS_1_2=",drawtext=fontfile=${DEFAULTFONT}: text=Ch.1/2:x=10: y=10:fontcolor=white"
     PRINT_CHANNELS_3_4=",drawtext=fontfile=${DEFAULTFONT}: text=Ch.3/4:x=10: y=10:fontcolor=white"
     AUDIO_SPLIT='7[a][aa][b][c][d][e][out1]'
