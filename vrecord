@@ -1883,7 +1883,6 @@ _review_all_options(){
     fi
     MIDDLEOPTIONS+=(${EXTRAOUTPUTOPTIONS[@]})
     if [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
-        _review_option "AUDIO_MODE_CODEC_CHOICE" "${AUDIO_CODEC_OPTIONS[@]}"
         _review_option "AUDIO_CHANNEL_CHOICE" "${AUDIO_CHANNEL_CHOICE_OPTIONS[@]}"
         _review_option "AUDIO_MODE_SR_CHOICE" "${AUDIO_MODE_SR_CHOICE_OPTIONS[@]}"
         PLAYBACKVIEW_CHOICE_PASS="Audio"
@@ -1942,8 +1941,6 @@ elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
         GRAB_INPUT+=(-)
     fi
     MIDDLEOPTIONS+=(-c copy -map 0)
-    EXTENSION="dv"
-    FORMAT="rawvideo"
 elif [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
     _set_ffmpeg_loglevel
     #Mac Options
@@ -1954,13 +1951,9 @@ elif [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
         GRAB_INPUT+=(-acodec pcm_s32le -ac 2)
         GRAB_INPUT+=(${S_RATE})
         GRAB_INPUT+=(-i hw:"${AUDIO_DEV_NUM}")
-        EXTENSION="${AUDIO_EXT}"
-        FORMAT="${AUDIO_EXT}"
     elif [[ "${OS_TYPE}" = "macOS" ]] ; then
         GRAB_INPUT+=(-f avfoundation)
         GRAB_INPUT+=(-i "none:${AUDIO_DEV_CHOICE}")
-        EXTENSION="${AUDIO_EXT}"
-        FORMAT="${AUDIO_EXT}"
     fi
 else
     _report "Input unknown"
@@ -2073,6 +2066,13 @@ if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
         _review_option -n "FFV1_SLICE_CHOICE" "${FFV1_SLICE_OPTIONS[@]}"
     fi
     _review_option "AUDIO_CODEC_CHOICE" "${AUDIO_CODEC_OPTIONS[@]}"
+elif [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
+    EXTENSION="dv"
+    FORMAT="rawvideo"
+elif [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
+    _review_option "AUDIO_MODE_CODEC_CHOICE" "${AUDIO_CODEC_OPTIONS[@]}"
+    EXTENSION="${AUDIO_EXT}"
+    FORMAT="${AUDIO_EXT}"
 fi
 
 # Check for user suffix to override automatic settings
