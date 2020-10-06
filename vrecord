@@ -1347,6 +1347,9 @@ _edit_mode(){
 # passthrough and audiopassthrough modes
 _passthrough_mode(){
     _setup_vrecord_process
+    echo "STEPS ${VRECORD_STEPS}"
+    echo "PLAY ${PLAYER_COMMAND[@]}"
+    echo "RECORD ${RECORD_COMMAND[@]}"
     if [[ "${VRECORD_STEPS}" = "1" ]] ; then
         "${PLAYER_COMMAND[@]}" 2> "${VRECORD_INPUT_TMP}"
     elif [[ "${VRECORD_STEPS}" = "2" ]] ; then
