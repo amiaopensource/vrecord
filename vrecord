@@ -1986,9 +1986,12 @@ _review_all_options(){
           MIDDLEOPTIONS+=(-color_range mpeg)
       fi
       MIDDLEOPTIONS+=(-metadata creation_time=now)
-    fi
     MIDDLEOPTIONS+=(${EXTRAOUTPUTOPTIONS[@]})
-    if [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
+    elif [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
+        PLAYBACKVIEW_CHOICE_PASS="Unfiltered"
+        PLAYBACKVIEW_CHOICE="Unfiltered"
+        _lookup_choice "Unfiltered"
+    elif [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
         _review_option "AUDIO_CHANNEL_CHOICE" "${AUDIO_CHANNEL_CHOICE_OPTIONS[@]}"
         _review_option "AUDIO_MODE_SR_CHOICE" "${AUDIO_MODE_SR_CHOICE_OPTIONS[@]}"
         PLAYBACKVIEW_CHOICE_PASS="Audio"
