@@ -488,9 +488,6 @@ _setup_vrecord_process(){
             else
                 VRECORD_STEPS="2" # Steps: record | player
             fi
-            if [[ "${PLAYBACKVIEW_CHOICE_PASS}" = "Audio + Video" ]] ; then
-                VRECORD_STEPS="$((VRECORD_STEPS+1))"
-            fi
             RECORD_COMMAND=("bmdcapture")
             # TO DO adjust TIME_LIMIT for bmdcapture
             RECORD_COMMAND+=("${GRAB_INPUT[@]}")
