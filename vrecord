@@ -475,6 +475,7 @@ _setup_vrecord_process(){
         PIPE_OUTPUT+=(-c:a pcm_s16le -ar 48k)
         PIPE_OUTPUT+=(-f wav)
         PIPE_OUTPUT+=(-)
+        WINDOW_NAME="mode:${RUNTYPE} - input:'${AUDIO_DEV_CHOICE}' - to end recording press q, esc, or close video window"
     else
         _report "Input unknown"
         exit 1
