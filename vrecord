@@ -53,7 +53,8 @@ Advanced options
   -O  Provide a string of output options for the recording ffmpeg to use.
   -i  Provide a file as an input to vrecord, rather than using the
       decklink device. For testing without a decklink device.
-  -G  Share warnings from gtkdialog, otherwise there are suppressed by default.
+  -G  Share warnings from gtkdialog and vreocrd, otherwise there are suppressed
+      by default.
   -c  Provide a recording configuration file, rather than the default one at
       '${CONFIG_FILE}'.
 
@@ -1344,9 +1345,11 @@ _edit_mode(){
 # passthrough and audiopassthrough modes
 _passthrough_mode(){
     _setup_vrecord_process
-    echo "STEPS ${VRECORD_STEPS}"
-    echo "PLAY ${PLAYER_COMMAND[@]}"
-    echo "RECORD ${RECORD_COMMAND[@]}"
+    if [[ "${VERBOSE_GTKDIALOG}" = "Y" ]] ; then
+        echo "STEPS ${VRECORD_STEPS}"
+        echo "PLAY ${PLAYER_COMMAND[@]}"
+        echo "RECORD ${RECORD_COMMAND[@]}"
+    fi
     if [[ "${VRECORD_STEPS}" = "1" ]] ; then
         "${PLAYER_COMMAND[@]}" 2> "${VRECORD_INPUT_TMP}"
     elif [[ "${VRECORD_STEPS}" = "2" ]] ; then
