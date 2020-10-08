@@ -1975,18 +1975,18 @@ _review_all_options(){
         PLAYBACK_FILTER_ADJUSTMENT="select=not(mod(n\,2)),"
     fi
     if [[ "${RUNTYPE}" = "passthrough" ]] && [[ -n "${PLAYBACKVIEW_CHOICE_PASS}" ]] && [[ "${PLAYBACKVIEW_CHOICE_PASS}" != "Unselected" ]] ; then
-      _review_option "PLAYBACKVIEW_CHOICE_PASS" "${PLAYBACKVIEW_PASS_OPTIONS[@]}"
+        _review_option "PLAYBACKVIEW_CHOICE_PASS" "${PLAYBACKVIEW_PASS_OPTIONS[@]}"
     else
-      _review_option "PLAYBACKVIEW_CHOICE" "${PLAYBACKVIEW_OPTIONS[@]}"
+        _review_option "PLAYBACKVIEW_CHOICE" "${PLAYBACKVIEW_OPTIONS[@]}"
     fi
     if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
-      if [[ "${PLAYBACKVIEW_CHOICE}" = "Full Range Visual" ]] ; then
-          MIDDLEOPTIONS+=(-color_range jpeg)
-      else
-          MIDDLEOPTIONS+=(-color_range mpeg)
-      fi
-      MIDDLEOPTIONS+=(-metadata creation_time=now)
-    MIDDLEOPTIONS+=(${EXTRAOUTPUTOPTIONS[@]})
+        if [[ "${PLAYBACKVIEW_CHOICE}" = "Full Range Visual" ]] ; then
+            MIDDLEOPTIONS+=(-color_range jpeg)
+        else
+            MIDDLEOPTIONS+=(-color_range mpeg)
+        fi
+        MIDDLEOPTIONS+=(-metadata creation_time=now)
+        MIDDLEOPTIONS+=(${EXTRAOUTPUTOPTIONS[@]})
     elif [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
         PLAYBACKVIEW_CHOICE_PASS="Unfiltered"
         PLAYBACKVIEW_CHOICE="Unfiltered"
