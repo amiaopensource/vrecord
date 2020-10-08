@@ -266,10 +266,6 @@ _cleanup(){
 }
 
 _check_mpv(){
-    MPVOPTS=(--no-osc)
-    MPVOPTS+=(--load-scripts=no)
-    MPVOPTS+=(--script="${RESOURCE_PATH}/qcview.lua")
-    MPVOPTS+=(--really-quiet)
     if ! mpv > /dev/null ; then
         mpv
         _report -wt "mpv doesn't appear to be running correctly. Try 'brew reinstall mpv'."
@@ -371,24 +367,6 @@ _gtk_vbox_list() {
 }
 
 _setup_vrecord_process(){
-    _set_ffplay_options(){
-        FFPLAY_OPTIONS=(-v info)
-        FFPLAY_OPTIONS+=(-hide_banner)
-        FFPLAY_OPTIONS+=(-stats)
-        FFPLAY_OPTIONS+=(-autoexit)
-        FFPLAY_OPTIONS+=(-window_title "${WINDOW_NAME}")
-        if [[ "${RUNTYPE}" = "passthrough" && "${VRECORD_STEPS}" = "1" ]] ; then
-            FFPLAY_OPTIONS+=("${GRAB_INPUT[@]}")
-        elif [[ "${PLAYBACKVIEW_CHOICE_PASS}" = "Audio + Video" ]] ; then
-            FFPLAY_OPTIONS+=(-f lavfi "amovie='pipe\:0':${PLAYBACKFILTER}")
-        else
-            FFPLAY_OPTIONS+=(-i -)
-        fi
-        if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] && [[ ! -z "${PLAYBACKFILTER}" ]] && [[ "${PLAYBACKVIEW_CHOICE_PASS}" != "Audio + Video" ]]; then
-            FFPLAY_OPTIONS+=(-vf "${PLAYBACKFILTER}")
-        fi
-        FFPLAY_OPTIONS+=(-af "channelmap=0|1:stereo")
-    }
     _set_ffmpeg_loglevel(){
         if [[ "$VERBOSE" = "true" ]] ; then
             GRAB_INPUT+=(-loglevel debug)
@@ -523,13 +501,6 @@ _setup_vrecord_process(){
             fi
             RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}" "${PIPE_OUTPUT[@]}")
         fi
-        if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
-            _check_mpv
-            PLAYER_COMMAND=(mpv "${MPVOPTS[@]}" --title="${WINDOW_NAME}" -)
-        else
-            _set_ffplay_options
-            PLAYER_COMMAND=("${FFPLAY_BIN}" "${FFPLAY_OPTIONS[@]}")
-        fi
     elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
         if [[ "${OS_TYPE}" = "linux" ]] ; then
             if [[ "${RUNTYPE}" = "record" ]] ; then
@@ -555,8 +526,6 @@ _setup_vrecord_process(){
             FF_RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
             FF_RECORD_COMMAND+=(-map 0:v -f rawvideo -c copy -)
         fi
-        _set_ffplay_options
-        PLAYER_COMMAND=("${FFPLAY_BIN}" "${FFPLAY_OPTIONS[@]}")
     elif [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
         VRECORD_STEPS="2" # Steps: record | player (record is adjusted if actually recording)
         RECORD_COMMAND=("${FFMPEG_BIN}")
@@ -566,10 +535,40 @@ _setup_vrecord_process(){
             RECORD_COMMAND+=(-f "${FORMAT}" -filter_complex "${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" "${VRECORD_OUTPUT}")
         fi
         RECORD_COMMAND+=(-filter_complex "${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" "${PIPE_OUTPUT[@]}")
-        _set_ffplay_options
-        PLAYER_COMMAND=("${FFPLAY_BIN}" -f lavfi "amovie='pipe\:0',${PLAYBACKFILTER}")
     else
         _report_unexpected_error DEVICE_INPUT_CHOICE
+    fi
+    # get player command
+    if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
+        _check_mpv
+        MPVOPTS=(--no-osc)
+        MPVOPTS+=(--load-scripts=no)
+        MPVOPTS+=(--script="${RESOURCE_PATH}/qcview.lua")
+        MPVOPTS+=(--really-quiet)
+        MPVOPTS+=(--title="${WINDOW_NAME}")
+        PLAYER_COMMAND=(mpv "${MPVOPTS[@]}" -)
+    else
+        FFPLAY_OPTIONS=(-v info)
+        FFPLAY_OPTIONS+=(-hide_banner)
+        FFPLAY_OPTIONS+=(-stats)
+        FFPLAY_OPTIONS+=(-autoexit)
+        FFPLAY_OPTIONS+=(-window_title "${WINDOW_NAME}")
+        if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] && [[ "${PLAYBACKVIEW_CHOICE_PASS}" = "Audio + Video" ]] ; then
+            FFPLAY_OPTIONS+=(-f lavfi "amovie='pipe\:0':${PLAYBACKFILTER}")
+        elif [[ "${DEVICE_INPUT_CHOICE}" = 2 ]]; then
+            FFPLAY_OPTIONS+=(-f lavfi "amovie='pipe\:0',${PLAYBACKFILTER}")
+        else
+            if [[ "${VRECORD_STEPS}" = "1" ]] ; then
+                FFPLAY_OPTIONS+=("${GRAB_INPUT[@]}")
+            else
+                FFPLAY_OPTIONS+=(-i -)
+            fi
+            if [[ -n "${PLAYBACKFILTER}" ]] ; then
+                FFPLAY_OPTIONS+=(-vf "${PLAYBACKFILTER}")
+            fi
+            FFPLAY_OPTIONS+=(-af "channelmap=0|1:stereo")
+        fi
+        PLAYER_COMMAND=("${FFPLAY_BIN}" "${FFPLAY_OPTIONS[@]}")
     fi
 }
 
