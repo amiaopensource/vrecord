@@ -53,7 +53,7 @@ Advanced options
   -O  Provide a string of output options for the recording ffmpeg to use.
   -i  Provide a file as an input to vrecord, rather than using the
       decklink device. For testing without a decklink device.
-  -G  Share warnings from gtkdialog and vreocrd, otherwise there are suppressed
+  -G  Share warnings from gtkdialog and vrecord, otherwise there are suppressed
       by default.
   -c  Provide a recording configuration file, rather than the default one at
       '${CONFIG_FILE}'.
