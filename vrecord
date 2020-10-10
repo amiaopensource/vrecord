@@ -33,7 +33,6 @@ Usage: ${SCRIPTNAME} [ -g | -e | -r | -p | -a | -x | -v | -h ] [IDENTIFIER]
   -g  use the GUI
   -e  edit the configuration file before recording
   -r  enable record mode [default]
-
   -p  enable passthrough mode where the video signal coming into the computer
       can be monitored, but not written to a file. Useful for testing equipment
       and setting up a tape to bars.
