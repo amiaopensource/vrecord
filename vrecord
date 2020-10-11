@@ -95,7 +95,7 @@ _report_unexpected_error(){
     ERROR_VAR_VALUE="${!1}"
     ERROR_DETAIL="$2"
     _report -d -wt "vrecord exited a form in an unexpected way (${ERROR_VAR_NAME}=${ERROR_VAR_VALUE}), please report this error to https://github.com/amiaopensource/vrecord/issues"
-    if [[ -n "${ERROR_DETAIL}" ]] ;then
+    if [[ -n "${ERROR_DETAIL}" ]] ; then
         _report -d -wt "Error details: ${ERROR_DETAIL}"
     fi
     if [[ -f "${INGESTLOG}" ]] ; then
