@@ -692,8 +692,13 @@ PLAYBACK_OPT_GUI="
 </frame>"
 
 OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
-<frame Optional Tools>
-  <hbox>
+<frame Preferences>
+    <hbox>
+        <frame Player Settings>
+            $(_gtk_vbox_list "WAVEFORM_SCALE_CHOICE" "100" "Select Waveform Scale"            "${WAVEFORM_SCALE_OPTIONS[@]}")
+        </frame>
+        <frame Optional Tools>
+    <hbox>
         <text>
             <label>bmdtools: </label>
         </text>
@@ -748,6 +753,8 @@ OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
         <pixmap stock-icon-size="1" tooltip-text="If qcli is installed, vrecord can offer options to create QCTools reports during or after capture.">
             <input file stock="$(if $QCLI_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)"></input>
         </pixmap>
+    </hbox>
+    </frame>
     </hbox>
     <hbox space-fill="true" space-expand="true">
         <vbox>
@@ -1881,9 +1888,10 @@ _set_up_drawtext(){
 }
 
 # select playback view
+_set_scopes(){
 WAVEFORM_FILTER="\
 format=yuv422p,\
-waveform=intensity=0.1:mode=column:mirror=1:c=1:f=lowpass:e=instant:graticule=green:flags=numbers+dots"
+waveform=scale=${WAVEFORM_SCALE_CHOICE:-0}:intensity=0.1:mode=column:mirror=1:c=1:f=lowpass:e=instant:graticule=green:flags=numbers+dots"
 VECTORSCOPE_FILTER="\
 format=yuv422p,\
 vectorscope=i=0.04:mode=color2:c=1:envelope=instant:graticule=green:flags=name,\
@@ -1894,6 +1902,7 @@ drawbox=w=9:h=9:t=1:x=192-3:y=512-354-5:c=sienna@0.8,\
 drawbox=w=9:h=9:t=1:x=224-3:y=512-304-5:c=sienna@0.8,\
 drawgrid=w=32:h=32:t=1:c=white@0.1,\
 drawgrid=w=256:h=256:t=1:c=white@0.2"
+}
 
 # list of selections for each vrecord option
 DECKLINK_UTILITIES=("ffmpeg" "bmdcapture")
@@ -1914,6 +1923,7 @@ FRAMEMD5_OPTIONS=("Yes" "No")
 EMBED_LOGS_OPTIONS=("Yes" "No")
 PLAYBACKVIEW_OPTIONS=("Unfiltered" "Quality Control View (mpv)" "Broadcast Range Visual" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes")
 PLAYBACKVIEW_PASS_OPTIONS=("Unfiltered" "Quality Control View (mpv)" "Broadcast Range Visual" "Audio + Video" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes")
+WAVEFORM_SCALE_OPTIONS=("digital" "millivolts" "ire")
 
 # GUI mode + CLI reset, edit modes
 if [[ "${RUNTYPE}" = "reset" ]] ; then
@@ -1983,6 +1993,8 @@ _review_all_options(){
         _report -w "Since this computer has only ${CORE_COUNT} cores, the playback will display only half of the frames to reduce CPU. This will not impact the recording."
         PLAYBACK_FILTER_ADJUSTMENT="select=not(mod(n\,2)),"
     fi
+    _review_option -n "WAVEFORM_SCALE_CHOICE" "${WAVEFORM_SCALE_OPTIONS[@]}"
+    _set_scopes
     if [[ "${RUNTYPE}" = "passthrough" ]] && [[ -n "${PLAYBACKVIEW_CHOICE_PASS}" ]] && [[ "${PLAYBACKVIEW_CHOICE_PASS}" != "Unselected" ]] ; then
         _review_option "PLAYBACKVIEW_CHOICE_PASS" "${PLAYBACKVIEW_PASS_OPTIONS[@]}"
     else
