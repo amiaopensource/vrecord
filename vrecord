@@ -21,8 +21,8 @@ AVFoundation. It is an interactive script and will create 10 or 8-bit video
 files.
 
 Dependencies: cowsay, amiaopensource/amiaos/decklinksdk,
-  amiaopensource/amiaos/ffmpegdecklink, amiaopensource/amiaos/gtkdialog,
-  and xmlstarlet
+  amiaopensource/amiaos/ffmpegdecklink, amiaopensource/amiaos/gtkdialog, and
+  xmlstarlet
 Optional Dependencies: deckcontrol, gnuplot, mediaconch, mkvtoolnix, mpv, qcli
 
 Usage: ${SCRIPTNAME} [ -g | -e | -r | -p | -a | -x | -v | -h ] [IDENTIFIER]
@@ -33,26 +33,26 @@ Usage: ${SCRIPTNAME} [ -g | -e | -r | -p | -a | -x | -v | -h ] [IDENTIFIER]
   -g  use the GUI
   -e  edit the configuration file before recording
   -r  enable record mode [default]
-  -p  enable passthrough mode where the video signal coming into the
-      computer can be monitored, but not written to a file. Useful for
-      testing equipment and setting up a tape to bars.
-  -a  enable audio passthrough mode. Identical to passthrough except for
-      the addition of audio bars. Note: Will eventually lag and crash if
-      left on too long.
-  -x  reset the configuration: this will replace the default configuration
-      file at '${CONFIG_FILE}' with an empty one.
-  -v  Run ffmpeg with '-loglevel debug'. Using this option creates a very
-      large log file, so avoid using this option with 'Visual + Numerical'
-      or any playback option that display the log as part of the view.
+  -p  enable passthrough mode where the video signal coming into the computer
+      can be monitored, but not written to a file. Useful for testing equipment
+      and setting up a tape to bars.
+  -a  enable audio passthrough mode. Identical to passthrough except for the
+      addition of audio bars. Note: Will eventually lag and crash if left on
+      too long.
+  -x  reset the configuration: this will replace the default configuration file
+      at '${CONFIG_FILE}' with an empty one.
+  -v  Run ffmpeg with '-loglevel debug'. Using this option creates a very large
+      log file, so avoid using this option with 'Visual + Numerical' or any
+      playback option that display the log as part of the view.
   -h  display this help menu
 
 Advanced options
   -I  Provide a string of input options for the recording ffmpeg to use.
-      For example "vrecord -I '-loglevel trace'" would force an ffmpeg
-      logging level that is usually unaccessible via vrecord preferences.
+      For example "vrecord -I '-loglevel trace'" would force an ffmpeg logging
+      level that is usually unaccessible via vrecord preferences.
   -O  Provide a string of output options for the recording ffmpeg to use.
-  -i  Provide a file as an input to vrecord, rather than using the
-      decklink device. For testing without a decklink device.
+  -i  Provide a file as an input to vrecord, rather than using the decklink
+      device. For testing without a decklink device.
   -G  Share warnings from gtkdialog and vrecord, otherwise there are suppressed
       by default.
   -c  Provide a recording configuration file, rather than the default one at
@@ -95,7 +95,7 @@ _report_unexpected_error(){
     ERROR_VAR_VALUE="${!1}"
     ERROR_DETAIL="$2"
     _report -d -wt "vrecord exited a form in an unexpected way (${ERROR_VAR_NAME}=${ERROR_VAR_VALUE}), please report this error to https://github.com/amiaopensource/vrecord/issues"
-    if [[ -n "${ERROR_DETAIL}" ]] ;then
+    if [[ -n "${ERROR_DETAIL}" ]] ; then
         _report -d -wt "Error details: ${ERROR_DETAIL}"
     fi
     if [[ -f "${INGESTLOG}" ]] ; then
@@ -565,7 +565,7 @@ _setup_vrecord_process(){
         FFPLAY_OPTIONS+=(-window_title "${WINDOW_NAME}")
         if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] && [[ "${PLAYBACKVIEW_CHOICE_PASS}" = "Audio + Video" ]] ; then
             FFPLAY_OPTIONS+=(-f lavfi "amovie='pipe\:0':${PLAYBACKFILTER}")
-        elif [[ "${DEVICE_INPUT_CHOICE}" = 2 ]]; then
+        elif [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
             FFPLAY_OPTIONS+=(-f lavfi "amovie='pipe\:0',${PLAYBACKFILTER}")
         else
             if [[ "${VRECORD_STEPS}" = "1" ]] ; then
@@ -1824,7 +1824,7 @@ ${STACK}" ;;
 
         # others
         "Yes"|"Yes, after recording"|"Yes, concurrent with recording"|"No") ;;
-        *)           _report -w "Error: ${1} is not a valid option." ; return 1 ;;
+        *) _report -w "Error: ${1} is not a valid option." ; return 1 ;;
     esac
 }
 
@@ -1945,7 +1945,7 @@ _review_option(){
     SELECTED="${!1}"
     shift
     CHOICES=("${@}")
-    if [[ ! " ${CHOICES[@]} " =~ " ${SELECTED} " ]]; then
+    if [[ ! " ${CHOICES[@]} " =~ " ${SELECTED} " ]] ; then
         _report -w "The configuration file uses an invalid value of ${SELECTED} for ${VALUE_NAME}. Valid values are: ${CHOICES[*]}. Please restart ${SCRIPTNAME} in edit mode (${SCRIPTNAME} -e) or update the configuration file at ${CONFIG_FILE}."
         exit 2
     fi
