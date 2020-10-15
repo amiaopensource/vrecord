@@ -1054,7 +1054,7 @@ AUDIO_INPUT_GUI=$(cat << AUDIO_INPUT_FORM
     </hbox>
   </vbox>
   <vbox space-expand="true">
-    <pixmap><input file>'"${RESOURCE_PATH}/audio_mode.gif"'</input></pixmap>
+    <pixmap><input file>"${RESOURCE_PATH}/audio_mode.gif"</input></pixmap>
   </vbox>
 </frame>
 AUDIO_INPUT_FORM
@@ -1238,6 +1238,8 @@ export MAIN_DIALOG='
     <action signal="leave-notify-event" type="refresh">VRECORD_FORM_VALIDATION</action>
     <action signal="show" type="closewindow">HOME_DIALOG</action>
     <action signal="show" type="refresh">VRECORD_OUTPUT_NAME</action>
+    <action signal="show" condition="command_is_true( [[ \"$AUDIO_DEV_CHOICE\" != *\"Blackmagic\"* ]] && echo true)">enable:AUDIO_MODE_SR_CHOICE</action>
+    <action signal="show" condition="command_is_true( [[ \"$AUDIO_DEV_CHOICE\" == *\"Blackmagic\"* ]] && echo true)">disable:AUDIO_MODE_SR_CHOICE</action>
 </window>
 '
 }
