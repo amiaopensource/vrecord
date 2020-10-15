@@ -71,6 +71,7 @@ _update_config_file(){
         echo "AVFCTL_INPUT_CHOICE=\"${AVFCTL_INPUT_CHOICE}\""
         echo "DECKLINK_INPUT_CHOICE=\"${DECKLINK_INPUT_CHOICE}\""
         echo "DECKLINK_UTILITY_CHOICE=\"${DECKLINK_UTILITY_CHOICE}\""
+        echo "WAVEFORM_SCALE_CHOICE=\"${WAVEFORM_SCALE_CHOICE}\""
     } > "${CONFIG_FILE}"
     . "${CONFIG_FILE}"
 }
