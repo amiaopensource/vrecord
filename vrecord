@@ -1043,20 +1043,22 @@ AVFCTL_INPUT_GUI=$(cat << AVFCTL_FORM
 AVFCTL_FORM
 )
 
-AUDIO_INPUT_GUI='
+AUDIO_INPUT_GUI=$(cat << AUDIO_INPUT_FORM
 <frame Audio input options>
   <vbox space-expand="true">
     <hbox space-expand="true">
-      '$(_gtk_vbox_list "AUDIO_DEV_CHOICE"         "-1" "Select an Audio Device"           "${AUDIO_DEVICES[@]}")'
-      '$(_gtk_vbox_list "AUDIO_MODE_CODEC_CHOICE"  "-1" "Select Audio Codec"            "${AUDIO_CODEC_OPTIONS[@]:0:2}")'
-      '$(_gtk_vbox_list "AUDIO_CHANNEL_CHOICE"     "-1" "Select Audio Channels"            "${AUDIO_CHANNEL_CHOICE_OPTIONS[@]}")'
-      '$(_gtk_vbox_list "AUDIO_MODE_SR_CHOICE"     "-1" "Select Sampling Rate"            "${AUDIO_MODE_SR_CHOICE_OPTIONS[@]}")'
+      $(_gtk_vbox_list "AUDIO_DEV_CHOICE"         "-1" "Select an Audio Device"           "${AUDIO_DEVICES[@]}")
+      $(_gtk_vbox_list "AUDIO_MODE_CODEC_CHOICE"  "-1" "Select Audio Codec"            "${AUDIO_CODEC_OPTIONS[@]:0:2}")
+      $(_gtk_vbox_list "AUDIO_CHANNEL_CHOICE"     "-1" "Select Audio Channels"            "${AUDIO_CHANNEL_CHOICE_OPTIONS[@]}")
+      $(_gtk_vbox_list "AUDIO_MODE_SR_CHOICE"     "-1" "Select Sampling Rate"            "${AUDIO_MODE_SR_CHOICE_OPTIONS[@]}")
     </hbox>
   </vbox>
   <vbox space-expand="true">
     <pixmap><input file>'"${RESOURCE_PATH}/audio_mode.gif"'</input></pixmap>
   </vbox>
-</frame>'
+</frame>
+AUDIO_INPUT_FORM
+)
 
 export MAIN_DIALOG='
 <window title="vrecord configuration">
