@@ -714,8 +714,10 @@ OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
 <frame Preferences>
     <hbox>
         <frame Player Settings>
+            <hbox>
             $(_gtk_vbox_list "WAVEFORM_SCALE_CHOICE" "100" "Select Waveform Scale"            "${WAVEFORM_SCALE_OPTIONS[@]}")
             $(_gtk_vbox_list "MONITOR_AUDIO_CHOICE"  "100" "Montior Audio?"                   "${MONITOR_AUDIO_OPTIONS[@]}")
+            </hbox>
         </frame>
         <frame Optional Tools>
             <hbox>
