@@ -1691,7 +1691,7 @@ PLAYBACKFILTER="${PASSTHROUGH_MAP},asplit=${AUDIO_SPLIT}\
 ${PHASE_MAP}\
 ${CHANNEL_PARAMS}\
 ${WAVEFORM},\
-[c]showvolume=t=0:h=28:w=700[c1],\
+[c]showvolume=t=0:h=28:w=700:rate=${DECKLINK_FPS}[c1],\
 ${SHOW_SPECTUM}\
 ${VOLUME_OVERLAY}\
 ${AP_MAP}" ;;
@@ -1699,7 +1699,7 @@ ${AP_MAP}" ;;
 if [[ "${RUNTYPE}" = "record" ]] ; then
     PLAYBACKFILTER="streams=dv+da[vid][aud],\
     [aud]asplit=2[aud1][out1];\
-    [aud1]showvolume=dm=5400[aud2];\
+    [aud1]showvolume=t=0:dm=5400:rate=${DECKLINK_FPS}[aud2];\
     [vid]${PLAYBACK_FILTER_ADJUSTMENT}split=5[a][b][c][d][e];\
     [a]copy${TIMECODE_OVERLAY}[a1];\
     [b]field=top,${WAVEFORM_FILTER}[b1];\
@@ -1737,7 +1737,7 @@ else
     PLAYBACKFILTER="streams=dv+da[vid][aud],[aud]asplit=${AUDIO_SPLIT},\
     ${PHASE_MAP},\
     ${CHANNEL_PARAMS},\
-    [c]showvolume=t=0:h=17:w=200[c1],\
+    [c]showvolume=t=0:h=17:w=200:rate=${DECKLINK_FPS}[c1],\
     [d]showspectrum=s=${SPECTRUM_SIZE}:fps=10:color=rainbow:saturation=2:legend=1[d1],\
     [vid]split=4[vid1][vid2][vid3][vid4],[vid1]scale=400x400,signalstats=out=brng[vidscale],\
     [vid2]field=top,${WAVEFORM_FILTER}[TFIELD],\
