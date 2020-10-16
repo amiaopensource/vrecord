@@ -2028,6 +2028,8 @@ _review_all_options(){
         _review_option "AUDIO_CHANNEL_CHOICE" "${AUDIO_CHANNEL_CHOICE_OPTIONS[@]}"
         if [[ "${AUDIO_DEV_CHOICE}" != *"Blackmagic"* ]] ; then
             _review_option "AUDIO_MODE_SR_CHOICE" "${AUDIO_MODE_SR_CHOICE_OPTIONS[@]}"
+        else
+            MIDDLEOPTIONS+=(-ar 48k)
         fi
         PLAYBACKVIEW_CHOICE_PASS="Audio"
         PLAYBACKVIEW_CHOICE="Audio"
