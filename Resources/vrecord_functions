@@ -1,6 +1,7 @@
 # these functions are appended to an include file that is sent to gtkdialog and allows for functions to be used within gtkdialog actions
 
 # functions
+
 _check_ffmpeg_install(){
     echo "Using ffmpeg at ${FFMPEG_BIN}"
     echo
@@ -141,7 +142,7 @@ _get_output_filename(){
 _get_decklink_inputs(){
     # get information on what input device options are available
     #unset DECKLINK_DEVICES
-    if [[ "${DECKLINK_UTILITY_CHOICE}" == "bmdcapture" ]] ; then
+    if [ "${DECKLINK_UTILITY_CHOICE}" = "bmdcapture" ] ; then
         bmdcapture -h 2>&1 | grep "^->" | head -n 1 | sed 's/.*-> \(.*\) (.*/\1/'
     else
         "${FFMPEG_BIN}" -nostdin -v 0 -sources decklink | awk -F'[][]' '{print $2}' | grep -v "^$"
@@ -155,5 +156,13 @@ _get_avfctl_input_list(){
         echo "Default DV Device"
     else
         avfctl -list_devices 2>&1 | grep -A 10 "Devices:" | grep -o "\[[0-9]\].*"
+    fi
+}
+
+_get_audio_device_list(){
+    if [ "${OS_TYPE}" = "linux" ] ; then
+        arecord -l | grep card | cut -d ':' -f2 | cut -d ',' -f1 | awk '{$1=$1;print}'
+    elif [ "${OS_TYPE}" = "macOS" ] ; then
+        "${FFMPEG_BIN}" -nostdin -hide_banner -f avfoundation -list_devices 1 -i dummy 2>&1 | grep -A 10 "AVFoundation audio devices" | grep -o "\[[0-9]\].*" | cut -d " " -f2-
     fi
 }

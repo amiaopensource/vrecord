@@ -304,6 +304,8 @@ _gtk_vbox_list() {
         LIST="<input>_get_decklink_inputs</input>"
     elif [[ "${VARIABLE_NAME}" == "AVFCTL_INPUT_CHOICE" ]] ; then
         LIST="<input>_get_avfctl_input_list</input>"
+    elif [[ "${VARIABLE_NAME}" == "AUDIO_DEV_CHOICE" ]] ; then
+        LIST="<input>_get_audio_device_list</input>"
     else
         LIST="$(_expand_list2items "${OPTION_LIST[@]}")"
     fi
@@ -320,9 +322,13 @@ _gtk_vbox_list() {
         elif  [[ "${VARIABLE_NAME}" == "AUDIO_MODE_CODEC_CHOICE" ]] ; then
             echo '<action type="refresh">VRECORD_OUTPUT_NAME</action>'
         elif  [[ "${VARIABLE_NAME}" == "DECKLINK_UTILITY_CHOICE" ]] ; then
-          echo '<action condition="command_is_true( [ \"$DECKLINK_UTILITY_CHOICE\" = \"bmdcapture\" ] && echo true)">disable:TIMECODE_CHOICE</action>
+            echo '<action condition="command_is_true( [ \"$DECKLINK_UTILITY_CHOICE\" = \"bmdcapture\" ] && echo true)">disable:TIMECODE_CHOICE</action>
                 <action condition="command_is_true( [ \"$DECKLINK_UTILITY_CHOICE\" != \"bmdcapture\" ] && echo true)">enable:TIMECODE_CHOICE</action>
                 <action type="refresh">VRECORD_OUTPUT_NAME</action>'
+        elif [[ "${VARIABLE_NAME}" == "AUDIO_DEV_CHOICE" ]] ; then
+            echo '<action condition="command_is_true( [[ \"$AUDIO_DEV_CHOICE\" != *\"Blackmagic\"* ]] && echo true)">enable:AUDIO_MODE_SR_CHOICE</action>
+                  <action condition="command_is_true( [[ \"$AUDIO_DEV_CHOICE\" == *\"Blackmagic\"* ]] && echo true)">disable:AUDIO_MODE_SR_CHOICE</action>
+                  <action type="refresh">VRECORD_OUTPUT_NAME</action>'
         fi
     }
 
@@ -351,6 +357,13 @@ _gtk_vbox_list() {
                 <label>Rescan</label>
                 <action type=\"clear\">AVFCTL_INPUT_CHOICE</action>
                 <action type=\"refresh\">AVFCTL_INPUT_CHOICE</action>
+            </button>"
+        elif [[ "${VARIABLE_NAME}" == "AUDIO_DEV_CHOICE" ]] ; then
+            echo "
+            <button>
+                <label>Rescan</label>
+                <action type=\"clear\">AUDIO_DEV_CHOICE</action>
+                <action type=\"refresh\">AUDIO_DEV_CHOICE</action>
             </button>"
         fi
     }
@@ -422,15 +435,22 @@ _setup_vrecord_process(){
         _set_ffmpeg_loglevel
         #Mac Options
         #Linux Options
-        if [[ "${OS_TYPE}" = "linux" ]] ; then
+        if [[ "${OS_TYPE}" = "linux" ]] && [[ "${AUDIO_DEV_CHOICE}" != *"Blackmagic"* ]] ; then
             _get_audio_dev_num
             GRAB_INPUT+=(-f alsa)
             GRAB_INPUT+=(-acodec pcm_s32le -ac 2)
             GRAB_INPUT+=(${S_RATE})
             GRAB_INPUT+=(-i hw:"${AUDIO_DEV_NUM}")
-        elif [[ "${OS_TYPE}" = "macOS" ]] ; then
+        elif [[ "${OS_TYPE}" = "macOS" ]] && [[ "${AUDIO_DEV_CHOICE}" != *"Blackmagic"* ]] ; then
             GRAB_INPUT+=(-f avfoundation)
             GRAB_INPUT+=(-i "none:${AUDIO_DEV_CHOICE}")
+        elif [[ "${AUDIO_DEV_CHOICE}" == *"Blackmagic"* ]] ; then
+            GRAB_INPUT+=(-f decklink)
+            GRAB_INPUT+=(-format_code ntsc) # just faking it for devices that can't autodetect even though it's unused
+            GRAB_INPUT+=(-channels 2)
+            GRAB_INPUT+=(-audio_depth 32)
+            GRAB_INPUT+=(-i "${DECKLINK_INPUT_CHOICE}")
+            GRAB_INPUT+=(-vn)
         fi
     else
         _report "Input unknown"
@@ -1030,20 +1050,22 @@ AVFCTL_INPUT_GUI=$(cat << AVFCTL_FORM
 AVFCTL_FORM
 )
 
-AUDIO_INPUT_GUI='
+AUDIO_INPUT_GUI=$(cat << AUDIO_INPUT_FORM
 <frame Audio input options>
   <vbox space-expand="true">
     <hbox space-expand="true">
-      '$(_gtk_vbox_list "AUDIO_DEV_CHOICE"         "-1" "Select an Audio Device"           "${AUDIO_DEVICES[@]}")'
-      '$(_gtk_vbox_list "AUDIO_MODE_CODEC_CHOICE"  "-1" "Select Audio Codec"            "${AUDIO_CODEC_OPTIONS[@]:0:2}")'
-      '$(_gtk_vbox_list "AUDIO_CHANNEL_CHOICE"     "-1" "Select Audio Channels"            "${AUDIO_CHANNEL_CHOICE_OPTIONS[@]}")'
-      '$(_gtk_vbox_list "AUDIO_MODE_SR_CHOICE"     "-1" "Select Sampling Rate"            "${AUDIO_MODE_SR_CHOICE_OPTIONS[@]}")'
+      $(_gtk_vbox_list "AUDIO_DEV_CHOICE"         "-1" "Select an Audio Device"           "${AUDIO_DEVICES[@]}")
+      $(_gtk_vbox_list "AUDIO_MODE_CODEC_CHOICE"  "-1" "Select Audio Codec"            "${AUDIO_CODEC_OPTIONS[@]:0:2}")
+      $(_gtk_vbox_list "AUDIO_CHANNEL_CHOICE"     "-1" "Select Audio Channels"            "${AUDIO_CHANNEL_CHOICE_OPTIONS[@]}")
+      $(_gtk_vbox_list "AUDIO_MODE_SR_CHOICE"     "-1" "Select Sampling Rate"            "${AUDIO_MODE_SR_CHOICE_OPTIONS[@]}")
     </hbox>
   </vbox>
   <vbox space-expand="true">
-    <pixmap><input file>'"${RESOURCE_PATH}/audio_mode.gif"'</input></pixmap>
+    <pixmap><input file>"${RESOURCE_PATH}/audio_mode.gif"</input></pixmap>
   </vbox>
-</frame>'
+</frame>
+AUDIO_INPUT_FORM
+)
 
 export MAIN_DIALOG='
 <window title="vrecord configuration">
@@ -1223,6 +1245,8 @@ export MAIN_DIALOG='
     <action signal="leave-notify-event" type="refresh">VRECORD_FORM_VALIDATION</action>
     <action signal="show" type="closewindow">HOME_DIALOG</action>
     <action signal="show" type="refresh">VRECORD_OUTPUT_NAME</action>
+    <action signal="show" condition="command_is_true( [[ \"$AUDIO_DEV_CHOICE\" != *\"Blackmagic\"* ]] && echo true)">enable:AUDIO_MODE_SR_CHOICE</action>
+    <action signal="show" condition="command_is_true( [[ \"$AUDIO_DEV_CHOICE\" == *\"Blackmagic\"* ]] && echo true)">disable:AUDIO_MODE_SR_CHOICE</action>
 </window>
 '
 }
@@ -1696,8 +1720,8 @@ else
     PRINT_PHASE=",drawtext=fontfile=${DEFAULTFONT}:box=1:text=Phase\\\: %{metadata\\\:lavfi.aphasemeter.phase}:x=135:y=380:fontcolor=black"
     PRINT_CHANNELS_1_2=",drawtext=fontfile=${DEFAULTFONT}:text=Ch.1/2:x=10: y=10:fontcolor=white"
     AUDIO_SPLIT='7[a][b][c][d][e][f][out1],'
-    WAVEFORM="[e]astats=metadata=1:reset=1,adrawgraph=m1=lavfi.astats.1.Min_level:m2=lavfi.astats.1.Max_level:size=700x160:bg=Black:fg1=0xFFFF0000:fg2=0xFFFF0000:slide=scroll:min=-32767:max=32767[wav1],\
-    [f]astats=metadata=1:reset=1,adrawgraph=m1=lavfi.astats.2.Min_level:m2=lavfi.astats.2.Max_level:size=700x160:bg=Black:fg1=0xFF00FF00:fg2=0xFF00FF00:slide=scroll:min=-32767:max=32767[wav2]"
+    WAVEFORM="[e]astats=metadata=1:reset=1,adrawgraph=m1=lavfi.astats.1.Min_level:m2=lavfi.astats.1.Max_level:size=800x200:bg=Black:fg1=0xFFFF0000:fg2=0xFFFF0000:slide=scroll:min=-32767:max=32767[wav1],\
+    [f]astats=metadata=1:reset=1,adrawgraph=m1=lavfi.astats.2.Min_level:m2=lavfi.astats.2.Max_level:size=800x200:bg=Black:fg1=0xFF00FF00:fg2=0xFF00FF00:slide=scroll:min=-32767:max=32767[wav2]"
     CHANNEL_PARAMS="[b]avectorscope=s=320x400${PRINT_CHANNELS_1_2}[b1],"
     AP_MAP='[a1][b1][x][wav1][wav2]xstack=inputs=5:layout=0_0|w0_0|0_h0|w0+w1_0|w0+w1_h3,fps=25[out0]'
     PHASE_LOCATION='x=135:y=380'
@@ -2021,7 +2045,11 @@ _review_all_options(){
         _lookup_choice "Unfiltered"
     elif [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
         _review_option "AUDIO_CHANNEL_CHOICE" "${AUDIO_CHANNEL_CHOICE_OPTIONS[@]}"
-        _review_option "AUDIO_MODE_SR_CHOICE" "${AUDIO_MODE_SR_CHOICE_OPTIONS[@]}"
+        if [[ "${AUDIO_DEV_CHOICE}" != *"Blackmagic"* ]] ; then
+            _review_option "AUDIO_MODE_SR_CHOICE" "${AUDIO_MODE_SR_CHOICE_OPTIONS[@]}"
+        else
+            MIDDLEOPTIONS+=(-ar 48k)
+        fi
         PLAYBACKVIEW_CHOICE_PASS="Audio"
         PLAYBACKVIEW_CHOICE="Audio"
         _lookup_choice "Audio"
