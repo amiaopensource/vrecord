@@ -2026,7 +2026,9 @@ _review_all_options(){
         _lookup_choice "Unfiltered"
     elif [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
         _review_option "AUDIO_CHANNEL_CHOICE" "${AUDIO_CHANNEL_CHOICE_OPTIONS[@]}"
-        _review_option "AUDIO_MODE_SR_CHOICE" "${AUDIO_MODE_SR_CHOICE_OPTIONS[@]}"
+        if [[ "${AUDIO_DEV_CHOICE}" != *"Blackmagic"* ]] ; then
+            _review_option "AUDIO_MODE_SR_CHOICE" "${AUDIO_MODE_SR_CHOICE_OPTIONS[@]}"
+        fi
         PLAYBACKVIEW_CHOICE_PASS="Audio"
         PLAYBACKVIEW_CHOICE="Audio"
         _lookup_choice "Audio"
