@@ -656,13 +656,7 @@ _set_up_edit_form() {
   _expand_list2items(){
     LIST=( "$@" )
     for i in "${LIST[@]}" ; do
-      if [[ "$i" == "Quality Control View (mpv)" ]] && ! $MPV_INSTALLED ; then
-          :
-      elif [[ "$i" == "bmdcapture" ]] && ! $BMDTOOLS_INSTALLED ; then
-          :
-      else
-          echo "<item>${i}</item>"
-      fi
+        echo "<item>${i}</item>"
     done
   }
   _get_index_of_value(){
@@ -1891,7 +1885,10 @@ _set_scopes(){
 }
 
 # list of selections for each vrecord option
-DECKLINK_UTILITIES=("ffmpeg" "bmdcapture")
+DECKLINK_UTILITIES=("ffmpeg")
+if $BMDTOOLS_INSTALLED ; then
+    DECKLINK_UTILITIES+=("bmdcapture")
+fi
 VIDEO_INPUT_OPTIONS=("Composite" "SDI" "Component" "S-Video")
 AUDIO_INPUT_OPTIONS=("Analog" "SDI Embedded Audio" "Digital Audio (AES/EBU)")
 CONTAINER_OPTIONS=("QuickTime" "Matroska" "AVI" "MXF" "MP4")
@@ -1907,8 +1904,12 @@ STANDARD_OPTIONS=("NTSC" "PAL")
 QCTOOLSXML_OPTIONS=("Yes, after recording" "Yes, concurrent with recording" "No")
 FRAMEMD5_OPTIONS=("Yes" "No")
 EMBED_LOGS_OPTIONS=("Yes" "No")
-PLAYBACKVIEW_OPTIONS=("Unfiltered" "Quality Control View (mpv)" "Broadcast Range Visual" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes")
-PLAYBACKVIEW_PASS_OPTIONS=("Unfiltered" "Quality Control View (mpv)" "Broadcast Range Visual" "Audio + Video" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes")
+PLAYBACKVIEW_OPTIONS=("Unfiltered" "Broadcast Range Visual" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes")
+PLAYBACKVIEW_PASS_OPTIONS=("Unfiltered" "Broadcast Range Visual" "Audio + Video" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes")
+if $MPV_INSTALLED ; then
+    PLAYBACKVIEW_OPTIONS+=("Quality Control View (mpv)")
+    PLAYBACKVIEW_PASS_OPTIONS+=("Quality Control View (mpv)")
+fi
 WAVEFORM_SCALE_OPTIONS=("digital" "millivolts" "ire")
 MONITOR_AUDIO_OPTIONS=("Yes" "No")
 
