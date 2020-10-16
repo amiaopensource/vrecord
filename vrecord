@@ -458,7 +458,6 @@ _setup_vrecord_process(){
             GRAB_INPUT+=(-audio_depth 32)
             GRAB_INPUT+=(-i "${DECKLINK_INPUT_CHOICE}")
             GRAB_INPUT+=(-vn)
-            GRAB_INPUT+=(-ar 48k)
         fi
     else
         _report "Input unknown"
