@@ -87,6 +87,9 @@ _validate_form(){
     elif [ "${AUDIO_CODEC_CHOICE}" = "24-bit FLAC" ] && [ "${CONTAINER_CHOICE}" = "QuickTime" ] ; then
         echo "ERROR: Incompatible audio codecs and containers have been selected.\n"
     fi
+    if [ "${VIDEO_CODEC_CHOICE}" = "ProRes" -o "${VIDEO_CODEC_CHOICE}" = "ProRes (HQ)" ] && [ "${VIDEO_BIT_DEPTH_CHOICE}" = "8 bit" ] ; then
+        echo "WARNING: ProRes (which is a 10 bit encoding) is selected but the input device is set to use 8 bits.\n"
+    fi
     if [ ! -d "${DIR}" ] ; then
         echo "ERROR: The recording directory (${DIR}) does not exist. Create this folder please.\n"
     fi
