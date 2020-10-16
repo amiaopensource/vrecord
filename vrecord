@@ -2234,6 +2234,12 @@ _report -d "Close the playback window to stop recording."
 
 # vrecord process!
 _setup_vrecord_process
+if [[ "${VERBOSE_GTKDIALOG}" = "Y" ]] ; then
+    echo "STEPS ${VRECORD_STEPS}"
+    echo "PLAY ${PLAYER_COMMAND[@]}"
+    echo "RECORD ${RECORD_COMMAND[@]}"
+    echo "FFRECORD ${FF_RECORD_COMMAND[@]}"
+fi
 if [[ "${VRECORD_STEPS}" = "2" ]] ; then
     _writeingestlog "Capture-Record command" "${RECORD_COMMAND[@]}"
     _writeingestlog "Playback command" "${PLAYER_COMMAND[@]}"
