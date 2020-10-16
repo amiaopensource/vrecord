@@ -556,6 +556,9 @@ _setup_vrecord_process(){
         MPVOPTS+=(--script="${RESOURCE_PATH}/qcview.lua")
         MPVOPTS+=(--really-quiet)
         MPVOPTS+=(--title="${WINDOW_NAME}")
+        if [[ "${MONITOR_AUDIO_CHOICE}" = "No" ]] ; then
+            MPVOPTS+=(--aid=no)
+        fi
         PLAYER_COMMAND=(mpv "${MPVOPTS[@]}" -)
     else
         FFPLAY_OPTIONS=(-v info)
@@ -577,6 +580,9 @@ _setup_vrecord_process(){
                 FFPLAY_OPTIONS+=(-vf "${PLAYBACKFILTER}")
             fi
             FFPLAY_OPTIONS+=(-af "channelmap=0|1:stereo")
+        fi
+        if [[ "${MONITOR_AUDIO_CHOICE}" = "No" ]] ; then
+            FFPLAY_OPTIONS+=(-an)
         fi
         PLAYER_COMMAND=("${FFPLAY_BIN}" "${FFPLAY_OPTIONS[@]}")
     fi
@@ -696,6 +702,7 @@ OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
     <hbox>
         <frame Player Settings>
             $(_gtk_vbox_list "WAVEFORM_SCALE_CHOICE" "100" "Select Waveform Scale"            "${WAVEFORM_SCALE_OPTIONS[@]}")
+            $(_gtk_vbox_list "MONITOR_AUDIO_CHOICE"  "100" "Montior Audio?"                   "${MONITOR_AUDIO_OPTIONS[@]}")
         </frame>
         <frame Optional Tools>
             <hbox>
@@ -1924,6 +1931,7 @@ EMBED_LOGS_OPTIONS=("Yes" "No")
 PLAYBACKVIEW_OPTIONS=("Unfiltered" "Quality Control View (mpv)" "Broadcast Range Visual" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes")
 PLAYBACKVIEW_PASS_OPTIONS=("Unfiltered" "Quality Control View (mpv)" "Broadcast Range Visual" "Audio + Video" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes")
 WAVEFORM_SCALE_OPTIONS=("digital" "millivolts" "ire")
+MONITOR_AUDIO_OPTIONS=("Yes" "No")
 
 # GUI mode + CLI reset, edit modes
 if [[ "${RUNTYPE}" = "reset" ]] ; then
@@ -1994,6 +2002,7 @@ _review_all_options(){
         PLAYBACK_FILTER_ADJUSTMENT="select=not(mod(n\,2)),"
     fi
     _review_option -n "WAVEFORM_SCALE_CHOICE" "${WAVEFORM_SCALE_OPTIONS[@]}"
+    _review_option -n "MONITOR_AUDIO_CHOICE" "${MONITOR_AUDIO_OPTIONS[@]}"
     _set_scopes
     if [[ "${RUNTYPE}" = "passthrough" ]] && [[ -n "${PLAYBACKVIEW_CHOICE_PASS}" ]] && [[ "${PLAYBACKVIEW_CHOICE_PASS}" != "Unselected" ]] ; then
         _review_option "PLAYBACKVIEW_CHOICE_PASS" "${PLAYBACKVIEW_PASS_OPTIONS[@]}"
