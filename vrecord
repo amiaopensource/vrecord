@@ -1162,9 +1162,6 @@ _report_var(){
 
 # edit mode
 _edit_mode(){
-
-    _get_decklink_inputs
-    _get_avfoundation_inputs
     _set_up_edit_form
 
     # run the edit form in gtkdialog
