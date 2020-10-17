@@ -1141,25 +1141,6 @@ export MAIN_DIALOG='
 '
 }
 
-_report_var(){
-    while [[ "${@}" != "" ]] ; do
-        VAR_NAME="${1}"
-        VAR_VALUE="${!1}"
-        shift
-        if   [[ "$VAR_NAME" == "DECKLINK_INPUT_CHOICE" ]] && [[ "${DEVICE_INPUT_CHOICE}" != "0" ]] ; then
-            :
-        elif [[ "$VAR_NAME" == "AVFCTL_INPUT_CHOICE" ]] && [[ "${DEVICE_INPUT_CHOICE}" != "1" ]] ; then
-            :
-        elif [[ "$VAR_NAME" == "FFV1_SLICE_CHOICE" ]] && [[ "${VIDEO_CODEC_CHOICE}" != "FFV1 version 3" ]] ; then
-            :
-        elif [[ "$VAR_NAME" == "EMBED_LOGS_CHOICE" ]] && [[ "${CONTAINER_CHOICE}" != "Matroska" ]] ; then
-            :
-        else
-            printf " %-24s = %s \n" "$VAR_NAME" "$VAR_VALUE"
-        fi
-    done
-}
-
 # edit mode
 _edit_mode(){
     _set_up_edit_form
