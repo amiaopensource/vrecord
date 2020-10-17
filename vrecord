@@ -239,7 +239,7 @@ _gtk_vbox_list() {
     OPTION_LIST=("${@}")
     SELECTION="$(_get_index_of_value "${!VARIABLE_NAME}" "${OPTION_LIST[@]}")"
     if [[ "${VARIABLE_NAME}" == "DECKLINK_INPUT_CHOICE" ]] ; then
-        LIST="<input>_get_decklink_inputs</input>"
+        LIST="<input>_get_decklink_input_list</input>"
     elif [[ "${VARIABLE_NAME}" == "AVFCTL_INPUT_CHOICE" ]] ; then
         LIST="<input>_get_avfctl_input_list</input>"
     elif [[ "${VARIABLE_NAME}" == "AUDIO_DEV_CHOICE" ]] ; then

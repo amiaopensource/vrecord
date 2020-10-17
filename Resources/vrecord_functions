@@ -142,7 +142,7 @@ _get_output_filename(){
     echo "${DIR}/${PREFIX}${ID}${SUFFIX}.${EXTENSION}"
 }
 
-_get_decklink_inputs(){
+_get_decklink_input_list(){
     # get information on what input device options are available
     #unset DECKLINK_DEVICES
     if [ "${DECKLINK_UTILITY_CHOICE}" = "bmdcapture" ] ; then
