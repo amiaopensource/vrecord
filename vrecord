@@ -436,11 +436,12 @@ _setup_vrecord_process(){
                 MIDDLEOPTIONS+=(-metadata:s:v:0 encoder="${VIDEOCODECNAME}")
             fi
             FF_RECORD_COMMAND+=("${MIDDLEOPTIONS[@]}")
-            if [[ "${PLAYBACKVIEW_CHOICE_PASS}" != "Audio + Video" ]] ; then
+            if  [[ "${RUNTYPE}" = "record" ]] ; then
                 FF_RECORD_COMMAND+=(-filter_complex "[0:v:0]${RECORDINGFILTER}${TC_WRITE}; ${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}")
                 FF_RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
+                FF_RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}")
             fi
-            FF_RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}" "${PIPE_OUTPUT[@]}")
+            FF_RECORD_COMMAND+=("${PIPE_OUTPUT[@]}")
         else
             if [[ "${RUNTYPE}" = "record" ]] ; then
                 VRECORD_STEPS="2" # Steps: record | player
@@ -456,11 +457,12 @@ _setup_vrecord_process(){
                 MIDDLEOPTIONS+=(-metadata:s:v:0 encoder="${VIDEOCODECNAME}")
             fi
             RECORD_COMMAND+=("${MIDDLEOPTIONS[@]}")
-            if [[ "${PLAYBACKVIEW_CHOICE_PASS}" != "Audio + Video" ]] ; then
+            if [[ "${RUNTYPE}" = "record" ]] ; then
                 RECORD_COMMAND+=(-filter_complex "[0:v:0]${RECORDINGFILTER}${TC_WRITE}; ${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}")
                 RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
+                RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}")
             fi
-            RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}" "${PIPE_OUTPUT[@]}")
+            RECORD_COMMAND+=("${PIPE_OUTPUT[@]}")
         fi
     elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
         if [[ "${OS_TYPE}" = "linux" ]] ; then
