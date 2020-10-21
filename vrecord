@@ -94,10 +94,11 @@ _report(){
 _report_unexpected_error(){
     ERROR_VAR_NAME="${1}"
     ERROR_VAR_VALUE="${!1}"
-    ERROR_DETAIL="$2"
+    shift
+    ERROR_DETAIL=("${@}")
     _report -d -wt "vrecord exited a form in an unexpected way (${ERROR_VAR_NAME}=${ERROR_VAR_VALUE}), please report this error to https://github.com/amiaopensource/vrecord/issues"
-    if [[ -n "${ERROR_DETAIL}" ]] ; then
-        _report -d -wt "Error details: ${ERROR_DETAIL}"
+    if [[ -n "${ERROR_DETAIL[@]}" ]] ; then
+        _report -d -wt "Error details: ${ERROR_DETAIL[@]}"
     fi
     if [[ -f "${INGESTLOG}" ]] ; then
         _writeingestlog "vrecord command Error" "invalid ${ERROR_VAR_NAME} value of ${ERROR_VAR_VALUE}"
