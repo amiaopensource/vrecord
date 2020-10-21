@@ -90,6 +90,7 @@ _report(){
     MESSAGE="${1}"
     echo ${ECHOOPT} "${COLOR}${STARTMESSAGE[@]}${MESSAGE}${NC}"
 }
+
 _report_unexpected_error(){
     ERROR_VAR_NAME="${1}"
     ERROR_VAR_VALUE="${!1}"
@@ -103,30 +104,6 @@ _report_unexpected_error(){
     fi
     exit 1
 }
-
-# command-line options to set media id and original variables
-OPTIND=1
-while getopts ":hc:erpaxgvI:O:i:G" opt ; do
-    case "${opt}" in
-        h) _usage ; exit 0 ;;
-        c) CONFIG_FILE="${OPTARG}" ;;
-        e) RUNTYPE="edit" ;;
-        r) RUNTYPE="record" ;;
-        p) RUNTYPE="passthrough" ;;
-        a) RUNTYPE="audiopassthrough" ;;
-        x) RUNTYPE="reset" ;;
-        g) RUNTYPE="GUI" ; GUI=1 ;;
-        v) VERBOSE="true" ;;
-        I) EXTRAINPUTOPTIONS=(${OPTARG}) ;;
-        O) EXTRAOUTPUTOPTIONS=(${OPTARG}) ;;
-        i) ALT_INPUT="${OPTARG}" ;;
-        G) VERBOSE_GTKDIALOG="Y" ;;
-        :) _report -w "Option -${OPTARG} requires an argument" ; _usage ; exit 1 ;;
-        *) _report -w "Error: bad option -${OPTARG}" ; _usage ; exit 1 ;;
-    esac
-done
-shift "$((OPTIND-1))"
-ID="${1}"
 
 _parse_report(){
     KEY="${1}"
@@ -142,10 +119,7 @@ _maketemp(){
     fi
     echo "$(mktemp -q "/tmp/$(basename "${0}").XXXXXX")${EXT}"
 }
-VRECORD_INPUT_TMP="$(_maketemp .vrecord_input.log)"
 
-# manage an include file to pass variables to gtkdialog
-VRECORD_VARS_FILE="/tmp/v_$(echo "${0}" | sed -e "s/[^A-Za-z0-9.]/_/g")_variables.txt"
 _include_var(){
     while [[ "${@}" != "" ]] ; do
         VAR_NAME="${1}"
@@ -154,11 +128,6 @@ _include_var(){
         echo "${VAR_NAME}=\"${VAR_VALUE}\"" >> "${VRECORD_VARS_FILE}"
     done
 }
-if [[ -f "${VRECORD_VARS_FILE}" ]] ; then
-    . "${VRECORD_VARS_FILE}"
-else
-    _include_var VRECORD_VARS_FILE
-fi
 
 _setup_env_variables(){
     # Set variables for system differences
@@ -227,13 +196,6 @@ _setup_env_variables(){
         exit 1
     fi
 }
-if [[ -z "${OS_TYPE}" ]] ; then
-    _setup_env_variables
-    _include_var OS_TYPE RESOURCE_PATH DEFAULTFONT CORE_COUNT OPEN_COMMAND ZCAT_COMMAND COMPUTER_MODEL_NAME DIR_SELECTION_DIALOG
-    if [[ "${OS_TYPE}" = "macOS" ]] ; then
-        _include_var COMPUTER_MODEL_ID COMPUTER_PROCESSOR_NAME COMPUTER_PROCESSOR_SPEED COMPUTER_PROCESSOR_COUNT COMPUTER_MEMORY COMPUTER_SERIAL
-    fi
-fi
 
 _gather_ffmpeg_vars(){
     CAPTURELOGSUFFIX="_vrecord_input.log"
@@ -256,11 +218,6 @@ _gather_ffmpeg_vars(){
     fi
 }
 
-if [[ -z "${FFMPEG_BIN}" ]] ; then
-    _gather_ffmpeg_vars
-    _include_var CAPTURELOGSUFFIX TIMECODELOGSUFFIX BREW_PREFIX FFMPEG_BIN FFPLAY_BIN FFPROBE_BIN
-fi
-
 _cleanup(){
     _report -wt "Vrecord is being stopped at $(_get_iso8601), noting this in the capture log."
     _writeingestlog "exit status" "vrecord was forced to quit early at $(_get_iso8601). Some processing may be incomplete."
@@ -274,25 +231,6 @@ _check_mpv(){
     fi
 }
 
-SHARED_FUNCTIONS_FILE="${RESOURCE_PATH}/vrecord_functions"
-. "${SHARED_FUNCTIONS_FILE}"
-
-# optional dependency checks
-BMDTOOLS_INSTALLED="$(if command -v bmdcapture >/dev/null ; then echo true ; else echo false ; fi)"
-DECKCONTROL_INSTALLED="$(if command -v deckcontrol >/dev/null ; then echo true ; else echo false ; fi)"
-GNUPLOT_INSTALLED="$(if command -v gnuplot >/dev/null ; then echo true ; else echo false ; fi)"
-MEDIACONCH_INSTALLED="$(if command -v mediaconch >/dev/null ; then echo true ; else echo false ; fi)"
-MKVPROPEDIT_INSTALLED="$(if command -v mkvpropedit >/dev/null ; then echo true ; else echo false ; fi)"
-MPV_INSTALLED="$(if command -v mpv >/dev/null ; then echo true ; else echo false ; fi)"
-QCLI_INSTALLED="$(if command -v qcli >/dev/null ; then echo true ; else echo false ; fi)"
-
-if [[ -f "${CONFIG_FILE}" ]] ; then
-    . "${CONFIG_FILE}"
-else
-    _report -d "Initiatizing the configuration file at ${CONFIG_FILE}."
-    RUNTYPE="edit"
-fi
-
 _gtk_vbox_list() {
     VARIABLE_NAME="${1}"
     WIDTH="${2}"
@@ -301,7 +239,7 @@ _gtk_vbox_list() {
     OPTION_LIST=("${@}")
     SELECTION="$(_get_index_of_value "${!VARIABLE_NAME}" "${OPTION_LIST[@]}")"
     if [[ "${VARIABLE_NAME}" == "DECKLINK_INPUT_CHOICE" ]] ; then
-        LIST="<input>_get_decklink_inputs</input>"
+        LIST="<input>_get_decklink_input_list</input>"
     elif [[ "${VARIABLE_NAME}" == "AVFCTL_INPUT_CHOICE" ]] ; then
         LIST="<input>_get_avfctl_input_list</input>"
     elif [[ "${VARIABLE_NAME}" == "AUDIO_DEV_CHOICE" ]] ; then
@@ -612,6 +550,7 @@ _get_decklink_inputs(){
         DECKLINK_INPUT_CHOICE="${DECKLINK_DEVICES[0]}"
     fi
 }
+
 _get_avfoundation_inputs(){
     # set avfoundation input options
     unset AVFOUNDATION_DEVICES
@@ -633,18 +572,6 @@ _get_avfctl_inputs(){
         AVFCTL_DEVICES+=('Default DV Device')
     fi
 }
-
-_get_decklink_inputs
-_get_avfoundation_inputs
-_get_avfctl_inputs
-
-if [[ "${OS_TYPE}" = "linux" ]] ; then
-    while read audio_device ; do
-        AUDIO_DEVICES+=("${audio_device}")
-    done < <(arecord -l | grep card | cut -d ':' -f2 | cut -d ',' -f1 | awk '{$1=$1;print}')
-elif [[ "${OS_TYPE}" = "macOS" ]] ; then
-    AUDIO_DEVICES=("${AVFOUNDATION_DEVICES[@]}")
-fi
 
 _get_audio_dev_num(){
     AUDIO_DEV_NUM=0
@@ -1214,81 +1141,8 @@ export MAIN_DIALOG='
 '
 }
 
-HOME_DIALOG=$(cat << GTKFORM
-<window title="Welcome to Vrecord!">
-    <vbox>
-        <vbox>
-            <hbox>
-                <button>
-                    <label>Record</label>
-                    <input file>${RESOURCE_PATH}/vrecord_logo.png</input>
-                    <action type="exit">record</action>
-                </button>
-                <button>
-                    <label>Passthrough</label>
-                    <input file>${RESOURCE_PATH}/vrecord_logo_playback.png</input>
-                    <action type="exit">passthrough</action>
-                </button>
-                <button>
-                    <label>Audio Check</label>
-                    <input file>${RESOURCE_PATH}/vrecord_logo_audio.png</input>
-                    <action type="exit">audiopassthrough</action>
-                </button>
-                </hbox>
-                <hbox>
-                <button>
-                    <label>Edit Settings</label>
-                    <input file>${RESOURCE_PATH}/vrecord_logo_edit.png</input>
-                    <action type="launch">MAIN_DIALOG</action>
-                </button>
-                <button>
-                    <label>Help</label>
-                    <input file>${RESOURCE_PATH}/vrecord_logo_help.png</input>
-                    <action>man vrecord</action>
-                </button>
-                <button>
-                    <label>Documentation</label>
-                    <input file>${RESOURCE_PATH}/vrecord_logo_documentation.png</input>
-                    <action>${OPEN_COMMAND} https://github.com/amiaopensource/vrecord#vrecord-documentation</action>
-                </button>
-            </hbox>
-        </vbox>
-        <hbox>
-            <button cancel></button>
-        </hbox>
-    </vbox>
-    <variable>HOME_DIALOG</variable>
-    <action signal="show" type="closewindow">MAIN_DIALOG</action>
-</window>
-GTKFORM
-)
-export HOME_DIALOG
-
-
-_report_var(){
-    while [[ "${@}" != "" ]] ; do
-        VAR_NAME="${1}"
-        VAR_VALUE="${!1}"
-        shift
-        if   [[ "$VAR_NAME" == "DECKLINK_INPUT_CHOICE" ]] && [[ "${DEVICE_INPUT_CHOICE}" != "0" ]] ; then
-            :
-        elif [[ "$VAR_NAME" == "AVFCTL_INPUT_CHOICE" ]] && [[ "${DEVICE_INPUT_CHOICE}" != "1" ]] ; then
-            :
-        elif [[ "$VAR_NAME" == "FFV1_SLICE_CHOICE" ]] && [[ "${VIDEO_CODEC_CHOICE}" != "FFV1 version 3" ]] ; then
-            :
-        elif [[ "$VAR_NAME" == "EMBED_LOGS_CHOICE" ]] && [[ "${CONTAINER_CHOICE}" != "Matroska" ]] ; then
-            :
-        else
-            printf " %-24s = %s \n" "$VAR_NAME" "$VAR_VALUE"
-        fi
-    done
-}
-
 # edit mode
 _edit_mode(){
-
-    _get_decklink_inputs
-    _get_avfoundation_inputs
     _set_up_edit_form
 
     # run the edit form in gtkdialog
@@ -1905,52 +1759,6 @@ _set_scopes(){
     drawgrid=w=256:h=256:t=1:c=white@0.2"
 }
 
-# list of selections for each vrecord option
-DECKLINK_UTILITIES=("ffmpeg")
-if $BMDTOOLS_INSTALLED ; then
-    DECKLINK_UTILITIES+=("bmdcapture")
-fi
-VIDEO_INPUT_OPTIONS=("Composite" "SDI" "Component" "S-Video")
-AUDIO_INPUT_OPTIONS=("Analog" "SDI Embedded Audio" "Digital Audio (AES/EBU)")
-CONTAINER_OPTIONS=("QuickTime" "Matroska" "AVI" "MXF" "MP4")
-VIDEO_CODEC_OPTIONS=("Uncompressed Video" "FFV1 version 3" "JPEG2000" "ProRes" "ProRes (HQ)" "h264" "HuffYUV")
-FFV1_SLICE_OPTIONS=("4" "6" "9" "12" "16" "24" "30")
-AUDIO_CODEC_OPTIONS=("24-bit PCM" "24-bit FLAC" "AAC")
-AUDIO_CHANNEL_CHOICE_OPTIONS=("Mono" "Stereo")
-AUDIO_MODE_SR_CHOICE_OPTIONS=("96 kHz" "48 kHz" "44.1 kHz")
-VIDEO_BITDEPTH_OPTIONS=("10 bit" "8 bit")
-CHANNEL_MAPPING_OPTIONS=("2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, Channels 3 & 4 -> 2nd Track Stereo)" "1 Stereo Track (From Channels 1 & 2)" "1 Stereo Track (From Channels 3 & 4)" "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono" "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono" "Channel 1 -> Single Track Mono" "Channel 2 -> Single Track Mono")
-TIMECODE_OPTIONS=("none" "rp188vitc" "rp188vitc2" "rp188ltc" "rp188any" "vitc" "vitc2" "serial")
-STANDARD_OPTIONS=("NTSC" "PAL")
-QCTOOLSXML_OPTIONS=("Yes, after recording" "Yes, concurrent with recording" "No")
-FRAMEMD5_OPTIONS=("Yes" "No")
-EMBED_LOGS_OPTIONS=("Yes" "No")
-PLAYBACKVIEW_OPTIONS=("Unfiltered" "Broadcast Range Visual" "Audio + Video" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes")
-PLAYBACKVIEW_PASS_OPTIONS=("Unfiltered" "Broadcast Range Visual" "Audio + Video" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes")
-if $MPV_INSTALLED ; then
-    PLAYBACKVIEW_OPTIONS+=("Quality Control View (mpv)")
-    PLAYBACKVIEW_PASS_OPTIONS+=("Quality Control View (mpv)")
-fi
-WAVEFORM_SCALE_OPTIONS=("digital" "millivolts" "ire")
-MONITOR_AUDIO_OPTIONS=("Yes" "No")
-
-# GUI mode + CLI reset, edit modes
-if [[ "${RUNTYPE}" = "reset" ]] ; then
-    _report -q -n "Resetting the configuration will clear ${CONFIG_FILE}. Please enter [Y] to confirm: "
-    read RESET_RESPONSE
-    if [[ "${RESET_RESPONSE}" = [Yy] ]] ; then
-        _report -d "Clearing ${CONFIG_FILE}."
-        echo -n "" > "${CONFIG_FILE}"
-        RUNTYPE="edit"
-    else
-        _report -d "Reset aborted. Exiting."
-        exit 0
-    fi
-fi
-while [[ "${RUNTYPE}" = "edit" || "${RUNTYPE}" = "GUI" ]] ; do
-    _edit_mode
-done
-
 _review_option(){
     unset NO_LOOKUP DEFAULT
     OPTIND=1
@@ -2039,6 +1847,181 @@ _review_all_options(){
         _lookup_choice "Audio"
     fi
 }
+
+# command-line options to set media id and original variables
+OPTIND=1
+while getopts ":hc:erpaxgvI:O:i:G" opt ; do
+    case "${opt}" in
+        h) _usage ; exit 0 ;;
+        c) CONFIG_FILE="${OPTARG}" ;;
+        e) RUNTYPE="edit" ;;
+        r) RUNTYPE="record" ;;
+        p) RUNTYPE="passthrough" ;;
+        a) RUNTYPE="audiopassthrough" ;;
+        x) RUNTYPE="reset" ;;
+        g) RUNTYPE="GUI" ; GUI=1 ;;
+        v) VERBOSE="true" ;;
+        I) EXTRAINPUTOPTIONS=(${OPTARG}) ;;
+        O) EXTRAOUTPUTOPTIONS=(${OPTARG}) ;;
+        i) ALT_INPUT="${OPTARG}" ;;
+        G) VERBOSE_GTKDIALOG="Y" ;;
+        :) _report -w "Option -${OPTARG} requires an argument" ; _usage ; exit 1 ;;
+        *) _report -w "Error: bad option -${OPTARG}" ; _usage ; exit 1 ;;
+    esac
+done
+shift "$((OPTIND-1))"
+ID="${1}"
+
+VRECORD_INPUT_TMP="$(_maketemp .vrecord_input.log)"
+
+# manage an include file to pass variables to gtkdialog
+VRECORD_VARS_FILE="/tmp/v_$(echo "${0}" | sed -e "s/[^A-Za-z0-9.]/_/g")_variables.txt"
+
+if [[ -f "${VRECORD_VARS_FILE}" ]] ; then
+    . "${VRECORD_VARS_FILE}"
+else
+    _include_var VRECORD_VARS_FILE
+fi
+
+if [[ -z "${OS_TYPE}" ]] ; then
+    _setup_env_variables
+    _include_var OS_TYPE RESOURCE_PATH DEFAULTFONT CORE_COUNT OPEN_COMMAND ZCAT_COMMAND COMPUTER_MODEL_NAME DIR_SELECTION_DIALOG
+    if [[ "${OS_TYPE}" = "macOS" ]] ; then
+        _include_var COMPUTER_MODEL_ID COMPUTER_PROCESSOR_NAME COMPUTER_PROCESSOR_SPEED COMPUTER_PROCESSOR_COUNT COMPUTER_MEMORY COMPUTER_SERIAL
+    fi
+fi
+
+if [[ -z "${FFMPEG_BIN}" ]] ; then
+    _gather_ffmpeg_vars
+    _include_var CAPTURELOGSUFFIX TIMECODELOGSUFFIX BREW_PREFIX FFMPEG_BIN FFPLAY_BIN FFPROBE_BIN
+fi
+
+SHARED_FUNCTIONS_FILE="${RESOURCE_PATH}/vrecord_functions"
+. "${SHARED_FUNCTIONS_FILE}"
+
+# optional dependency checks
+BMDTOOLS_INSTALLED="$(if command -v bmdcapture >/dev/null ; then echo true ; else echo false ; fi)"
+DECKCONTROL_INSTALLED="$(if command -v deckcontrol >/dev/null ; then echo true ; else echo false ; fi)"
+GNUPLOT_INSTALLED="$(if command -v gnuplot >/dev/null ; then echo true ; else echo false ; fi)"
+MEDIACONCH_INSTALLED="$(if command -v mediaconch >/dev/null ; then echo true ; else echo false ; fi)"
+MKVPROPEDIT_INSTALLED="$(if command -v mkvpropedit >/dev/null ; then echo true ; else echo false ; fi)"
+MPV_INSTALLED="$(if command -v mpv >/dev/null ; then echo true ; else echo false ; fi)"
+QCLI_INSTALLED="$(if command -v qcli >/dev/null ; then echo true ; else echo false ; fi)"
+
+if [[ -f "${CONFIG_FILE}" ]] ; then
+    . "${CONFIG_FILE}"
+else
+    _report -d "Initiatizing the configuration file at ${CONFIG_FILE}."
+    RUNTYPE="edit"
+fi
+
+_get_decklink_inputs
+_get_avfoundation_inputs
+_get_avfctl_inputs
+
+if [[ "${OS_TYPE}" = "linux" ]] ; then
+    while read audio_device ; do
+        AUDIO_DEVICES+=("${audio_device}")
+    done < <(arecord -l | grep card | cut -d ':' -f2 | cut -d ',' -f1 | awk '{$1=$1;print}')
+elif [[ "${OS_TYPE}" = "macOS" ]] ; then
+    AUDIO_DEVICES=("${AVFOUNDATION_DEVICES[@]}")
+fi
+
+HOME_DIALOG=$(cat << GTKFORM
+<window title="Welcome to Vrecord!">
+    <vbox>
+        <vbox>
+            <hbox>
+                <button>
+                    <label>Record</label>
+                    <input file>${RESOURCE_PATH}/vrecord_logo.png</input>
+                    <action type="exit">record</action>
+                </button>
+                <button>
+                    <label>Passthrough</label>
+                    <input file>${RESOURCE_PATH}/vrecord_logo_playback.png</input>
+                    <action type="exit">passthrough</action>
+                </button>
+                <button>
+                    <label>Audio Check</label>
+                    <input file>${RESOURCE_PATH}/vrecord_logo_audio.png</input>
+                    <action type="exit">audiopassthrough</action>
+                </button>
+                </hbox>
+                <hbox>
+                <button>
+                    <label>Edit Settings</label>
+                    <input file>${RESOURCE_PATH}/vrecord_logo_edit.png</input>
+                    <action type="launch">MAIN_DIALOG</action>
+                </button>
+                <button>
+                    <label>Help</label>
+                    <input file>${RESOURCE_PATH}/vrecord_logo_help.png</input>
+                    <action>man vrecord</action>
+                </button>
+                <button>
+                    <label>Documentation</label>
+                    <input file>${RESOURCE_PATH}/vrecord_logo_documentation.png</input>
+                    <action>${OPEN_COMMAND} https://github.com/amiaopensource/vrecord#vrecord-documentation</action>
+                </button>
+            </hbox>
+        </vbox>
+        <hbox>
+            <button cancel></button>
+        </hbox>
+    </vbox>
+    <variable>HOME_DIALOG</variable>
+    <action signal="show" type="closewindow">MAIN_DIALOG</action>
+</window>
+GTKFORM
+)
+export HOME_DIALOG
+
+# list of selections for each vrecord option
+DECKLINK_UTILITIES=("ffmpeg")
+if $BMDTOOLS_INSTALLED ; then
+    DECKLINK_UTILITIES+=("bmdcapture")
+fi
+VIDEO_INPUT_OPTIONS=("Composite" "SDI" "Component" "S-Video")
+AUDIO_INPUT_OPTIONS=("Analog" "SDI Embedded Audio" "Digital Audio (AES/EBU)")
+CONTAINER_OPTIONS=("QuickTime" "Matroska" "AVI" "MXF" "MP4")
+VIDEO_CODEC_OPTIONS=("Uncompressed Video" "FFV1 version 3" "JPEG2000" "ProRes" "ProRes (HQ)" "h264" "HuffYUV")
+FFV1_SLICE_OPTIONS=("4" "6" "9" "12" "16" "24" "30")
+AUDIO_CODEC_OPTIONS=("24-bit PCM" "24-bit FLAC" "AAC")
+AUDIO_CHANNEL_CHOICE_OPTIONS=("Mono" "Stereo")
+AUDIO_MODE_SR_CHOICE_OPTIONS=("96 kHz" "48 kHz" "44.1 kHz")
+VIDEO_BITDEPTH_OPTIONS=("10 bit" "8 bit")
+CHANNEL_MAPPING_OPTIONS=("2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, Channels 3 & 4 -> 2nd Track Stereo)" "1 Stereo Track (From Channels 1 & 2)" "1 Stereo Track (From Channels 3 & 4)" "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono" "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono" "Channel 1 -> Single Track Mono" "Channel 2 -> Single Track Mono")
+TIMECODE_OPTIONS=("none" "rp188vitc" "rp188vitc2" "rp188ltc" "rp188any" "vitc" "vitc2" "serial")
+STANDARD_OPTIONS=("NTSC" "PAL")
+QCTOOLSXML_OPTIONS=("Yes, after recording" "Yes, concurrent with recording" "No")
+FRAMEMD5_OPTIONS=("Yes" "No")
+EMBED_LOGS_OPTIONS=("Yes" "No")
+PLAYBACKVIEW_OPTIONS=("Unfiltered" "Broadcast Range Visual" "Audio + Video" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes")
+PLAYBACKVIEW_PASS_OPTIONS=("Unfiltered" "Broadcast Range Visual" "Audio + Video" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes")
+if $MPV_INSTALLED ; then
+    PLAYBACKVIEW_OPTIONS+=("Quality Control View (mpv)")
+    PLAYBACKVIEW_PASS_OPTIONS+=("Quality Control View (mpv)")
+fi
+WAVEFORM_SCALE_OPTIONS=("digital" "millivolts" "ire")
+MONITOR_AUDIO_OPTIONS=("Yes" "No")
+
+# GUI mode + CLI reset, edit modes
+if [[ "${RUNTYPE}" = "reset" ]] ; then
+    _report -q -n "Resetting the configuration will clear ${CONFIG_FILE}. Please enter [Y] to confirm: "
+    read RESET_RESPONSE
+    if [[ "${RESET_RESPONSE}" = [Yy] ]] ; then
+        _report -d "Clearing ${CONFIG_FILE}."
+        echo -n "" > "${CONFIG_FILE}"
+        RUNTYPE="edit"
+    else
+        _report -d "Reset aborted. Exiting."
+        exit 0
+    fi
+fi
+while [[ "${RUNTYPE}" = "edit" || "${RUNTYPE}" = "GUI" ]] ; do
+    _edit_mode
+done
 
 _review_all_options
 
