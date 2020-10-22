@@ -1696,7 +1696,7 @@ PLAYBACKFILTER="${PASSTHROUGH_MAP},asplit=${AUDIO_SPLIT}\
 ${PHASE_MAP}\
 ${CHANNEL_PARAMS}\
 ${WAVEFORM},\
-[c]showvolume=t=0:h=28:w=700:rate=${DECKLINK_FPS}[c1],\
+[c]showvolume=t=0:h=28:w=700[c1],\
 ${SHOW_SPECTUM}\
 ${VOLUME_OVERLAY}\
 ${AP_MAP}" ;;
