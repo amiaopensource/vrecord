@@ -641,6 +641,7 @@ OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
         <frame Player Settings>
             <hbox>
             $(_gtk_vbox_list "WAVEFORM_SCALE_CHOICE" "100" "Select Waveform Scale"            "${WAVEFORM_SCALE_OPTIONS[@]}")
+            $(_gtk_vbox_list "SIGNAL_VIEW_CHOICE"    "100" "Select Video Scale"               "${SIGNAL_OPTIONS[@]}")
             $(_gtk_vbox_list "MONITOR_AUDIO_CHOICE"  "100" "Montior Audio?"                   "${MONITOR_AUDIO_OPTIONS[@]}")
             </hbox>
         </frame>
@@ -1567,7 +1568,7 @@ if [[ "${RUNTYPE}" = "record" ]] ; then
     [b]field=top,${WAVEFORM_FILTER}[b1];\
     [c]field=bottom,${WAVEFORM_FILTER}[c1];\
     [d]${VECTORSCOPE_FILTER}[d1];\
-    [e]scale=512:ih,signalstats=out=brng[e1];\
+    [e]scale=512:ih,${SIGNAL_FILTER}[e1];\
     [a1][b1][c1][e1][d1]xstack=inputs=5:layout=0_0|0_h0|0_h0+h1|w0_0|w0_h0[vidstack];\
     [vidstack][aud2]overlay=10:10[out0]"
 else
@@ -1601,7 +1602,7 @@ else
     ${CHANNEL_PARAMS},\
     [c]showvolume=t=0:h=17:w=200:rate=${DECKLINK_FPS}[c1],\
     [d]showspectrum=s=${SPECTRUM_SIZE}:fps=10:color=rainbow:saturation=2:legend=1[d1],\
-    [vid]split=4[vid1][vid2][vid3][vid4],[vid1]scale=400x400,signalstats=out=brng[vidscale],\
+    [vid]split=4[vid1][vid2][vid3][vid4],[vid1]scale=400x400,${SIGNAL_FILTER}[vidscale],\
     [vid2]field=top,${WAVEFORM_FILTER}[TFIELD],\
     [vid3]field=bottom,${WAVEFORM_FILTER}[BFIELD],\
     [vid4]${VECTORSCOPE_FILTER}[vector],\
@@ -1615,7 +1616,7 @@ ${PLAYBACK_FILTER_ADJUSTMENT}split=5[a][b][c][d][e];\
 [b]field=top,${WAVEFORM_FILTER}[b1];\
 [c]field=bottom,${WAVEFORM_FILTER}[c1];\
 [d]${VECTORSCOPE_FILTER}[d1];\
-[e]scale=512:ih,signalstats=out=brng[e1];\
+[e]scale=512:ih,${SIGNAL_FILTER}[e1];\
 [a1][b1][c1][e1][d1]xstack=inputs=5:layout=0_0|0_h0|0_h0+h1|w0_0|w0_h0" ;;
         "Full Range Visual")
             PLAYBACKFILTER="\
@@ -1624,7 +1625,7 @@ ${PLAYBACK_FILTER_ADJUSTMENT}split=5[a][b][c][d][e];\
 [b]field=top,${WAVEFORM_FILTER}[b1];\
 [c]field=bottom,${WAVEFORM_FILTER}[c1];\
 [d]${VECTORSCOPE_FILTER}[d1];\
-[e]format=yuv444p,pseudocolor=if(between(1\,val\,amax)+between(val\,254\,amax)\,65\,-1):if(between(1\,val\,amax)+between(val\,254\,amax)\,100\,-1):if(between(1\,val\,amax)+between(val\,254\,amax)\,212\,-1),scale=512:ih[e1];\
+[e]scale=512:ih,${SIGNAL_FILTER}[e1];\
 [a1][b1][c1][e1][d1]xstack=inputs=5:layout=0_0|0_h0|0_h0+h1|w0_0|w0_h0" ;;
       "Visual + Numerical")
           _set_up_drawtext
@@ -1760,6 +1761,17 @@ _set_scopes(){
     drawbox=w=9:h=9:t=1:x=224-3:y=512-304-5:c=sienna@0.8,\
     drawgrid=w=32:h=32:t=1:c=white@0.1,\
     drawgrid=w=256:h=256:t=1:c=white@0.2"
+    if [[ "${SIGNAL_VIEW_CHOICE}" == "Full Range" ]] ; then
+        SIGNAL_FILTER="format=yuv444p,pseudocolor=if(between(1\,val\,amax)+between(val\,254\,amax)\,65\,-1):if(between(1\,val\,amax)+between(val\,254\,amax)\,100\,-1):if(between(1\,val\,amax)+between(val\,254\,amax)\,212\,-1)"
+        if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
+            MIDDLEOPTIONS+=(-color_range jpeg)
+        fi
+    else
+        SIGNAL_FILTER="signalstats=out=brng"
+        if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
+            MIDDLEOPTIONS+=(-color_range mpeg)
+        fi
+    fi
 }
 
 _review_option(){
@@ -1819,6 +1831,7 @@ _review_all_options(){
         PLAYBACK_FILTER_ADJUSTMENT="select=not(mod(n\,2)),"
     fi
     _review_option -n "WAVEFORM_SCALE_CHOICE" "${WAVEFORM_SCALE_OPTIONS[@]}"
+    _review_option -n -d "Broadcast Range" "SIGNAL_VIEW_CHOICE" "${SIGNAL_OPTIONS[@]}"
     _review_option -n -d "Yes" "MONITOR_AUDIO_CHOICE" "${MONITOR_AUDIO_OPTIONS[@]}"
     _set_scopes
     if [[ "${RUNTYPE}" = "passthrough" ]] && [[ -n "${PLAYBACKVIEW_CHOICE_PASS}" ]] && [[ "${PLAYBACKVIEW_CHOICE_PASS}" != "Unselected" ]] ; then
@@ -1827,11 +1840,6 @@ _review_all_options(){
         _review_option "PLAYBACKVIEW_CHOICE" "${PLAYBACKVIEW_OPTIONS[@]}"
     fi
     if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
-        if [[ "${PLAYBACKVIEW_CHOICE}" = "Full Range Visual" ]] ; then
-            MIDDLEOPTIONS+=(-color_range jpeg)
-        else
-            MIDDLEOPTIONS+=(-color_range mpeg)
-        fi
         MIDDLEOPTIONS+=(-metadata creation_time=now)
         MIDDLEOPTIONS+=(${EXTRAOUTPUTOPTIONS[@]})
     elif [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
@@ -2007,6 +2015,7 @@ if $MPV_INSTALLED ; then
     PLAYBACKVIEW_PASS_OPTIONS+=("Quality Control View (mpv)")
 fi
 WAVEFORM_SCALE_OPTIONS=("digital" "millivolts" "ire")
+SIGNAL_OPTIONS=("Broadcast Range" "Full Range")
 MONITOR_AUDIO_OPTIONS=("Yes" "No")
 
 # GUI mode + CLI reset, edit modes
