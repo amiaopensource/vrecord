@@ -1609,16 +1609,7 @@ else
     [vidscale][c1]overlay=10:10[x],\
     ${AP_MAP}"
 fi ;;
-        "Broadcast Range Visual")
-            PLAYBACKFILTER="\
-${PLAYBACK_FILTER_ADJUSTMENT}split=5[a][b][c][d][e];\
-[a]copy${TIMECODE_OVERLAY}[a1];\
-[b]field=top,${WAVEFORM_FILTER}[b1];\
-[c]field=bottom,${WAVEFORM_FILTER}[c1];\
-[d]${VECTORSCOPE_FILTER}[d1];\
-[e]scale=512:ih,${SIGNAL_FILTER}[e1];\
-[a1][b1][c1][e1][d1]xstack=inputs=5:layout=0_0|0_h0|0_h0+h1|w0_0|w0_h0" ;;
-        "Full Range Visual")
+        "Visual")
             PLAYBACKFILTER="\
 ${PLAYBACK_FILTER_ADJUSTMENT}split=5[a][b][c][d][e];\
 [a]copy${TIMECODE_OVERLAY}[a1];\
@@ -2008,8 +1999,8 @@ STANDARD_OPTIONS=("NTSC" "PAL")
 QCTOOLSXML_OPTIONS=("Yes, after recording" "Yes, concurrent with recording" "No")
 FRAMEMD5_OPTIONS=("Yes" "No")
 EMBED_LOGS_OPTIONS=("Yes" "No")
-PLAYBACKVIEW_OPTIONS=("Unfiltered" "Broadcast Range Visual" "Audio + Video" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes")
-PLAYBACKVIEW_PASS_OPTIONS=("Unfiltered" "Broadcast Range Visual" "Audio + Video" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes")
+PLAYBACKVIEW_OPTIONS=("Unfiltered" "Visual" "Audio + Video" "Visual + Numerical" "Color Matrix" "Bit Planes")
+PLAYBACKVIEW_PASS_OPTIONS=("Unfiltered" "Visual" "Audio + Video" "Visual + Numerical" "Color Matrix" "Bit Planes")
 if $MPV_INSTALLED ; then
     PLAYBACKVIEW_OPTIONS+=("Quality Control View (mpv)")
     PLAYBACKVIEW_PASS_OPTIONS+=("Quality Control View (mpv)")
