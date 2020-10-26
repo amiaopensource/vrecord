@@ -155,7 +155,7 @@ _get_decklink_input_list(){
 _get_avfctl_input_list(){
     # set avfctl input options
     unset AVFCTL_DEVICES
-    if [[ "${OS_TYPE}" = "linux" ]] ; then
+    if [ "${OS_TYPE}" = "linux" ] ; then
         echo "Default DV Device"
     else
         avfctl -list_devices 2>&1 | grep -A 10 "Devices:" | grep -o "\[[0-9]\].*"

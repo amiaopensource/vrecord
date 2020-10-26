@@ -265,8 +265,8 @@ _gtk_vbox_list() {
                 <action condition="command_is_true( [ \"$DECKLINK_UTILITY_CHOICE\" != \"bmdcapture\" ] && echo true)">enable:TIMECODE_CHOICE</action>
                 <action type="refresh">VRECORD_OUTPUT_NAME</action>'
         elif [[ "${VARIABLE_NAME}" == "AUDIO_DEV_CHOICE" ]] ; then
-            echo '<action condition="command_is_true( [[ \"$AUDIO_DEV_CHOICE\" != *\"Blackmagic\"* ]] && echo true)">enable:AUDIO_MODE_SR_CHOICE</action>
-                  <action condition="command_is_true( [[ \"$AUDIO_DEV_CHOICE\" == *\"Blackmagic\"* ]] && echo true)">disable:AUDIO_MODE_SR_CHOICE</action>
+            echo '<action condition="command_is_true( [ \"$AUDIO_DEV_CHOICE\" != *\"Blackmagic\"* ] && echo true)">enable:AUDIO_MODE_SR_CHOICE</action>
+                  <action condition="command_is_true( [ \"$AUDIO_DEV_CHOICE\" = *\"Blackmagic\"* ] && echo true)">disable:AUDIO_MODE_SR_CHOICE</action>
                   <action type="refresh">VRECORD_OUTPUT_NAME</action>'
         fi
     }
@@ -1138,8 +1138,8 @@ export MAIN_DIALOG='
     <action signal="leave-notify-event" type="refresh">VRECORD_FORM_VALIDATION</action>
     <action signal="show" type="closewindow">HOME_DIALOG</action>
     <action signal="show" type="refresh">VRECORD_OUTPUT_NAME</action>
-    <action signal="show" condition="command_is_true( [[ \"$AUDIO_DEV_CHOICE\" != *\"Blackmagic\"* ]] && echo true)">enable:AUDIO_MODE_SR_CHOICE</action>
-    <action signal="show" condition="command_is_true( [[ \"$AUDIO_DEV_CHOICE\" == *\"Blackmagic\"* ]] && echo true)">disable:AUDIO_MODE_SR_CHOICE</action>
+    <action signal="show" condition="command_is_true( [ \"$AUDIO_DEV_CHOICE\" != *\"Blackmagic\"* ] && echo true)">enable:AUDIO_MODE_SR_CHOICE</action>
+    <action signal="show" condition="command_is_true( [ \"$AUDIO_DEV_CHOICE\" = *\"Blackmagic\"* ] && echo true)">disable:AUDIO_MODE_SR_CHOICE</action>
 </window>
 '
 }
