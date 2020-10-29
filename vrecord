@@ -703,6 +703,23 @@ OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
             </hbox>
         </frame>
     </hbox>
+    <frame Invert Audio Phase>
+    <hbox space-fill="true" space-expand="true">
+        <text>
+            <label>WARNING: Do not use this option unless required</label>
+        </text>
+        <checkbox>
+            <label>Channel 2</label>
+            <default>false</default>
+            <variable>INVERT_PHASE_2</variable>
+        </checkbox>
+        <checkbox>
+            <label>Channel 4</label>
+            <default>false</default>
+            <variable>INVERT_PHASE_4</variable>
+        </checkbox>
+    </hbox>
+    </frame>
     <hbox space-fill="true" space-expand="true">
         <vbox>
             <text>
@@ -771,11 +788,6 @@ DECKLINK_INPUT_GUI=$(cat << DECKLINK_FORM
             $(_gtk_vbox_list "VIDEO_BIT_DEPTH_CHOICE"   "100" "Select Video Bit Depth"        "${VIDEO_BITDEPTH_OPTIONS[@]}")
             $(_gtk_vbox_list "TIMECODE_CHOICE"          "100" "Select timecode format"        "${TIMECODE_OPTIONS[@]}")
         </hbox>
-        <checkbox>
-            <label>Invert Second Channel of Audio (WARNING: Do not use this option unless required)</label>
-            <default>false</default>
-            <variable>INVERT_PHASE</variable>
-        </checkbox>
         <frame Output file options>
             <hbox space-expand="true">
                 $(_gtk_vbox_list "EMBED_LOGS_CHOICE"        "100" "Embed digitization logs in video file (Matroska ONLY)" "${EMBED_LOGS_OPTIONS[@]}")
@@ -1440,21 +1452,21 @@ _lookup_choice(){
 
         # audio mappings
         "2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, Channels 3 & 4 -> 2nd Track Stereo)")
-            AUDIOMAP="[0:a:0]pan=stereo| c0=c0 | c1=${PHASE_VALUE}c1[stereo1];[0:a:0]pan=stereo| c0=c2 | c1=c3[stereo2]"
+            AUDIOMAP="[0:a:0]pan=stereo| c0=c0 | c1=${PHASE_VALUE_2}c1[stereo1];[0:a:0]pan=stereo| c0=c2 | c1=${PHASE_VALUE_4}c3[stereo2]"
             AUDIO_CHANNEL_MAP+=(-map "[stereo1]")
             AUDIO_CHANNEL_MAP+=(-map "[stereo2]") ;;
         "1 Stereo Track (From Channels 1 & 2)")
-            AUDIOMAP="[0:a:0]pan=stereo| c0=c0 | c1=${PHASE_VALUE}c1[stereo1]"
+            AUDIOMAP="[0:a:0]pan=stereo| c0=c0 | c1=${PHASE_VALUE_2}c1[stereo1]"
             AUDIO_CHANNEL_MAP+=(-map "[stereo1]") ;;
         "1 Stereo Track (From Channels 3 & 4)")
-            AUDIOMAP="[0:a:0]pan=stereo| c0=c2 | c1=${PHASE_VALUE}c3[stereo1]"
+            AUDIOMAP="[0:a:0]pan=stereo| c0=c2 | c1=${PHASE_VALUE_2}c3[stereo1]"
             AUDIO_CHANNEL_MAP+=(-map "[stereo1]") ;;
         "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono")
-            AUDIOMAP="[0:a:0]pan=mono| c0=c0[mono1];[0:a:0]pan=mono| c0=${PHASE_VALUE}c1[mono2]"
+            AUDIOMAP="[0:a:0]pan=mono| c0=c0[mono1];[0:a:0]pan=mono| c0=${PHASE_VALUE_2}c1[mono2]"
             AUDIO_CHANNEL_MAP+=(-map "[mono1]")
             AUDIO_CHANNEL_MAP+=(-map "[mono2]") ;;
         "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono")
-            AUDIOMAP="[0:a:0]pan=mono| c0=${PHASE_VALUE}c1[mono1];[0:a:0]pan=mono| c0=c0[mono2]"
+            AUDIOMAP="[0:a:0]pan=mono| c0=${PHASE_VALUE_2}c1[mono1];[0:a:0]pan=mono| c0=c0[mono2]"
             AUDIO_CHANNEL_MAP+=(-map "[mono1]")
             AUDIO_CHANNEL_MAP+=(-map "[mono2]") ;;
         "Channel 1 -> Single Track Mono")
@@ -1796,8 +1808,11 @@ _review_option(){
 }
 
 _review_all_options(){
-    if [[ "${INVERT_PHASE}" = 'true' ]] ; then
-        PHASE_VALUE="-1*"
+    if [[ "${INVERT_PHASE_2}" = 'true' ]] ; then
+        PHASE_VALUE_2="-1*"
+    fi
+    if [[ "${INVERT_PHASE_4}" = 'true' ]] ; then
+        PHASE_VALUE_4="-1*"
     fi
     if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
         _review_option -n -d "ffmpeg" "DECKLINK_UTILITY_CHOICE" "${DECKLINK_UTILITIES[@]}"
