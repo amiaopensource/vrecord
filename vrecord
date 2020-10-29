@@ -1481,8 +1481,8 @@ _lookup_choice(){
             PASSTHROUGH_MAP="pan=mono|c0=c0"
             AUDIO_CHANNEL_MAP+=(-map "[mono1]") ;;
         "Stereo")
-            AUDIOMAP="[0:a:0]pan=stereo| c0=c0 | c1=c1[stereo1]"
-            PASSTHROUGH_MAP="pan=stereo|c0=c0|c1=c1"
+            AUDIOMAP="[0:a:0]pan=stereo| c0=c0 | c1=${PHASE_VALUE_2}c1[stereo1]"
+            PASSTHROUGH_MAP="pan=stereo|c0=c0|c1=${PHASE_VALUE_2}c1"
             AUDIO_CHANNEL_MAP+=(-map "[stereo1]") ;;
         # Audio mode sample rate options
         "96 kHz")
@@ -1598,6 +1598,7 @@ else
         PHASE_MAP="[a]pan=stereo|c0=c0|c1=c1,aphasemeter=video=0,adrawgraph=lavfi.aphasemeter.phase:max=1:min=-1:size=400x200:bg=black:fg1=0x99999999,drawbox=x=0:y=100:w=400:c=white:h=1${PRINT_PHASE}${PRINT_CHANNELS_1_2}[phase1],\
         [aa]pan=stereo|c0=c2|c1=c3,aphasemeter=video=0,adrawgraph=lavfi.aphasemeter.phase:max=1:min=-1:size=400x200:bg=black:fg1=0x99999999,drawbox=x=0:y=100:w=400:c=white:h=1${PRINT_PHASE}${PRINT_CHANNELS_3_4}[phase2]"
         SPECTRUM_SIZE='755x265'
+        PAN="pan=quad|c0=c0|c1=${PHASE_VALUE_2}c1|c2=c2|c3=${PHASE_VALUE_4}c3"
     else
         PRINT_PHASE=",drawtext=fontfile=${DEFAULTFONT}:box=1:text=Phase\\\: %{metadata\\\:lavfi.aphasemeter.phase}:x=135:y=380:fontcolor=black"
         PRINT_CHANNELS_1_2=",drawtext=fontfile=${DEFAULTFONT}:text=Ch.1/2:x=10: y=10:fontcolor=white"
@@ -1607,8 +1608,9 @@ else
         PHASE_LOCATION='x=135:y=380'
         PHASE_MAP="[a]aphasemeter=video=0,adrawgraph=lavfi.aphasemeter.phase:max=1:min=-1:size=320x400:bg=black:fg1=0x99999999,drawbox=x=0:y=200:w=400:c=white:h=1${PRINT_PHASE}${PRINT_CHANNELS_1_2}[a1]"
         SPECTRUM_SIZE='1155x200'
+        PAN="pan=stereo|c0=c0|c1=${PHASE_VALUE_2}c1"
     fi
-    PLAYBACKFILTER="streams=dv+da[vid][aud],[aud]asplit=${AUDIO_SPLIT},\
+    PLAYBACKFILTER="streams=dv+da[vid][aud],[aud]${PAN},asplit=${AUDIO_SPLIT},\
     ${PHASE_MAP},\
     ${CHANNEL_PARAMS},\
     [c]showvolume=t=0:h=17:w=200:rate=${DECKLINK_FPS}[c1],\
