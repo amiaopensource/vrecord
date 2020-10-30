@@ -1482,7 +1482,7 @@ _lookup_choice(){
             AUDIO_CHANNEL_MAP+=(-map "[mono1]") ;;
         "Stereo")
             AUDIOMAP="[0:a:0]pan=stereo| c0=c0 | c1=${PHASE_VALUE_2}c1[stereo1]"
-            PASSTHROUGH_MAP="pan=stereo|c0=c0|c1=${PHASE_VALUE_2}c1"
+            PASSTHROUGH_MAP="pan=stereo|c0=c0|c1=c1"
             AUDIO_CHANNEL_MAP+=(-map "[stereo1]") ;;
         # Audio mode sample rate options
         "96 kHz")
