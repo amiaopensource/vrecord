@@ -79,8 +79,11 @@ _update_config_file(){
 }
 
 _validate_form(){
-    if [ "${INVERT_PHASE}" = "true" ] ; then
+    if [ "${INVERT_PHASE_2}" = "true" ] ; then
         echo "WARNING: Option to invert phase of second audio channel has been selected.\n"
+    fi
+    if [ "${INVERT_PHASE_4}" = "true" ] ; then
+        echo "WARNING: Option to invert phase of fourth audio channel has been selected.\n"
     fi
     if [ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" ] && [ "${CONTAINER_CHOICE}" = "MXF" ] ; then
         echo "ERROR: Incompatible video codecs and containers have been selected.\n"
