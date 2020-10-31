@@ -2168,8 +2168,11 @@ elif [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
 fi
 
 if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] || [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
-    if [[ "${INVERT_PHASE_2}" = 'true' ]] || [[ "${INVERT_PHASE_4}" = 'true' ]]; then
-        echo -e " \033[101mWARNING: Option to invert phase of second audio channel has been selected\033[0m"
+    if [[ "${INVERT_PHASE_2}" = "true" ]] ; then
+        _report -w "WARNING: Option to invert phase of second audio channel has been selected"
+    fi
+    if [[ "${INVERT_PHASE_4}" = "true" ]]; then
+        _report -w "WARNING: Option to invert phase of fourth audio channel has been selected"
     fi
 fi
 _report -q "Hit enter to start recording"
