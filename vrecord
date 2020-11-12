@@ -883,6 +883,17 @@ AVFCTL_INPUT_GUI=$(cat << AVFCTL_FORM
         <hbox space-expand="true">
             $(_gtk_vbox_list "AVFCTL_INPUT_CHOICE"         "-1" "Select a DV Device"           "${AVFCTL_DEVICES[@]}")
         </hbox>
+        $(_gtk_vbox_list "DV_CONTAINER_CHOICE"         "100" "Select File Format"            "${DV_CONTAINER_OPTIONS[@]}")
+        <checkbox>
+            <label>Split the output files on recording start markers</label>
+            <default>false</default>
+            <variable>DV_RESCUE_OPTION_S</variable>
+        </checkbox>
+        <checkbox>
+            <label>Split the output files on non-consecutive recording timestamps</label>
+            <default>false</default>
+            <variable>DV_RESCUE_OPTION_D</variable>
+        </checkbox>
     </vbox>
     <frame DV deck control>
         <hbox>
@@ -1349,6 +1360,10 @@ _qcgraphimage(){
     " | gnuplot
 }
 
+_dvpackager(){
+    dvpackager "${1}" -e "${DV_EXTENSION}" "${2}"
+}
+
 # decipher vrecord options as specified by user
 _lookup_choice(){
     case "${2}" in
@@ -1369,10 +1384,12 @@ _lookup_choice(){
         # container
         "QuickTime")
             EXTENSION="mov"
+            DV_EXTENSION="mov"
             MIDDLEOPTIONS+=(-movflags write_colr)
             FORMAT="mov" ;;
         "Matroska")
             EXTENSION="mkv"
+            DV_EXTENSION="mkv"
             FORMAT="matroska" ;;
         "AVI")
             EXTENSION="avi"
@@ -1384,6 +1401,10 @@ _lookup_choice(){
             EXTENSION="mp4"
             MIDDLEOPTIONS+=(-movflags write_colr)
             FORMAT="mp4" ;;
+        "DV")
+            EXTENSION="dv"
+            DV_EXTENSION="dv"
+            FORMAT="dv" ;;
 
         # video codec
         "Uncompressed Video")
@@ -1838,6 +1859,12 @@ _review_all_options(){
         PLAYBACKVIEW_CHOICE_PASS="Unfiltered"
         PLAYBACKVIEW_CHOICE="Unfiltered"
         _lookup_choice "Unfiltered"
+        if [[ "${DV_RESCUE_OPTION_D}" = 'true' ]] ; then
+            DV_RESCUE_OPTS+=(-d)
+        fi
+        if [[ "${DV_RESCUE_OPTION_S}" = 'true' ]] ; then
+            DV_RESCUE_OPTS+=(-s)
+        fi
     elif [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
         _review_option "AUDIO_CHANNEL_CHOICE" "${AUDIO_CHANNEL_CHOICE_OPTIONS[@]}"
         if [[ "${AUDIO_DEV_CHOICE}" != *"Blackmagic"* ]] ; then
@@ -1988,6 +2015,7 @@ fi
 VIDEO_INPUT_OPTIONS=("Composite" "SDI" "Component" "S-Video")
 AUDIO_INPUT_OPTIONS=("Analog" "SDI Embedded Audio" "Digital Audio (AES/EBU)")
 CONTAINER_OPTIONS=("QuickTime" "Matroska" "AVI" "MXF" "MP4")
+DV_CONTAINER_OPTIONS=("DV" "Matroska" "QuickTime")
 VIDEO_CODEC_OPTIONS=("Uncompressed Video" "FFV1 version 3" "JPEG2000" "ProRes" "ProRes (HQ)" "h264" "HuffYUV")
 FFV1_SLICE_OPTIONS=("4" "6" "9" "12" "16" "24" "30")
 AUDIO_CODEC_OPTIONS=("24-bit PCM" "24-bit FLAC" "AAC")
@@ -2094,7 +2122,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
     fi
     _review_option "AUDIO_CODEC_CHOICE" "${AUDIO_CODEC_OPTIONS[@]}"
 elif [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
-    EXTENSION="dv"
+    _review_option "DV_CONTAINER_CHOICE" "${DV_CONTAINER_OPTIONS[@]}"
     FORMAT="rawvideo"
 elif [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
     _review_option "AUDIO_MODE_CODEC_CHOICE" "${AUDIO_CODEC_OPTIONS[@]}"
@@ -2406,5 +2434,9 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
             fi
             _report -d "Vrecord is done attaching logs to your Matroska file!"
         fi
+    fi
+elif [[ "${DEVICE_INPUT_CHOICE}" == "1" ]] ; then
+    if [[ -n "${DV_RESCUE_OPTS}" ]] || [[ "${DV_EXTENSION}" != 'dv' ]] ; then
+        _dvpackager ${DV_RESCUE_OPTS[@]} "${VRECORD_OUTPUT}"
     fi
 fi
