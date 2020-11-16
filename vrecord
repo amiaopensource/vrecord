@@ -1361,6 +1361,7 @@ _qcgraphimage(){
 }
 
 _dvpackager(){
+    _report -d "Please wait: running dvpackager on file."
     local PACKAGER_OPTIONS="${1}"
     local TARGET="${2}"
     dvpackager "${PACKAGER_OPTIONS}" -e "${DV_EXTENSION}" "${TARGET}"
