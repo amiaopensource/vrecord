@@ -886,12 +886,12 @@ AVFCTL_INPUT_GUI=$(cat << AVFCTL_FORM
         $(_gtk_vbox_list "DV_CONTAINER_CHOICE"         "100" "Select File Format"            "${DV_CONTAINER_OPTIONS[@]}")
         <checkbox>
             <label>Split the output files on recording start markers</label>
-            <default>false</default>
+            <default>${DV_RESCUE_OPTION_S}</default>
             <variable>DV_RESCUE_OPTION_S</variable>
         </checkbox>
         <checkbox>
             <label>Split the output files on non-consecutive recording timestamps</label>
-            <default>false</default>
+            <default>${DV_RESCUE_OPTION_D}</default>
             <variable>DV_RESCUE_OPTION_D</variable>
         </checkbox>
     </vbox>
@@ -1361,7 +1361,9 @@ _qcgraphimage(){
 }
 
 _dvpackager(){
-    dvpackager "${1}" -e "${DV_EXTENSION}" "${2}"
+    local PACKAGER_OPTIONS="${1}"
+    local TARGET="${2}"
+    dvpackager "${PACKAGER_OPTIONS}" -e "${DV_EXTENSION}" "${TARGET}"
 }
 
 # decipher vrecord options as specified by user
@@ -1403,8 +1405,7 @@ _lookup_choice(){
             FORMAT="mp4" ;;
         "DV")
             EXTENSION="dv"
-            DV_EXTENSION="dv"
-            FORMAT="dv" ;;
+            DV_EXTENSION="dv" ;;
 
         # video codec
         "Uncompressed Video")
