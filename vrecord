@@ -884,16 +884,28 @@ AVFCTL_INPUT_GUI=$(cat << AVFCTL_FORM
             $(_gtk_vbox_list "AVFCTL_INPUT_CHOICE"         "-1" "Select a DV Device"           "${AVFCTL_DEVICES[@]}")
         </hbox>
         $(_gtk_vbox_list "DV_CONTAINER_CHOICE"         "100" "Select File Format"            "${DV_CONTAINER_OPTIONS[@]}")
-        <checkbox>
-            <label>Split the output files on recording start markers</label>
-            <default>${DV_RESCUE_OPTION_S}</default>
-            <variable>DV_RESCUE_OPTION_S</variable>
-        </checkbox>
-        <checkbox>
-            <label>Split the output files on non-consecutive recording timestamps</label>
-            <default>${DV_RESCUE_OPTION_D}</default>
-            <variable>DV_RESCUE_OPTION_D</variable>
-        </checkbox>
+        <hbox>
+            <checkbox>
+                <label>Split the output files on recording start markers</label>
+                <default>"${DV_RESCUE_OPTION_S}"</default>
+                <variable>DV_RESCUE_OPTION_S</variable>
+            </checkbox>
+            <checkbox>
+                <label>Split the output files on non-consecutive recording timestamps</label>
+                <default>"${DV_RESCUE_OPTION_D}"</default>
+                <variable>DV_RESCUE_OPTION_D</variable>
+            </checkbox>
+            <checkbox>
+                <label>Split the output files on non-consecutive timecode values</label>
+                <default>"${DV_RESCUE_OPTION_T}"</default>
+                <variable>DV_RESCUE_OPTION_T</variable>
+            </checkbox>
+            <checkbox>
+                <label>Create technical subtitle track</label>
+                <default>"${DV_RESCUE_OPTION_TC}"</default>
+                <variable>DV_RESCUE_OPTION_TC</variable>
+            </checkbox>
+        </hbox>
     </vbox>
     <frame DV deck control>
         <hbox>
@@ -1864,8 +1876,17 @@ _review_all_options(){
         if [[ "${DV_RESCUE_OPTION_D}" = 'true' ]] ; then
             DV_RESCUE_OPTS+=(-d)
         fi
+
         if [[ "${DV_RESCUE_OPTION_S}" = 'true' ]] ; then
             DV_RESCUE_OPTS+=(-s)
+        fi
+
+        if [[ "${DV_RESCUE_OPTION_T}" = 'true' ]] ; then
+            DV_RESCUE_OPTS+=(-t)
+        fi
+
+        if [[ "${DV_RESCUE_OPTION_TC}" = 'true' ]] ; then
+            DV_RESCUE_OPTS+=(-S)
         fi
     elif [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
         _review_option "AUDIO_CHANNEL_CHOICE" "${AUDIO_CHANNEL_CHOICE_OPTIONS[@]}"
