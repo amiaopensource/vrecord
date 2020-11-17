@@ -1374,9 +1374,8 @@ _qcgraphimage(){
 
 _dvpackager(){
     _report -d "Please wait: running dvpackager on file."
-    local PACKAGER_OPTIONS="${1}"
-    local TARGET="${2}"
-    dvpackager "${PACKAGER_OPTIONS}" -e "${DV_EXTENSION}" "${TARGET}"
+    local TARGET="${1}"
+    dvpackager ${DV_RESCUE_OPTS[@]} -e "${DV_EXTENSION}" "${TARGET}"
 }
 
 # decipher vrecord options as specified by user
@@ -2460,6 +2459,6 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
     fi
 elif [[ "${DEVICE_INPUT_CHOICE}" == "1" ]] ; then
     if [[ -n "${DV_RESCUE_OPTS}" ]] || [[ "${DV_EXTENSION}" != 'dv' ]] ; then
-        _dvpackager ${DV_RESCUE_OPTS[@]} "${VRECORD_OUTPUT}"
+        _dvpackager "${VRECORD_OUTPUT}"
     fi
 fi
