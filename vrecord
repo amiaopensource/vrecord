@@ -884,9 +884,9 @@ AVFCTL_INPUT_GUI=$(cat << AVFCTL_FORM
 <frame DVRescue avfctl input options>
     <vbox>
         <hbox>
-        <hbox space-expand="true">
-            $(_gtk_vbox_list "AVFCTL_INPUT_CHOICE"         "-1" "Select a DV Device"           "${AVFCTL_DEVICES[@]}")
-        </hbox>
+            <hbox space-expand="true">
+                $(_gtk_vbox_list "AVFCTL_INPUT_CHOICE"         "-1" "Select a DV Device"           "${AVFCTL_DEVICES[@]}")
+            </hbox>
             <vbox>
                 <frame dvpackager options>
                     <hbox>
@@ -894,31 +894,31 @@ AVFCTL_INPUT_GUI=$(cat << AVFCTL_FORM
                             <text>
                                 <label>Split the output on:</label>
                             </text>
-            <checkbox>
-                <label>recording start flags</label>
-                <default>"${DV_RESCUE_OPTION_S}"</default>
-                <variable>DV_RESCUE_OPTION_S</variable>
-            </checkbox>
-            <checkbox>
-                <label>recording timestamps jumps</label>
-                <default>"${DV_RESCUE_OPTION_D}"</default>
-                <variable>DV_RESCUE_OPTION_D</variable>
-            </checkbox>
-            <checkbox>
-                <label>timecode jumps</label>
-                <default>"${DV_RESCUE_OPTION_T}"</default>
-                <variable>DV_RESCUE_OPTION_T</variable>
-            </checkbox>
+                            <checkbox>
+                                <label>recording start flags</label>
+                                <default>"${DV_RESCUE_OPTION_S}"</default>
+                                <variable>DV_RESCUE_OPTION_S</variable>
+                            </checkbox>
+                            <checkbox>
+                                <label>recording timestamps jumps</label>
+                                <default>"${DV_RESCUE_OPTION_D}"</default>
+                                <variable>DV_RESCUE_OPTION_D</variable>
+                            </checkbox>
+                            <checkbox>
+                                <label>timecode jumps</label>
+                                <default>"${DV_RESCUE_OPTION_T}"</default>
+                                <variable>DV_RESCUE_OPTION_T</variable>
+                            </checkbox>
                         </vbox>
                         <vbox>
                             <text>
                                 <label>Other options:</label>
                             </text>
-            <checkbox>
-                <label>Create technical subtitle track</label>
-                <default>"${DV_RESCUE_OPTION_TC}"</default>
-                <variable>DV_RESCUE_OPTION_TC</variable>
-            </checkbox>
+                            <checkbox>
+                                <label>Create technical subtitle track</label>
+                                <default>"${DV_RESCUE_OPTION_TC}"</default>
+                                <variable>DV_RESCUE_OPTION_TC</variable>
+                            </checkbox>
                         </vbox>
                         $(_gtk_vbox_list "DV_CONTAINER_CHOICE"         "100" "Select File Format"            "${DV_CONTAINER_OPTIONS[@]}")
                     </hbox>
