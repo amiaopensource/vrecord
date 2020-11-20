@@ -887,7 +887,6 @@ AVFCTL_INPUT_GUI=$(cat << AVFCTL_FORM
         <hbox space-expand="true">
             $(_gtk_vbox_list "AVFCTL_INPUT_CHOICE"         "-1" "Select a DV Device"           "${AVFCTL_DEVICES[@]}")
         </hbox>
-        $(_gtk_vbox_list "DV_CONTAINER_CHOICE"         "100" "Select File Format"            "${DV_CONTAINER_OPTIONS[@]}")
             <vbox>
                 <frame dvpackager options>
                     <hbox>
@@ -921,6 +920,7 @@ AVFCTL_INPUT_GUI=$(cat << AVFCTL_FORM
                 <variable>DV_RESCUE_OPTION_TC</variable>
             </checkbox>
                         </vbox>
+                        $(_gtk_vbox_list "DV_CONTAINER_CHOICE"         "100" "Select File Format"            "${DV_CONTAINER_OPTIONS[@]}")
                     </hbox>
                 </frame>
             </vbox>
