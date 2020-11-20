@@ -268,6 +268,9 @@ _gtk_vbox_list() {
             echo '<action condition="command_is_true(echo \"$AUDIO_DEV_CHOICE\" | grep -vq Blackmagic && echo true)">enable:AUDIO_MODE_SR_CHOICE</action>
                   <action condition="command_is_true(echo \"$AUDIO_DEV_CHOICE\" | grep -q Blackmagic && echo true)">disable:AUDIO_MODE_SR_CHOICE</action>
                   <action type="refresh">VRECORD_OUTPUT_NAME</action>'
+        elif [[ "${VARIABLE_NAME}" == "DV_CONTAINER_CHOICE" ]] ; then
+            echo '<action condition="command_is_true( [ \"$DV_CONTAINER_CHOICE\" = \"DV\" ] && echo true)">disable:DV_RESCUE_OPTION_TC</action>
+                <action condition="command_is_true( [ \"$DV_CONTAINER_CHOICE\" != \"DV\" ] && echo true)">enable:DV_RESCUE_OPTION_TC</action>'
         fi
     }
 
@@ -880,31 +883,47 @@ fi
 AVFCTL_INPUT_GUI=$(cat << AVFCTL_FORM
 <frame DVRescue avfctl input options>
     <vbox>
+        <hbox>
         <hbox space-expand="true">
             $(_gtk_vbox_list "AVFCTL_INPUT_CHOICE"         "-1" "Select a DV Device"           "${AVFCTL_DEVICES[@]}")
         </hbox>
         $(_gtk_vbox_list "DV_CONTAINER_CHOICE"         "100" "Select File Format"            "${DV_CONTAINER_OPTIONS[@]}")
-        <hbox>
+            <vbox>
+                <frame dvpackager options>
+                    <hbox>
+                        <vbox>
+                            <text>
+                                <label>Split the output on:</label>
+                            </text>
             <checkbox>
-                <label>Split the output files on recording start markers</label>
+                <label>recording start flags</label>
                 <default>"${DV_RESCUE_OPTION_S}"</default>
                 <variable>DV_RESCUE_OPTION_S</variable>
             </checkbox>
             <checkbox>
-                <label>Split the output files on non-consecutive recording timestamps</label>
+                <label>recording timestamps jumps</label>
                 <default>"${DV_RESCUE_OPTION_D}"</default>
                 <variable>DV_RESCUE_OPTION_D</variable>
             </checkbox>
             <checkbox>
-                <label>Split the output files on non-consecutive timecode values</label>
+                <label>timecode jumps</label>
                 <default>"${DV_RESCUE_OPTION_T}"</default>
                 <variable>DV_RESCUE_OPTION_T</variable>
             </checkbox>
+                        </vbox>
+                        <vbox>
+                            <text>
+                                <label>Other options:</label>
+                            </text>
             <checkbox>
                 <label>Create technical subtitle track</label>
                 <default>"${DV_RESCUE_OPTION_TC}"</default>
                 <variable>DV_RESCUE_OPTION_TC</variable>
             </checkbox>
+                        </vbox>
+                    </hbox>
+                </frame>
+            </vbox>
         </hbox>
     </vbox>
     <frame DV deck control>
