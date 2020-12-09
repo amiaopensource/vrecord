@@ -10,6 +10,7 @@ The following instructions aim to minimize use of linuxbrew installs for package
 
 * Download and install the latest Linux version of 'Blackmagic Desktop Video' from the [Blackmagic website](https://www.blackmagicdesign.com/support/)
 * Download and install the latest version of the QC Tools CLI tool from the [MediaArea](https://mediaarea.net/QCTools/Download/Ubuntu)
+* Optional: If DV wrapping and splitting is desired, download and install [DVRescue](https://mediaarea.net/DVRescue) from the MediaArea website.
 
 ### Programs to be installed via PPA
 
