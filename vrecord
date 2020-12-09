@@ -268,7 +268,7 @@ _gtk_vbox_list() {
             echo '<action condition="command_is_true(echo \"$AUDIO_DEV_CHOICE\" | grep -vq Blackmagic && echo true)">enable:AUDIO_MODE_SR_CHOICE</action>
                   <action condition="command_is_true(echo \"$AUDIO_DEV_CHOICE\" | grep -q Blackmagic && echo true)">disable:AUDIO_MODE_SR_CHOICE</action>
                   <action type="refresh">VRECORD_OUTPUT_NAME</action>'
-        elif [[ "${VARIABLE_NAME}" == "DV_CONTAINER_CHOICE" ]] ; then
+        elif [[ "${VARIABLE_NAME}" == "DV_CONTAINER_CHOICE" ]] && $DVPACKAGER_INSTALLED ; then
             echo '<action condition="command_is_true( [ \"$DV_CONTAINER_CHOICE\" = \"DV\" ] && echo true)">disable:DV_RESCUE_OPTION_TC</action>
                 <action condition="command_is_true( [ \"$DV_CONTAINER_CHOICE\" != \"DV\" ] && echo true)">enable:DV_RESCUE_OPTION_TC</action>'
         fi
@@ -286,6 +286,8 @@ _gtk_vbox_list() {
             echo "<sensitive>$(if $MKVPROPEDIT_INSTALLED ; then echo true ; else echo false ; fi)</sensitive>"
         elif [[ "${VARIABLE_NAME}" == "QCTOOLSXML_CHOICE" ]] ; then
             echo "<sensitive>$(if $QCLI_INSTALLED ; then echo true ; else echo false ; fi)</sensitive>"
+        elif [[ "${VARIABLE_NAME}" == "DV_CONTAINER_CHOICE" ]] ; then
+            echo "<sensitive>$(if $DVPACKAGER_INSTALLED ; then echo true ; else echo false ; fi)</sensitive>"
         elif [[ "${VARIABLE_NAME}" == "DECKLINK_INPUT_CHOICE" ]] ; then
             echo "
             <button>
@@ -704,6 +706,14 @@ OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
                     <input file stock="$(if $QCLI_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)"></input>
                 </pixmap>
             </hbox>
+            <hbox>
+                <text>
+                    <label>dvpackager: </label>
+                </text>
+                <pixmap stock-icon-size="1" tooltip-text="If dvpackager is installed, vrecord can offer options to split and wrap DV captures.">
+                    <input file stock="$(if $DVPACKAGER_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)"></input>
+                </pixmap>
+            </hbox>
         </frame>
     </hbox>
     <hbox space-fill="true" space-expand="true">
@@ -895,16 +905,19 @@ AVFCTL_INPUT_GUI=$(cat << AVFCTL_FORM
                                 <label>Split the output on:</label>
                             </text>
                             <checkbox>
+                                $(if [[ ${DVPACKAGER_INSTALLED} != "true" ]] ; then echo "<sensitive>false</sensitive>" ; fi)
                                 <label>recording start flags</label>
                                 <default>"${DV_RESCUE_OPTION_S}"</default>
                                 <variable>DV_RESCUE_OPTION_S</variable>
                             </checkbox>
                             <checkbox>
+                                $(if [[ ${DVPACKAGER_INSTALLED} != "true" ]] ; then echo "<sensitive>false</sensitive>" ; fi)
                                 <label>recording timestamps jumps</label>
                                 <default>"${DV_RESCUE_OPTION_D}"</default>
                                 <variable>DV_RESCUE_OPTION_D</variable>
                             </checkbox>
                             <checkbox>
+                                $(if [[ ${DVPACKAGER_INSTALLED} != "true" ]] ; then echo "<sensitive>false</sensitive>" ; fi)
                                 <label>timecode jumps</label>
                                 <default>"${DV_RESCUE_OPTION_T}"</default>
                                 <variable>DV_RESCUE_OPTION_T</variable>
@@ -915,6 +928,7 @@ AVFCTL_INPUT_GUI=$(cat << AVFCTL_FORM
                                 <label>Other options:</label>
                             </text>
                             <checkbox>
+                                $(if [[ ${DVPACKAGER_INSTALLED} != "true" ]] ; then echo "<sensitive>false</sensitive>" ; fi)
                                 <label>Create technical subtitle track</label>
                                 <default>"${DV_RESCUE_OPTION_TC}"</default>
                                 <variable>DV_RESCUE_OPTION_TC</variable>
@@ -1978,6 +1992,7 @@ MEDIACONCH_INSTALLED="$(if command -v mediaconch >/dev/null ; then echo true ; e
 MKVPROPEDIT_INSTALLED="$(if command -v mkvpropedit >/dev/null ; then echo true ; else echo false ; fi)"
 MPV_INSTALLED="$(if command -v mpv >/dev/null ; then echo true ; else echo false ; fi)"
 QCLI_INSTALLED="$(if command -v qcli >/dev/null ; then echo true ; else echo false ; fi)"
+DVPACKAGER_INSTALLED="$(if command -v dvpackager >/dev/null ; then echo true ; else echo false ; fi)"
 
 if [[ -f "${CONFIG_FILE}" ]] ; then
     . "${CONFIG_FILE}"
@@ -2477,7 +2492,9 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         fi
     fi
 elif [[ "${DEVICE_INPUT_CHOICE}" == "1" ]] ; then
-    if [[ -n "${DV_RESCUE_OPTS}" ]] || [[ "${DV_EXTENSION}" != 'dv' ]] ; then
-        _dvpackager "${VRECORD_OUTPUT}"
+    if "$DVPACKAGER_INSTALLED" ; then
+        if [[ -n "${DV_RESCUE_OPTS}" ]] || [[ "${DV_EXTENSION}" != 'dv' ]] ; then
+            _dvpackager "${VRECORD_OUTPUT}"
+        fi
     fi
 fi
