@@ -183,16 +183,19 @@ _get_audio_device_list(){
 _get_summary(){
   . "${CONFIG_FILE}"
   if [ "${DEVICE_INPUT_CHOICE}" = "0" ] ; then
+    echo "Device Input: Decklink"
     echo "${VIDEOCODECNAME}/${FORMAT} ${PIXEL_FORMAT} file from ${STANDARD} ${VIDEO_INPUT} ${AUDIO_INPUT}."
     echo "Frame MD5s=${FRAMEMD5_CHOICE}"
     echo "QCTools XML=${QCTOOLSXML_CHOICE}"
     echo "Inputs recorded to ${VRECORD_OUTPUT}"
     echo "Auxiliary Files created in ${LOGDIR}"
   elif [ "${DEVICE_INPUT_CHOICE}" = "1" ] ; then
+    echo "Device Input: DV"
     echo "Copying video from ${AVFCTL_INPUT_CHOICE}."
     echo "Inputs recorded to ${VRECORD_OUTPUT}"
     echo "Auxiliary Files created in ${LOGDIR}"
   elif [ "${DEVICE_INPUT_CHOICE}" = "2" ] ; then
+    echo "Device Input: Audio"
     echo "Recording audio from ${AUDIO_DEV_CHOICE}."
     echo "Inputs recorded to ${VRECORD_OUTPUT}"
     echo "Auxiliary Files created in ${LOGDIR}"
