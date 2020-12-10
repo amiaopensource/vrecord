@@ -2039,42 +2039,40 @@ HOME_DIALOG=$(cat << GTKFORM
 <window title="Welcome to Vrecord!">
     <vbox>
         <vbox>
-            <hbox>
-                <button>
+            <hbox homogenous="true" space-expand="false">
+                <button image-position="Top">
                     <label>Record</label>
-                    <width>152</width>
+                    <width>100</width>
                     <input file>${RESOURCE_PATH}/vrecord_logo.png</input>
                     <action type="exit">record</action>
                 </button>
-                <button>
+                <button image-position="Top">
                     <label>Passthrough</label>
-                    <width>150</width>
+                    <width>100</width>
                     <input file>${RESOURCE_PATH}/vrecord_logo_playback.png</input>
                     <action type="exit">passthrough</action>
                 </button>
-                <button>
+                <button image-position="Top">
                     <label>Audio Check</label>
-                    <width>152</width>
+                    <width>100</width>
                     <input file>${RESOURCE_PATH}/vrecord_logo_audio.png</input>
                     <action type="exit">audiopassthrough</action>
                 </button>
-                </hbox>
-                <hbox>
-                <button>
+                <button image-position="Top">
                     <label>Edit Settings</label>
-                    <width>152</width>
+                    <width>100</width>
                     <input file>${RESOURCE_PATH}/vrecord_logo_edit.png</input>
                     <action type="launch">MAIN_DIALOG</action>
                 </button>
-                <button>
+                <button image-position="Top">
                     <label>Help</label>
-                    <width>152</width>
+                    <width>100</width>
                     <input file>${RESOURCE_PATH}/vrecord_logo_help.png</input>
                     <action>man vrecord</action>
                 </button>
-                <button>
+                <button image-position="Top">
                     <label>Documentation</label>
-                    <width>152</width>
+                    <width>100</width>
                     <input file>${RESOURCE_PATH}/vrecord_logo_documentation.png</input>
                     <action>${OPEN_COMMAND} https://github.com/amiaopensource/vrecord#vrecord-documentation</action>
                 </button>
