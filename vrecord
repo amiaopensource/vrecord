@@ -69,6 +69,7 @@ _get_iso8601(){
 
 _report(){
     local RED="$(tput setaf 1)"    # Red      - For Warnings
+    local BG_RED="$(tput setab 1)"    # Background Red      - For STRONG Warnings
     local GREEN="$(tput setaf 2)"  # Green    - For Declarations
     local BLUE="$(tput setaf 4)"   # Blue     - For Questions
     local NC="$(tput sgr0)"        # No Color
@@ -76,11 +77,12 @@ _report(){
     local STARTMESSAGE=""
     local ECHOOPT=""
     OPTIND=1
-    while getopts "qdwstn" opt ; do
+    while getopts "qdwxstn" opt ; do
         case "${opt}" in
             q) COLOR="${BLUE}" ;;                        # question mode, use color blue
             d) COLOR="${GREEN}" ;;                       # declaration mode, use color green
             w) COLOR="${RED}" ;;                         # warning mode, use color red
+            x) COLOR="${BG_RED}" ;;                      # strong warning mode x_x, red background
             s) STARTMESSAGE+=([${SCRIPTNAME}] ) ;;       # prepend scriptname to the message
             t) STARTMESSAGE+=($(_get_iso8601) '- ' ) ;;  # prepend timestamp to the message
             n) ECHOOPT="-n" ;;                           # to avoid line breaks after echo
@@ -338,6 +340,10 @@ _setup_vrecord_process(){
     # set up input and playback
     unset GRAB_INPUT
     GRAB_INPUT+=("${EXTRAINPUTOPTIONS[@]}")
+    if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] && [[ -z "${DECKLINK_INPUT_CHOICE}" ]] ; then
+        _report -w -t "The decklink input is not found."
+        exit 1
+    fi
     if [[ -n "${ALT_INPUT}" ]] ; then
         GRAB_INPUT+=(-i "${ALT_INPUT}")
     elif [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
@@ -646,7 +652,8 @@ OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
         <frame Player Settings>
             <hbox>
             $(_gtk_vbox_list "WAVEFORM_SCALE_CHOICE" "100" "Select Waveform Scale"            "${WAVEFORM_SCALE_OPTIONS[@]}")
-            $(_gtk_vbox_list "MONITOR_AUDIO_CHOICE"  "100" "Montior Audio?"                   "${MONITOR_AUDIO_OPTIONS[@]}")
+            $(_gtk_vbox_list "SIGNAL_VIEW_CHOICE"    "100" "Select Video Scale"               "${SIGNAL_OPTIONS[@]}")
+            $(_gtk_vbox_list "MONITOR_AUDIO_CHOICE"  "100" "Monitor Audio?"                   "${MONITOR_AUDIO_OPTIONS[@]}")
             </hbox>
         </frame>
         <frame Optional Tools>
@@ -716,6 +723,23 @@ OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
             </hbox>
         </frame>
     </hbox>
+    <frame Invert Audio Phase>
+    <hbox space-fill="true" space-expand="true">
+        <text>
+            <label>WARNING: Do not use this option unless required</label>
+        </text>
+        <checkbox>
+            <label>Channel 2</label>
+            <default>false</default>
+            <variable>INVERT_PHASE_2</variable>
+        </checkbox>
+        <checkbox>
+            <label>Channel 4</label>
+            <default>false</default>
+            <variable>INVERT_PHASE_4</variable>
+        </checkbox>
+    </hbox>
+    </frame>
     <hbox space-fill="true" space-expand="true">
         <vbox>
             <text>
@@ -784,11 +808,6 @@ DECKLINK_INPUT_GUI=$(cat << DECKLINK_FORM
             $(_gtk_vbox_list "VIDEO_BIT_DEPTH_CHOICE"   "100" "Select Video Bit Depth"        "${VIDEO_BITDEPTH_OPTIONS[@]}")
             $(_gtk_vbox_list "TIMECODE_CHOICE"          "100" "Select timecode format"        "${TIMECODE_OPTIONS[@]}")
         </hbox>
-        <checkbox>
-            <label>Invert Second Channel of Audio (WARNING: Do not use this option unless required)</label>
-            <default>false</default>
-            <variable>INVERT_PHASE</variable>
-        </checkbox>
         <frame Output file options>
             <hbox space-expand="true">
                 $(_gtk_vbox_list "EMBED_LOGS_CHOICE"        "100" "Embed digitization logs in video file (Matroska ONLY)" "${EMBED_LOGS_OPTIONS[@]}")
@@ -1507,21 +1526,21 @@ _lookup_choice(){
 
         # audio mappings
         "2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, Channels 3 & 4 -> 2nd Track Stereo)")
-            AUDIOMAP="[0:a:0]pan=stereo| c0=c0 | c1=${PHASE_VALUE}c1[stereo1];[0:a:0]pan=stereo| c0=c2 | c1=c3[stereo2]"
+            AUDIOMAP="[0:a:0]pan=stereo| c0=c0 | c1=${PHASE_VALUE_2}c1[stereo1];[0:a:0]pan=stereo| c0=c2 | c1=${PHASE_VALUE_4}c3[stereo2]"
             AUDIO_CHANNEL_MAP+=(-map "[stereo1]")
             AUDIO_CHANNEL_MAP+=(-map "[stereo2]") ;;
         "1 Stereo Track (From Channels 1 & 2)")
-            AUDIOMAP="[0:a:0]pan=stereo| c0=c0 | c1=${PHASE_VALUE}c1[stereo1]"
+            AUDIOMAP="[0:a:0]pan=stereo| c0=c0 | c1=${PHASE_VALUE_2}c1[stereo1]"
             AUDIO_CHANNEL_MAP+=(-map "[stereo1]") ;;
         "1 Stereo Track (From Channels 3 & 4)")
-            AUDIOMAP="[0:a:0]pan=stereo| c0=c2 | c1=${PHASE_VALUE}c3[stereo1]"
+            AUDIOMAP="[0:a:0]pan=stereo| c0=c2 | c1=${PHASE_VALUE_2}c3[stereo1]"
             AUDIO_CHANNEL_MAP+=(-map "[stereo1]") ;;
         "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono")
-            AUDIOMAP="[0:a:0]pan=mono| c0=c0[mono1];[0:a:0]pan=mono| c0=${PHASE_VALUE}c1[mono2]"
+            AUDIOMAP="[0:a:0]pan=mono| c0=c0[mono1];[0:a:0]pan=mono| c0=${PHASE_VALUE_2}c1[mono2]"
             AUDIO_CHANNEL_MAP+=(-map "[mono1]")
             AUDIO_CHANNEL_MAP+=(-map "[mono2]") ;;
         "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono")
-            AUDIOMAP="[0:a:0]pan=mono| c0=${PHASE_VALUE}c1[mono1];[0:a:0]pan=mono| c0=c0[mono2]"
+            AUDIOMAP="[0:a:0]pan=mono| c0=${PHASE_VALUE_2}c1[mono1];[0:a:0]pan=mono| c0=c0[mono2]"
             AUDIO_CHANNEL_MAP+=(-map "[mono1]")
             AUDIO_CHANNEL_MAP+=(-map "[mono2]") ;;
         "Channel 1 -> Single Track Mono")
@@ -1536,7 +1555,7 @@ _lookup_choice(){
             PASSTHROUGH_MAP="pan=mono|c0=c0"
             AUDIO_CHANNEL_MAP+=(-map "[mono1]") ;;
         "Stereo")
-            AUDIOMAP="[0:a:0]pan=stereo| c0=c0 | c1=c1[stereo1]"
+            AUDIOMAP="[0:a:0]pan=stereo| c0=c0 | c1=${PHASE_VALUE_2}c1[stereo1]"
             PASSTHROUGH_MAP="pan=stereo|c0=c0|c1=c1"
             AUDIO_CHANNEL_MAP+=(-map "[stereo1]") ;;
         # Audio mode sample rate options
@@ -1634,7 +1653,7 @@ if [[ "${RUNTYPE}" = "record" ]] ; then
     [b]field=top,${WAVEFORM_FILTER}[b1];\
     [c]field=bottom,${WAVEFORM_FILTER}[c1];\
     [d]${VECTORSCOPE_FILTER}[d1];\
-    [e]scale=512:ih,signalstats=out=brng[e1];\
+    [e]scale=512:ih,${SIGNAL_FILTER}[e1];\
     [a1][b1][c1][e1][d1]xstack=inputs=5:layout=0_0|0_h0|0_h0+h1|w0_0|w0_h0[vidstack];\
     [vidstack][aud2]overlay=10:10[out0]"
 else
@@ -1653,6 +1672,7 @@ else
         PHASE_MAP="[a]pan=stereo|c0=c0|c1=c1,aphasemeter=video=0,adrawgraph=lavfi.aphasemeter.phase:max=1:min=-1:size=400x200:bg=black:fg1=0x99999999,drawbox=x=0:y=100:w=400:c=white:h=1${PRINT_PHASE}${PRINT_CHANNELS_1_2}[phase1],\
         [aa]pan=stereo|c0=c2|c1=c3,aphasemeter=video=0,adrawgraph=lavfi.aphasemeter.phase:max=1:min=-1:size=400x200:bg=black:fg1=0x99999999,drawbox=x=0:y=100:w=400:c=white:h=1${PRINT_PHASE}${PRINT_CHANNELS_3_4}[phase2]"
         SPECTRUM_SIZE='755x265'
+        PAN="pan=quad|c0=c0|c1=${PHASE_VALUE_2}c1|c2=c2|c3=${PHASE_VALUE_4}c3"
     else
         PRINT_PHASE=",drawtext=fontfile=${DEFAULTFONT}:box=1:text=Phase\\\: %{metadata\\\:lavfi.aphasemeter.phase}:x=135:y=380:fontcolor=black"
         PRINT_CHANNELS_1_2=",drawtext=fontfile=${DEFAULTFONT}:text=Ch.1/2:x=10: y=10:fontcolor=white"
@@ -1662,36 +1682,28 @@ else
         PHASE_LOCATION='x=135:y=380'
         PHASE_MAP="[a]aphasemeter=video=0,adrawgraph=lavfi.aphasemeter.phase:max=1:min=-1:size=320x400:bg=black:fg1=0x99999999,drawbox=x=0:y=200:w=400:c=white:h=1${PRINT_PHASE}${PRINT_CHANNELS_1_2}[a1]"
         SPECTRUM_SIZE='1155x200'
+        PAN="pan=stereo|c0=c0|c1=${PHASE_VALUE_2}c1"
     fi
-    PLAYBACKFILTER="streams=dv+da[vid][aud],[aud]asplit=${AUDIO_SPLIT},\
+    PLAYBACKFILTER="streams=dv+da[vid][aud],[aud]${PAN},asplit=${AUDIO_SPLIT},\
     ${PHASE_MAP},\
     ${CHANNEL_PARAMS},\
     [c]showvolume=t=0:h=17:w=200:rate=${DECKLINK_FPS}[c1],\
     [d]showspectrum=s=${SPECTRUM_SIZE}:fps=10:color=rainbow:saturation=2:legend=1[d1],\
-    [vid]split=4[vid1][vid2][vid3][vid4],[vid1]scale=400x400,signalstats=out=brng[vidscale],\
+    [vid]split=4[vid1][vid2][vid3][vid4],[vid1]scale=400x400,${SIGNAL_FILTER}[vidscale],\
     [vid2]field=top,${WAVEFORM_FILTER}[TFIELD],\
     [vid3]field=bottom,${WAVEFORM_FILTER}[BFIELD],\
     [vid4]${VECTORSCOPE_FILTER}[vector],\
     [vidscale][c1]overlay=10:10[x],\
     ${AP_MAP}"
 fi ;;
-        "Broadcast Range Visual")
+        "Visual")
             PLAYBACKFILTER="\
 ${PLAYBACK_FILTER_ADJUSTMENT}split=5[a][b][c][d][e];\
 [a]copy${TIMECODE_OVERLAY}[a1];\
 [b]field=top,${WAVEFORM_FILTER}[b1];\
 [c]field=bottom,${WAVEFORM_FILTER}[c1];\
 [d]${VECTORSCOPE_FILTER}[d1];\
-[e]scale=512:ih,signalstats=out=brng[e1];\
-[a1][b1][c1][e1][d1]xstack=inputs=5:layout=0_0|0_h0|0_h0+h1|w0_0|w0_h0" ;;
-        "Full Range Visual")
-            PLAYBACKFILTER="\
-${PLAYBACK_FILTER_ADJUSTMENT}split=5[a][b][c][d][e];\
-[a]copy${TIMECODE_OVERLAY}[a1];\
-[b]field=top,${WAVEFORM_FILTER}[b1];\
-[c]field=bottom,${WAVEFORM_FILTER}[c1];\
-[d]${VECTORSCOPE_FILTER}[d1];\
-[e]format=yuv444p,pseudocolor=if(between(1\,val\,amax)+between(val\,254\,amax)\,65\,-1):if(between(1\,val\,amax)+between(val\,254\,amax)\,100\,-1):if(between(1\,val\,amax)+between(val\,254\,amax)\,212\,-1),scale=512:ih[e1];\
+[e]scale=512:ih,${SIGNAL_FILTER}[e1];\
 [a1][b1][c1][e1][d1]xstack=inputs=5:layout=0_0|0_h0|0_h0+h1|w0_0|w0_h0" ;;
       "Visual + Numerical")
           _set_up_drawtext
@@ -1827,6 +1839,17 @@ _set_scopes(){
     drawbox=w=9:h=9:t=1:x=224-3:y=512-304-5:c=sienna@0.8,\
     drawgrid=w=32:h=32:t=1:c=white@0.1,\
     drawgrid=w=256:h=256:t=1:c=white@0.2"
+    if [[ "${SIGNAL_VIEW_CHOICE}" == "Full Range" ]] ; then
+        SIGNAL_FILTER="format=yuv444p,pseudocolor=if(between(1\,val\,amax)+between(val\,254\,amax)\,65\,-1):if(between(1\,val\,amax)+between(val\,254\,amax)\,100\,-1):if(between(1\,val\,amax)+between(val\,254\,amax)\,212\,-1)"
+        if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
+            MIDDLEOPTIONS+=(-color_range jpeg)
+        fi
+    else
+        SIGNAL_FILTER="signalstats=out=brng"
+        if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
+            MIDDLEOPTIONS+=(-color_range mpeg)
+        fi
+    fi
 }
 
 _review_option(){
@@ -1863,8 +1886,11 @@ _review_option(){
 }
 
 _review_all_options(){
-    if [[ "${INVERT_PHASE}" = 'true' ]] ; then
-        PHASE_VALUE="-1*"
+    if [[ "${INVERT_PHASE_2}" = 'true' ]] ; then
+        PHASE_VALUE_2="-1*"
+    fi
+    if [[ "${INVERT_PHASE_4}" = 'true' ]] ; then
+        PHASE_VALUE_4="-1*"
     fi
     if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
         _review_option -n -d "ffmpeg" "DECKLINK_UTILITY_CHOICE" "${DECKLINK_UTILITIES[@]}"
@@ -1886,6 +1912,7 @@ _review_all_options(){
         PLAYBACK_FILTER_ADJUSTMENT="select=not(mod(n\,2)),"
     fi
     _review_option -n "WAVEFORM_SCALE_CHOICE" "${WAVEFORM_SCALE_OPTIONS[@]}"
+    _review_option -n -d "Broadcast Range" "SIGNAL_VIEW_CHOICE" "${SIGNAL_OPTIONS[@]}"
     _review_option -n -d "Yes" "MONITOR_AUDIO_CHOICE" "${MONITOR_AUDIO_OPTIONS[@]}"
     _set_scopes
     if [[ "${RUNTYPE}" = "passthrough" ]] && [[ -n "${PLAYBACKVIEW_CHOICE_PASS}" ]] && [[ "${PLAYBACKVIEW_CHOICE_PASS}" != "Unselected" ]] ; then
@@ -1894,11 +1921,6 @@ _review_all_options(){
         _review_option "PLAYBACKVIEW_CHOICE" "${PLAYBACKVIEW_OPTIONS[@]}"
     fi
     if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
-        if [[ "${PLAYBACKVIEW_CHOICE}" = "Full Range Visual" ]] ; then
-            MIDDLEOPTIONS+=(-color_range jpeg)
-        else
-            MIDDLEOPTIONS+=(-color_range mpeg)
-        fi
         MIDDLEOPTIONS+=(-metadata creation_time=now)
         MIDDLEOPTIONS+=(${EXTRAOUTPUTOPTIONS[@]})
     elif [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
@@ -2084,13 +2106,14 @@ STANDARD_OPTIONS=("NTSC" "PAL")
 QCTOOLSXML_OPTIONS=("Yes, after recording" "Yes, concurrent with recording" "No")
 FRAMEMD5_OPTIONS=("Yes" "No")
 EMBED_LOGS_OPTIONS=("Yes" "No")
-PLAYBACKVIEW_OPTIONS=("Unfiltered" "Broadcast Range Visual" "Audio + Video" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes")
-PLAYBACKVIEW_PASS_OPTIONS=("Unfiltered" "Broadcast Range Visual" "Audio + Video" "Full Range Visual" "Visual + Numerical" "Color Matrix" "Bit Planes")
+PLAYBACKVIEW_OPTIONS=("Unfiltered" "Visual" "Audio + Video" "Visual + Numerical" "Color Matrix" "Bit Planes")
+PLAYBACKVIEW_PASS_OPTIONS=("Unfiltered" "Visual" "Audio + Video" "Visual + Numerical" "Color Matrix" "Bit Planes")
 if $MPV_INSTALLED ; then
     PLAYBACKVIEW_OPTIONS+=("Quality Control View (mpv)")
     PLAYBACKVIEW_PASS_OPTIONS+=("Quality Control View (mpv)")
 fi
 WAVEFORM_SCALE_OPTIONS=("digital" "millivolts" "ire")
+SIGNAL_OPTIONS=("Broadcast Range" "Full Range")
 MONITOR_AUDIO_OPTIONS=("Yes" "No")
 
 # GUI mode + CLI reset, edit modes
@@ -2234,9 +2257,12 @@ elif [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
 
 fi
 
-if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
-    if [[ "${INVERT_PHASE}" = 'true' ]] ; then
-        echo -e " \033[101mWARNING: Option to invert phase of second audio channel has been selected\033[0m"
+if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] || [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
+    if [[ "${INVERT_PHASE_2}" = "true" ]] ; then
+        _report -w "WARNING: Option to invert phase of second audio channel has been selected"
+    fi
+    if [[ "${INVERT_PHASE_4}" = "true" ]]; then
+        _report -w "WARNING: Option to invert phase of fourth audio channel has been selected"
     fi
 fi
 _report -q "Hit enter to start recording"

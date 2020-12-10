@@ -31,6 +31,7 @@ The following instructions aim to minimize use of linuxbrew installs for package
   - `sudo apt-get install libiec61883-dev`
   - `sudo apt-get install libraw1394-dev`
   - `sudo apt-get install libavc1394-dev`
+  - `sudo apt-get install libavc1394-tools`
 * If `make` and `gcc` are not already installed, install them with
   - `sudo apt-get install gcc`
   - `sudo apt-get install make`

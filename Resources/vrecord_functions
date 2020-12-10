@@ -74,6 +74,7 @@ _update_config_file(){
         echo "DECKLINK_UTILITY_CHOICE=\"${DECKLINK_UTILITY_CHOICE}\""
         echo "WAVEFORM_SCALE_CHOICE=\"${WAVEFORM_SCALE_CHOICE}\""
         echo "MONITOR_AUDIO_CHOICE=\"${MONITOR_AUDIO_CHOICE}\""
+        echo "SIGNAL_VIEW_CHOICE=\"${SIGNAL_VIEW_CHOICE}\""
         echo "DV_CONTAINER_CHOICE=\"${DV_CONTAINER_CHOICE}\""
         echo "DV_RESCUE_OPTION_S=\"${DV_RESCUE_OPTION_S}\""
         echo "DV_RESCUE_OPTION_D=\"${DV_RESCUE_OPTION_D}\""
@@ -84,28 +85,32 @@ _update_config_file(){
 }
 
 _validate_form(){
-    if [ "${INVERT_PHASE}" = "true" ] ; then
-        echo "WARNING: Option to invert phase of second audio channel has been selected.\n"
-    fi
+    
     if [ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" ] && [ "${CONTAINER_CHOICE}" = "MXF" ] ; then
-        echo "ERROR: Incompatible video codecs and containers have been selected.\n"
+        echo "ERROR: Incompatible video codecs and containers have been selected."
     elif [ "${AUDIO_CODEC_CHOICE}" = "24-bit FLAC" ] && [ "${CONTAINER_CHOICE}" = "QuickTime" ] ; then
-        echo "ERROR: Incompatible audio codecs and containers have been selected.\n"
-    fi
-    if [ "${VIDEO_CODEC_CHOICE}" = "ProRes" -o "${VIDEO_CODEC_CHOICE}" = "ProRes (HQ)" ] && [ "${VIDEO_BIT_DEPTH_CHOICE}" = "8 bit" ] ; then
-        echo "WARNING: ProRes (which is a 10 bit encoding) is selected but the input device is set to use 8 bits.\n"
+        echo "ERROR: Incompatible audio codecs and containers have been selected."
     fi
     if [ ! -d "${DIR}" ] ; then
-        echo "ERROR: The recording directory (${DIR}) does not exist. Create this folder please.\n"
+        echo "ERROR: The recording directory (${DIR}) does not exist. Create this folder please."
     fi
     if [ ! -d "${LOGDIR}" ] && [ -n "${LOGDIR}" ] ; then
-        echo "ERROR: The auxiliary directory (${LOGDIR}) does not exist. Create this folder or leave blank to use the recording directory.\n"
+        echo "ERROR: The auxiliary directory (${LOGDIR}) does not exist. Create this folder or leave blank to use the recording directory."
     fi
     # validate duration
     if [ -n "${DURATION}" ] ; then
         if ! [ "$(echo "${DURATION} > 0" | bc)" = "1" ] ; then
-            echo "ERROR: Illegal value for recording time. The duration must be a positive number.\n"
+            echo "ERROR: Illegal value for recording time. The duration must be a positive number."
         fi
+    fi
+    if [ "${VIDEO_CODEC_CHOICE}" = "ProRes" -o "${VIDEO_CODEC_CHOICE}" = "ProRes (HQ)" ] && [ "${VIDEO_BIT_DEPTH_CHOICE}" = "8 bit" ] ; then
+        echo "WARNING: ProRes (which is a 10 bit encoding) is selected but the input device is set to use 8 bits."
+    fi
+    if [ "${INVERT_PHASE_2}" = "true" ] ; then
+        echo "WARNING: Option to invert phase of second audio channel has been selected."
+    fi
+    if [ "${INVERT_PHASE_4}" = "true" ] ; then
+        echo "WARNING: Option to invert phase of fourth audio channel has been selected."
     fi
 }
 
