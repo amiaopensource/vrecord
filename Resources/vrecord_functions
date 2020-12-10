@@ -75,6 +75,11 @@ _update_config_file(){
         echo "WAVEFORM_SCALE_CHOICE=\"${WAVEFORM_SCALE_CHOICE}\""
         echo "MONITOR_AUDIO_CHOICE=\"${MONITOR_AUDIO_CHOICE}\""
         echo "SIGNAL_VIEW_CHOICE=\"${SIGNAL_VIEW_CHOICE}\""
+        echo "DV_CONTAINER_CHOICE=\"${DV_CONTAINER_CHOICE}\""
+        echo "DV_RESCUE_OPTION_S=\"${DV_RESCUE_OPTION_S}\""
+        echo "DV_RESCUE_OPTION_D=\"${DV_RESCUE_OPTION_D}\""
+        echo "DV_RESCUE_OPTION_T=\"${DV_RESCUE_OPTION_T}\""
+        echo "DV_RESCUE_OPTION_TC=\"${DV_RESCUE_OPTION_TC}\""
     } > "${CONFIG_FILE}"
     . "${CONFIG_FILE}"
 }

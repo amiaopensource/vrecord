@@ -270,6 +270,9 @@ _gtk_vbox_list() {
             echo '<action condition="command_is_true(echo \"$AUDIO_DEV_CHOICE\" | grep -vq Blackmagic && echo true)">enable:AUDIO_MODE_SR_CHOICE</action>
                   <action condition="command_is_true(echo \"$AUDIO_DEV_CHOICE\" | grep -q Blackmagic && echo true)">disable:AUDIO_MODE_SR_CHOICE</action>
                   <action type="refresh">VRECORD_OUTPUT_NAME</action>'
+        elif [[ "${VARIABLE_NAME}" == "DV_CONTAINER_CHOICE" ]] && $DVPACKAGER_INSTALLED ; then
+            echo '<action condition="command_is_true( [ \"$DV_CONTAINER_CHOICE\" = \"DV\" ] && echo true)">disable:DV_RESCUE_OPTION_TC</action>
+                <action condition="command_is_true( [ \"$DV_CONTAINER_CHOICE\" != \"DV\" ] && echo true)">enable:DV_RESCUE_OPTION_TC</action>'
         fi
     }
 
@@ -285,6 +288,8 @@ _gtk_vbox_list() {
             echo "<sensitive>$(if $MKVPROPEDIT_INSTALLED ; then echo true ; else echo false ; fi)</sensitive>"
         elif [[ "${VARIABLE_NAME}" == "QCTOOLSXML_CHOICE" ]] ; then
             echo "<sensitive>$(if $QCLI_INSTALLED ; then echo true ; else echo false ; fi)</sensitive>"
+        elif [[ "${VARIABLE_NAME}" == "DV_CONTAINER_CHOICE" ]] ; then
+            echo "<sensitive>$(if $DVPACKAGER_INSTALLED ; then echo true ; else echo false ; fi)</sensitive>"
         elif [[ "${VARIABLE_NAME}" == "DECKLINK_INPUT_CHOICE" ]] ; then
             echo "
             <button>
@@ -708,6 +713,14 @@ OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
                     <input file stock="$(if $QCLI_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)"></input>
                 </pixmap>
             </hbox>
+            <hbox>
+                <text>
+                    <label>dvpackager: </label>
+                </text>
+                <pixmap stock-icon-size="1" tooltip-text="If dvpackager is installed, vrecord can offer options to split and wrap DV captures.">
+                    <input file stock="$(if $DVPACKAGER_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)"></input>
+                </pixmap>
+            </hbox>
         </frame>
     </hbox>
     <frame Invert Audio Phase>
@@ -899,8 +912,51 @@ fi
 AVFCTL_INPUT_GUI=$(cat << AVFCTL_FORM
 <frame DVRescue avfctl input options>
     <vbox>
-        <hbox space-expand="true">
-            $(_gtk_vbox_list "AVFCTL_INPUT_CHOICE"         "-1" "Select a DV Device"           "${AVFCTL_DEVICES[@]}")
+        <hbox>
+            <hbox space-expand="true">
+                $(_gtk_vbox_list "AVFCTL_INPUT_CHOICE"         "-1" "Select a DV Device"           "${AVFCTL_DEVICES[@]}")
+            </hbox>
+            <vbox>
+                <frame dvpackager options>
+                    <hbox>
+                        <vbox>
+                            <text>
+                                <label>Split the output on:</label>
+                            </text>
+                            <checkbox>
+                                $(if [[ ${DVPACKAGER_INSTALLED} != "true" ]] ; then echo "<sensitive>false</sensitive>" ; fi)
+                                <label>recording start flags</label>
+                                <default>"${DV_RESCUE_OPTION_S}"</default>
+                                <variable>DV_RESCUE_OPTION_S</variable>
+                            </checkbox>
+                            <checkbox>
+                                $(if [[ ${DVPACKAGER_INSTALLED} != "true" ]] ; then echo "<sensitive>false</sensitive>" ; fi)
+                                <label>recording timestamps jumps</label>
+                                <default>"${DV_RESCUE_OPTION_D}"</default>
+                                <variable>DV_RESCUE_OPTION_D</variable>
+                            </checkbox>
+                            <checkbox>
+                                $(if [[ ${DVPACKAGER_INSTALLED} != "true" ]] ; then echo "<sensitive>false</sensitive>" ; fi)
+                                <label>timecode jumps</label>
+                                <default>"${DV_RESCUE_OPTION_T}"</default>
+                                <variable>DV_RESCUE_OPTION_T</variable>
+                            </checkbox>
+                        </vbox>
+                        <vbox>
+                            <text>
+                                <label>Other options:</label>
+                            </text>
+                            <checkbox>
+                                $(if [[ ${DVPACKAGER_INSTALLED} != "true" ]] ; then echo "<sensitive>false</sensitive>" ; fi)
+                                <label>Create technical subtitle track</label>
+                                <default>"${DV_RESCUE_OPTION_TC}"</default>
+                                <variable>DV_RESCUE_OPTION_TC</variable>
+                            </checkbox>
+                        </vbox>
+                        $(_gtk_vbox_list "DV_CONTAINER_CHOICE"         "100" "Select File Format"            "${DV_CONTAINER_OPTIONS[@]}")
+                    </hbox>
+                </frame>
+            </vbox>
         </hbox>
     </vbox>
     <frame DV deck control>
@@ -1368,6 +1424,12 @@ _qcgraphimage(){
     " | gnuplot
 }
 
+_dvpackager(){
+    _report -d "Please wait: running dvpackager on file."
+    local TARGET="${1}"
+    dvpackager ${DV_RESCUE_OPTS[@]} -e "${DV_EXTENSION}" "${TARGET}"
+}
+
 # decipher vrecord options as specified by user
 _lookup_choice(){
     case "${2}" in
@@ -1388,10 +1450,12 @@ _lookup_choice(){
         # container
         "QuickTime")
             EXTENSION="mov"
+            DV_EXTENSION="mov"
             MIDDLEOPTIONS+=(-movflags write_colr)
             FORMAT="mov" ;;
         "Matroska")
             EXTENSION="mkv"
+            DV_EXTENSION="mkv"
             FORMAT="matroska" ;;
         "AVI")
             EXTENSION="avi"
@@ -1403,6 +1467,9 @@ _lookup_choice(){
             EXTENSION="mp4"
             MIDDLEOPTIONS+=(-movflags write_colr)
             FORMAT="mp4" ;;
+        "DV")
+            EXTENSION="dv"
+            DV_EXTENSION="dv" ;;
 
         # video codec
         "Uncompressed Video")
@@ -1860,6 +1927,21 @@ _review_all_options(){
         PLAYBACKVIEW_CHOICE_PASS="Unfiltered"
         PLAYBACKVIEW_CHOICE="Unfiltered"
         _lookup_choice "Unfiltered"
+        if [[ "${DV_RESCUE_OPTION_D}" = 'true' ]] ; then
+            DV_RESCUE_OPTS+=(-d)
+        fi
+
+        if [[ "${DV_RESCUE_OPTION_S}" = 'true' ]] ; then
+            DV_RESCUE_OPTS+=(-s)
+        fi
+
+        if [[ "${DV_RESCUE_OPTION_T}" = 'true' ]] ; then
+            DV_RESCUE_OPTS+=(-t)
+        fi
+
+        if [[ "${DV_RESCUE_OPTION_TC}" = 'true' ]] ; then
+            DV_RESCUE_OPTS+=(-S)
+        fi
     elif [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
         _review_option "AUDIO_CHANNEL_CHOICE" "${AUDIO_CHANNEL_CHOICE_OPTIONS[@]}"
         if [[ "${AUDIO_DEV_CHOICE}" != *"Blackmagic"* ]] ; then
@@ -1932,6 +2014,7 @@ MEDIACONCH_INSTALLED="$(if command -v mediaconch >/dev/null ; then echo true ; e
 MKVPROPEDIT_INSTALLED="$(if command -v mkvpropedit >/dev/null ; then echo true ; else echo false ; fi)"
 MPV_INSTALLED="$(if command -v mpv >/dev/null ; then echo true ; else echo false ; fi)"
 QCLI_INSTALLED="$(if command -v qcli >/dev/null ; then echo true ; else echo false ; fi)"
+DVPACKAGER_INSTALLED="$(if command -v dvpackager >/dev/null ; then echo true ; else echo false ; fi)"
 
 if [[ -f "${CONFIG_FILE}" ]] ; then
     . "${CONFIG_FILE}"
@@ -2010,6 +2093,7 @@ fi
 VIDEO_INPUT_OPTIONS=("Composite" "SDI" "Component" "S-Video")
 AUDIO_INPUT_OPTIONS=("Analog" "SDI Embedded Audio" "Digital Audio (AES/EBU)")
 CONTAINER_OPTIONS=("QuickTime" "Matroska" "AVI" "MXF" "MP4")
+DV_CONTAINER_OPTIONS=("DV" "Matroska" "QuickTime")
 VIDEO_CODEC_OPTIONS=("Uncompressed Video" "FFV1 version 3" "JPEG2000" "ProRes" "ProRes (HQ)" "h264" "HuffYUV")
 FFV1_SLICE_OPTIONS=("4" "6" "9" "12" "16" "24" "30")
 AUDIO_CODEC_OPTIONS=("24-bit PCM" "24-bit FLAC" "AAC")
@@ -2117,7 +2201,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
     fi
     _review_option "AUDIO_CODEC_CHOICE" "${AUDIO_CODEC_OPTIONS[@]}"
 elif [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
-    EXTENSION="dv"
+    _review_option "DV_CONTAINER_CHOICE" "${DV_CONTAINER_OPTIONS[@]}"
     FORMAT="rawvideo"
 elif [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
     _review_option "AUDIO_MODE_CODEC_CHOICE" "${AUDIO_CODEC_OPTIONS[@]}"
@@ -2431,6 +2515,12 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
                 mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "QCTools report from vrecord capture process (zipped XML)" --add-attachment "${QCXML}"
             fi
             _report -d "Vrecord is done attaching logs to your Matroska file!"
+        fi
+    fi
+elif [[ "${DEVICE_INPUT_CHOICE}" == "1" ]] ; then
+    if "$DVPACKAGER_INSTALLED" ; then
+        if [[ -n "${DV_RESCUE_OPTS}" ]] || [[ "${DV_EXTENSION}" != 'dv' ]] ; then
+            _dvpackager "${VRECORD_OUTPUT}"
         fi
     fi
 fi
