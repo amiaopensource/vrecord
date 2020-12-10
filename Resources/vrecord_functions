@@ -179,3 +179,22 @@ _get_audio_device_list(){
         "${FFMPEG_BIN}" -nostdin -hide_banner -f avfoundation -list_devices 1 -i dummy 2>&1 | grep -A 10 "AVFoundation audio devices" | grep -o "\[[0-9]\].*" | cut -d " " -f2-
     fi
 }
+
+_get_summary(){
+  . "${CONFIG_FILE}"
+  if [ "${DEVICE_INPUT_CHOICE}" = "0" ] ; then
+    echo "${VIDEOCODECNAME}/${FORMAT} ${PIXEL_FORMAT} file from ${STANDARD} ${VIDEO_INPUT} ${AUDIO_INPUT}."
+    echo "Frame MD5s=${FRAMEMD5_CHOICE}"
+    echo "QCTools XML=${QCTOOLSXML_CHOICE}"
+    echo "Inputs recorded to ${VRECORD_OUTPUT}"
+    echo "Auxiliary Files created in ${LOGDIR}"
+  elif [ "${DEVICE_INPUT_CHOICE}" = "1" ] ; then
+    echo "Copying video from ${AVFCTL_INPUT_CHOICE}."
+    echo "Inputs recorded to ${VRECORD_OUTPUT}"
+    echo "Auxiliary Files created in ${LOGDIR}"
+  elif [ "${DEVICE_INPUT_CHOICE}" = "2" ] ; then
+    echo "Recording audio from ${AUDIO_DEV_CHOICE}."
+    echo "Inputs recorded to ${VRECORD_OUTPUT}"
+    echo "Auxiliary Files created in ${LOGDIR}"
+  fi
+}
