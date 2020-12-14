@@ -2154,14 +2154,12 @@ HOME_DIALOG=$(cat << GTKFORM
                 <label>Record</label>
                 <input file stock="gtk-media-record"></input>
                 <variable>record_button</variable>
-                <action>_update_config_file</action>
                 <action type="exit">Record</action>
               </button>
               <button>
                 <label>Passthrough</label>
                 <input file stock="gtk-media-play"></input>
                 <variable>passthrough_button</variable>
-                <action>_update_config_file</action>
                 <action type="exit">passthrough</action>
               </button>
               <button cancel></button>
