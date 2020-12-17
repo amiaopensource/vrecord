@@ -1217,6 +1217,154 @@ export MAIN_DIALOG='
     <action signal="show" condition="command_is_true(echo \"$AUDIO_DEV_CHOICE\" | grep -q Blackmagic && echo true)">disable:AUDIO_MODE_SR_CHOICE</action>
 </window>
 '
+_add_hidden_var(){
+  while [[ "${@}" != "" ]] ; do
+    VAR_NAME="${1}"
+    VAR_VALUE="${!1}"
+    shift
+    echo "<entry visible=\"false\">
+    <default>${VAR_VALUE:-\"\"}</default>
+    <variable>${VAR_NAME}</variable>
+    </entry>"
+  done
+}
+
+export HOME_DIALOG='
+<window title="Welcome to Vrecord!" resizable="false">
+    <vbox>
+        <vbox>
+            <hbox homogenous="true" space-expand="false">
+                <button image-position="Top">
+                    <label>Record</label>
+                    <width>120</width>
+                    <input file>"'"${RESOURCE_PATH}/vrecord_logo.png"'"</input>
+                    <action type="exit">Record</action>
+                </button>
+                <button image-position="Top">
+                    <label>Passthrough</label>
+                    <width>120</width>
+                    <input file>"'"${RESOURCE_PATH}/vrecord_logo_playback.png"'"</input>
+                    <action type="exit">passthrough</action>
+                </button>
+                <button image-position="Top">
+                    <label>Audio Check</label>
+                    <width>120</width>
+                    <input file>"'"${RESOURCE_PATH}/vrecord_logo_audio.png"'"</input>
+                    <action type="exit">audiopassthrough</action>
+                </button>
+                <button image-position="Top">
+                    <label>Edit Settings</label>
+                    <width>120</width>
+                    <input file>"'"${RESOURCE_PATH}/vrecord_logo_edit.png"'"</input>
+                    <action type="launch">MAIN_DIALOG</action>
+                </button>
+                <button image-position="Top">
+                    <label>Help</label>
+                    <width>120</width>
+                    <input file>"'"${RESOURCE_PATH}/vrecord_logo_help.png"'"</input>
+                    <action>man vrecord</action>
+                </button>
+                <button image-position="Top">
+                    <label>Documentation</label>
+                    <width>120</width>
+                    <input file>"'"${RESOURCE_PATH}/vrecord_logo_documentation.png"'"</input>
+                    <action>"'"${OPEN_COMMAND} https://github.com/amiaopensource/vrecord#vrecord-documentation"'"</action>
+                </button>
+            </hbox>
+        </vbox>
+          <vbox space-expand="true">
+            <hbox>
+              <frame Settings Summary>
+                <vbox scrollable="true" height-request="185" width="300">
+                  <text wrap="false" xalign="0">
+                  <variable export="false">VRECORD_SETTINGS_SUMMARY</variable>
+                  <input>_get_summary</input>
+                  </text>
+                </vbox>
+              </frame>
+              <frame Simple GUI Options>
+                <vbox height-request="185" homogenous="true">
+                  <frame Recording event options>
+                    <vbox>
+                      <hbox>
+                        <text>
+                          <label>Name of Recording</label>
+                        </text>
+                        <entry>
+                          <variable>ID</variable>
+                          <action signal="key-release-event" type="refresh">VRECORD_OUTPUT_NAME</action>
+                          <default>"'"${ID}"'"</default>
+                        </entry>
+                      </hbox>
+                      <hbox>
+                        <text>
+                          <label>Enter the name of the person digitizing this tape:</label>
+                        </text>
+                        <entry>
+                          <variable>TECHNICIAN</variable>
+                        </entry>
+                      </hbox>
+                      <hbox>
+                        <text>
+                          <label>Set recording time (integer or decimal) in minutes:</label>
+                        </text>
+                        <entry activates_default="true" tooltip-text="Suggested:23 33 63 93. Leave blank for indefinite recording time">
+                          <variable>DURATION</variable>
+                          <default>"'"${DURATION}"'"</default>
+                        </entry>
+                      </hbox>
+                    </vbox>
+                  </frame>
+                  <hbox>
+                    <text>
+                      <label>Output Filename:</label>
+                    </text>
+                    <entry editable="false" has-frame="false">
+                      <variable>VRECORD_OUTPUT_NAME</variable>
+                      <input>_get_output_filename</input>
+                    </entry>
+                  </hbox>
+                  <hbox>
+                    <text>
+                      <label>Errors & Warnings:</label>
+                    </text>
+                    <vbox scrollable="true" height="50">
+                      <text wrap="false" xalign="0" selectable="true">
+                        <variable export="false">VRECORD_FORM_VALIDATION</variable>
+                        <input>_validate_form</input>
+                      </text>
+                    </vbox>
+                  </hbox>
+                </vbox>
+              </frame>
+            </hbox>
+            <hbox>
+              <button>
+                <label>Record</label>
+                <input file stock="gtk-media-record"></input>
+                <variable>record_button</variable>
+                <action type="exit">Record</action>
+              </button>
+              <button>
+                <label>Passthrough</label>
+                <input file stock="gtk-media-play"></input>
+                <variable>passthrough_button</variable>
+                <action type="exit">passthrough</action>
+              </button>
+              <button cancel></button>
+            </hbox>
+          </vbox>
+    </vbox>
+    '"`_add_hidden_var DEVICE_INPUT_CHOICE VIDEO_INPUT_CHOICE AUDIO_INPUT_CHOICE CONTAINER_CHOICE VIDEO_CODEC_CHOICE FFV1_SLICE_CHOICE AUDIO_CODEC_CHOICE AUDIO_DEV_CHOICE AUDIO_MODE_CODEC_CHOICE AUDIO_CHANNEL_CHOICE AUDIO_MODE_SR_CHOICE VIDEO_BIT_DEPTH_CHOICE AUDIO_MAPPING_CHOICE TIMECODE_CHOICE STANDARD_CHOICE QCTOOLSXML_CHOICE FRAMEMD5_CHOICE EMBED_LOGS_CHOICE PLAYBACKVIEW_CHOICE PLAYBACKVIEW_CHOICE_PASS DIR LOGDIR INVERT_PHASE PREFIX USER_SUFFIX NO_SUFFIX AVFCTL_INPUT_CHOICE DECKLINK_INPUT_CHOICE DECKLINK_UTILITY_CHOICE WAVEFORM_SCALE_CHOICE MONITOR_AUDIO_CHOICE SIGNAL_VIEW_CHOICE DV_CONTAINER_CHOICE DV_RESCUE_OPTION_S DV_RESCUE_OPTION_D DV_RESCUE_OPTION_T DV_RESCUE_OPTION_TC`"'
+    <variable>HOME_DIALOG</variable>
+    <action signal="show" type="closewindow">MAIN_DIALOG</action>
+    <action signal="show" type="refresh">VRECORD_FORM_VALIDATION</action>
+    <action signal="enter-notify-event" type="refresh">VRECORD_FORM_VALIDATION</action>
+    <action signal="leave-notify-event" type="refresh">VRECORD_FORM_VALIDATION</action>
+    <action signal="show" type="refresh">VRECORD_OUTPUT_NAME</action>
+</window>
+'
+
 }
 
 # edit mode
@@ -2034,137 +2182,6 @@ if [[ "${OS_TYPE}" = "linux" ]] ; then
 elif [[ "${OS_TYPE}" = "macOS" ]] ; then
     AUDIO_DEVICES=("${AVFOUNDATION_DEVICES[@]}")
 fi
-
-HOME_DIALOG=$(cat << GTKFORM
-<window title="Welcome to Vrecord!">
-    <vbox>
-        <vbox>
-            <hbox homogenous="true" space-expand="false">
-                <button image-position="Top">
-                    <label>Record</label>
-                    <width>100</width>
-                    <input file>${RESOURCE_PATH}/vrecord_logo.png</input>
-                    <action type="exit">Record</action>
-                </button>
-                <button image-position="Top">
-                    <label>Passthrough</label>
-                    <width>100</width>
-                    <input file>${RESOURCE_PATH}/vrecord_logo_playback.png</input>
-                    <action type="exit">passthrough</action>
-                </button>
-                <button image-position="Top">
-                    <label>Audio Check</label>
-                    <width>100</width>
-                    <input file>${RESOURCE_PATH}/vrecord_logo_audio.png</input>
-                    <action type="exit">audiopassthrough</action>
-                </button>
-                <button image-position="Top">
-                    <label>Edit Settings</label>
-                    <width>100</width>
-                    <input file>${RESOURCE_PATH}/vrecord_logo_edit.png</input>
-                    <action type="launch">MAIN_DIALOG</action>
-                </button>
-                <button image-position="Top">
-                    <label>Help</label>
-                    <width>100</width>
-                    <input file>${RESOURCE_PATH}/vrecord_logo_help.png</input>
-                    <action>man vrecord</action>
-                </button>
-                <button image-position="Top">
-                    <label>Documentation</label>
-                    <width>100</width>
-                    <input file>${RESOURCE_PATH}/vrecord_logo_documentation.png</input>
-                    <action>${OPEN_COMMAND} https://github.com/amiaopensource/vrecord#vrecord-documentation</action>
-                </button>
-            </hbox>
-        </vbox>
-          <vbox space-expand="true">
-            <hbox>
-              <frame Settings Summary>
-                <vbox scrollable="true">
-                  <text wrap="false" xalign="0" height="100">
-                  <variable export="false">VRECORD_SETTINGS_SUMMARY</variable>
-                  <input>_get_summary</input>
-                  </text>
-                </vbox>
-              </frame>
-              <frame Simple GUI Options>
-                <vbox>
-                  <frame Recording event options>
-                    <vbox>
-                      <hbox>
-                        <text>
-                          <label>Name of Recording</label>
-                        </text>
-                        <entry>
-                          <variable>ID</variable>
-                          <action signal="key-release-event" type="refresh">VRECORD_OUTPUT_NAME</action>
-                        </entry>
-                      </hbox>
-                      <hbox>
-                        <text>
-                          <label>Enter the name of the person digitizing this tape:</label>
-                        </text>
-                        <entry>
-                          <variable>TECHNICIAN</variable>
-                        </entry>
-                      </hbox>
-                      <hbox>
-                        <text>
-                          <label>Set recording time (integer or decimal) in minutes:</label>
-                        </text>
-                        <entry activates_default="true" tooltip-text="Suggested:23 33 63 93. Leave blank for indefinite recording time">
-                          <variable>DURATION</variable>
-                        </entry>
-                      </hbox>
-                    </vbox>
-                  </frame>
-                  <hbox>
-                    <text>
-                      <label>Output Filename:</label>
-                    </text>
-                    <entry editable="false" has-frame="false">
-                      <variable>VRECORD_OUTPUT_NAME</variable>
-                      <input>_get_output_filename</input>
-                    </entry>
-                  </hbox>
-                  <hbox>
-                    <text>
-                      <label>Errors & Warnings:</label>
-                    </text>
-                    <vbox scrollable="true" height="50">
-                      <text wrap="false" xalign="0" selectable="true">
-                        <variable export="false">VRECORD_FORM_VALIDATION</variable>
-                        <input>_validate_form</input>
-                      </text>
-                    </vbox>
-                  </hbox>
-                </vbox>
-              </frame>
-            </hbox>
-            <hbox>
-              <button>
-                <label>Record</label>
-                <input file stock="gtk-media-record"></input>
-                <variable>record_button</variable>
-                <action type="exit">Record</action>
-              </button>
-              <button>
-                <label>Passthrough</label>
-                <input file stock="gtk-media-play"></input>
-                <variable>passthrough_button</variable>
-                <action type="exit">passthrough</action>
-              </button>
-              <button cancel></button>
-            </hbox>
-          </vbox>
-    </vbox>
-    <variable>HOME_DIALOG</variable>
-    <action signal="show" type="closewindow">MAIN_DIALOG</action>
-</window>
-GTKFORM
-)
-export HOME_DIALOG
 
 # list of selections for each vrecord option
 DECKLINK_UTILITIES=("ffmpeg")
