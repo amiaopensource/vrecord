@@ -656,6 +656,26 @@ OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
             $(_gtk_vbox_list "MONITOR_AUDIO_CHOICE"  "100" "Monitor Audio?"                   "${MONITOR_AUDIO_OPTIONS[@]}")
             </hbox>
         </frame>
+        <frame Invert Audio Phase>
+            <vbox space-fill="true" space-expand="true">
+                <text>
+                    <label>WARNING: Do not use this option unless required</label>
+                </text>
+                <text>
+                    <label>This options applies only to decklink inputs</label>
+                </text>
+                <checkbox>
+                    <label>Invert channel 2</label>
+                    <default>false</default>
+                    <variable>INVERT_PHASE_2</variable>
+                </checkbox>
+                <checkbox>
+                    <label>Invert channel 4</label>
+                    <default>false</default>
+                    <variable>INVERT_PHASE_4</variable>
+                </checkbox>
+            </vbox>
+        </frame>
         <frame Optional Tools>
             <hbox>
                 <text>
@@ -723,29 +743,12 @@ OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
             </hbox>
         </frame>
     </hbox>
-    <frame Invert Audio Phase>
-    <hbox space-fill="true" space-expand="true">
-        <text>
-            <label>WARNING: Do not use this option unless required</label>
-        </text>
-        <checkbox>
-            <label>Channel 2</label>
-            <default>false</default>
-            <variable>INVERT_PHASE_2</variable>
-        </checkbox>
-        <checkbox>
-            <label>Channel 4</label>
-            <default>false</default>
-            <variable>INVERT_PHASE_4</variable>
-        </checkbox>
-    </hbox>
-    </frame>
     <hbox space-fill="true" space-expand="true">
         <vbox>
             <text>
                 <label>FFmpeg Status</label>
             </text>
-            <vbox scrollable="true" height="240">
+            <vbox scrollable="true" height="120">
                 <text wrap="true" xalign="0" selectable="true">
                     <variable export="false">ffmpeg_status</variable>
                     <input file>"${FFMPEG_STATUS_TMP}"</input>
@@ -761,7 +764,7 @@ OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
             <text>
                 <label>Environment</label>
             </text>
-            <vbox scrollable="true" height="240">
+            <vbox scrollable="true" height="120">
                 <text xalign="0" selectable="true">
                     <variable export="false">vrecord_env</variable>
                     <input file>"${VRECORD_VARS_FILE}"</input>
