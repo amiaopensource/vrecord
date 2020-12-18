@@ -661,13 +661,16 @@ OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
                 <text>
                     <label>WARNING: Do not use this option unless required</label>
                 </text>
+                <text>
+                    <label>This options applies only to decklink inputs</label>
+                </text>
                 <checkbox>
-                    <label>Channel 2</label>
+                    <label>Invert channel 2</label>
                     <default>false</default>
                     <variable>INVERT_PHASE_2</variable>
                 </checkbox>
                 <checkbox>
-                    <label>Channel 4</label>
+                    <label>Invert channel 4</label>
                     <default>false</default>
                     <variable>INVERT_PHASE_4</variable>
                 </checkbox>
