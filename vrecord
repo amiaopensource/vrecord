@@ -745,7 +745,7 @@ OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
             <text>
                 <label>FFmpeg Status</label>
             </text>
-            <vbox scrollable="true" height="240">
+            <vbox scrollable="true" height="120">
                 <text wrap="true" xalign="0" selectable="true">
                     <variable export="false">ffmpeg_status</variable>
                     <input file>"${FFMPEG_STATUS_TMP}"</input>
@@ -761,7 +761,7 @@ OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
             <text>
                 <label>Environment</label>
             </text>
-            <vbox scrollable="true" height="240">
+            <vbox scrollable="true" height="120">
                 <text xalign="0" selectable="true">
                     <variable export="false">vrecord_env</variable>
                     <input file>"${VRECORD_VARS_FILE}"</input>
