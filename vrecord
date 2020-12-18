@@ -656,6 +656,23 @@ OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
             $(_gtk_vbox_list "MONITOR_AUDIO_CHOICE"  "100" "Monitor Audio?"                   "${MONITOR_AUDIO_OPTIONS[@]}")
             </hbox>
         </frame>
+        <frame Invert Audio Phase>
+            <vbox space-fill="true" space-expand="true">
+                <text>
+                    <label>WARNING: Do not use this option unless required</label>
+                </text>
+                <checkbox>
+                    <label>Channel 2</label>
+                    <default>false</default>
+                    <variable>INVERT_PHASE_2</variable>
+                </checkbox>
+                <checkbox>
+                    <label>Channel 4</label>
+                    <default>false</default>
+                    <variable>INVERT_PHASE_4</variable>
+                </checkbox>
+            </vbox>
+        </frame>
         <frame Optional Tools>
             <hbox>
                 <text>
@@ -723,23 +740,6 @@ OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
             </hbox>
         </frame>
     </hbox>
-    <frame Invert Audio Phase>
-    <hbox space-fill="true" space-expand="true">
-        <text>
-            <label>WARNING: Do not use this option unless required</label>
-        </text>
-        <checkbox>
-            <label>Channel 2</label>
-            <default>false</default>
-            <variable>INVERT_PHASE_2</variable>
-        </checkbox>
-        <checkbox>
-            <label>Channel 4</label>
-            <default>false</default>
-            <variable>INVERT_PHASE_4</variable>
-        </checkbox>
-    </hbox>
-    </frame>
     <hbox space-fill="true" space-expand="true">
         <vbox>
             <text>
