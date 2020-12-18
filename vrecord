@@ -1321,7 +1321,7 @@ export HOME_DIALOG='
                     </text>
                     <entry editable="false" has-frame="false">
                       <variable>VRECORD_OUTPUT_NAME</variable>
-                      <input>_get_output_filename</input>
+                      <input>_get_output_filename -r</input>
                     </entry>
                   </hbox>
                   <hbox>
@@ -1362,6 +1362,8 @@ export HOME_DIALOG='
     <action signal="enter-notify-event" type="refresh">VRECORD_FORM_VALIDATION</action>
     <action signal="leave-notify-event" type="refresh">VRECORD_FORM_VALIDATION</action>
     <action signal="show" type="refresh">VRECORD_OUTPUT_NAME</action>
+    <action signal="enter-notify-event" type="refresh">VRECORD_OUTPUT_NAME</action>
+    <action signal="leave-notify-event" type="refresh">VRECORD_OUTPUT_NAME</action>
 </window>
 '
 

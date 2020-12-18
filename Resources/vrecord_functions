@@ -115,6 +115,10 @@ _validate_form(){
 }
 
 _get_output_filename(){
+    #open config file for home dialog gui
+    if [[ "${1}" = "-r" ]] ; then
+      . "${CONFIG_FILE}"
+    fi
     # Get user suffix preference of default per video codec
     if [ "${NO_SUFFIX}" = 'true' ] ; then
         SUFFIX=""
