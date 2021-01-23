@@ -1041,11 +1041,11 @@ AUDIO_INPUT_FORM
 )
 
 export MAIN_DIALOG='
-<window title="vrecord configuration">
     <vbox>
         <text>
             <label>Set file recording options.</label>
         </text>
+<window title="Welcome to Vrecord!">
         <frame Input Options>
         <notebook page="'"${DEVICE_INPUT_CHOICE}"'" tab-labels="Decklink|DV|Audio|Config">
             '"${DECKLINK_INPUT_GUI}"'
