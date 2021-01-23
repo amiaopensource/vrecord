@@ -969,53 +969,55 @@ AVFCTL_INPUT_GUI=$(cat << AVFCTL_FORM
     <frame DV deck control>
         <hbox>
             <vbox>
-                <text>
-                    <label>Status</label>
-                </text>
-                <entry editable="false" has-frame="false">
-                    <variable export="false">avfctl_status</variable>
-                    <input file>"${AVFCTL_STATUS_TMP}"</input>
-                </entry>
+                <pixmap><input file>"${RESOURCE_PATH}/dvrecord.png"</input></pixmap>
             </vbox>
-            <timer milliseconds="true" interval="300" visible="false" disabled="true">
-                 <variable export="false">avfctl_timer</variable>
-                 <visible>disabled</visible>
-                 <action>${STATUS_CMD} > "${AVFCTL_STATUS_TMP}" &</action>
-                 <action>refresh:avfctl_status</action>
-            </timer>
+            <vbox>
+                <hbox>
+                    <vbox>
+                        <text>
+                            <label>Status</label>
+                        </text>
+                        <entry editable="false" has-frame="false">
+                            <variable export="false">avfctl_status</variable>
+                            <input file>"${AVFCTL_STATUS_TMP}"</input>
+                        </entry>
+                    </vbox>
+                    <timer milliseconds="true" interval="300" visible="false" disabled="true">
+                         <variable export="false">avfctl_timer</variable>
+                         <visible>disabled</visible>
+                         <action>${STATUS_CMD} > "${AVFCTL_STATUS_TMP}" &</action>
+                         <action>refresh:avfctl_status</action>
+                    </timer>
+                    <togglebutton>
+                        <label>Deck Control</label>
+                        <default>false</default>
+                        <variable export="false">avfctl_toggle</variable>
+                        <input file stock="gtk-execute"></input>
+                        <action>if true enable:avfctl_timer</action>
+                        <action>if true enable:avfctl_status</action>
+                        <action>if true enable:avfctl_repack</action>
+                        <action>if true enable:avfctl_rewind</action>
+                        <action>if true enable:avfctl_play</action>
+                        <action>if true enable:avfctl_stop</action>
+                        <action>if true enable:avfctl_ff</action>
+                        <action>if false disable:avfctl_timer</action>
+                        <action>if false disable:avfctl_status</action>
+                        <action>if false disable:avfctl_repack</action>
+                        <action>if false disable:avfctl_rewind</action>
+                        <action>if false disable:avfctl_play</action>
+                        <action>if false disable:avfctl_stop</action>
+                        <action>if false disable:avfctl_ff</action>
+                    </togglebutton>
+                </hbox>
+                <hbox>
+                    $(_get_deckcontrol_button "avfctl_repack" ""                  "Repack" "${DV_REPACK_CMD}")
+                    $(_get_deckcontrol_button "avfctl_rewind" "gtk-media-rewind"  "Rewind" "${DV_RW_CMD}")
+                    $(_get_deckcontrol_button "avfctl_play"   "gtk-media-play"    "Play"   "${DV_PLAY_CMD}")
+                    $(_get_deckcontrol_button "avfctl_stop"   "gtk-media-stop"    "Stop"   "${DV_STOP_CMD}")
+                    $(_get_deckcontrol_button "avfctl_ff"     "gtk-media-forward" "FF"     "${DV_FF_CMD}")
+                </hbox>
+            </vbox>
         </hbox>
-        <hbox>
-            <togglebutton>
-                <label>Deck Control</label>
-                <default>false</default>
-                <variable export="false">avfctl_toggle</variable>
-                <input file stock="gtk-execute"></input>
-                <action>if true enable:avfctl_timer</action>
-                <action>if true enable:avfctl_status</action>
-                <action>if true enable:avfctl_repack</action>
-                <action>if true enable:avfctl_rewind</action>
-                <action>if true enable:avfctl_play</action>
-                <action>if true enable:avfctl_stop</action>
-                <action>if true enable:avfctl_ff</action>
-                <action>if false disable:avfctl_timer</action>
-                <action>if false disable:avfctl_status</action>
-                <action>if false disable:avfctl_repack</action>
-                <action>if false disable:avfctl_rewind</action>
-                <action>if false disable:avfctl_play</action>
-                <action>if false disable:avfctl_stop</action>
-                <action>if false disable:avfctl_ff</action>
-            </togglebutton>
-            <hbox>
-                $(_get_deckcontrol_button "avfctl_repack" ""                  "Repack" "${DV_REPACK_CMD}")
-                $(_get_deckcontrol_button "avfctl_rewind" "gtk-media-rewind"  "Rewind" "${DV_RW_CMD}")
-                $(_get_deckcontrol_button "avfctl_play"   "gtk-media-play"    "Play"   "${DV_PLAY_CMD}")
-                $(_get_deckcontrol_button "avfctl_stop"   "gtk-media-stop"    "Stop"   "${DV_STOP_CMD}")
-                $(_get_deckcontrol_button "avfctl_ff"     "gtk-media-forward" "FF"     "${DV_FF_CMD}")
-            </hbox>
-        </hbox>
-        <vbox space-expand="true">
-            <pixmap><input file>"${RESOURCE_PATH}/dvrecord.png"</input></pixmap>
-        </vbox>
     </frame>
 </frame>
 AVFCTL_FORM
