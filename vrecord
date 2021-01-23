@@ -315,7 +315,7 @@ _gtk_vbox_list() {
         fi
     }
 
-    echo "<vbox>
+    echo "<vbox space-fill=\"true\">
       <text>
           <label>${LABEL}</label>
       </text>
@@ -637,16 +637,16 @@ echo "disabled" > "$AVFCTL_STATUS_TMP"
 SIDECAR_FILES_GUI="
 <frame Sidecar file options>
     <hbox space-expand=\"true\">
-        $(_gtk_vbox_list "FRAMEMD5_CHOICE"   "100"  "frameMD5s? (recommended)"  "${FRAMEMD5_OPTIONS[@]}")
-        $(_gtk_vbox_list "QCTOOLSXML_CHOICE" "200"  "QCTools XML?"              "${QCTOOLSXML_OPTIONS[@]}")
+        $(_gtk_vbox_list "FRAMEMD5_CHOICE"    "80"  "frameMD5s? (recommended)"  "${FRAMEMD5_OPTIONS[@]}")
+        $(_gtk_vbox_list "QCTOOLSXML_CHOICE" "180"  "QCTools XML?"              "${QCTOOLSXML_OPTIONS[@]}")
     </hbox>
 </frame>"
 
 PLAYBACK_OPT_GUI="
 <frame Playback options>
     <hbox space-expand=\"true\">
-        $(_gtk_vbox_list "PLAYBACKVIEW_CHOICE"      "200" "Select View (for recording)"   "${PLAYBACKVIEW_OPTIONS[@]}")
-        $(_gtk_vbox_list "PLAYBACKVIEW_CHOICE_PASS" "200" "Select View (for passthrough)" "${PLAYBACKVIEW_PASS_OPTIONS[@]}")
+        $(_gtk_vbox_list "PLAYBACKVIEW_CHOICE"      "130" "View (recording)"   "${PLAYBACKVIEW_OPTIONS[@]}")
+        $(_gtk_vbox_list "PLAYBACKVIEW_CHOICE_PASS" "130" "View (passthrough)" "${PLAYBACKVIEW_PASS_OPTIONS[@]}")
     </hbox>
 </frame>"
 
@@ -806,14 +806,14 @@ DECKLINK_INPUT_GUI=$(cat << DECKLINK_FORM
 <frame Decklink input options>
     <vbox>
         <hbox space-expand="true">
-            $(_gtk_vbox_list "DECKLINK_UTILITY_CHOICE"  "100" "Select Input Utility"          "${DECKLINK_UTILITIES[@]}")
-            $(_gtk_vbox_list "DECKLINK_INPUT_CHOICE"    "160" "Select Video Card"             "${DECKLINK_DEVICES[@]}")
-            $(_gtk_vbox_list "VIDEO_INPUT_CHOICE"       "100" "Select Video Input"            "${VIDEO_INPUT_OPTIONS[@]}")
-            $(_gtk_vbox_list "AUDIO_INPUT_CHOICE"       "200" "Select Audio Input"            "${AUDIO_INPUT_OPTIONS[@]}")
-            $(_gtk_vbox_list "AUDIO_MAPPING_CHOICE"     "300" "Select Audio Channel Mapping"  "${CHANNEL_MAPPING_OPTIONS[@]}" )
-            $(_gtk_vbox_list "STANDARD_CHOICE"          "100" "Select Standard"               "${STANDARD_OPTIONS[@]}")
-            $(_gtk_vbox_list "VIDEO_BIT_DEPTH_CHOICE"   "100" "Select Video Bit Depth"        "${VIDEO_BITDEPTH_OPTIONS[@]}")
-            $(_gtk_vbox_list "TIMECODE_CHOICE"          "100" "Select timecode format"        "${TIMECODE_OPTIONS[@]}")
+            $(_gtk_vbox_list "DECKLINK_UTILITY_CHOICE"   "80" "Input Utility"          "${DECKLINK_UTILITIES[@]}")
+            $(_gtk_vbox_list "DECKLINK_INPUT_CHOICE"    "120" "Video Card"             "${DECKLINK_DEVICES[@]}")
+            $(_gtk_vbox_list "VIDEO_INPUT_CHOICE"       "100" "Video Input"            "${VIDEO_INPUT_OPTIONS[@]}")
+            $(_gtk_vbox_list "AUDIO_INPUT_CHOICE"       "140" "Audio Input"            "${AUDIO_INPUT_OPTIONS[@]}")
+            $(_gtk_vbox_list "AUDIO_MAPPING_CHOICE"      "-1" "Audio Channel Mapping"  "${CHANNEL_MAPPING_OPTIONS[@]}" )
+            $(_gtk_vbox_list "STANDARD_CHOICE"           "60" "Standard"               "${STANDARD_OPTIONS[@]}")
+            $(_gtk_vbox_list "VIDEO_BIT_DEPTH_CHOICE"    "80" "Video Bit Depth"        "${VIDEO_BITDEPTH_OPTIONS[@]}")
+            $(_gtk_vbox_list "TIMECODE_CHOICE"           "80" "Timecode format"        "${TIMECODE_OPTIONS[@]}")
         </hbox>
         <frame Output file options>
             <hbox space-expand="true">
@@ -1102,7 +1102,7 @@ export MAIN_DIALOG='
                     </vbox>
                     <vbox>
                         <text>
-                            <label>Enter the name of the person digitizing this tape.</label>
+                            <label>Name of the person digitizing this tape.</label>
                         </text>
                         <entry>
                             <variable>TECHNICIAN</variable>
@@ -1110,7 +1110,7 @@ export MAIN_DIALOG='
                     </vbox>
                     <vbox>
                         <text>
-                            <label>Set recording time (integer or decimal) in minutes</label>
+                            <label>Recording time in minutes</label>
                         </text>
                         <entry activates_default="true" tooltip-text="Suggested:23 33 63 93. Leave blank for indefinite recording time">
                             <default>"'"${DURATION}"'"</default>
@@ -1123,7 +1123,7 @@ export MAIN_DIALOG='
                 <hbox space-expand="true">
                     <vbox>
                         <text>
-                            <label>Enter an optional file prefix</label>
+                            <label>Optional filename prefix</label>
                         </text>
                         <entry>
                             <default>"'"${PREFIX}"'"</default>
@@ -1133,7 +1133,7 @@ export MAIN_DIALOG='
                     </vbox>
                     <vbox>
                         <text>
-                            <label>Enter an optional file suffix</label>
+                            <label>Optional filename suffix</label>
                         </text>
                         <entry>
                             <default>"'"${USER_SUFFIX}"'"</default>
@@ -1143,7 +1143,7 @@ export MAIN_DIALOG='
                     </vbox>
                     <vbox>
                         <checkbox>
-                            <label>Check this to turn off appending of suffixes</label>
+                            <label>Disable suffixes</label>
                             <default>"'"${NO_SUFFIX}"'"</default>
                             <variable>NO_SUFFIX</variable>
                             <action signal="key-release-event" type="refresh">VRECORD_OUTPUT_NAME</action>
