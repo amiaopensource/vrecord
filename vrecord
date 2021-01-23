@@ -1041,11 +1041,63 @@ AUDIO_INPUT_FORM
 )
 
 export MAIN_DIALOG='
-    <vbox>
-        <text>
-            <label>Set file recording options.</label>
-        </text>
 <window title="Welcome to Vrecord!">
+    <vbox shadow-type="0">
+        <vbox scrollable="true" width="1080" height="520" shadow-type="0">
+            <vbox>
+                <hbox homogenous="true" space-expand="true">
+                    <button image-position="Top">
+                        <label>Record</label>
+                        <width>100</width>
+                        <input file>"'"${RESOURCE_PATH}/vrecord_logo.png"'"</input>
+                        <action type="exit">Record</action>
+                    </button>
+                    <button image-position="Top">
+                        <label>Passthrough</label>
+                        <width>100</width>
+                        <input file>"'"${RESOURCE_PATH}/vrecord_logo_playback.png"'"</input>
+                        <action type="exit">passthrough</action>
+                    </button>
+                    <button image-position="Top">
+                        <label>Audio Check</label>
+                        <width>100</width>
+                        <input file>"'"${RESOURCE_PATH}/vrecord_logo_audio.png"'"</input>
+                        <action type="exit">audiopassthrough</action>
+                    </button>
+                    <button image-position="Top">
+                        <label>Edit Settings</label>
+                        <width>100</width>
+                        <input file>"'"${RESOURCE_PATH}/vrecord_logo_edit.png"'"</input>
+                        <action type="show">INPUTSETTINGS</action>
+                        <action type="hide">MAIN</action>
+                    </button>
+                    <button image-position="Top">
+                        <label>Help</label>
+                        <width>100</width>
+                        <input file>"'"${RESOURCE_PATH}/vrecord_logo_help.png"'"</input>
+                        <action>man vrecord</action>
+                    </button>
+                    <button image-position="Top">
+                        <label>Documentation</label>
+                        <width>100</width>
+                        <input file>"'"${RESOURCE_PATH}/vrecord_logo_documentation.png"'"</input>
+                        <action>"'"${OPEN_COMMAND} https://github.com/amiaopensource/vrecord#vrecord-documentation"'"</action>
+                    </button>
+                </hbox>
+            </vbox>
+            <vbox space-expand="true">
+                <frame Settings Summary>
+                    <vbox scrollable="true" height="320">
+                        <text wrap="false" xalign="0">
+                            <variable export="false">VRECORD_SETTINGS_SUMMARY</variable>
+                            <input>_get_summary</input>
+                        </text>
+                    </vbox>
+                </frame>
+            </vbox>
+            <variable>MAIN</variable>
+        </vbox>
+    <vbox scrollable="true" width="1080" height="520" shadow-type="0">
         <frame Input Options>
         <notebook page="'"${DEVICE_INPUT_CHOICE}"'" tab-labels="Decklink|DV|Audio|Config">
             '"${DECKLINK_INPUT_GUI}"'
@@ -1060,6 +1112,9 @@ export MAIN_DIALOG='
             <action signal="leave-notify-event" condition="command_is_true( [ ${DEVICE_INPUT_CHOICE} = 3 ] && echo true)">disable:passthrough_button</action>
         </notebook>
         </frame>
+        <variable>INPUTSETTINGS</variable>
+    </vbox>
+    <vbox>
         <hbox>
             <frame Select a recording directory>
                 <hbox>
@@ -1176,51 +1231,60 @@ export MAIN_DIALOG='
                 </vbox>
             </hbox>
         </vbox>
-        <vbox>
-            <hbox>
-                <button>
-                    <label>Record</label>
-                    <input file stock="gtk-media-record"></input>
-                    <variable>record_button</variable>
-                    <action>_update_config_file</action>
-                    <action type="exit">record</action>
-                </button>
-                <button>
-                    <label>Passthrough</label>
-                    <input file stock="gtk-media-play"></input>
-                    <variable>passthrough_button</variable>
-                    <action>_update_config_file</action>
-                    <action type="exit">passthrough</action>
-                </button>
-                <button>
-                    <label>Save Settings</label>
-                    <input file stock="gtk-save"></input>
-                    <variable>save_button</variable>
-                    <action>_update_config_file</action>
-                </button>
-                <button>
-                    <label>Home</label>
-                    <input file stock="gtk-index"></input>
-                    <variable>home_button</variable>
-                    <action>_update_config_file</action>
-                    <action type="launch">HOME_DIALOG</action>
-                </button>
-                <button cancel>
-                </button>
-                <button>
-                    <label>Refresh</label>
-                    <input file stock="gtk-refresh"></input>
-                    <action>_update_config_file</action>
-                    <action type="exit">refresh</action>
-                </button>
-            </hbox>
-        </vbox>
+    </vbox>
+        <hbox space-expand="false" space-fill="false">
+            <button>
+                <label>Home</label>
+                <input file stock="gtk-index"></input>
+                <variable>home_button</variable>
+                <action>_update_config_file</action>
+                <action type="show">MAIN</action>
+                <action type="hide">INPUTSETTINGS</action>
+            </button>
+            <button>
+                <label>Settings</label>
+                <input file stock="gtk-index"></input>
+                <variable>home_button</variable>
+                <action>_update_config_file</action>
+                <action type="show">INPUTSETTINGS</action>
+                <action type="hide">MAIN</action>
+            </button>
+            <hbox space-expand="true" space-fill="true"><text><label>""</label></text></hbox>
+            <button>
+                <label>Record</label>
+                <input file stock="gtk-media-record"></input>
+                <variable>record_button</variable>
+                <action>_update_config_file</action>
+                <action type="exit">record</action>
+            </button>
+            <button>
+                <label>Passthrough</label>
+                <input file stock="gtk-media-play"></input>
+                <variable>passthrough_button</variable>
+                <action>_update_config_file</action>
+                <action type="exit">passthrough</action>
+            </button>
+            <button>
+                <label>Save Settings</label>
+                <input file stock="gtk-save"></input>
+                <variable>save_button</variable>
+                <action>_update_config_file</action>
+            </button>
+            <button cancel>
+            </button>
+            <button>
+                <label>Refresh</label>
+                <input file stock="gtk-refresh"></input>
+                <action>_update_config_file</action>
+                <action type="exit">refresh</action>
+            </button>
+        </hbox>
     </vbox>
     <variable>MAIN_DIALOG</variable>
+    <action signal="realize" type="hide">MAIN</action>
     <action signal="show" type="refresh">VRECORD_FORM_VALIDATION</action>
     <action signal="enter-notify-event" type="refresh">VRECORD_FORM_VALIDATION</action>
     <action signal="leave-notify-event" type="refresh">VRECORD_FORM_VALIDATION</action>
-    <action signal="show" type="closewindow">HOME_DIALOG</action>
     <action signal="show" type="refresh">VRECORD_OUTPUT_NAME</action>
     <action signal="show" condition="command_is_true(echo \"$AUDIO_DEV_CHOICE\" | grep -vq Blackmagic && echo true)">enable:AUDIO_MODE_SR_CHOICE</action>
     <action signal="show" condition="command_is_true(echo \"$AUDIO_DEV_CHOICE\" | grep -q Blackmagic && echo true)">disable:AUDIO_MODE_SR_CHOICE</action>
@@ -1233,7 +1297,6 @@ _edit_mode(){
     _set_up_edit_form
 
     # run the edit form in gtkdialog
-    HOME_DIALOG_TMP="${HOME_DIALOG}"
     MAIN_DIALOG_TMP="${MAIN_DIALOG}"
 
     GTK_INC="$(_maketemp .vrecord.gtkdialog.inc)"
@@ -1243,18 +1306,17 @@ _edit_mode(){
 
     if [[ "${VERBOSE_GTKDIALOG}" = "Y" ]] ; then
         if [[ "$RUNTYPE" = "GUI" ]] || [[ "${GUI}" = "1" ]] ; then
-            eval "$(gtkdialog --include="${GTK_INC}" --program HOME_DIALOG --center)"
+            eval "$(gtkdialog --include="${GTK_INC}" --program MAIN_DIALOG --center)"
         else
             eval "$(gtkdialog --include="${GTK_INC}" --program MAIN_DIALOG --center)"
         fi
     else
         if [[ "$RUNTYPE" = "GUI" ]] || [[ "${GUI}" = "1" ]] ; then
-            eval "$(gtkdialog --include="${GTK_INC}" --program HOME_DIALOG --center 2> /dev/null)"
+            eval "$(gtkdialog --include="${GTK_INC}" --program MAIN_DIALOG --center 2> /dev/null)"
         else
             eval "$(gtkdialog --include="${GTK_INC}" --program MAIN_DIALOG --center 2> /dev/null)"
         fi
     fi
-    HOME_DIALOG="${HOME_DIALOG_TMP}"
     MAIN_DIALOG="${MAIN_DIALOG_TMP}"
 
     # process the results of the edit form
@@ -2043,137 +2105,6 @@ if [[ "${OS_TYPE}" = "linux" ]] ; then
 elif [[ "${OS_TYPE}" = "macOS" ]] ; then
     AUDIO_DEVICES=("${AVFOUNDATION_DEVICES[@]}")
 fi
-
-HOME_DIALOG=$(cat << GTKFORM
-<window title="Welcome to Vrecord!">
-    <vbox>
-        <vbox>
-            <hbox homogenous="true" space-expand="false">
-                <button image-position="Top">
-                    <label>Record</label>
-                    <width>100</width>
-                    <input file>${RESOURCE_PATH}/vrecord_logo.png</input>
-                    <action type="exit">record</action>
-                </button>
-                <button image-position="Top">
-                    <label>Passthrough</label>
-                    <width>100</width>
-                    <input file>${RESOURCE_PATH}/vrecord_logo_playback.png</input>
-                    <action type="exit">passthrough</action>
-                </button>
-                <button image-position="Top">
-                    <label>Audio Check</label>
-                    <width>100</width>
-                    <input file>${RESOURCE_PATH}/vrecord_logo_audio.png</input>
-                    <action type="exit">audiopassthrough</action>
-                </button>
-                <button image-position="Top">
-                    <label>Edit Settings</label>
-                    <width>100</width>
-                    <input file>${RESOURCE_PATH}/vrecord_logo_edit.png</input>
-                    <action type="launch">MAIN_DIALOG</action>
-                </button>
-                <button image-position="Top">
-                    <label>Help</label>
-                    <width>100</width>
-                    <input file>${RESOURCE_PATH}/vrecord_logo_help.png</input>
-                    <action>man vrecord</action>
-                </button>
-                <button image-position="Top">
-                    <label>Documentation</label>
-                    <width>100</width>
-                    <input file>${RESOURCE_PATH}/vrecord_logo_documentation.png</input>
-                    <action>${OPEN_COMMAND} https://github.com/amiaopensource/vrecord#vrecord-documentation</action>
-                </button>
-            </hbox>
-        </vbox>
-          <vbox space-expand="true">
-            <hbox>
-              <frame Settings Summary>
-                <vbox scrollable="true">
-                  <text wrap="false" xalign="0" height="100">
-                  <variable export="false">VRECORD_SETTINGS_SUMMARY</variable>
-                  <input>_get_summary</input>
-                  </text>
-                </vbox>
-              </frame>
-              <frame Simple GUI Options>
-                <vbox>
-                  <frame Recording event options>
-                    <vbox>
-                      <hbox>
-                        <text>
-                          <label>Name of Recording</label>
-                        </text>
-                        <entry>
-                          <variable>ID</variable>
-                          <action signal="key-release-event" type="refresh">VRECORD_OUTPUT_NAME</action>
-                        </entry>
-                      </hbox>
-                      <hbox>
-                        <text>
-                          <label>Enter the name of the person digitizing this tape:</label>
-                        </text>
-                        <entry>
-                          <variable>TECHNICIAN</variable>
-                        </entry>
-                      </hbox>
-                      <hbox>
-                        <text>
-                          <label>Set recording time (integer or decimal) in minutes:</label>
-                        </text>
-                        <entry activates_default="true" tooltip-text="Suggested:23 33 63 93. Leave blank for indefinite recording time">
-                          <variable>DURATION</variable>
-                        </entry>
-                      </hbox>
-                    </vbox>
-                  </frame>
-                  <hbox>
-                    <text>
-                      <label>Output Filename:</label>
-                    </text>
-                    <entry editable="false" has-frame="false">
-                      <variable>VRECORD_OUTPUT_NAME</variable>
-                      <input>_get_output_filename</input>
-                    </entry>
-                  </hbox>
-                  <hbox>
-                    <text>
-                      <label>Errors & Warnings:</label>
-                    </text>
-                    <vbox scrollable="true" height="50">
-                      <text wrap="false" xalign="0" selectable="true">
-                        <variable export="false">VRECORD_FORM_VALIDATION</variable>
-                        <input>_validate_form</input>
-                      </text>
-                    </vbox>
-                  </hbox>
-                </vbox>
-              </frame>
-            </hbox>
-            <hbox>
-              <button>
-                <label>Record</label>
-                <input file stock="gtk-media-record"></input>
-                <variable>record_button</variable>
-                <action type="exit">Record</action>
-              </button>
-              <button>
-                <label>Passthrough</label>
-                <input file stock="gtk-media-play"></input>
-                <variable>passthrough_button</variable>
-                <action type="exit">passthrough</action>
-              </button>
-              <button cancel></button>
-            </hbox>
-          </vbox>
-    </vbox>
-    <variable>HOME_DIALOG</variable>
-    <action signal="show" type="closewindow">MAIN_DIALOG</action>
-</window>
-GTKFORM
-)
-export HOME_DIALOG
 
 # list of selections for each vrecord option
 DECKLINK_UTILITIES=("ffmpeg")
