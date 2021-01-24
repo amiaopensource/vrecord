@@ -135,9 +135,10 @@ _include_var(){
 _setup_env_variables(){
     # Set variables for system differences
     QUERY_OS_TYPE="$(uname -s)"
+    PATH_CHECK="$(dirname "$(command -v "${0}")")"
     if [[ "${QUERY_OS_TYPE}" = "Darwin" ]] ; then
         OS_TYPE="macOS"
-        if [[ $(dirname "$(command -v "${0}")") = "/usr/local/bin" ]] ; then
+        if [[ "${PATH_CHECK}" = "/usr/local/bin" ]] ; then
             if [[ -d "/usr/local/opt/vrecord" ]] ; then
                 RESOURCE_PATH="/usr/local/opt/vrecord"
             else
@@ -175,7 +176,7 @@ _setup_env_variables(){
         DIR_SELECTION_DIALOG="Select an existing folder (or drag/drop one below). File System/Volumes for external media."
     elif [[ "${QUERY_OS_TYPE}" = "Linux" ]] ; then
         OS_TYPE="linux"
-        if [[ $(dirname "$(command -v "${0}")") = "/usr/local/bin" ]] ; then
+        if [[ "${PATH_CHECK}" = "/usr/local/bin" ]] || [[ "${PATH_CHECK}" = "/home/linuxbrew/.linuxbrew/bin" ]] ; then
             if [[ -d "/home/linuxbrew/.linuxbrew/opt/vrecord" ]] ; then
                 RESOURCE_PATH="/home/linuxbrew/.linuxbrew/opt/vrecord"
             else
