@@ -348,7 +348,7 @@ _setup_vrecord_process(){
     if [[ -n "${ALT_INPUT}" ]] ; then
         GRAB_INPUT+=(-i "${ALT_INPUT}")
     elif [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
-        if [[ "${DECKLINK_UTILITY_CHOICE}" == "bmdcapture" ]] ; then
+        if [[ "${DECKLINK_UTILITY_CHOICE}" == "bmdcapture" ]] && [[ -z "${ALT_INPUT}" ]] ; then
             GRAB_INPUT+=(-A "${BMD_AUDIO_INPUT}")
             GRAB_INPUT+=(-V "${BMD_VIDEO_INPUT}")
             GRAB_INPUT+=(-m "${BMD_STANDARD}")
@@ -433,7 +433,7 @@ _setup_vrecord_process(){
     fi
     if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         # DEVICE_INPUT_CHOICE=0 is decklink, other DEVICE_INPUT_CHOICE values don't yet use such filtering
-        if [[ "${DECKLINK_UTILITY_CHOICE}" == "bmdcapture" ]] ; then
+        if [[ "${DECKLINK_UTILITY_CHOICE}" == "bmdcapture" ]] && [[ -z "${ALT_INPUT}" ]] ; then
             if [[ "${RUNTYPE}" = "record" ]] ; then
                 VRECORD_STEPS="3" # Steps: record | ff_record | player
             else
@@ -1591,7 +1591,7 @@ _lookup_choice(){
         # video standard
         "NTSC")
             STANDARD="ntsc"
-            if [[ "${DECKLINK_UTILITY_CHOICE}" == "bmdcapture" ]] ; then
+            if [[ "${DECKLINK_UTILITY_CHOICE}" == "bmdcapture" ]] && [[ -z "${ALT_INPUT}" ]] ; then
                 BMD_STANDARD="$(bmdcapture -h 2>&1 | grep "NTSC.*29.97" | cut -d: -f 1 | sed 's/ //g' | head -n 1)"
                 RECORDINGFILTER+="setfield=bff,"
             fi
@@ -1606,7 +1606,7 @@ _lookup_choice(){
             MIDDLEOPTIONS+=(-colorspace smpte170m) ;;
         "PAL")
             STANDARD="pal "
-            if [[ "${DECKLINK_UTILITY_CHOICE}" == "bmdcapture" ]] ; then
+            if [[ "${DECKLINK_UTILITY_CHOICE}" == "bmdcapture" ]] && [[ -z "${ALT_INPUT}" ]] ; then
                 BMD_STANDARD="$(bmdcapture -h 2>&1 | grep "PAL.*25" | cut -d: -f 1 | sed 's/ //g' | head -n 1)"
                 RECORDINGFILTER+="setfield=tff,"
             fi
