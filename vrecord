@@ -463,8 +463,8 @@ _setup_vrecord_process(){
                 elif [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
                     VRECORD_STEPS="2" # Steps: record | player
                 else
-                VRECORD_STEPS="1" # Steps: player
-            fi
+                    VRECORD_STEPS="1" # Steps: player
+                fi
             fi
             RECORD_COMMAND=("${FFMPEG_BIN}")
             RECORD_COMMAND+=(-nostdin -nostats "${TIME_LIMIT[@]}" "${GRAB_INPUT[@]}")
