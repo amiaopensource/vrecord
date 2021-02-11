@@ -458,12 +458,13 @@ _setup_vrecord_process(){
             if [[ "${RUNTYPE}" = "record" ]] ; then
                 VRECORD_STEPS="2" # Steps: record | player
             else
+                if [[ "${PLAYBACKVIEW_CHOICE_PASS}" = "Audio + Video" ]] ; then
+                    VRECORD_STEPS="2" # Steps: record | player
+                elif [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
+                    VRECORD_STEPS="2" # Steps: record | player
+                else
                 VRECORD_STEPS="1" # Steps: player
             fi
-            if [[ "${PLAYBACKVIEW_CHOICE_PASS}" = "Audio + Video" ]] && [[ "${RUNTYPE}" = "passthrough" ]] ; then
-                VRECORD_STEPS="$((VRECORD_STEPS+1))"
-            elif [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
-                VRECORD_STEPS="$((VRECORD_STEPS+1))"
             fi
             RECORD_COMMAND=("${FFMPEG_BIN}")
             RECORD_COMMAND+=(-nostdin -nostats "${TIME_LIMIT[@]}" "${GRAB_INPUT[@]}")
