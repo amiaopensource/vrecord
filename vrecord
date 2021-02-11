@@ -458,12 +458,13 @@ _setup_vrecord_process(){
             if [[ "${RUNTYPE}" = "record" ]] ; then
                 VRECORD_STEPS="2" # Steps: record | player
             else
-                VRECORD_STEPS="1" # Steps: player
-            fi
-            if [[ "${PLAYBACKVIEW_CHOICE_PASS}" = "Audio + Video" ]] && [[ "${RUNTYPE}" = "passthrough" ]] ; then
-                VRECORD_STEPS="$((VRECORD_STEPS+1))"
-            elif [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
-                VRECORD_STEPS="$((VRECORD_STEPS+1))"
+                if [[ "${PLAYBACKVIEW_CHOICE_PASS}" = "Audio + Video" ]] ; then
+                    VRECORD_STEPS="2" # Steps: record | player
+                elif [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
+                    VRECORD_STEPS="2" # Steps: record | player
+                else
+                    VRECORD_STEPS="1" # Steps: player
+                fi
             fi
             RECORD_COMMAND=("${FFMPEG_BIN}")
             RECORD_COMMAND+=(-nostdin -nostats "${TIME_LIMIT[@]}" "${GRAB_INPUT[@]}")
@@ -1180,7 +1181,7 @@ export MAIN_DIALOG='
                     <input file stock="gtk-media-record"></input>
                     <variable>record_button</variable>
                     <action>_update_config_file</action>
-                    <action type="exit">Record</action>
+                    <action type="exit">record</action>
                 </button>
                 <button>
                     <label>Passthrough</label>
@@ -1262,7 +1263,7 @@ _edit_mode(){
         _report -d "Editing of preferences was canceled by the user."
         _report -d "Exiting Vrecord. Goodbye!"
         exit 0
-    elif [[ "${EXIT}" = "Record" ]] ; then
+    elif [[ "${EXIT}" = "record" ]] ; then
         RUNTYPE="record"
     elif [[ "${EXIT}" = "passthrough" ]] ; then
         RUNTYPE="passthrough"
