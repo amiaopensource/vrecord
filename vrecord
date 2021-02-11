@@ -1181,7 +1181,7 @@ export MAIN_DIALOG='
                     <input file stock="gtk-media-record"></input>
                     <variable>record_button</variable>
                     <action>_update_config_file</action>
-                    <action type="exit">Record</action>
+                    <action type="exit">record</action>
                 </button>
                 <button>
                     <label>Passthrough</label>
@@ -1263,7 +1263,7 @@ _edit_mode(){
         _report -d "Editing of preferences was canceled by the user."
         _report -d "Exiting Vrecord. Goodbye!"
         exit 0
-    elif [[ "${EXIT}" = "Record" ]] ; then
+    elif [[ "${EXIT}" = "record" ]] ; then
         RUNTYPE="record"
     elif [[ "${EXIT}" = "passthrough" ]] ; then
         RUNTYPE="passthrough"
