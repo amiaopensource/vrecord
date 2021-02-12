@@ -25,12 +25,11 @@ Dependencies: cowsay, amiaopensource/amiaos/decklinksdk,
   xmlstarlet
 Optional Dependencies: deckcontrol, gnuplot, mediaconch, mkvtoolnix, mpv, qcli
 
-Usage: ${SCRIPTNAME} [ -g | -e | -r | -p | -a | -x | -v | -h ] [IDENTIFIER]
+Usage: ${SCRIPTNAME} [ -e | -r | -p | -a | -x | -v | -h ] [IDENTIFIER]
 
   IDENTIFIER will be used for the filenaming of the output files. It is only
   required in record mode.
 
-  -g  use the GUI
   -e  edit the configuration file before recording
   -r  enable record mode [default]
   -p  enable passthrough mode where the video signal coming into the computer
@@ -1323,17 +1322,9 @@ _edit_mode(){
     cat "${SHARED_FUNCTIONS_FILE}" >> "${GTK_INC}"
 
     if [[ "${VERBOSE_GTKDIALOG}" = "Y" ]] ; then
-        if [[ "$RUNTYPE" = "GUI" ]] || [[ "${GUI}" = "1" ]] ; then
             eval "$(gtkdialog --include="${GTK_INC}" --program MAIN_DIALOG --center)"
-        else
-            eval "$(gtkdialog --include="${GTK_INC}" --program MAIN_DIALOG --center)"
-        fi
     else
-        if [[ "$RUNTYPE" = "GUI" ]] || [[ "${GUI}" = "1" ]] ; then
             eval "$(gtkdialog --include="${GTK_INC}" --program MAIN_DIALOG --center 2> /dev/null)"
-        else
-            eval "$(gtkdialog --include="${GTK_INC}" --program MAIN_DIALOG --center 2> /dev/null)"
-        fi
     fi
     MAIN_DIALOG="${MAIN_DIALOG_TMP}"
 
@@ -2051,7 +2042,7 @@ _review_all_options(){
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":hc:erpaxgvI:O:i:G" opt ; do
+while getopts ":hc:erpaxvI:O:i:G" opt ; do
     case "${opt}" in
         h) _usage ; exit 0 ;;
         c) CONFIG_FILE="${OPTARG}" ;;
@@ -2060,7 +2051,6 @@ while getopts ":hc:erpaxgvI:O:i:G" opt ; do
         p) RUNTYPE="passthrough" ;;
         a) RUNTYPE="audiopassthrough" ;;
         x) RUNTYPE="reset" ;;
-        g) RUNTYPE="GUI" ; GUI=1 ;;
         v) VERBOSE="true" ;;
         I) EXTRAINPUTOPTIONS=(${OPTARG}) ;;
         O) EXTRAOUTPUTOPTIONS=(${OPTARG}) ;;
@@ -2160,7 +2150,7 @@ WAVEFORM_SCALE_OPTIONS=("digital" "millivolts" "ire")
 SIGNAL_OPTIONS=("Broadcast Range" "Full Range")
 MONITOR_AUDIO_OPTIONS=("Yes" "No")
 
-# GUI mode + CLI reset, edit modes
+# CLI reset, edit modes
 if [[ "${RUNTYPE}" = "reset" ]] ; then
     _report -q -n "Resetting the configuration will clear ${CONFIG_FILE}. Please enter [Y] to confirm: "
     read RESET_RESPONSE
@@ -2174,27 +2164,13 @@ if [[ "${RUNTYPE}" = "reset" ]] ; then
         exit 0
     fi
 fi
-while [[ "${RUNTYPE}" = "edit" || "${RUNTYPE}" = "GUI" ]] ; do
+while [[ "${RUNTYPE}" = "edit" ]] ; do
     _edit_mode
 done
 
 _review_all_options
 
 # CLI passthrough and audiopassthrough modes
-# GUI mode loops
-if [[ "${GUI}" = 1 ]] ; then
-    while [[ "${RUNTYPE}" != "record" ]] ; do
-        if [[ "${RUNTYPE}" = "passthrough" ]] ; then
-            _passthrough_mode
-            RUNTYPE="GUI"
-        elif [[ "${RUNTYPE}" = "audiopassthrough" ]] ; then
-            _audiopassthrough_mode
-            RUNTYPE="GUI"
-        elif [[ "${RUNTYPE}" = "edit" || "$RUNTYPE" = "GUI" ]] ; then
-            _edit_mode
-        fi
-    done
-else
     if [[ "${RUNTYPE}" = "passthrough" ]] ; then
         _passthrough_mode
         exit 0
@@ -2202,7 +2178,6 @@ else
         _audiopassthrough_mode
         exit 0
     fi
-fi
 
 # record mode
 if [[ -z "${ID}" ]] ; then
