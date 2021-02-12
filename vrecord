@@ -2163,6 +2163,7 @@ if [[ "${RUNTYPE}" = "reset" ]] ; then
         _report -d "Clearing ${CONFIG_FILE}."
         echo -n "" > "${CONFIG_FILE}"
         RUNTYPE="edit"
+        STARTUP_VIEW="INPUTSETTINGS"
     else
         _report -d "Reset aborted. Exiting."
         exit 0
