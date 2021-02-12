@@ -1256,7 +1256,7 @@ export MAIN_DIALOG='
             <button>
                 <label>Settings</label>
                 <input file stock="gtk-index"></input>
-                <variable>home_button</variable>
+                <variable>settings_button</variable>
                 <action>_update_config_file</action>
                 <action type="show">INPUTSETTINGS</action>
                 <action type="hide">MAIN</action>
