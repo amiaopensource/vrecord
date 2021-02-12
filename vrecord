@@ -2208,28 +2208,21 @@ while [[ -z "${ID}" ]] ; do
     fi
     AHEM="a (non-blank) "
 done
-if [[ ! -d "${DIR}" ]] ; then
-    _report -q -n "Enter Directory: "
-    read DIR
-    DIR="$(echo "${DIR}" | sed "s/^['\"]\(.*\).$/\1/")"
-    if [[ ! -d "${DIR}" ]] ; then
-        _report -w "Error: Not a valid directory"
-        exit 1
-    fi
+DIR="$(echo "${DIR}" | sed "s/^['\"]\(.*\).$/\1/")"
+if [[ -z "${DIR}" ]] ; then
+    _report -d "We'll record files to $(pwd)."
+    DIR="$(pwd)"
+elif [[ ! -d "${DIR}" ]] ; then
+    _report -w "Error: The recording directory at ${DIR} is not a valid directory. Let's use $(pwd) instead."
+    DIR="$(pwd)"
 fi
-
-if [[ ! -d "${LOGDIR}" ]] ; then
-    if [[ ! -d "${DIR}" ]] ; then
-        _report -q -n "Enter Directory for Auxiliary Files (If blank will default to recording directory): "
-        read LOGDIR
-        LOGDIR="$(echo "${LOGDIR}" | sed "s/^['\"]\(.*\).$/\1/")"
-    else
-        LOGDIR="${DIR}"
-    fi
-    if [[ ! -d "${LOGDIR}" ]] ; then
-        _report -w "Error: Not a valid directory"
-        exit 1
-    fi
+LOGDIR="$(echo "${LOGDIR}" | sed "s/^['\"]\(.*\).$/\1/")"
+if [[ -z "${LOGDIR}" ]] ; then
+    _report -d "And place logs at ${DIR} too."
+    LOGDIR="${DIR}"
+elif [[ ! -d "${LOGDIR}" ]] ; then
+    _report -w "Error: The directory for auxiliary files at ${DIR} is not a valid directory. Let's use ${DIR} instead."
+    LOGDIR="${DIR}"
 fi
 
 if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
