@@ -2105,6 +2105,7 @@ if [[ -f "${CONFIG_FILE}" ]] ; then
 else
     _report -d "Initiatizing the configuration file at ${CONFIG_FILE}."
     RUNTYPE="edit"
+    STARTUP_VIEW="INPUTSETTINGS"
 fi
 
 _get_decklink_inputs
@@ -2165,6 +2166,7 @@ if [[ "${RUNTYPE}" = "reset" ]] ; then
     fi
 fi
 while [[ "${RUNTYPE}" = "edit" ]] ; do
+    STARTUP_VIEW="INPUTSETTINGS"
     _edit_mode
 done
 
