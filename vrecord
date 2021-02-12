@@ -1099,7 +1099,7 @@ export MAIN_DIALOG='
                     </vbox>
                 </frame>
             </vbox>
-            <variable>MAIN</variable>
+            <variable export="false">MAIN</variable>
         </vbox>
         <vbox scrollable="true" width="1080" height="520" shadow-type="0">
             <frame Input Options>
@@ -1116,7 +1116,7 @@ export MAIN_DIALOG='
                 <action signal="leave-notify-event" condition="command_is_true( [ ${DEVICE_INPUT_CHOICE} = 3 ] && echo true)">disable:passthrough_button</action>
             </notebook>
         </frame>
-        <variable>INPUTSETTINGS</variable>
+        <variable export="false">INPUTSETTINGS</variable>
     </vbox>
     <vbox>
         <hbox>
@@ -1129,7 +1129,7 @@ export MAIN_DIALOG='
                     </entry>
                     <button>
                         <input file stock="gtk-open"></input>
-                        <variable>DIRBROWSE</variable>
+                        <variable export="false">DIRBROWSE</variable>
                         <action type="fileselect">DIR</action>
                     </button>
                 </hbox>
@@ -1142,7 +1142,7 @@ export MAIN_DIALOG='
                     </entry>
                     <button>
                         <input file stock="gtk-open"></input>
-                        <variable>LOGDIRBROWSE</variable>
+                        <variable export="false">LOGDIRBROWSE</variable>
                         <action type="fileselect">LOGDIR</action>
                     </button>
                 </hbox>
@@ -1246,7 +1246,7 @@ export MAIN_DIALOG='
             <button>
                 <label>Home</label>
                 <input file stock="gtk-index"></input>
-                <variable>home_button</variable>
+                <variable export="false">home_button</variable>
                 <action>_update_config_file</action>
                 <action type="show">MAIN</action>
                 <action type="hide">INPUTSETTINGS</action>
@@ -1256,7 +1256,7 @@ export MAIN_DIALOG='
             <button>
                 <label>Settings</label>
                 <input file stock="gtk-index"></input>
-                <variable>settings_button</variable>
+                <variable export="false">settings_button</variable>
                 <action>_update_config_file</action>
                 <action type="show">INPUTSETTINGS</action>
                 <action type="hide">MAIN</action>
@@ -1267,21 +1267,21 @@ export MAIN_DIALOG='
             <button>
                 <label>Record</label>
                 <input file stock="gtk-media-record"></input>
-                <variable>record_button</variable>
+                <variable export="false">record_button</variable>
                 <action>_update_config_file</action>
                 <action type="exit">record</action>
             </button>
             <button>
                 <label>Passthrough</label>
                 <input file stock="gtk-media-play"></input>
-                <variable>passthrough_button</variable>
+                <variable export="false">passthrough_button</variable>
                 <action>_update_config_file</action>
                 <action type="exit">passthrough</action>
             </button>
             <button>
                 <label>Save Settings</label>
                 <input file stock="gtk-save"></input>
-                <variable>save_button</variable>
+                <variable export="false">save_button</variable>
                 <action>_update_config_file</action>
             </button>
             <button cancel>
@@ -1294,7 +1294,7 @@ export MAIN_DIALOG='
             </button>
         </hbox>
     </vbox>
-    <variable>MAIN_DIALOG</variable>
+    <variable export="false">MAIN_DIALOG</variable>
     <action signal="realize" type="show">MAIN</action>
     <action signal="realize" type="hide">INPUTSETTINGS</action>
     <action signal="realize" condition="command_is_true( [ \"$STARTUP_VIEW\" = \"INPUTSETTINGS\" ] && echo true)" type="show">INPUTSETTINGS</action>
