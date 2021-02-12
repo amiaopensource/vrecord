@@ -2205,6 +2205,10 @@ else
 fi
 
 # record mode
+if [[ -z "${ID}" ]] ; then
+    _report -d "Starting the vrecord GUI. To bypass the GUI, run like 'vrecord FILENAME'."
+    _edit_mode
+fi
 while [[ -z "${ID}" ]] ; do
     _report -q -n "Enter ${AHEM}Identifier: "
     read ID
