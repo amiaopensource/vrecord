@@ -1100,6 +1100,7 @@ export MAIN_DIALOG='
                 </frame>
             </vbox>
             <variable export="false">MAIN</variable>
+            <action signal="show" type="refresh">VRECORD_SETTINGS_SUMMARY</action>
         </vbox>
         <vbox scrollable="true" width="1080" height="520" shadow-type="0">
             <frame Input Options>

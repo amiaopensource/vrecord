@@ -182,6 +182,9 @@ _get_audio_device_list(){
 }
 
 _get_summary(){
+    if [[ ! -f "${CONFIG_FILE}" ]] ; then
+        echo "VRecord configuration file is missing, please visit the Settings panel."
+    else
   . "${CONFIG_FILE}"
   if [ "${DEVICE_INPUT_CHOICE}" = "0" ] ; then
     echo "Device Input: Decklink"
@@ -211,4 +214,5 @@ _get_summary(){
     echo "Inputs recorded to ${DIR}"
     echo "Auxiliary files created in ${LOGDIR}"
   fi
+    fi
 }
