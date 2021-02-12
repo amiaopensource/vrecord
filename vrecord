@@ -1960,8 +1960,13 @@ _review_option(){
         declare -g "${VALUE_NAME}"="${SELECTED}"
     fi
     if [[ ! " ${CHOICES[@]} " =~ " ${SELECTED} " ]] ; then
+        if [[ -z "${SELECTED}" ]] ; then
+            _report -w "Error: An option for ${VALUE_NAME} is required. Please restart ${SCRIPTNAME} in edit mode (${SCRIPTNAME} -e) or update the configuration file at ${CONFIG_FILE}."
+            exit 2
+        else
         _report -w "The configuration file uses an invalid value of ${SELECTED} for ${VALUE_NAME}. Valid values are: ${CHOICES[*]}. Please restart ${SCRIPTNAME} in edit mode (${SCRIPTNAME} -e) or update the configuration file at ${CONFIG_FILE}."
         exit 2
+        fi
     fi
     if [[ "${SELECTED}" ]] ; then
         if [[ "${NO_LOOKUP}" != "Y" ]] ; then
