@@ -1322,9 +1322,9 @@ _edit_mode(){
     cat "${SHARED_FUNCTIONS_FILE}" >> "${GTK_INC}"
 
     if [[ "${VERBOSE_GTKDIALOG}" = "Y" ]] ; then
-            eval "$(gtkdialog --include="${GTK_INC}" --program MAIN_DIALOG --center)"
+        eval "$(gtkdialog --include="${GTK_INC}" --program MAIN_DIALOG --center)"
     else
-            eval "$(gtkdialog --include="${GTK_INC}" --program MAIN_DIALOG --center 2> /dev/null)"
+        eval "$(gtkdialog --include="${GTK_INC}" --program MAIN_DIALOG --center 2> /dev/null)"
     fi
     MAIN_DIALOG="${MAIN_DIALOG_TMP}"
 
@@ -2171,13 +2171,13 @@ done
 _review_all_options
 
 # CLI passthrough and audiopassthrough modes
-    if [[ "${RUNTYPE}" = "passthrough" ]] ; then
-        _passthrough_mode
-        exit 0
-    elif [[ "${RUNTYPE}" = "audiopassthrough" ]] ; then
-        _audiopassthrough_mode
-        exit 0
-    fi
+if [[ "${RUNTYPE}" = "passthrough" ]] ; then
+    _passthrough_mode
+    exit 0
+elif [[ "${RUNTYPE}" = "audiopassthrough" ]] ; then
+    _audiopassthrough_mode
+    exit 0
+fi
 
 # record mode
 if [[ -z "${ID}" ]] ; then
