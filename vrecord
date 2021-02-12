@@ -2005,14 +2005,14 @@ _review_all_options(){
         _report -w "Since this computer has only ${CORE_COUNT} cores, the playback will display only half of the frames to reduce CPU. This will not impact the recording."
         PLAYBACK_FILTER_ADJUSTMENT="select=not(mod(n\,2)),"
     fi
-    _review_option -n "WAVEFORM_SCALE_CHOICE" "${WAVEFORM_SCALE_OPTIONS[@]}"
+    _review_option -n -d "digital" "WAVEFORM_SCALE_CHOICE" "${WAVEFORM_SCALE_OPTIONS[@]}"
     _review_option -n -d "Broadcast Range" "SIGNAL_VIEW_CHOICE" "${SIGNAL_OPTIONS[@]}"
     _review_option -n -d "Yes" "MONITOR_AUDIO_CHOICE" "${MONITOR_AUDIO_OPTIONS[@]}"
     _set_scopes
     if [[ "${RUNTYPE}" = "passthrough" ]] && [[ -n "${PLAYBACKVIEW_CHOICE_PASS}" ]] && [[ "${PLAYBACKVIEW_CHOICE_PASS}" != "Unselected" ]] ; then
-        _review_option "PLAYBACKVIEW_CHOICE_PASS" "${PLAYBACKVIEW_PASS_OPTIONS[@]}"
+        _review_option -d "Visual" "PLAYBACKVIEW_CHOICE_PASS" "${PLAYBACKVIEW_PASS_OPTIONS[@]}"
     else
-        _review_option "PLAYBACKVIEW_CHOICE" "${PLAYBACKVIEW_OPTIONS[@]}"
+        _review_option -d "Visual" "PLAYBACKVIEW_CHOICE" "${PLAYBACKVIEW_OPTIONS[@]}"
     fi
     if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         MIDDLEOPTIONS+=(-metadata creation_time=now)
