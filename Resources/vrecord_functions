@@ -92,8 +92,10 @@ _validate_form(){
     elif [ "${AUDIO_CODEC_CHOICE}" = "24-bit FLAC" ] && [ "${CONTAINER_CHOICE}" = "QuickTime" ] ; then
         echo "ERROR: Incompatible audio codecs and containers have been selected."
     fi
-    if [ ! -d "${DIR}" ] ; then
-        echo "ERROR: The recording directory (${DIR}) does not exist. Create this folder please."
+    if [ -z "${DIR}" ] ; then
+        echo "WARNING: The recording directory is not set. $(pwd) will be used."
+    elif [ ! -d "${DIR}" ] ; then
+        echo "ERROR: The recording directory (${DIR}) does not exist. Please set or $(pwd) will be used instead."
     fi
     if [ ! -d "${LOGDIR}" ] && [ -n "${LOGDIR}" ] ; then
         echo "ERROR: The auxiliary directory (${LOGDIR}) does not exist. Create this folder or leave blank to use the recording directory."
@@ -117,6 +119,9 @@ _validate_form(){
 
 _get_output_filename(){
     # Get user suffix preference of default per video codec
+    if [[ -z "${DIR}" ]] ; then
+        DIR="$(pwd)"
+    fi
     if [ "${NO_SUFFIX}" = 'true' ] ; then
         SUFFIX=""
     elif [ -n "${USER_SUFFIX}" ] ; then
