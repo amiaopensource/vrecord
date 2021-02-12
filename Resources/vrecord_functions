@@ -185,34 +185,34 @@ _get_summary(){
     if [[ ! -f "${CONFIG_FILE}" ]] ; then
         echo "VRecord configuration file is missing, please visit the Settings panel."
     else
-  . "${CONFIG_FILE}"
-  if [ "${DEVICE_INPUT_CHOICE}" = "0" ] ; then
-    echo "Device Input: Decklink"
-    echo "Settings: ${VIDEO_CODEC_CHOICE} ${VIDEO_BIT_DEPTH_CHOCIE} ${CONTAINER_CHOICE} File"
-    echo "from ${VIDEO_INPUT_CHOICE} video input and ${AUDIO_INPUT_CHOICE} audio input"
-    echo "Audio channel mapping: ${AUDIO_MAPPING_CHOICE}"
-    echo "Recording audio to ${AUDIO_CODEC_CHOICE}"
-    echo "Input utility: ${DECKLINK_UTILITY_CHOICE}"
-    echo "Timecode format: ${TIMECODE_CHOICE}"
-    echo "Standard: ${STANDARD_CHOICE}"
-    echo "Inputs recorded to ${DIR}"
-    echo "Auxiliary files created in ${LOGDIR}"
-    echo "Frame MD5s: ${FRAMEMD5_CHOICE}"
-    echo "QCTools XML: ${QCTOOLSXML_CHOICE}"
-    echo "Playback: ${PLAYBACKVIEW_CHOICE} view (for recording) and ${PLAYBACKVIEW_CHOICE_PASS} view (for passthrough)"
-  elif [ "${DEVICE_INPUT_CHOICE}" = "1" ] ; then
-    echo "Device Input: DV"
-    echo "Copying video from ${AVFCTL_INPUT_CHOICE}."
-    echo "Inputs recorded to ${DIR}"
-    echo "Auxiliary files created in ${LOGDIR}"
-  elif [ "${DEVICE_INPUT_CHOICE}" = "2" ] ; then
-    echo "Device Input: Audio"
-    echo "Recording audio from ${AUDIO_DEV_CHOICE}."
-    echo "Audio codec: ${AUDIO_MODE_CODEC_CHOICE}"
-    echo "${AUDIO_CHANNEL_CHOICE} channels"
-    echo "Sampling rate: ${AUDIO_MODE_SR_CHOICE} "
-    echo "Inputs recorded to ${DIR}"
-    echo "Auxiliary files created in ${LOGDIR}"
-  fi
+        . "${CONFIG_FILE}"
+        if [ "${DEVICE_INPUT_CHOICE}" = "0" ] ; then
+            echo "Device Input: Decklink"
+            echo "Settings: ${VIDEO_CODEC_CHOICE} ${VIDEO_BIT_DEPTH_CHOCIE} ${CONTAINER_CHOICE} File"
+            echo "from ${VIDEO_INPUT_CHOICE} video input and ${AUDIO_INPUT_CHOICE} audio input"
+            echo "Audio channel mapping: ${AUDIO_MAPPING_CHOICE}"
+            echo "Recording audio to ${AUDIO_CODEC_CHOICE}"
+            echo "Input utility: ${DECKLINK_UTILITY_CHOICE}"
+            echo "Timecode format: ${TIMECODE_CHOICE}"
+            echo "Standard: ${STANDARD_CHOICE}"
+            echo "Inputs recorded to ${DIR}"
+            echo "Auxiliary files created in ${LOGDIR}"
+            echo "Frame MD5s: ${FRAMEMD5_CHOICE}"
+            echo "QCTools XML: ${QCTOOLSXML_CHOICE}"
+            echo "Playback: ${PLAYBACKVIEW_CHOICE} view (for recording) and ${PLAYBACKVIEW_CHOICE_PASS} view (for passthrough)"
+        elif [ "${DEVICE_INPUT_CHOICE}" = "1" ] ; then
+            echo "Device Input: DV"
+            echo "Copying video from ${AVFCTL_INPUT_CHOICE}."
+            echo "Inputs recorded to ${DIR}"
+            echo "Auxiliary files created in ${LOGDIR}"
+        elif [ "${DEVICE_INPUT_CHOICE}" = "2" ] ; then
+            echo "Device Input: Audio"
+            echo "Recording audio from ${AUDIO_DEV_CHOICE}."
+            echo "Audio codec: ${AUDIO_MODE_CODEC_CHOICE}"
+            echo "${AUDIO_CHANNEL_CHOICE} channels"
+            echo "Sampling rate: ${AUDIO_MODE_SR_CHOICE} "
+            echo "Inputs recorded to ${DIR}"
+            echo "Auxiliary files created in ${LOGDIR}"
+        fi
     fi
 }
