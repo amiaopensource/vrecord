@@ -41,6 +41,7 @@ _update_config_file(){
     # write config file
     {
         echo "# Set these variables to a valid option or leave as empty quotes (like \"\") to request each run."
+        echo "STARTUP_VIEW=\"${STARTUP_VIEW}\""
         echo "DEVICE_INPUT_CHOICE=\"${DEVICE_INPUT_CHOICE}\""
         echo "VIDEO_INPUT_CHOICE=\"${VIDEO_INPUT_CHOICE}\""
         echo "AUDIO_INPUT_CHOICE=\"${AUDIO_INPUT_CHOICE}\""

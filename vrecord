@@ -634,6 +634,9 @@ echo "disabled" > "$DECKCONTROL_STATUS_TMP"
 echo "--:--:--:--" > "$DECKCONTROL_TIMECODE_TMP"
 echo "disabled" > "$AVFCTL_STATUS_TMP"
 
+STARTUP_VIEW_TMP=$(_maketemp .startup.txt)
+echo "MAIN" > "${STARTUP_VIEW_TMP}"
+
 SIDECAR_FILES_GUI="
 <frame Sidecar file options>
     <hbox space-expand=\"true\">
@@ -1070,6 +1073,7 @@ export MAIN_DIALOG='
                         <input file>"'"${RESOURCE_PATH}/vrecord_logo_edit.png"'"</input>
                         <action type="show">INPUTSETTINGS</action>
                         <action type="hide">MAIN</action>
+                        <action>echo "INPUTSETTINGS" > "'"$STARTUP_VIEW_TMP"'"</action>
                     </button>
                     <button image-position="Top">
                         <label>Help</label>
@@ -1143,6 +1147,12 @@ export MAIN_DIALOG='
                     </button>
                 </hbox>
             </frame>
+            <entry visible="false">
+                <variable>STARTUP_VIEW</variable>
+                <default>'"${STARTUP_VIEW:-MAIN}"'</default>
+                <input file>'"${STARTUP_VIEW_TMP}"'</input>
+                <action type="refresh">STARTUP_VIEW</action>
+            </entry>
         </hbox>
         <hbox>
             <frame Recording event options>
@@ -1240,6 +1250,8 @@ export MAIN_DIALOG='
                 <action>_update_config_file</action>
                 <action type="show">MAIN</action>
                 <action type="hide">INPUTSETTINGS</action>
+                <action>echo "MAIN" > "'"$STARTUP_VIEW_TMP"'"</action>
+                <action type="refresh">STARTUP_VIEW</action>
             </button>
             <button>
                 <label>Settings</label>
@@ -1248,6 +1260,8 @@ export MAIN_DIALOG='
                 <action>_update_config_file</action>
                 <action type="show">INPUTSETTINGS</action>
                 <action type="hide">MAIN</action>
+                <action>echo "INPUTSETTINGS" > "'"$STARTUP_VIEW_TMP"'"</action>
+                <action type="refresh">STARTUP_VIEW</action>
             </button>
             <hbox space-expand="true" space-fill="true"><text><label>""</label></text></hbox>
             <button>
@@ -1281,7 +1295,10 @@ export MAIN_DIALOG='
         </hbox>
     </vbox>
     <variable>MAIN_DIALOG</variable>
-    <action signal="realize" type="hide">MAIN</action>
+    <action signal="realize" type="show">MAIN</action>
+    <action signal="realize" type="hide">INPUTSETTINGS</action>
+    <action signal="realize" condition="command_is_true( [ \"$STARTUP_VIEW\" = \"INPUTSETTINGS\" ] && echo true)" type="show">INPUTSETTINGS</action>
+    <action signal="realize" condition="command_is_true( [ \"$STARTUP_VIEW\" = \"INPUTSETTINGS\" ] && echo true)" type="hide">MAIN</action>
     <action signal="show" type="refresh">VRECORD_FORM_VALIDATION</action>
     <action signal="enter-notify-event" type="refresh">VRECORD_FORM_VALIDATION</action>
     <action signal="leave-notify-event" type="refresh">VRECORD_FORM_VALIDATION</action>
