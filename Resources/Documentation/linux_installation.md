@@ -35,6 +35,8 @@ The following instructions aim to minimize use of linuxbrew installs for package
 * If `make` and `gcc` are not already installed, install them with
   - `sudo apt-get install gcc`
   - `sudo apt-get install make`
+* Installing a standard version of FFmpeg is highly recommended as a fallback in case of issues with the Linuxbrew controlled build:
+  - `sudo apt-get install ffmpeg`
   
 ### Install Homebrew for Linux (Linuxbrew)
 * Use the following commands, (sourced from the [Homebrew docs](https://docs.brew.sh/Homebrew-on-Linux)) to install and configure Homebrew on Linux:
