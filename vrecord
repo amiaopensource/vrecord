@@ -470,7 +470,7 @@ _setup_vrecord_process(){
                     VRECORD_STEPS="2" # Steps: record | player
                 elif [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
                     VRECORD_STEPS="2" # Steps: record | player
-                elif [[ FFPLAY_NOT_DL = 'Y' ]] ; then
+                elif [[ "${FFPLAY_NOT_DL}" = 'Y' ]] ; then
                     VRECORD_STEPS="2" # Steps: record | player
                 else
                     VRECORD_STEPS="1" # Steps: player
