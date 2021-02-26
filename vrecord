@@ -216,12 +216,17 @@ _gather_ffmpeg_vars(){
     fi
     if [[ -d "${BREW_PREFIX}/bin" ]] ; then
         FFMPEG_BIN="${BREW_PREFIX}/bin/ffmpeg-dl"
-        FFPLAY_BIN="${BREW_PREFIX}/bin/ffplay-dl"
         FFPROBE_BIN="${BREW_PREFIX}/bin/ffprobe-dl"
     else
         FFMPEG_BIN="$(which ffmpeg)"
-        FFPLAY_BIN="$(which ffplay)"
         FFPROBE_BIN="$(which ffprobe)"
+    fi
+
+    if [[ $("${BREW_PREFIX}/bin/ffplay-dl" ${RESOURCE_PATH}/vrecord_logo.png -t 0.01 -autoexit 2> /dev/null) ]] ; then
+        FFPLAY_BIN="${BREW_PREFIX}/bin/ffplay-dl"
+    else
+        FFPLAY_BIN="$(which ffplay)"
+        FFPLAY_NOT_DL='Y'
     fi
 }
 
@@ -464,6 +469,8 @@ _setup_vrecord_process(){
                 if [[ "${PLAYBACKVIEW_CHOICE_PASS}" = "Audio + Video" ]] ; then
                     VRECORD_STEPS="2" # Steps: record | player
                 elif [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
+                    VRECORD_STEPS="2" # Steps: record | player
+                elif [[ "${FFPLAY_NOT_DL}" = 'Y' ]] ; then
                     VRECORD_STEPS="2" # Steps: record | player
                 else
                     VRECORD_STEPS="1" # Steps: player
