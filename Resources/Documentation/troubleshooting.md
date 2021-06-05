@@ -75,6 +75,10 @@ A: Check to make sure all of your cables are routed properly. Also check macOS S
 
 A: Simply close the vrecord window and the program will automatically stop. You should then examine your video file to make sure it's complete.
 
+**Q: The decklink input is not working in vrecord on macOS Big Sur?**
+
+A: First, try updating Desktop Video at the [Blackmagic site](https://www.blackmagicdesign.com/support/) and seeing if Media Express will see your decklink input. If still not working, the advise to uninstall and reinstall Desktop Video at https://github.com/amiaopensource/vrecord/issues/650#issuecomment-770501964 has stepped some.
+
 ### Other Issues
 
 If you are otherwise stuck and want to see vrecord's help menu run:
