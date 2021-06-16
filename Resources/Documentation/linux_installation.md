@@ -1,10 +1,10 @@
 # Steps for a successful install of Vrecord on Linux
 
 ## About
-There are many possible ways to install the various dependencies of Vrecord on Linux. 
+There are many possible ways to install the various dependencies of Vrecord on Linux. The main body of this documentation is oriented towards installing on Ubuntu LTS. For Some information about installing on additional distributions see the section at the bottom of this document. 
 
-## via Linuxbrew (tested Ubuntu 18.04)
-The following instructions aim to minimize use of linuxbrew installs for packages that can otherwise be installed via native Linux methods. When followed in order, these commands should result in a fully functional install of vrecord (tested on Ubuntu 18.04)
+## via Linuxbrew (tested Ubuntu 20.04 LTS)
+The following instructions aim to minimize use of linuxbrew installs for packages that can otherwise be installed via native Linux methods. When followed in order, these commands should result in a fully functional install of vrecord (tested on Ubuntu 20.04 LTS)
 
 ### Programs to be installed manually
 
@@ -63,6 +63,9 @@ The following instructions aim to minimize use of linuxbrew installs for package
 * `sudo apt install libsdl2-dev`
 * This step may not be required if Brew has been configured lower in $PATH than standard system directories.
 
+# Instructions/Tips for other Linux Distrubutions
+## Linux Mint
+Installation on Linux Mint (20.1) it was necessary to run `apt install libc6-dev texinfo` for additional dependencies.
 ## via RPM (tested on CentOS 7/8 and Fedora 31)
 This method is maintained by [Jonáš Svatoš](mailto:jonas.svatos@nfa.cz) at [Národní filmový archiv](https://github.com/NFAcz)
 and contains patches which modify Vrecord source to bypass some hardcoded Homebrew-specific variables. It also adds a nice menu entry.
