@@ -68,6 +68,7 @@ _update_config_file(){
         echo "PREFIX=\"${PREFIX}\""
         echo "USER_SUFFIX=\"${USER_SUFFIX}\""
         echo "NO_SUFFIX=\"${NO_SUFFIX}\""
+        echo "ID=\"${ID}\""
         echo "TECHNICIAN=\"${TECHNICIAN}\""
         echo "AVFCTL_INPUT_CHOICE=\"${AVFCTL_INPUT_CHOICE}\""
         echo "DECKLINK_INPUT_CHOICE=\"${DECKLINK_INPUT_CHOICE}\""
