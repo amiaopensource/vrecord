@@ -1191,6 +1191,7 @@ export MAIN_DIALOG='
                             <label>Name of the person digitizing this tape.</label>
                         </text>
                         <entry>
+                            <default>"'"${TECHNICIAN}"'"</default>
                             <variable>TECHNICIAN</variable>
                         </entry>
                     </vbox>
