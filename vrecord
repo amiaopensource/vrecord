@@ -1053,7 +1053,7 @@ export MAIN_DIALOG='
                         <variable export="false">record_button_main</variable>
                         <width>100</width>
                         <input file>"'"${RESOURCE_PATH}/vrecord_logo.png"'"</input>
-                        <action type="exit">Record</action>
+                        <action type="exit">record_button</action>
                     </button>
                     <button image-position="Top">
                         <label>Passthrough</label>
