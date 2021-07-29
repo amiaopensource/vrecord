@@ -25,12 +25,11 @@ Dependencies: cowsay, amiaopensource/amiaos/decklinksdk,
   xmlstarlet
 Optional Dependencies: deckcontrol, gnuplot, mediaconch, mkvtoolnix, mpv, qcli
 
-Usage: ${SCRIPTNAME} [ -g | -e | -r | -p | -a | -x | -v | -h ] [IDENTIFIER]
+Usage: ${SCRIPTNAME} [ -e | -r | -p | -a | -x | -v | -h ] [IDENTIFIER]
 
   IDENTIFIER will be used for the filenaming of the output files. It is only
   required in record mode.
 
-  -g  use the GUI
   -e  edit the configuration file before recording
   -r  enable record mode [default]
   -p  enable passthrough mode where the video signal coming into the computer
@@ -323,7 +322,7 @@ _gtk_vbox_list() {
         fi
     }
 
-    echo "<vbox>
+    echo "<vbox space-fill=\"true\">
       <text>
           <label>${LABEL}</label>
       </text>
@@ -644,19 +643,22 @@ echo "disabled" > "$DECKCONTROL_STATUS_TMP"
 echo "--:--:--:--" > "$DECKCONTROL_TIMECODE_TMP"
 echo "disabled" > "$AVFCTL_STATUS_TMP"
 
+STARTUP_VIEW_TMP=$(_maketemp .startup.txt)
+echo "MAIN" > "${STARTUP_VIEW_TMP}"
+
 SIDECAR_FILES_GUI="
 <frame Sidecar file options>
     <hbox space-expand=\"true\">
-        $(_gtk_vbox_list "FRAMEMD5_CHOICE"   "100"  "frameMD5s? (recommended)"  "${FRAMEMD5_OPTIONS[@]}")
-        $(_gtk_vbox_list "QCTOOLSXML_CHOICE" "200"  "QCTools XML?"              "${QCTOOLSXML_OPTIONS[@]}")
+        $(_gtk_vbox_list "FRAMEMD5_CHOICE"    "80"  "frameMD5s? (recommended)"  "${FRAMEMD5_OPTIONS[@]}")
+        $(_gtk_vbox_list "QCTOOLSXML_CHOICE" "180"  "QCTools XML?"              "${QCTOOLSXML_OPTIONS[@]}")
     </hbox>
 </frame>"
 
 PLAYBACK_OPT_GUI="
 <frame Playback options>
     <hbox space-expand=\"true\">
-        $(_gtk_vbox_list "PLAYBACKVIEW_CHOICE"      "200" "Select View (for recording)"   "${PLAYBACKVIEW_OPTIONS[@]}")
-        $(_gtk_vbox_list "PLAYBACKVIEW_CHOICE_PASS" "200" "Select View (for passthrough)" "${PLAYBACKVIEW_PASS_OPTIONS[@]}")
+        $(_gtk_vbox_list "PLAYBACKVIEW_CHOICE"      "130" "View (recording)"   "${PLAYBACKVIEW_OPTIONS[@]}")
+        $(_gtk_vbox_list "PLAYBACKVIEW_CHOICE_PASS" "130" "View (passthrough)" "${PLAYBACKVIEW_PASS_OPTIONS[@]}")
     </hbox>
 </frame>"
 
@@ -816,14 +818,14 @@ DECKLINK_INPUT_GUI=$(cat << DECKLINK_FORM
 <frame Decklink input options>
     <vbox>
         <hbox space-expand="true">
-            $(_gtk_vbox_list "DECKLINK_UTILITY_CHOICE"  "100" "Select Input Utility"          "${DECKLINK_UTILITIES[@]}")
-            $(_gtk_vbox_list "DECKLINK_INPUT_CHOICE"    "160" "Select Video Card"             "${DECKLINK_DEVICES[@]}")
-            $(_gtk_vbox_list "VIDEO_INPUT_CHOICE"       "100" "Select Video Input"            "${VIDEO_INPUT_OPTIONS[@]}")
-            $(_gtk_vbox_list "AUDIO_INPUT_CHOICE"       "200" "Select Audio Input"            "${AUDIO_INPUT_OPTIONS[@]}")
-            $(_gtk_vbox_list "AUDIO_MAPPING_CHOICE"     "300" "Select Audio Channel Mapping"  "${CHANNEL_MAPPING_OPTIONS[@]}" )
-            $(_gtk_vbox_list "STANDARD_CHOICE"          "100" "Select Standard"               "${STANDARD_OPTIONS[@]}")
-            $(_gtk_vbox_list "VIDEO_BIT_DEPTH_CHOICE"   "100" "Select Video Bit Depth"        "${VIDEO_BITDEPTH_OPTIONS[@]}")
-            $(_gtk_vbox_list "TIMECODE_CHOICE"          "100" "Select timecode format"        "${TIMECODE_OPTIONS[@]}")
+            $(_gtk_vbox_list "DECKLINK_UTILITY_CHOICE"   "80" "Input Utility"          "${DECKLINK_UTILITIES[@]}")
+            $(_gtk_vbox_list "DECKLINK_INPUT_CHOICE"    "120" "Video Card"             "${DECKLINK_DEVICES[@]}")
+            $(_gtk_vbox_list "VIDEO_INPUT_CHOICE"       "100" "Video Input"            "${VIDEO_INPUT_OPTIONS[@]}")
+            $(_gtk_vbox_list "AUDIO_INPUT_CHOICE"       "140" "Audio Input"            "${AUDIO_INPUT_OPTIONS[@]}")
+            $(_gtk_vbox_list "AUDIO_MAPPING_CHOICE"      "-1" "Audio Channel Mapping"  "${CHANNEL_MAPPING_OPTIONS[@]}" )
+            $(_gtk_vbox_list "STANDARD_CHOICE"           "60" "Standard"               "${STANDARD_OPTIONS[@]}")
+            $(_gtk_vbox_list "VIDEO_BIT_DEPTH_CHOICE"    "80" "Video Bit Depth"        "${VIDEO_BITDEPTH_OPTIONS[@]}")
+            $(_gtk_vbox_list "TIMECODE_CHOICE"           "80" "Timecode format"        "${TIMECODE_OPTIONS[@]}")
         </hbox>
         <frame Output file options>
             <hbox space-expand="true">
@@ -979,53 +981,55 @@ AVFCTL_INPUT_GUI=$(cat << AVFCTL_FORM
     <frame DV deck control>
         <hbox>
             <vbox>
-                <text>
-                    <label>Status</label>
-                </text>
-                <entry editable="false" has-frame="false">
-                    <variable export="false">avfctl_status</variable>
-                    <input file>"${AVFCTL_STATUS_TMP}"</input>
-                </entry>
+                <pixmap><input file>"${RESOURCE_PATH}/dvrecord.png"</input></pixmap>
             </vbox>
-            <timer milliseconds="true" interval="300" visible="false" disabled="true">
-                 <variable export="false">avfctl_timer</variable>
-                 <visible>disabled</visible>
-                 <action>${STATUS_CMD} > "${AVFCTL_STATUS_TMP}" &</action>
-                 <action>refresh:avfctl_status</action>
-            </timer>
+            <vbox>
+                <hbox>
+                    <vbox>
+                        <text>
+                            <label>Status</label>
+                        </text>
+                        <entry editable="false" has-frame="false">
+                            <variable export="false">avfctl_status</variable>
+                            <input file>"${AVFCTL_STATUS_TMP}"</input>
+                        </entry>
+                    </vbox>
+                    <timer milliseconds="true" interval="300" visible="false" disabled="true">
+                         <variable export="false">avfctl_timer</variable>
+                         <visible>disabled</visible>
+                         <action>${STATUS_CMD} > "${AVFCTL_STATUS_TMP}" &</action>
+                         <action>refresh:avfctl_status</action>
+                    </timer>
+                    <togglebutton>
+                        <label>Deck Control</label>
+                        <default>false</default>
+                        <variable export="false">avfctl_toggle</variable>
+                        <input file stock="gtk-execute"></input>
+                        <action>if true enable:avfctl_timer</action>
+                        <action>if true enable:avfctl_status</action>
+                        <action>if true enable:avfctl_repack</action>
+                        <action>if true enable:avfctl_rewind</action>
+                        <action>if true enable:avfctl_play</action>
+                        <action>if true enable:avfctl_stop</action>
+                        <action>if true enable:avfctl_ff</action>
+                        <action>if false disable:avfctl_timer</action>
+                        <action>if false disable:avfctl_status</action>
+                        <action>if false disable:avfctl_repack</action>
+                        <action>if false disable:avfctl_rewind</action>
+                        <action>if false disable:avfctl_play</action>
+                        <action>if false disable:avfctl_stop</action>
+                        <action>if false disable:avfctl_ff</action>
+                    </togglebutton>
+                </hbox>
+                <hbox>
+                    $(_get_deckcontrol_button "avfctl_repack" ""                  "Repack" "${DV_REPACK_CMD}")
+                    $(_get_deckcontrol_button "avfctl_rewind" "gtk-media-rewind"  "Rewind" "${DV_RW_CMD}")
+                    $(_get_deckcontrol_button "avfctl_play"   "gtk-media-play"    "Play"   "${DV_PLAY_CMD}")
+                    $(_get_deckcontrol_button "avfctl_stop"   "gtk-media-stop"    "Stop"   "${DV_STOP_CMD}")
+                    $(_get_deckcontrol_button "avfctl_ff"     "gtk-media-forward" "FF"     "${DV_FF_CMD}")
+                </hbox>
+            </vbox>
         </hbox>
-        <hbox>
-            <togglebutton>
-                <label>Deck Control</label>
-                <default>false</default>
-                <variable export="false">avfctl_toggle</variable>
-                <input file stock="gtk-execute"></input>
-                <action>if true enable:avfctl_timer</action>
-                <action>if true enable:avfctl_status</action>
-                <action>if true enable:avfctl_repack</action>
-                <action>if true enable:avfctl_rewind</action>
-                <action>if true enable:avfctl_play</action>
-                <action>if true enable:avfctl_stop</action>
-                <action>if true enable:avfctl_ff</action>
-                <action>if false disable:avfctl_timer</action>
-                <action>if false disable:avfctl_status</action>
-                <action>if false disable:avfctl_repack</action>
-                <action>if false disable:avfctl_rewind</action>
-                <action>if false disable:avfctl_play</action>
-                <action>if false disable:avfctl_stop</action>
-                <action>if false disable:avfctl_ff</action>
-            </togglebutton>
-            <hbox>
-                $(_get_deckcontrol_button "avfctl_repack" ""                  "Repack" "${DV_REPACK_CMD}")
-                $(_get_deckcontrol_button "avfctl_rewind" "gtk-media-rewind"  "Rewind" "${DV_RW_CMD}")
-                $(_get_deckcontrol_button "avfctl_play"   "gtk-media-play"    "Play"   "${DV_PLAY_CMD}")
-                $(_get_deckcontrol_button "avfctl_stop"   "gtk-media-stop"    "Stop"   "${DV_STOP_CMD}")
-                $(_get_deckcontrol_button "avfctl_ff"     "gtk-media-forward" "FF"     "${DV_FF_CMD}")
-            </hbox>
-        </hbox>
-        <vbox space-expand="true">
-            <pixmap><input file>"${RESOURCE_PATH}/dvrecord.png"</input></pixmap>
-        </vbox>
     </frame>
 </frame>
 AVFCTL_FORM
@@ -1049,25 +1053,85 @@ AUDIO_INPUT_FORM
 )
 
 export MAIN_DIALOG='
-<window title="vrecord configuration">
-    <vbox>
-        <text>
-            <label>Set file recording options.</label>
-        </text>
-        <frame Input Options>
-        <notebook page="'"${DEVICE_INPUT_CHOICE}"'" tab-labels="Decklink|DV|Audio|Config">
-            '"${DECKLINK_INPUT_GUI}"'
-            '"${AVFCTL_INPUT_GUI}"'
-            '"${AUDIO_INPUT_GUI}"'
-            '"${OPTIONAL_TOOLS_GUI}"'
-            <variable>DEVICE_INPUT_CHOICE</variable>
-            <action signal="button-release-event" type="refresh">VRECORD_OUTPUT_NAME</action>
-            <action signal="leave-notify-event" condition="command_is_true( [ ${DEVICE_INPUT_CHOICE} != 3 ] && echo true)">enable:record_button</action>
-            <action signal="leave-notify-event" condition="command_is_true( [ ${DEVICE_INPUT_CHOICE} = 3 ] && echo true)">disable:record_button</action>
-            <action signal="leave-notify-event" condition="command_is_true( [ ${DEVICE_INPUT_CHOICE} != 3 ] && echo true)">enable:passthrough_button</action>
-            <action signal="leave-notify-event" condition="command_is_true( [ ${DEVICE_INPUT_CHOICE} = 3 ] && echo true)">disable:passthrough_button</action>
-        </notebook>
+<window title="Welcome to Vrecord!">
+    <vbox shadow-type="0">
+        <vbox scrollable="true" width="1080" height="520" shadow-type="0">
+            <vbox>
+                <hbox homogenous="true" space-expand="true">
+                    <button image-position="Top">
+                        <label>Record</label>
+                        <variable export="false">record_button_main</variable>
+                        <width>100</width>
+                        <input file>"'"${RESOURCE_PATH}/vrecord_logo.png"'"</input>
+                        <action type="exit">record_button</action>
+                    </button>
+                    <button image-position="Top">
+                        <label>Passthrough</label>
+                        <width>100</width>
+                        <input file>"'"${RESOURCE_PATH}/vrecord_logo_playback.png"'"</input>
+                        <action type="exit">passthrough</action>
+                    </button>
+                    <button image-position="Top">
+                        <label>Audio Check</label>
+                        <width>100</width>
+                        <input file>"'"${RESOURCE_PATH}/vrecord_logo_audio.png"'"</input>
+                        <action type="exit">audiopassthrough</action>
+                    </button>
+                    <button image-position="Top">
+                        <label>Edit Settings</label>
+                        <width>100</width>
+                        <input file>"'"${RESOURCE_PATH}/vrecord_logo_edit.png"'"</input>
+                        <action type="show">INPUTSETTINGS</action>
+                        <action type="hide">MAIN</action>
+                        <action>echo "INPUTSETTINGS" > "'"$STARTUP_VIEW_TMP"'"</action>
+                    </button>
+                    <button image-position="Top">
+                        <label>Help</label>
+                        <width>100</width>
+                        <input file>"'"${RESOURCE_PATH}/vrecord_logo_help.png"'"</input>
+                        <action>man vrecord</action>
+                    </button>
+                    <button image-position="Top">
+                        <label>Documentation</label>
+                        <width>100</width>
+                        <input file>"'"${RESOURCE_PATH}/vrecord_logo_documentation.png"'"</input>
+                        <action>"'"${OPEN_COMMAND} https://github.com/amiaopensource/vrecord#vrecord-documentation"'"</action>
+                    </button>
+                </hbox>
+            </vbox>
+            <vbox space-expand="true">
+                <frame Settings Summary>
+                    <vbox scrollable="true" height="320">
+                        <text wrap="false" xalign="0">
+                            <variable export="false">VRECORD_SETTINGS_SUMMARY</variable>
+                            <input>_get_summary</input>
+                        </text>
+                    </vbox>
+                </frame>
+            </vbox>
+            <variable export="false">MAIN</variable>
+            <action signal="show" type="refresh">VRECORD_SETTINGS_SUMMARY</action>
+        </vbox>
+        <vbox scrollable="true" width="1080" height="520" shadow-type="0">
+            <frame Input Options>
+            <notebook page="'"${DEVICE_INPUT_CHOICE}"'" tab-labels="Decklink|DV|Audio|Config">
+                '"${DECKLINK_INPUT_GUI}"'
+                '"${AVFCTL_INPUT_GUI}"'
+                '"${AUDIO_INPUT_GUI}"'
+                '"${OPTIONAL_TOOLS_GUI}"'
+                <variable>DEVICE_INPUT_CHOICE</variable>
+                <action signal="button-release-event" type="refresh">VRECORD_OUTPUT_NAME</action>
+                <action signal="button-release-event" condition="command_is_true( [ \"${DEVICE_INPUT_CHOICE}\" != 3 -a -n \"${ID}\" ] && echo true)">enable:record_button</action>
+                <action signal="button-release-event" condition="command_is_true( [ \"${DEVICE_INPUT_CHOICE}\" =  3 -o -z \"${ID}\" ] && echo true)">disable:record_button</action>
+                <action signal="button-release-event" condition="command_is_true( [ \"${DEVICE_INPUT_CHOICE}\" != 3 -a -n \"${ID}\" ] && echo true)">enable:record_button_main</action>
+                <action signal="button-release-event" condition="command_is_true( [ \"${DEVICE_INPUT_CHOICE}\" =  3 -o -z \"${ID}\" ] && echo true)">disable:record_button_main</action>
+                <action signal="button-release-event" condition="command_is_true( [ \"${DEVICE_INPUT_CHOICE}\" != 3 ] && echo true)">enable:passthrough_button</action>
+                <action signal="button-release-event" condition="command_is_true( [ \"${DEVICE_INPUT_CHOICE}\" =  3 ] && echo true)">disable:passthrough_button</action>
+            </notebook>
         </frame>
+        <variable export="false">INPUTSETTINGS</variable>
+    </vbox>
+    <vbox>
         <hbox>
             <frame Select a recording directory>
                 <hbox>
@@ -1078,7 +1142,7 @@ export MAIN_DIALOG='
                     </entry>
                     <button>
                         <input file stock="gtk-open"></input>
-                        <variable>DIRBROWSE</variable>
+                        <variable export="false">DIRBROWSE</variable>
                         <action type="fileselect">DIR</action>
                     </button>
                 </hbox>
@@ -1091,11 +1155,17 @@ export MAIN_DIALOG='
                     </entry>
                     <button>
                         <input file stock="gtk-open"></input>
-                        <variable>LOGDIRBROWSE</variable>
+                        <variable export="false">LOGDIRBROWSE</variable>
                         <action type="fileselect">LOGDIR</action>
                     </button>
                 </hbox>
             </frame>
+            <entry visible="false">
+                <variable>STARTUP_VIEW</variable>
+                <default>'"${STARTUP_VIEW:-MAIN}"'</default>
+                <input file>'"${STARTUP_VIEW_TMP}"'</input>
+                <action type="refresh">STARTUP_VIEW</action>
+            </entry>
         </hbox>
         <hbox>
             <frame Recording event options>
@@ -1108,11 +1178,17 @@ export MAIN_DIALOG='
                             <default>"'"${ID}"'"</default>
                             <variable>ID</variable>
                             <action signal="key-release-event" type="refresh">VRECORD_OUTPUT_NAME</action>
+                            <action signal="key-release-event" condition="command_is_true( [ \"${DEVICE_INPUT_CHOICE}\" != 3 -a -n \"${ID}\" ] && echo true)">enable:record_button</action>
+                            <action signal="key-release-event" condition="command_is_true( [ \"${DEVICE_INPUT_CHOICE}\" =  3 -o -z \"${ID}\" ] && echo true)">disable:record_button</action>
+                            <action signal="key-release-event" condition="command_is_true( [ \"${DEVICE_INPUT_CHOICE}\" != 3 -a -n \"${ID}\" ] && echo true)">enable:record_button_main</action>
+                            <action signal="key-release-event" condition="command_is_true( [ \"${DEVICE_INPUT_CHOICE}\" =  3 -o -z \"${ID}\" ] && echo true)">disable:record_button_main</action>
+                            <action signal="key-release-event" condition="command_is_true( [ \"${DEVICE_INPUT_CHOICE}\" != 3 ] && echo true)">enable:passthrough_button</action>
+                            <action signal="key-release-event" condition="command_is_true( [ \"${DEVICE_INPUT_CHOICE}\" =  3 ] && echo true)">disable:passthrough_button</action>
                         </entry>
                     </vbox>
                     <vbox>
                         <text>
-                            <label>Enter the name of the person digitizing this tape.</label>
+                            <label>Name of the person digitizing this tape.</label>
                         </text>
                         <entry>
                             <variable>TECHNICIAN</variable>
@@ -1120,7 +1196,7 @@ export MAIN_DIALOG='
                     </vbox>
                     <vbox>
                         <text>
-                            <label>Set recording time (integer or decimal) in minutes</label>
+                            <label>Recording time in minutes</label>
                         </text>
                         <entry activates_default="true" tooltip-text="Suggested:23 33 63 93. Leave blank for indefinite recording time">
                             <default>"'"${DURATION}"'"</default>
@@ -1133,7 +1209,7 @@ export MAIN_DIALOG='
                 <hbox space-expand="true">
                     <vbox>
                         <text>
-                            <label>Enter an optional file prefix</label>
+                            <label>Optional filename prefix</label>
                         </text>
                         <entry>
                             <default>"'"${PREFIX}"'"</default>
@@ -1143,7 +1219,7 @@ export MAIN_DIALOG='
                     </vbox>
                     <vbox>
                         <text>
-                            <label>Enter an optional file suffix</label>
+                            <label>Optional filename suffix</label>
                         </text>
                         <entry>
                             <default>"'"${USER_SUFFIX}"'"</default>
@@ -1153,7 +1229,7 @@ export MAIN_DIALOG='
                     </vbox>
                     <vbox>
                         <checkbox>
-                            <label>Check this to turn off appending of suffixes</label>
+                            <label>Disable suffixes</label>
                             <default>"'"${NO_SUFFIX}"'"</default>
                             <variable>NO_SUFFIX</variable>
                             <action signal="key-release-event" type="refresh">VRECORD_OUTPUT_NAME</action>
@@ -1184,54 +1260,76 @@ export MAIN_DIALOG='
                 </vbox>
             </hbox>
         </vbox>
-        <vbox>
-            <hbox>
-                <button>
-                    <label>Record</label>
-                    <input file stock="gtk-media-record"></input>
-                    <variable>record_button</variable>
-                    <action>_update_config_file</action>
-                    <action type="exit">record</action>
-                </button>
-                <button>
-                    <label>Passthrough</label>
-                    <input file stock="gtk-media-play"></input>
-                    <variable>passthrough_button</variable>
-                    <action>_update_config_file</action>
-                    <action type="exit">passthrough</action>
-                </button>
-                <button>
-                    <label>Save Settings</label>
-                    <input file stock="gtk-save"></input>
-                    <variable>save_button</variable>
-                    <action>_update_config_file</action>
-                </button>
-                <button>
-                    <label>Home</label>
-                    <input file stock="gtk-index"></input>
-                    <variable>home_button</variable>
-                    <action>_update_config_file</action>
-                    <action type="launch">HOME_DIALOG</action>
-                </button>
-                <button cancel>
-                </button>
-                <button>
-                    <label>Refresh</label>
-                    <input file stock="gtk-refresh"></input>
-                    <action>_update_config_file</action>
-                    <action type="exit">refresh</action>
-                </button>
-            </hbox>
-        </vbox>
     </vbox>
-    <variable>MAIN_DIALOG</variable>
+        <hbox space-expand="false" space-fill="false">
+            <button>
+                <label>Home</label>
+                <input file stock="gtk-index"></input>
+                <variable export="false">home_button</variable>
+                <action>_update_config_file</action>
+                <action type="show">MAIN</action>
+                <action type="hide">INPUTSETTINGS</action>
+                <action>echo "MAIN" > "'"$STARTUP_VIEW_TMP"'"</action>
+                <action type="refresh">STARTUP_VIEW</action>
+            </button>
+            <button>
+                <label>Settings</label>
+                <input file stock="gtk-index"></input>
+                <variable export="false">settings_button</variable>
+                <action>_update_config_file</action>
+                <action type="show">INPUTSETTINGS</action>
+                <action type="hide">MAIN</action>
+                <action>echo "INPUTSETTINGS" > "'"$STARTUP_VIEW_TMP"'"</action>
+                <action type="refresh">STARTUP_VIEW</action>
+            </button>
+            <hbox space-expand="true" space-fill="true"><text><label>""</label></text></hbox>
+            <button>
+                <label>Record</label>
+                <input file stock="gtk-media-record"></input>
+                <variable export="false">record_button</variable>
+                <action>_update_config_file</action>
+                <action type="exit">record</action>
+            </button>
+            <button>
+                <label>Passthrough</label>
+                <input file stock="gtk-media-play"></input>
+                <variable export="false">passthrough_button</variable>
+                <action>_update_config_file</action>
+                <action type="exit">passthrough</action>
+            </button>
+            <button>
+                <label>Save Settings</label>
+                <input file stock="gtk-save"></input>
+                <variable export="false">save_button</variable>
+                <action>_update_config_file</action>
+            </button>
+            <button cancel>
+            </button>
+            <button>
+                <label>Refresh</label>
+                <input file stock="gtk-refresh"></input>
+                <action>_update_config_file</action>
+                <action type="exit">refresh</action>
+            </button>
+        </hbox>
+    </vbox>
+    <variable export="false">MAIN_DIALOG</variable>
+    <action signal="realize" type="show">MAIN</action>
+    <action signal="realize" type="hide">INPUTSETTINGS</action>
+    <action signal="realize" condition="command_is_true( [ \"$STARTUP_VIEW\" = \"INPUTSETTINGS\" ] && echo true)" type="show">INPUTSETTINGS</action>
+    <action signal="realize" condition="command_is_true( [ \"$STARTUP_VIEW\" = \"INPUTSETTINGS\" ] && echo true)" type="hide">MAIN</action>
     <action signal="show" type="refresh">VRECORD_FORM_VALIDATION</action>
     <action signal="enter-notify-event" type="refresh">VRECORD_FORM_VALIDATION</action>
     <action signal="leave-notify-event" type="refresh">VRECORD_FORM_VALIDATION</action>
-    <action signal="show" type="closewindow">HOME_DIALOG</action>
     <action signal="show" type="refresh">VRECORD_OUTPUT_NAME</action>
     <action signal="show" condition="command_is_true(echo \"$AUDIO_DEV_CHOICE\" | grep -vq Blackmagic && echo true)">enable:AUDIO_MODE_SR_CHOICE</action>
     <action signal="show" condition="command_is_true(echo \"$AUDIO_DEV_CHOICE\" | grep -q Blackmagic && echo true)">disable:AUDIO_MODE_SR_CHOICE</action>
+    <action signal="show" condition="command_is_true( [ \"${DEVICE_INPUT_CHOICE}\" != 3 -a -n \"${ID}\" ] && echo true)">enable:record_button</action>
+    <action signal="show" condition="command_is_true( [ \"${DEVICE_INPUT_CHOICE}\" =  3 -o -z \"${ID}\" ] && echo true)">disable:record_button</action>
+    <action signal="show" condition="command_is_true( [ \"${DEVICE_INPUT_CHOICE}\" != 3 -a -n \"${ID}\" ] && echo true)">enable:record_button_main</action>
+    <action signal="show" condition="command_is_true( [ \"${DEVICE_INPUT_CHOICE}\" =  3 -o -z \"${ID}\" ] && echo true)">disable:record_button_main</action>
+    <action signal="show" condition="command_is_true( [ \"${DEVICE_INPUT_CHOICE}\" != 3 ] && echo true)">enable:passthrough_button</action>
+    <action signal="show" condition="command_is_true( [ \"${DEVICE_INPUT_CHOICE}\" =  3 ] && echo true)">disable:passthrough_button</action>
 </window>
 '
 }
@@ -1241,7 +1339,6 @@ _edit_mode(){
     _set_up_edit_form
 
     # run the edit form in gtkdialog
-    HOME_DIALOG_TMP="${HOME_DIALOG}"
     MAIN_DIALOG_TMP="${MAIN_DIALOG}"
 
     GTK_INC="$(_maketemp .vrecord.gtkdialog.inc)"
@@ -1250,19 +1347,10 @@ _edit_mode(){
     cat "${SHARED_FUNCTIONS_FILE}" >> "${GTK_INC}"
 
     if [[ "${VERBOSE_GTKDIALOG}" = "Y" ]] ; then
-        if [[ "$RUNTYPE" = "GUI" ]] || [[ "${GUI}" = "1" ]] ; then
-            eval "$(gtkdialog --include="${GTK_INC}" --program HOME_DIALOG --center)"
-        else
-            eval "$(gtkdialog --include="${GTK_INC}" --program MAIN_DIALOG --center)"
-        fi
+        eval "$(gtkdialog --include="${GTK_INC}" --program MAIN_DIALOG --center)"
     else
-        if [[ "$RUNTYPE" = "GUI" ]] || [[ "${GUI}" = "1" ]] ; then
-            eval "$(gtkdialog --include="${GTK_INC}" --program HOME_DIALOG --center 2> /dev/null)"
-        else
-            eval "$(gtkdialog --include="${GTK_INC}" --program MAIN_DIALOG --center 2> /dev/null)"
-        fi
+        eval "$(gtkdialog --include="${GTK_INC}" --program MAIN_DIALOG --center 2> /dev/null)"
     fi
-    HOME_DIALOG="${HOME_DIALOG_TMP}"
     MAIN_DIALOG="${MAIN_DIALOG_TMP}"
 
     # process the results of the edit form
@@ -1888,8 +1976,13 @@ _review_option(){
         declare -g "${VALUE_NAME}"="${SELECTED}"
     fi
     if [[ ! " ${CHOICES[@]} " =~ " ${SELECTED} " ]] ; then
-        _report -w "The configuration file uses an invalid value of ${SELECTED} for ${VALUE_NAME}. Valid values are: ${CHOICES[*]}. Please restart ${SCRIPTNAME} in edit mode (${SCRIPTNAME} -e) or update the configuration file at ${CONFIG_FILE}."
-        exit 2
+        if [[ -z "${SELECTED}" ]] ; then
+            _report -w "Error: An option for ${VALUE_NAME} is required. Please restart ${SCRIPTNAME} in edit mode (${SCRIPTNAME} -e) or update the configuration file at ${CONFIG_FILE}."
+            exit 2
+        else
+            _report -w "The configuration file uses an invalid value of ${SELECTED} for ${VALUE_NAME}. Valid values are: ${CHOICES[*]}. Please restart ${SCRIPTNAME} in edit mode (${SCRIPTNAME} -e) or update the configuration file at ${CONFIG_FILE}."
+            exit 2
+        fi
     fi
     if [[ "${SELECTED}" ]] ; then
         if [[ "${NO_LOOKUP}" != "Y" ]] ; then
@@ -1928,14 +2021,14 @@ _review_all_options(){
         _report -w "Since this computer has only ${CORE_COUNT} cores, the playback will display only half of the frames to reduce CPU. This will not impact the recording."
         PLAYBACK_FILTER_ADJUSTMENT="select=not(mod(n\,2)),"
     fi
-    _review_option -n "WAVEFORM_SCALE_CHOICE" "${WAVEFORM_SCALE_OPTIONS[@]}"
+    _review_option -n -d "digital" "WAVEFORM_SCALE_CHOICE" "${WAVEFORM_SCALE_OPTIONS[@]}"
     _review_option -n -d "Broadcast Range" "SIGNAL_VIEW_CHOICE" "${SIGNAL_OPTIONS[@]}"
     _review_option -n -d "Yes" "MONITOR_AUDIO_CHOICE" "${MONITOR_AUDIO_OPTIONS[@]}"
     _set_scopes
     if [[ "${RUNTYPE}" = "passthrough" ]] && [[ -n "${PLAYBACKVIEW_CHOICE_PASS}" ]] && [[ "${PLAYBACKVIEW_CHOICE_PASS}" != "Unselected" ]] ; then
-        _review_option "PLAYBACKVIEW_CHOICE_PASS" "${PLAYBACKVIEW_PASS_OPTIONS[@]}"
+        _review_option -d "Visual" "PLAYBACKVIEW_CHOICE_PASS" "${PLAYBACKVIEW_PASS_OPTIONS[@]}"
     else
-        _review_option "PLAYBACKVIEW_CHOICE" "${PLAYBACKVIEW_OPTIONS[@]}"
+        _review_option -d "Visual" "PLAYBACKVIEW_CHOICE" "${PLAYBACKVIEW_OPTIONS[@]}"
     fi
     if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         MIDDLEOPTIONS+=(-metadata creation_time=now)
@@ -1974,7 +2067,7 @@ _review_all_options(){
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":hc:erpaxgvI:O:i:G" opt ; do
+while getopts ":hc:erpaxvI:O:i:G" opt ; do
     case "${opt}" in
         h) _usage ; exit 0 ;;
         c) CONFIG_FILE="${OPTARG}" ;;
@@ -1983,7 +2076,6 @@ while getopts ":hc:erpaxgvI:O:i:G" opt ; do
         p) RUNTYPE="passthrough" ;;
         a) RUNTYPE="audiopassthrough" ;;
         x) RUNTYPE="reset" ;;
-        g) RUNTYPE="GUI" ; GUI=1 ;;
         v) VERBOSE="true" ;;
         I) EXTRAINPUTOPTIONS=(${OPTARG}) ;;
         O) EXTRAOUTPUTOPTIONS=(${OPTARG}) ;;
@@ -2038,6 +2130,7 @@ if [[ -f "${CONFIG_FILE}" ]] ; then
 else
     _report -d "Initiatizing the configuration file at ${CONFIG_FILE}."
     RUNTYPE="edit"
+    STARTUP_VIEW="INPUTSETTINGS"
 fi
 
 _get_decklink_inputs
@@ -2051,56 +2144,6 @@ if [[ "${OS_TYPE}" = "linux" ]] ; then
 elif [[ "${OS_TYPE}" = "macOS" ]] ; then
     AUDIO_DEVICES=("${AVFOUNDATION_DEVICES[@]}")
 fi
-
-HOME_DIALOG=$(cat << GTKFORM
-<window title="Welcome to Vrecord!">
-    <vbox>
-        <vbox>
-            <hbox>
-                <button>
-                    <label>Record</label>
-                    <input file>${RESOURCE_PATH}/vrecord_logo.png</input>
-                    <action type="exit">record</action>
-                </button>
-                <button>
-                    <label>Passthrough</label>
-                    <input file>${RESOURCE_PATH}/vrecord_logo_playback.png</input>
-                    <action type="exit">passthrough</action>
-                </button>
-                <button>
-                    <label>Audio Check</label>
-                    <input file>${RESOURCE_PATH}/vrecord_logo_audio.png</input>
-                    <action type="exit">audiopassthrough</action>
-                </button>
-                </hbox>
-                <hbox>
-                <button>
-                    <label>Edit Settings</label>
-                    <input file>${RESOURCE_PATH}/vrecord_logo_edit.png</input>
-                    <action type="launch">MAIN_DIALOG</action>
-                </button>
-                <button>
-                    <label>Help</label>
-                    <input file>${RESOURCE_PATH}/vrecord_logo_help.png</input>
-                    <action>man vrecord</action>
-                </button>
-                <button>
-                    <label>Documentation</label>
-                    <input file>${RESOURCE_PATH}/vrecord_logo_documentation.png</input>
-                    <action>${OPEN_COMMAND} https://github.com/amiaopensource/vrecord#vrecord-documentation</action>
-                </button>
-            </hbox>
-        </vbox>
-        <hbox>
-            <button cancel></button>
-        </hbox>
-    </vbox>
-    <variable>HOME_DIALOG</variable>
-    <action signal="show" type="closewindow">MAIN_DIALOG</action>
-</window>
-GTKFORM
-)
-export HOME_DIALOG
 
 # list of selections for each vrecord option
 DECKLINK_UTILITIES=("ffmpeg")
@@ -2133,7 +2176,7 @@ WAVEFORM_SCALE_OPTIONS=("digital" "millivolts" "ire")
 SIGNAL_OPTIONS=("Broadcast Range" "Full Range")
 MONITOR_AUDIO_OPTIONS=("Yes" "No")
 
-# GUI mode + CLI reset, edit modes
+# CLI reset, edit modes
 if [[ "${RUNTYPE}" = "reset" ]] ; then
     _report -q -n "Resetting the configuration will clear ${CONFIG_FILE}. Please enter [Y] to confirm: "
     read RESET_RESPONSE
@@ -2141,42 +2184,33 @@ if [[ "${RUNTYPE}" = "reset" ]] ; then
         _report -d "Clearing ${CONFIG_FILE}."
         echo -n "" > "${CONFIG_FILE}"
         RUNTYPE="edit"
+        STARTUP_VIEW="INPUTSETTINGS"
     else
         _report -d "Reset aborted. Exiting."
         exit 0
     fi
 fi
-while [[ "${RUNTYPE}" = "edit" || "${RUNTYPE}" = "GUI" ]] ; do
+while [[ "${RUNTYPE}" = "edit" ]] ; do
+    STARTUP_VIEW="INPUTSETTINGS"
     _edit_mode
 done
 
 _review_all_options
 
 # CLI passthrough and audiopassthrough modes
-# GUI mode loops
-if [[ "${GUI}" = 1 ]] ; then
-    while [[ "${RUNTYPE}" != "record" ]] ; do
-        if [[ "${RUNTYPE}" = "passthrough" ]] ; then
-            _passthrough_mode
-            RUNTYPE="GUI"
-        elif [[ "${RUNTYPE}" = "audiopassthrough" ]] ; then
-            _audiopassthrough_mode
-            RUNTYPE="GUI"
-        elif [[ "${RUNTYPE}" = "edit" || "$RUNTYPE" = "GUI" ]] ; then
-            _edit_mode
-        fi
-    done
-else
-    if [[ "${RUNTYPE}" = "passthrough" ]] ; then
-        _passthrough_mode
-        exit 0
-    elif [[ "${RUNTYPE}" = "audiopassthrough" ]] ; then
-        _audiopassthrough_mode
-        exit 0
-    fi
+if [[ "${RUNTYPE}" = "passthrough" ]] ; then
+    _passthrough_mode
+    exit 0
+elif [[ "${RUNTYPE}" = "audiopassthrough" ]] ; then
+    _audiopassthrough_mode
+    exit 0
 fi
 
 # record mode
+if [[ -z "${ID}" ]] ; then
+    _report -d "Starting the vrecord GUI. To bypass the GUI, run like 'vrecord FILENAME'."
+    _edit_mode
+fi
 while [[ -z "${ID}" ]] ; do
     _report -q -n "Enter ${AHEM}Identifier: "
     read ID
@@ -2186,28 +2220,21 @@ while [[ -z "${ID}" ]] ; do
     fi
     AHEM="a (non-blank) "
 done
-if [[ ! -d "${DIR}" ]] ; then
-    _report -q -n "Enter Directory: "
-    read DIR
-    DIR="$(echo "${DIR}" | sed "s/^['\"]\(.*\).$/\1/")"
-    if [[ ! -d "${DIR}" ]] ; then
-        _report -w "Error: Not a valid directory"
-        exit 1
-    fi
+DIR="$(echo "${DIR}" | sed "s/^['\"]\(.*\).$/\1/")"
+if [[ -z "${DIR}" ]] ; then
+    _report -d "We'll record files to $(pwd)."
+    DIR="$(pwd)"
+elif [[ ! -d "${DIR}" ]] ; then
+    _report -w "Error: The recording directory at ${DIR} is not a valid directory. Let's use $(pwd) instead."
+    DIR="$(pwd)"
 fi
-
-if [[ ! -d "${LOGDIR}" ]] ; then
-    if [[ ! -d "${DIR}" ]] ; then
-        _report -q -n "Enter Directory for Auxiliary Files (If blank will default to recording directory): "
-        read LOGDIR
-        LOGDIR="$(echo "${LOGDIR}" | sed "s/^['\"]\(.*\).$/\1/")"
-    else
-        LOGDIR="${DIR}"
-    fi
-    if [[ ! -d "${LOGDIR}" ]] ; then
-        _report -w "Error: Not a valid directory"
-        exit 1
-    fi
+LOGDIR="$(echo "${LOGDIR}" | sed "s/^['\"]\(.*\).$/\1/")"
+if [[ -z "${LOGDIR}" ]] ; then
+    _report -d "And place logs at ${DIR} too."
+    LOGDIR="${DIR}"
+elif [[ ! -d "${LOGDIR}" ]] ; then
+    _report -w "Error: The directory for auxiliary files at ${DIR} is not a valid directory. Let's use ${DIR} instead."
+    LOGDIR="${DIR}"
 fi
 
 if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
