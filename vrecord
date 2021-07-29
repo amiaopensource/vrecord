@@ -1110,10 +1110,10 @@ export MAIN_DIALOG='
                 '"${OPTIONAL_TOOLS_GUI}"'
                 <variable>DEVICE_INPUT_CHOICE</variable>
                 <action signal="button-release-event" type="refresh">VRECORD_OUTPUT_NAME</action>
-                <action signal="leave-notify-event" condition="command_is_true( [ ${DEVICE_INPUT_CHOICE} != 3 ] && echo true)">enable:record_button</action>
-                <action signal="leave-notify-event" condition="command_is_true( [ ${DEVICE_INPUT_CHOICE} = 3 ] && echo true)">disable:record_button</action>
-                <action signal="leave-notify-event" condition="command_is_true( [ ${DEVICE_INPUT_CHOICE} != 3 ] && echo true)">enable:passthrough_button</action>
-                <action signal="leave-notify-event" condition="command_is_true( [ ${DEVICE_INPUT_CHOICE} = 3 ] && echo true)">disable:passthrough_button</action>
+                <action signal="button-release-event" condition="command_is_true( [ ${DEVICE_INPUT_CHOICE} != 3 ] && echo true)">enable:record_button</action>
+                <action signal="button-release-event" condition="command_is_true( [ ${DEVICE_INPUT_CHOICE} = 3 ] && echo true)">disable:record_button</action>
+                <action signal="button-release-event" condition="command_is_true( [ ${DEVICE_INPUT_CHOICE} != 3 ] && echo true)">enable:passthrough_button</action>
+                <action signal="button-release-event" condition="command_is_true( [ ${DEVICE_INPUT_CHOICE} = 3 ] && echo true)">disable:passthrough_button</action>
             </notebook>
         </frame>
         <variable export="false">INPUTSETTINGS</variable>
