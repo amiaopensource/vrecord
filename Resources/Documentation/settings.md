@@ -105,6 +105,8 @@ Vrecord will then prompt you for a unique ID. The ID that you type in will becom
 
 **Bit Planes mode** — Bit Planes mode allows to display the video according to the bit position of each plane.
 
+**Frame Positioning mode** — A 24x16 section of pixels from each corner of field 1 and field 2 is magnified and shown upon a grid. This view can assist in horizontal calibration of the video; for instance, position a 704 pixel wide image to the center of a 720 pixel wide scan.
+
 **Quality Control View mode** — Quality Control View mode can display all the views above, as well as several other quality control tools (waveforms, vectorscopes, and histograms). The menu in QC View shows options tied to keystrokes; pressing the key listed next to the name of the view you want will display that view. This feature means you can switch between several different views during the same transfer. QC View key bindings are as follows:
 
 * Views

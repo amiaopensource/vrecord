@@ -1870,7 +1870,32 @@ ${PLAYBACK_FILTER_ADJUSTMENT}format=yuv420p10le|yuv422p10le|yuv444p10le|yuv440p1
 [b6]bitplanenoise=bitplane=4,crop=iw/${BITS}:ih:(iw/${BITS})*6:0,lutyuv=u=(maxval/2):v=(maxval/2):y=bitand(val\\,pow(2\\,10-7))*pow(2\\,7),pad=iw:ih+64:0:64,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.0.4}:y=0:fontcolor=white:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.1.4}:y=20:fontcolor=white:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.2.4}:y=40:fontcolor=white:fontsize=20[b6c];\
 [b7]bitplanenoise=bitplane=3,crop=iw/${BITS}:ih:(iw/${BITS})*7:0,lutyuv=u=(maxval/2):v=(maxval/2):y=bitand(val\\,pow(2\\,10-8))*pow(2\\,8),pad=iw:ih+64:0:64,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.0.3}:y=0:fontcolor=silver:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.1.3}:y=20:fontcolor=silver:fontsize=20,drawtext=fontfile=${DEFAULTFONT}:text=%{metadata\\\:lavfi.bitplanenoise.2.3}:y=40:fontcolor=silver:fontsize=20[b7c];\
 ${STACK}" ;;
-
+        "Frame Positioning")
+            CORNER_W=24
+            CORNER_H=8
+            CORNER_ZOOM=16
+            PLAYBACKFILTER="\
+${PLAYBACK_FILTER_ADJUSTMENT}format=yuv420p10le|yuv422p10le|yuv444p10le|yuv440p10le,split=2[f1][f2];\
+[f1]field=top,split=4[t1][t2][t3][t4];\
+[f2]field=bottom,split=4[b1][b2][b3][b4];\
+color,scale=${CORNER_W}*${CORNER_ZOOM}*2:${CORNER_H}*2,split=4[l1][l2][l3][l4];\
+[l1]drawtext=text='Top ${CORNER_H} Rows of Field 1 - Left ${CORNER_W} pixels and Right ${CORNER_W} pixels':fontcolor=white:fontsize=${CORNER_H}*2:x=(w-text_w)/2:y=(h-text_h)/2[l1t];\
+[l2]drawtext=text='Top ${CORNER_H} Rows of Field 2 - Left ${CORNER_W} pixels and Right ${CORNER_W} pixels':fontcolor=white:fontsize=${CORNER_H}*2:x=(w-text_w)/2:y=(h-text_h)/2[l2t];\
+[l3]drawtext=text='Bottom ${CORNER_H} Rows of Field 1 - Left ${CORNER_W} pixels and Right ${CORNER_W} pixels':fontcolor=white:fontsize=${CORNER_H}*2:x=(w-text_w)/2:y=(h-text_h)/2[l3t];\
+[l4]drawtext=text='Bottom ${CORNER_H} Rows of Field 2 - Left ${CORNER_W} pixels and Right ${CORNER_W} pixels':fontcolor=white:fontsize=${CORNER_H}*2:x=(w-text_w)/2:y=(h-text_h)/2[l4t];\
+[t1]crop=w=${CORNER_W}:h=${CORNER_H}:x=0:y=0[a1t];\
+[t2]crop=w=${CORNER_W}:h=${CORNER_H}:x=iw-${CORNER_H}:y=0[b1t];\
+[t3]crop=w=${CORNER_W}:h=${CORNER_H}:x=0:y=ih-${CORNER_H}[c1t];\
+[t4]crop=w=${CORNER_W}:h=${CORNER_H}:x=iw-${CORNER_H}:y=ih-${CORNER_H}[d1t];\
+[b1]crop=w=${CORNER_W}:h=${CORNER_H}:x=0:y=0[a1b];\
+[b2]crop=w=${CORNER_W}:h=${CORNER_H}:x=iw-${CORNER_H}:y=0[b1b];\
+[b3]crop=w=${CORNER_W}:h=${CORNER_H}:x=0:y=ih-${CORNER_H}[c1b];\
+[b4]crop=w=${CORNER_W}:h=${CORNER_H}:x=iw-${CORNER_H}:y=ih-${CORNER_H}[d1b];\
+[a1t][b1t]hstack,scale=${CORNER_W}*16*2:${CORNER_H}*16:flags=neighbor,drawgrid=w=iw/${CORNER_W}/2:h=ih/${CORNER_H}:t=1:c=green@0.5[abt];\
+[a1b][b1b]hstack,scale=${CORNER_W}*16*2:${CORNER_H}*16:flags=neighbor,drawgrid=w=iw/${CORNER_W}/2:h=ih/${CORNER_H}:t=1:c=green@0.5[abb];\
+[c1t][d1t]hstack,scale=${CORNER_W}*16*2:${CORNER_H}*16:flags=neighbor,drawgrid=w=iw/${CORNER_W}/2:h=ih/${CORNER_H}:t=1:c=green@0.5[cdt];\
+[c1b][d1b]hstack,scale=${CORNER_W}*16*2:${CORNER_H}*16:flags=neighbor,drawgrid=w=iw/${CORNER_W}/2:h=ih/${CORNER_H}:t=1:c=green@0.5[cdb];\
+[l1t][abt][l2t][abb][l3t][cdt][l4t][cdb]vstack=8,setsar=1/1" ;;
         # others
         "Yes"|"Yes, after recording"|"Yes, concurrent with recording"|"No") ;;
         *) _report -w "Error: ${1} is not a valid option." ; return 1 ;;
@@ -2166,8 +2191,8 @@ STANDARD_OPTIONS=("NTSC" "PAL")
 QCTOOLSXML_OPTIONS=("Yes, after recording" "Yes, concurrent with recording" "No")
 FRAMEMD5_OPTIONS=("Yes" "No")
 EMBED_LOGS_OPTIONS=("Yes" "No")
-PLAYBACKVIEW_OPTIONS=("Unfiltered" "Visual" "Audio + Video" "Visual + Numerical" "Color Matrix" "Bit Planes")
-PLAYBACKVIEW_PASS_OPTIONS=("Unfiltered" "Visual" "Audio + Video" "Visual + Numerical" "Color Matrix" "Bit Planes")
+PLAYBACKVIEW_OPTIONS=("Unfiltered" "Visual" "Audio + Video" "Visual + Numerical" "Color Matrix" "Bit Planes" "Frame Positioning")
+PLAYBACKVIEW_PASS_OPTIONS=("Unfiltered" "Visual" "Audio + Video" "Visual + Numerical" "Color Matrix" "Bit Planes" "Frame Positioning")
 if $MPV_INSTALLED ; then
     PLAYBACKVIEW_OPTIONS+=("Quality Control View (mpv)")
     PLAYBACKVIEW_PASS_OPTIONS+=("Quality Control View (mpv)")
