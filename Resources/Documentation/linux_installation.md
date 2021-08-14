@@ -63,7 +63,7 @@ The following instructions aim to minimize use of linuxbrew installs for package
 * `sudo apt install libsdl2-dev`
 * This step may not be required if Brew has been configured lower in $PATH than standard system directories.
 
-# Instructions/Tips for other Linux Distrubutions
+# Instructions/Tips for other Linux Distributions
 ## Linux Mint
 Installation on Linux Mint (20.1) it was necessary to run `apt install libc6-dev texinfo` for additional dependencies.
 ## via RPM (tested on CentOS 7/8 and Fedora 31)
