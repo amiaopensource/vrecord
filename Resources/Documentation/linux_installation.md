@@ -3,13 +3,13 @@
 ## About
 There are many possible ways to install the various dependencies of Vrecord on Linux. The main body of this documentation is oriented towards installing on Ubuntu LTS. For Some information about installing on additional distributions see the section at the bottom of this document. 
 
-## via Linuxbrew (tested Ubuntu 20.04 LTS)
-The following instructions aim to minimize use of linuxbrew installs for packages that can otherwise be installed via native Linux methods. When followed in order, these commands should result in a fully functional install of vrecord (tested on Ubuntu 20.04 LTS)
+## via Linuxbrew (tested Ubuntu 21.04 and 20.04.2 LTS)
+The following instructions aim to minimize use of linuxbrew installs for packages that can otherwise be installed via native Linux methods. When followed in order, these commands should result in a fully functional install of vrecord.
 
 ### Programs to be installed manually
 
 * Download and install the latest Linux version of 'Blackmagic Desktop Video' from the [Blackmagic website](https://www.blackmagicdesign.com/support/)
-* Download and install the latest version of the QC Tools CLI tool from the [MediaArea](https://mediaarea.net/QCTools/Download/Ubuntu)
+* Download and install the latest version of the [QCTools CLI tool](https://mediaarea.net/QCTools/Download/Ubuntu) from the MediaArea website
 * Optional: If DV wrapping and splitting is desired, download and install [DVRescue](https://mediaarea.net/DVRescue) from the MediaArea website.
 
 ### Programs to be installed via PPA
