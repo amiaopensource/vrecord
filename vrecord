@@ -1878,7 +1878,7 @@ ${STACK}" ;;
 ${PLAYBACK_FILTER_ADJUSTMENT}format=yuv420p10le|yuv422p10le|yuv444p10le|yuv440p10le,split=2[f1][f2];\
 [f1]field=top,split=4[t1][t2][t3][t4];\
 [f2]field=bottom,split=4[b1][b2][b3][b4];\
-color,scale=${CORNER_W}*${CORNER_ZOOM}*2:${CORNER_H}*2,split=4[l1][l2][l3][l4];\
+color=color=darkgray,scale=${CORNER_W}*${CORNER_ZOOM}*2:${CORNER_H}*2,split=4[l1][l2][l3][l4];\
 [l1]drawtext=text='Top ${CORNER_H} Rows of Field 1 - Left ${CORNER_W} pixels and Right ${CORNER_W} pixels':fontcolor=white:fontsize=${CORNER_H}*2:x=(w-text_w)/2:y=(h-text_h)/2[l1t];\
 [l2]drawtext=text='Top ${CORNER_H} Rows of Field 2 - Left ${CORNER_W} pixels and Right ${CORNER_W} pixels':fontcolor=white:fontsize=${CORNER_H}*2:x=(w-text_w)/2:y=(h-text_h)/2[l2t];\
 [l3]drawtext=text='Bottom ${CORNER_H} Rows of Field 1 - Left ${CORNER_W} pixels and Right ${CORNER_W} pixels':fontcolor=white:fontsize=${CORNER_H}*2:x=(w-text_w)/2:y=(h-text_h)/2[l3t];\
