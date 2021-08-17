@@ -221,7 +221,7 @@ _gather_ffmpeg_vars(){
         FFPROBE_BIN="$(which ffprobe)"
     fi
 
-    if [[ $("${BREW_PREFIX}/bin/ffplay-dl" ${RESOURCE_PATH}/vrecord_logo.png -t 0.01 -autoexit 2> /dev/null) ]] ; then
+    if "${BREW_PREFIX}/bin/ffplay-dl" -v 0 -f lavfi smptebars=duration=1/25 -autoexit ; then
         FFPLAY_BIN="${BREW_PREFIX}/bin/ffplay-dl"
     else
         FFPLAY_BIN="$(which ffplay)"
