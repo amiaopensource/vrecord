@@ -225,7 +225,6 @@ _gather_ffmpeg_vars(){
         FFPLAY_BIN="${BREW_PREFIX}/bin/ffplay-dl"
     else
         FFPLAY_BIN="$(which ffplay)"
-        FFPLAY_NOT_DL='Y'
     fi
 }
 
@@ -469,7 +468,7 @@ _setup_vrecord_process(){
                     VRECORD_STEPS="2" # Steps: record | player
                 elif [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
                     VRECORD_STEPS="2" # Steps: record | player
-                elif [[ "${FFPLAY_NOT_DL}" = 'Y' ]] ; then
+                elif [[ "$(basename "${FFPLAY_BIN}")" != "ffplay-dl" ]] ; then
                     VRECORD_STEPS="2" # Steps: record | player
                 else
                     VRECORD_STEPS="1" # Steps: player
