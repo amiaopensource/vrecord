@@ -173,7 +173,7 @@ _setup_env_variables(){
         COMPUTER_PROCESSOR_COUNT="$(_parse_report "Number of Processors" "${HARDWARE_REPORT}")"
         COMPUTER_MEMORY="$(_parse_report "Memory" "${HARDWARE_REPORT}")"
         COMPUTER_SERIAL="$(_parse_report "Serial Number (system)" "${HARDWARE_REPORT}")"
-        CORE_COUNT="$(_parse_report "Total Number of Cores" "${HARDWARE_REPORT}")"
+        CORE_COUNT="$(_parse_report "Total Number of Cores" "${HARDWARE_REPORT}" | awk '{print $1}')"
         OPEN_COMMAND="open"
         ZCAT_COMMAND="gzcat"
         DECKLINK_DRIVER_PLIST="/Library/Extensions/DeckLink_Driver.kext/Contents/Info.plist"
