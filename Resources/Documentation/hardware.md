@@ -1,6 +1,6 @@
 # Needed Hardware
 
-- a computer running a recent version of macOS or select linux distributions (vrecord 2019-01-25 has been tested on macOS 10.11, 10.12, 10.13, and 10.14, and Ubuntu 16.04 and 18.04; vrecord 2019-05-03 has been tested on Debian 9.9)
+- a computer running a recent version of macOS or [select linux](https://github.com/amiaopensource/vrecord/blob/main/Resources/Documentation/linux_installation.md) distributions
 - a Blackmagic capture device:
 
   - [UltraStudio](https://www.blackmagicdesign.com/products/ultrastudiothunderbolt)
