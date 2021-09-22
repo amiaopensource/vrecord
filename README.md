@@ -22,7 +22,6 @@ This documentation is up to date as of vrecord version 2020-02-10.
     1. [Options for Video Capture](Resources/Documentation/settings.md#options-for-video-capture)
     1. [Video Capture Views](Resources/Documentation/settings.md#video-capture-views)
     1. [Clearing the Configuration File](Resources/Documentation/settings.md#clearing-the-configuration-file)
-1. [GUI Mode](Resources/Documentation/gui_mode.md)
 1. [DV Capture](Resources/Documentation/dv_info.md)
 1. [Analog Digitization Tips](Resources/Documentation/analog_digitization.md)
 1. [Help and Troubleshooting](Resources/Documentation/troubleshooting.md)
