@@ -31,17 +31,13 @@ brew upgrade
 
 ### Linux
 
-As of version 2019-01-19, vrecord can now be installed on select Linux distributions, also via [Homebrew](https://docs.brew.sh/Homebrew-on-Linux), using the same Terminal commands:
+Vrecord can also be installed on select Linux distributions, also via [Homebrew](https://docs.brew.sh/Homebrew-on-Linux), and the AMIA-OS Homebrew tap reachable with:
+
 ```
 brew tap amiaopensource/amiaos
-brew install vrecord
 ```
-If you experience installation issues, however, it may be beneficial to first install vrecord's core dependencies, and then install vrecord without dependencies:
-```
-brew install decklinksdk && brew install ffmpegdecklink && brew install gtkdialog
-brew install --ignore-dependencies vrecord
-```
-Note: these commands only cover vrecord's core capture functionality. If you're interested in the full vrecord experience, you'll need to install a number of other [dependencies](https://github.com/amiaopensource/homebrew-amiaos/blob/master/vrecord.rb) individually. 
+
+Detailed instructions for installation can be found in the [Linux installation](./linux_installation.md) document.
 
 ## Using vrecord
 

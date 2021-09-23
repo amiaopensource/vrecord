@@ -6,7 +6,7 @@ To capture DV formats in vrecord (when installed in macOS), you will need to hav
 
 1. To select the deck you would like to use, go into the configuration mode either by:
    - run `vrecord -e`
-   - clicking on the "Edit Settings" button in the GUI (run `vrecord -g`)
+   - clicking on the "Edit Settings" button in the GUI (run `vrecord`)
 
 ![Decklink](../dv_vrecord_decklink.jpg "DV Capture") 
 
