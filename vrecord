@@ -1475,9 +1475,9 @@ _qcgraphimage(){
     set cbtics font 'times,10'
     set key inside right top reverse samplen .00
     unset key
-    set yrange [-2147483648.:2147483648.]
+    set yrange [-1.:1]
     set palette model RGB defined (-0.8'#ff0000',-0.6'#ffa500',-0.4'#a0ff20',-0.2'#00ff00',0'#006400',0.2'#00ff00',0.4'#a0ff20',.6'#ffa500',0.8'#ff0000') maxcolors 128
-    set cbrange [-2147483648.:2147483648.]
+    set cbrange [-1.:1.]
     set style fill solid
     set label 1 'Min/Max Level' at graph .5,.9 center front
     plot '${qctools_CONFIGFILE_A}' using 1:2:2 with boxes palette title 'Max Level', '' using 1:3:3 with boxes palette title 'Min Level'
