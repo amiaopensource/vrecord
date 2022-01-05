@@ -84,7 +84,7 @@ Vrecord will then prompt you for a unique ID. The ID that you type in will becom
 
 **Audio + Video** — Audio + Video mode displays similar video information with Visual mode (out of range pixels, waveform monitor and vectorscope) along side scopes for audio information. These include audio levels, an audio vectorscope, a phase meter and a frequency spectrogram.
 
-**Visual + Numerical mode** — Visual and Numerical mode displays your favorite video feeds and scopes as well as numerical values for the characteristics of the video signal in the left sidebar. 
+**Visual + Numerical mode** — Visual and Numerical mode displays identical views as Visual mode with the addition of numerical values for the characteristics of the video signal in the left sidebar.
 
 ![Alt text](../vrecord_visual_numerical_2016-11-22.jpg "Vrecord in Visual + Numerical Mode")
 
