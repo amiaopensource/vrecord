@@ -80,9 +80,7 @@ Vrecord will then prompt you for a unique ID. The ID that you type in will becom
 
 **Unfiltered mode** — Unfiltered mode display only the playback image in the vrecord window. This option works well to aviod buffer overruns, PTS discontinuties, and crashing for setups that cannot handle the additional processing during capture.
 
-**Broadcast Range Visual mode** — Broadcast Range Visual mode displays the video feed, the video feed with pixels out of broadcast range highlighted, the waveform monitor, and the vectorscope in the vrecord window.
-
-**Full Range Visual mode** — Full Range Visual mode displays the video feed, the video feed with pixels at full range extremes highlighted, the waveform monitor, and the vectorscope in the vrecord window.
+**Visual mode** — Visual mode displays the video feed, the video feed with pixels out of selected range highlighted, the waveform monitor, and the vectorscope in the vrecord window. The video scale (Broadacast Range or Full Range) can be selected in the Config tab.
 
 **Visual + Numerical mode** — Visual and Numerical mode displays your favorite video feeds and scopes as well as numerical values for the characteristics of the video signal in the left sidebar. 
 
