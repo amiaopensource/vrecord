@@ -1798,7 +1798,7 @@ else
     PLAYBACKFILTER="streams=dv+da[vid][aud],[aud]${PAN},asplit=${AUDIO_SPLIT},\
     ${PHASE_MAP},\
     ${CHANNEL_PARAMS},\
-    [c]showvolume=t=0:h=17:w=200:rate=${DECKLINK_FPS}[c1],\
+    [c]showvolume=t=0:h=17:w=200:rate=30[c1],\
     [d]showspectrum=s=${SPECTRUM_SIZE}:fps=10:color=rainbow:saturation=2:legend=1[d1],\
     [vid]split=4[vid1][vid2][vid3][vid4],[vid1]scale=400x400,${SIGNAL_FILTER}[vidscale],\
     [vid2]field=top,${WAVEFORM_FILTER}[TFIELD],\
