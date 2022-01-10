@@ -1475,9 +1475,9 @@ _qcgraphimage(){
     set cbtics font 'times,10'
     set key inside right top reverse samplen .00
     unset key
-    set yrange [-2147483648.:2147483648.]
+    set yrange [-1.:1]
     set palette model RGB defined (-0.8'#ff0000',-0.6'#ffa500',-0.4'#a0ff20',-0.2'#00ff00',0'#006400',0.2'#00ff00',0.4'#a0ff20',.6'#ffa500',0.8'#ff0000') maxcolors 128
-    set cbrange [-2147483648.:2147483648.]
+    set cbrange [-1.:1.]
     set style fill solid
     set label 1 'Min/Max Level' at graph .5,.9 center front
     plot '${qctools_CONFIGFILE_A}' using 1:2:2 with boxes palette title 'Max Level', '' using 1:3:3 with boxes palette title 'Min Level'
@@ -2345,9 +2345,10 @@ read
 
 # create log of vrecord decisions
 INGESTLOG="${LOGDIR}/${FULL_OUTPUT_ID}_capture_options.log"
-QCXML="${LOGDIR}/${FULL_OUTPUT_ID}.${EXTENSION}.qctools.xml.gz"
-QCLI_COMMAND_PIPE=(qcli -f signalstats+aphasemeter+astats+ssim -i - -o "${QCXML}")
-QCLI_COMMAND_FILE=(qcli -f signalstats+aphasemeter+astats+ssim -i "${VRECORD_OUTPUT}" -o "${QCXML}")
+QCTOOLS_REPORT="${LOGDIR}/${FULL_OUTPUT_ID}.${EXTENSION}.qctools.mkv"
+QCXML="$(_maketemp)"
+QCLI_COMMAND_PIPE=(qcli -f signalstats+aphasemeter+astats+ssim -i - -o "${QCTOOLS_REPORT}")
+QCLI_COMMAND_FILE=(qcli -f signalstats+aphasemeter+astats+ssim -i "${VRECORD_OUTPUT}" -o "${QCTOOLS_REPORT}")
 touch "${INGESTLOG}"
 _writeingestlog "computer_name" "$(uname -n)"
 _writeingestlog "computer_model_name" "${COMPUTER_MODEL_NAME}"
@@ -2482,7 +2483,10 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
     fi
     if [[ "${QCTOOLSXML_CHOICE}" != "No" ]] ; then
         _report -d "Vrecord is analyzing your video file. Please be patient."
-        if [[ -s "${QCXML}" ]] ; then
+        if [[ -s "${QCTOOLS_REPORT}" ]] ; then
+            if [[ ! -s "${QCXML}" ]] ; then
+                "${FFMPEG_BIN}" -nostdin -v 0 -y -dump_attachment:t "${QCXML}" -i "${QCTOOLS_REPORT}"
+            fi
             if [[ "${PIXEL_FORMAT}" = "yuv422p10" ]] ; then
                 SAT_OUTLIERS=$("${ZCAT_COMMAND}" "${QCXML}" | perl -nle 'print if not m{lavfi.(?!signalstats.SATMAX)}' | xmlstarlet sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>496])" -n)
             elif [[ "${PIXEL_FORMAT}" = "uyvy422" ]] ; then
@@ -2497,7 +2501,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
                 _qcgraphimage "${QCXML}"
             fi
         else
-            _report -w "qctools XML ${QCXML} is empty or does not exist!"
+            _report -w "qctools XML ${QCTOOLS_REPORT} is empty or does not exist!"
         fi
         if [[ "${SAT_OUTLIERS}" -gt "${SAT_OUTLIER_THRSHLD}" ]] ; then
             cowsay "$(_report -w "WARNING: Your video file contains ${SAT_OUTLIERS} frames with illegal saturation values. Your deck may require cleaning.")"
@@ -2588,9 +2592,13 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
             mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "Full FFmpeg output from vrecord capture process" --add-attachment "${FULL_CAPTURE_LOG}"
             if [[ "${QCTOOLSXML_CHOICE}" = "Yes" ]] ; then
                 mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "QCTools report from vrecord capture process (zipped XML)" --add-attachment "${QCXML}"
+                mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "QCTools report from vrecord capture process (Matroska report)" --add-attachment "${QCTOOLS_REPORT}"
             fi
             _report -d "Vrecord is done attaching logs to your Matroska file!"
         fi
+    fi
+    if [[ -f "${QCXML}" ]] ; then
+        rm "${QCXML}"
     fi
 elif [[ "${DEVICE_INPUT_CHOICE}" == "1" ]] ; then
     if "$DVPACKAGER_INSTALLED" ; then
