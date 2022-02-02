@@ -1370,6 +1370,8 @@ _edit_mode(){
         RUNTYPE="record"
     elif [[ "${EXIT}" = "passthrough" ]] ; then
         RUNTYPE="passthrough"
+    elif [[ "${EXIT}" = "audiopassthrough" ]] ; then
+        RUNTYPE="audiopassthrough"
     elif [[ "${EXIT}" = "refresh" ]] ; then
         RUNTYPE="edit"
     elif [[ "${EXIT}" = "timecode_scan" ]] ; then
@@ -1403,9 +1405,13 @@ _passthrough_mode(){
 }
 
 _audiopassthrough_mode(){
-    PLAYBACKVIEW_CHOICE_PASS="Audio + Video"
-    _lookup_choice "Audio + Video"
-    _passthrough_mode
+    if [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
+        _passthrough_mode
+    else
+        PLAYBACKVIEW_CHOICE_PASS="Audio + Video"
+        _lookup_choice "Audio + Video"
+        _passthrough_mode
+    fi
 }
 
 # create a capture log of decisions made in vrecord
