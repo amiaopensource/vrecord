@@ -7,7 +7,6 @@ VERSION="2022-01-10"
 SCRIPTNAME="$(basename "${0}")"
 SCRIPTDIR="$(dirname "${0}")"
 CONFIG_FILE="${HOME}/.${SCRIPTNAME}.conf"
-RUNTYPE="record"
 SAT_OUTLIER_THRSHLD=14
 AUD_OUTLIER_THRSHLD=10
 BRNG_OUTLIER_THRSHLD=14
@@ -2117,7 +2116,14 @@ while getopts ":hc:erpaxvI:O:i:G" opt ; do
     esac
 done
 shift "$((OPTIND-1))"
-ID="${1}"
+
+if [[ -z "${1}" ]] && [[ -z "${RUNTYPE}" ]] ; then
+    _report -d "Starting the vrecord GUI. To bypass the GUI, run like 'vrecord FILENAME'."
+    RUNTYPE="edit"
+elif [[ -n "${1}" ]] && [[ -z "${RUNTYPE}" ]] ; then
+    ID="${1}"
+    RUNTYPE="record"
+fi
 
 VRECORD_INPUT_TMP="$(_maketemp .vrecord_input.log)"
 
@@ -2237,11 +2243,6 @@ elif [[ "${RUNTYPE}" = "audiopassthrough" ]] ; then
     exit 0
 fi
 
-# record mode
-if [[ -z "${ID}" ]] ; then
-    _report -d "Starting the vrecord GUI. To bypass the GUI, run like 'vrecord FILENAME'."
-    _edit_mode
-fi
 while [[ -z "${ID}" ]] ; do
     _report -q -n "Enter ${AHEM}Identifier: "
     read ID
