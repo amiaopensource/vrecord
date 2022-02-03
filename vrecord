@@ -208,13 +208,23 @@ _setup_env_variables(){
 _get_lang(){
     #detects system language
     languages=( de en es fr hi id it jp nl sv vi zh )
-    language_scan=$(locale | head -n2)
+    language_scan1=$(locale | sed -n -e '1{p;q}')
     for i in "${languages[@]}" ; do
-        if [[ "${language_scan}" == *"${i}"* ]] ; then
+        if [[ "${language_scan1}" == *"${i}"* ]] ; then
             system_language="${i}"
             break
         fi
     done
+
+    if [[ -z "${system_language}" ]] ; then
+        language_scan2=$(locale | sed -n -e '2{p;q}' | cut -d ':' -f1)
+        for i in "${languages[@]}" ; do
+        if [[ "${language_scan2}" == *"${i}"* ]] ; then
+            system_language="${i}"
+            break
+        fi
+        done
+    fi
     if [[ -z "${system_language}" ]] ; then system_language='en'; fi
 }
 
