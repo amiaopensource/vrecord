@@ -205,6 +205,47 @@ _setup_env_variables(){
     fi
 }
 
+_get_lang(){
+    #detects system language
+    languages=( de en es fr hi id it jp nl sv vi zh )
+    language_scan=$(locale | head -n2)
+    for i in "${languages[@]}" ; do
+        if [[ "${language_scan}" == *"${i}"* ]] ; then
+            system_language="${i}"
+            break
+        fi
+    done
+    if [[ -z "${system_language}" ]] ; then system_language='en'; fi
+}
+
+_set_lang_variables(){
+    if [[ "${system_language}" == 'en' ]] ; then
+        card_var='card'
+    elif [[ "${system_language}" == 'de' ]] ; then
+        card_var='karte'
+    elif [[ "${system_language}" == 'es' ]] ; then
+        card_var='tarjeta'
+    elif [[ "${system_language}" == 'fr' ]] ; then
+        card_var='carte'
+    elif [[ "${system_language}" == 'hi' ]] ; then
+        card_var='card'
+    elif [[ "${system_language}" == 'id' ]] ; then
+        card_var='card'
+    elif [[ "${system_language}" == 'it' ]] ; then
+        card_var='scheda'
+    elif [[ "${system_language}" == 'jp' ]] ; then
+        card_var='カード'
+    elif [[ "${system_language}" == 'nl' ]] ; then
+        card_var='kaart'
+    elif [[ "${system_language}" == 'sv' ]] ; then
+        card_var='kort'
+    elif [[ "${system_language}" == 'vi' ]] ; then
+        card_var='card'
+    elif [[ "${system_language}" == 'zh' ]] ; then
+        card_var='card'
+    fi
+}
+
 _gather_ffmpeg_vars(){
     CAPTURELOGSUFFIX="_vrecord_input.log"
     TIMECODELOGSUFFIX="_frame_timecodes.txt"
@@ -2179,11 +2220,13 @@ fi
 _get_decklink_inputs
 _get_avfoundation_inputs
 _get_avfctl_inputs
+_get_lang
+_set_lang_variables
 
 if [[ "${OS_TYPE}" = "linux" ]] ; then
     while read audio_device ; do
         AUDIO_DEVICES+=("${audio_device}")
-    done < <(arecord -l | grep card | cut -d ':' -f2 | cut -d ',' -f1 | awk '{$1=$1;print}')
+    done < <(arecord -l | grep "${card_var}" | cut -d ':' -f2 | cut -d ',' -f1 | awk '{$1=$1;print}')
 elif [[ "${OS_TYPE}" = "macOS" ]] ; then
     AUDIO_DEVICES=("${AVFOUNDATION_DEVICES[@]}")
 fi
