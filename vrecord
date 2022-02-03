@@ -232,7 +232,7 @@ _set_lang_variables(){
     if [[ "${system_language}" == 'en' ]] ; then
         card_var='card'
     elif [[ "${system_language}" == 'de' ]] ; then
-        card_var='karte'
+        card_var='Karte'
     elif [[ "${system_language}" == 'es' ]] ; then
         card_var='tarjeta'
     elif [[ "${system_language}" == 'fr' ]] ; then
@@ -254,6 +254,7 @@ _set_lang_variables(){
     elif [[ "${system_language}" == 'zh' ]] ; then
         card_var='card'
     fi
+    _include_var card_var
 }
 
 _gather_ffmpeg_vars(){
