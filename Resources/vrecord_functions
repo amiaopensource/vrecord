@@ -124,7 +124,7 @@ _validate_form(){
     else
         FREE_SPACE="$(df -g "${DIR}" | tail +2 | awk '{print $4}')"
     fi
-    if [ "${FREE_SPACE}" -le 50 ] ; then
+    if [ "${FREE_SPACE}" -le 40 ] ; then
         echo "WARNING: The recording directory at ${DIR} only has ${FREE_SPACE} gigabytes available."
     fi
 }
