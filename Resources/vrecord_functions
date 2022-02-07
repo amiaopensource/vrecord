@@ -115,6 +115,18 @@ _validate_form(){
     if [ "${INVERT_PHASE_4}" = "true" ] ; then
         echo "WARNING: Option to invert phase of fourth audio channel has been selected."
     fi
+
+    if [ $(mount | grep $(df -P "${DIR}" | tail +2 | awk '{print $1}') | grep -c "(.*local,") = "0" ] && [ "${OS_TYPE}" != "linux" ] ; then
+        echo "WARNING: The recording directory at ${DIR} is not a local directory. Please verify that you can write to the disk fast enough."
+    fi
+    if [ "${OS_TYPE}" = "linux" ] ; then
+        FREE_SPACE="$(df -BG "${DIR}" | tail +2 | awk '{print $4}' | tr 'G' ' ')"
+    else
+        FREE_SPACE="$(df -g "${DIR}" | tail +2 | awk '{print $4}')"
+    fi
+    if [ "${FREE_SPACE}" -le 40 ] ; then
+        echo "WARNING: The recording directory at ${DIR} only has ${FREE_SPACE} gigabytes available."
+    fi
 }
 
 _get_output_filename(){
