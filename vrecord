@@ -2466,10 +2466,10 @@ if [[ ! -s "${VRECORD_OUTPUT}" ]] ; then
     if [[ "$P1_ERR" != "0" ]] ; then
         _report_unexpected_error P1_ERR "${RECORD_COMMAND[@]} // ${FF_RECORD_COMMAND[@]} // ${PLAYER_COMMAND}"
     fi
-    if [[ "$P2_ERR" != "0" && ! -z "$P2_ERR" ]] ; then
+    if [[ "$P2_ERR" != "0" && -n "$P2_ERR" ]] ; then
         _report_unexpected_error P2_ERR "${RECORD_COMMAND[@]} // ${FF_RECORD_COMMAND[@]} // ${PLAYER_COMMAND}"
     fi
-    if [[ "$P3_ERR" != "0" && ! -z "$P3_ERR" ]] ; then
+    if [[ "$P3_ERR" != "0" && -n "$P3_ERR" ]] ; then
         _report_unexpected_error P3_ERR "${RECORD_COMMAND[@]} // ${FF_RECORD_COMMAND[@]} // ${PLAYER_COMMAND}"
     fi
 fi
