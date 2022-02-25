@@ -82,7 +82,10 @@ Vrecord will then prompt you for a unique ID. The ID that you type in will becom
 
 **Visual mode** — Visual mode displays the video feed, the video feed with pixels out of selected range highlighted, the waveform monitor, and the vectorscope in the vrecord window. The video scale (Broadacast Range or Full Range) can be selected in the Config tab.
 
-**Audio + Video** — Audio + Video mode displays similar video information with Visual mode (out of range pixels, waveform monitor and vectorscope) along side scopes for audio information. These include audio levels, an audio vectorscope, a phase meter and a frequency spectrogram.
+**Audio + Video** — Audio + Video mode displays similar video information with Visual mode (out of range pixels, waveform monitor and vectorscope) along side scopes for audio information. These include the following seen in the below image:
+* Top Row - Graph and numerical value of audio phase, Audio Vectorscope, Video Preview with Audio Bars, Video Vectorscope
+* Middle Row - Waveform monitors for video fields
+* Bottom Row - Audio frequency spectrogram (combined channels) 
 ![Alt text](../audioPlusVideoMode-small.png "Vrecord in Audio + Video mode")
 
 **Visual + Numerical mode** — Visual and Numerical mode displays identical views as Visual mode with the addition of numerical values for the characteristics of the video signal in the left sidebar.
