@@ -20,7 +20,7 @@ This documentation is up to date as of vrecord version 2020-02-10.
     1. [Audio Passthrough Mode](Resources/Documentation/passthrough.md#audio-passthrough-mode)
 1. [Editing Settings](Resources/Documentation/settings.md)
     1. [Options for Video Capture](Resources/Documentation/settings.md#options-for-video-capture)
-    1. [Video Capture Views](Resources/Documentation/settings.md#video-capture-views)
+    1. [Video Capture Views](Resources/Documentation/settings.md#video-views)
     1. [Clearing the Configuration File](Resources/Documentation/settings.md#clearing-the-configuration-file)
 1. [DV Capture](Resources/Documentation/dv_info.md)
 1. [Audio Capture](Resources/Documentation/audio_info.md)
