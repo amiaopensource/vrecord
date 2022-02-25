@@ -10,9 +10,9 @@ If you haven't already set up vrecord it will prompt you to make some selections
 
 ## Audio Passthrough Mode
 
-Audio passthrough mode is the same as passthrough mode with the addition of audio bars to monitor levels. It can be used to check audio track layout and confirm input levels before starting a transfer. Audio passthrough mode can be used to check audio track layout and confirm input levels before starting a transfer. Each bar represents a different audio track: the top bar is track 1, the second bar is track 2, the third bar is track 3, and the fourth bar is track 4. The numbers next to the bars are decibels in dBFS.
+Audio passthrough mode is a quick way to check audio characteristics of an input without needing to modify any settings in your configuration file - it will automatically open a passthrough window in 'Audio + Video' mode.
 
-Currently audio passthrough mode does not support the Visual + Numerical view option.
+Note: If in audio capture mode there is no difference between the standard preview window and audio passthrough.
 
 Run audio passthrough mode by typing:
 ```
