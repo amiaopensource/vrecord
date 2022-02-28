@@ -1,4 +1,4 @@
-### Edit Mode
+## Edit Mode
 
 Running vrecord in edit mode opens a GUI window that allows you to change your recording options and then start digitizing a tape. 
 
@@ -12,7 +12,7 @@ After selecting all of your options and clicking "OK," you will be prompted to e
 
 By default, vrecord will create a video file, a framemd5 file (which creates an MD5 hash value [AKA a checksum] for every frame of video), an ffmpeg log, and a capture options log (which records the options that you selected in the GUI like codec and video bit depth). Vrecord will check all FFV1 and uncompressed video files in QuickTime or Matroska wrappers against local [MediaConch](https://mediaarea.net/MediaConch/about.html) policies, and will alert the user if the file does not conform to vrecord and archival standards. Vrecord can also create a [QCTools](https://github.com/bavc/qctools) XML file, which measures characteristics of the video signal, and a PNG file, which provides an easy-to-assess, overarching view of the video signal across time. The QCTools XML can be imported into QCTools for further analysis. 
 
-#### Options for Video Capture
+## Options for Video Capture
 
 All of the options in the vrecord GUI (which appears when running `vrecord -e`), or otherwise in terminal prompts, are explained below. If you want to feel like a college freshman, you can choose "Undeclared" for any of the options below. You will be prompted later to make a choice before the software actually begins recording:
 
@@ -76,13 +76,17 @@ Click "OK" when you are finished with your selections. Vrecord will save all of 
 
 Vrecord will then prompt you for a unique ID. The ID that you type in will become a prefix for the filename of all the resulting files in that recording session. After entering your unique ID you will be asked to press enter to start recording. Press enter and start playing your tape. The vrecord window will appear. Do not type any keys or click the mouse inside the window while the vrecord is working. 
 
-#### Video Views
+## Video Views
 
 **Unfiltered mode** — Unfiltered mode display only the playback image in the vrecord window. This option works well to aviod buffer overruns, PTS discontinuties, and crashing for setups that cannot handle the additional processing during capture.
 
 **Visual mode** — Visual mode displays the video feed, the video feed with pixels out of selected range highlighted, the waveform monitor, and the vectorscope in the vrecord window. The video scale (Broadacast Range or Full Range) can be selected in the Config tab.
 
-**Audio + Video** — Audio + Video mode displays similar video information with Visual mode (out of range pixels, waveform monitor and vectorscope) along side scopes for audio information. These include audio levels, an audio vectorscope, a phase meter and a frequency spectrogram.
+**Audio + Video** — Audio + Video mode displays similar video information with Visual mode (out of range pixels, waveform monitor and vectorscope) along side scopes for audio information. These include the following seen in the below image:
+* Top Row - Graph and numerical value of audio phase, Audio Vectorscope, Video Preview with Audio Bars, Video Vectorscope
+* Middle Row - Waveform monitors for video fields
+* Bottom Row - Audio frequency spectrogram (combined channels) 
+![Alt text](../audioPlusVideoMode-small.png "Vrecord in Audio + Video mode")
 
 **Visual + Numerical mode** — Visual and Numerical mode displays identical views as Visual mode with the addition of numerical values for the characteristics of the video signal in the left sidebar.
 
@@ -138,7 +142,7 @@ Vrecord will then prompt you for a unique ID. The ID that you type in will becom
   * f — Make window fullscreen. (Press 'f' again to exit.)
   * ctrl + s — Turn off the above key assignments to use default mpv key bindings.
   
-#### Clearing the Configuration File
+## Clearing the Configuration File
 
   By default vrecord saves the choices you made the last time you used the program in a configuration file so that these options are selected the next time you use vrecord. If you would like to clear this configuration file and create a new one type:
 
