@@ -2328,15 +2328,19 @@ fi
 if [[ -n "${DURATION}" ]] ; then
     DUR_SECONDS=$(bc <<< "${DURATION} * 60" | sed "s/^\./0./")
     TIME_LIMIT=(-t "${DUR_SECONDS}")
+    DURATION_TEXT="Tape duration set to: ${DURATION} minutes."
+fi
+
+if [[ -n ${TECHNICIAN} ]] ; then
+    TECHNICIAN_TEXT="Technician=${TECHNICIAN}."
 fi
 
 if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
-    _report -d "Summary: ${VIDEOCODECNAME}/${FORMAT} ${PIXEL_FORMAT} file from ${STANDARD} ${VIDEO_INPUT} ${AUDIO_INPUT}. Frame MD5s=${FRAMEMD5_CHOICE}, QCTools XML=${QCTOOLSXML_CHOICE}, and Technician=${TECHNICIAN}. Inputs recorded to ${VRECORD_OUTPUT} and Auxiliary Files created in ${LOGDIR}"
+    _report -d "Summary: ${VIDEOCODECNAME}/${FORMAT} ${PIXEL_FORMAT} file from ${STANDARD} ${VIDEO_INPUT} ${AUDIO_INPUT}. ${TECHNICIAN_TEXT} Frame MD5s=${FRAMEMD5_CHOICE}, QCTools XML=${QCTOOLSXML_CHOICE}. Inputs recorded to ${VRECORD_OUTPUT} and Auxiliary Files created in ${LOGDIR}. ${DURATION_TEXT}"
 elif [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
-    _report -d "Summary: Copying video from ${AVFCTL_INPUT_CHOICE}. Technician=${TECHNICIAN}. Inputs recorded to ${VRECORD_OUTPUT} and Auxiliary Files created in ${LOGDIR}"
+    _report -d "Summary: Copying video from ${AVFCTL_INPUT_CHOICE}. ${TECHNICIAN_TEXT} Inputs recorded to ${VRECORD_OUTPUT} and Auxiliary Files created in ${LOGDIR}. ${DURATION_TEXT}"
 elif [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
-    _report -d "Summary: Recording audio from ${AUDIO_DEV_CHOICE}. Technician=${TECHNICIAN}. Inputs recorded to ${VRECORD_OUTPUT} and Auxiliary Files created in ${LOGDIR}"
-
+    _report -d "Summary: Recording audio from ${AUDIO_DEV_CHOICE}. ${TECHNICIAN_TEXT} Inputs recorded to ${VRECORD_OUTPUT} and Auxiliary Files created in ${LOGDIR}. ${DURATION_TEXT}"
 fi
 
 if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] || [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
