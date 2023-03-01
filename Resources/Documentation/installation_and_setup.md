@@ -29,7 +29,7 @@ brew upgrade
 ```
 (This command will upgrade all of the programs you've installed through Homebrew.)
 
-### Mac installation troubleshooting
+#### Mac installation troubleshooting
 Workarounds for some issues users have reported while installing vrecord can be found at the [AMIA Open Source Homebrew troubleshooting](https://github.com/amiaopensource/homebrew-amiaos/blob/master/TROUBLESHOOTING.md#vrecord) page. If you are experiencing issues with installing vrecord check this page to see if the error you are experiencing has been addressed.
 
 
