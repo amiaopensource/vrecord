@@ -3,8 +3,8 @@
 ## About
 There are many possible ways to install the various dependencies of Vrecord on Linux. The main body of this documentation is oriented towards installing on Ubuntu LTS. For Some information about installing on additional distributions see the section at the bottom of this document. 
 
-## via Linuxbrew (tested Ubuntu 21.04 and 20.04.2 LTS)
-The following instructions aim to minimize use of linuxbrew installs for packages that can otherwise be installed via native Linux methods. When followed in order, these commands should result in a fully functional install of vrecord.
+## via Homebrew
+The following instructions aim to minimize use of Homebrew installs for packages that can otherwise be installed via native Linux methods. When followed in order, these commands should result in a fully functional install of vrecord.
 
 ### Programs to be installed manually
 
@@ -35,12 +35,12 @@ The following instructions aim to minimize use of linuxbrew installs for package
 * If `make` and `gcc` are not already installed, install them with
   - `sudo apt-get install gcc`
   - `sudo apt-get install make`
-* Installing a standard version of FFmpeg is highly recommended as a fallback in case of issues with the Linuxbrew controlled build:
+* Installing a standard version of FFmpeg is highly recommended as a fallback in case of issues with the Homebrew controlled build:
   - `sudo apt-get install ffmpeg`
   
-### Install Homebrew for Linux (Linuxbrew)
+### Install Homebrew
 * Use the following commands, (sourced from the [Homebrew docs](https://docs.brew.sh/Homebrew-on-Linux)) to install and configure Homebrew on Linux:
- - Install linuxbrew with: `sh -c "$(curl -fsSL https://raw.githubusercontent.com/Linuxbrew/install/master/install.sh)"`
+ - Install Homebrew with: `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
  - Add linuxbrew to path with: 
 ~~~
  test -d ~/.linuxbrew && eval $(~/.linuxbrew/bin/brew shellenv)
@@ -50,7 +50,6 @@ The following instructions aim to minimize use of linuxbrew installs for package
  test -r ~/.bash_profile && echo "eval \$($(brew --prefix)/bin/brew shellenv)" >> ~/.bashrc
  ~~~
 
-  - Alternately some issues (such as the sdl2 conflict) have been avoided by adding Linuxbrew lower down in the path order than the Linuxbrew instructions call for (Such as by editing `/etc/environment` to include `/home/linuxbrew/.linuxbrew/bin` after the other $PATH directories.) Your mileage may vary!
  * Add the AMIA Open Source tap for Homebrew:
    - `brew tap amiaopensource/amiaos`
 
