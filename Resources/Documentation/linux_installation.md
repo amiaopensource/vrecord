@@ -51,6 +51,7 @@ The following instructions aim to minimize use of Homebrew installs for packages
  ~~~
 
   - Alternately some issues (such as the sdl2 conflict) have been avoided by adding Linuxbrew lower down in the path order than the Linuxbrew instructions call for (Such as by editing `/etc/environment` to include `/home/linuxbrew/.linuxbrew/bin` after the other $PATH directories.) Your mileage may vary! * Add the AMIA Open Source tap for Homebrew:
+* Add the AMIA Open Source tap for Homebrew:
   - `brew tap amiaopensource/amiaos`
 
 ### Install additional vrecord dependencies via Brew
