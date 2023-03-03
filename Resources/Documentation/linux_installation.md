@@ -50,9 +50,9 @@ The following instructions aim to minimize use of Homebrew installs for packages
  test -r ~/.bash_profile && echo "eval \$($(brew --prefix)/bin/brew shellenv)" >> ~/.bashrc
  ~~~
 
-  - Alternately some issues (such as the sdl2 conflict) have been avoided by adding Linuxbrew lower down in the path order than the Linuxbrew instructions call for (Such as by editing `/etc/environment` to include `/home/linuxbrew/.linuxbrew/bin` after the other $PATH directories.) Your mileage may vary! * Add the AMIA Open Source tap for Homebrew:
-* Add the AMIA Open Source tap for Homebrew:
-  - `brew tap amiaopensource/amiaos`
+  - Alternately some issues (such as the sdl2 conflict) have been avoided by adding Linuxbrew lower down in the path order than the Linuxbrew instructions call for (Such as by editing `/etc/environment` to include `/home/linuxbrew/.linuxbrew/bin` after the other $PATH directories.) Your mileage may vary!
+ * Add the AMIA Open Source tap for Homebrew:
+   - `brew tap amiaopensource/amiaos`
 
 ### Install additional vrecord dependencies via Brew
 * `brew install decklinksdk && brew install ffmpegdecklink --with-iec61883 && brew install gtkdialog` _Note:_ Some users on Ubuntu have reported installation problems with `gtkdialog` at step. See [this note](https://github.com/amiaopensource/homebrew-amiaos/blob/master/TROUBLESHOOTING.md#vrecord)  at the AMIA Open Source Homebrew repository for a possible fix.
