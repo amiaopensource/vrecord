@@ -192,7 +192,7 @@ _get_avfctl_input_list(){
 
 _get_audio_device_list(){
     if [ "${OS_TYPE}" = "linux" ] ; then
-        arecord -l | grep -E '\[.*\]' | cut -d ':' -f2 | cut -d ',' -f1 | awk '{$1=$1;print}'
+        arecord -l | grep -E '\[.*\]' | cut -d ':' -f1-2 | awk '{$1=$1;print}'
     elif [ "${OS_TYPE}" = "macOS" ] ; then
         "${FFMPEG_BIN}" -nostdin -hide_banner -f avfoundation -list_devices 1 -i dummy 2>&1 | grep -A 10 "AVFoundation audio devices" | grep -o "\[[0-9]\].*" | cut -d " " -f2-
     fi

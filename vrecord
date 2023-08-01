@@ -605,10 +605,11 @@ _get_avfctl_inputs(){
 }
 
 _get_audio_dev_num(){
-    AUDIO_DEV_NUM=0
-    while [[ "${AUDIO_DEV_CHOICE}" != "${AUDIO_DEVICES[${AUDIO_DEV_NUM}]}" ]] ; do
-        AUDIO_DEV_NUM=$(( ${AUDIO_DEV_NUM} + 1 ))
-    done
+    if [[ $(echo ${AUDIO_DEVICES[@]} | fgrep -w "$AUDIO_DEV_CHOICE") ]]
+    then
+      AUDIO_DEV_FULL=$(printf '%s\n' "${AUDIO_DEVICES[@]}" | fgrep "$AUDIO_DEV_CHOICE")
+      AUDIO_DEV_NUM="$(echo "$AUDIO_DEV_FULL" | cut -d ':' -f1 | sed 's|card ||g'),$(echo "$AUDIO_DEV_FULL" | rev | cut -d ' ' -f1)"
+    fi
 }
 
 _set_up_edit_form() {
@@ -2183,7 +2184,7 @@ _get_avfctl_inputs
 if [[ "${OS_TYPE}" = "linux" ]] ; then
     while read audio_device ; do
         AUDIO_DEVICES+=("${audio_device}")
-    done < <(arecord -l | grep card | cut -d ':' -f2 | cut -d ',' -f1 | awk '{$1=$1;print}')
+    done < <(arecord -l | grep card | cut -d ':' -f1-2 | awk '{$1=$1;print}')
 elif [[ "${OS_TYPE}" = "macOS" ]] ; then
     AUDIO_DEVICES=("${AVFOUNDATION_DEVICES[@]}")
 fi
