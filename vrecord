@@ -605,9 +605,9 @@ _get_avfctl_inputs(){
 }
 
 _get_audio_dev_num(){
-    if [[ $(echo ${AUDIO_DEVICES[@]} | fgrep -w "$AUDIO_DEV_CHOICE") ]]
+    if [[ $(echo ${AUDIO_DEVICES[@]} | grep -F -w "$AUDIO_DEV_CHOICE") ]]
     then
-      AUDIO_DEV_FULL=$(printf '%s\n' "${AUDIO_DEVICES[@]}" | fgrep "$AUDIO_DEV_CHOICE")
+      AUDIO_DEV_FULL=$(printf '%s\n' "${AUDIO_DEVICES[@]}" | grep -F "$AUDIO_DEV_CHOICE")
       AUDIO_DEV_NUM="$(echo "$AUDIO_DEV_FULL" | cut -d ':' -f1 | sed 's|card ||g'),$(echo "$AUDIO_DEV_FULL" | rev | cut -d ' ' -f1)"
     fi
 }
