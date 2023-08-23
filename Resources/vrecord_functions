@@ -186,7 +186,7 @@ _get_avfctl_input_list(){
     if [ "${OS_TYPE}" = "linux" ] ; then
         echo "Default DV Device"
     else
-        avfctl -list_devices 2>&1 | grep -A 10 "Devices:" | grep -o "\[[0-9]\].*"
+        avfctl -list_devices 2>&1 | grep -A 10 "Devices:" | sed -e 's/.*avfctl\[[0-9]*:[0-9]*\] //'
     fi
 }
 

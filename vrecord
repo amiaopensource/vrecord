@@ -595,7 +595,7 @@ _get_avfctl_inputs(){
     unset AVFCTL_DEVICES
     while read avfctl_device ; do
         AVFCTL_DEVICES+=("${avfctl_device}")
-    done < <(avfctl -list_devices 2>&1 | grep -A 10 "Devices:" | grep -o "\[[0-9]\].*")
+    done < <(avfctl -list_devices 2>&1 | grep -A 10 "Devices:" | sed -e 's/.*avfctl\[[0-9]*:[0-9]*\] //')
     if [[ "${#AVFCTL_DEVICES[@]}" = 1 ]] ; then # default to first input if only one
         AVFCTL_INPUT_CHOICE="${AVFCTL_DEVICES[0]}"
     fi
