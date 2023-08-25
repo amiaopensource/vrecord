@@ -340,7 +340,7 @@ _gtk_vbox_list() {
     </vbox>"
 }
 
-_setup_vrecord_process(){
+_setup_vrecord_input(){
     _set_ffmpeg_loglevel(){
         if [[ "$VERBOSE" = "true" ]] ; then
             GRAB_INPUT+=(-loglevel debug)
@@ -417,7 +417,10 @@ _setup_vrecord_process(){
         _report "Input unknown"
         exit 1
     fi
+}
 
+_setup_vrecord_process(){
+    _setup_vrecord_input
     if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         PIPE_OUTPUT=(-c copy)
         PIPE_OUTPUT+=(-c:a pcm_s24le)
