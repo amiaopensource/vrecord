@@ -483,7 +483,7 @@ _setup_vrecord_process(){
                 fi
             fi
             RECORD_COMMAND=("${FFMPEG_BIN}")
-            RECORD_COMMAND+=(-nostdin -nostats "${TIME_LIMIT[@]}" "${GRAB_INPUT[@]}")
+            RECORD_COMMAND+=(-nostdin -nostats "${TIME_LIMIT[@]}" "${TC_INPUT_OPTION[@]}" "${GRAB_INPUT[@]}")
             if [[ -n "${VIDEOCODECNAME}" ]] ; then
                 MIDDLEOPTIONS+=(-metadata:s:v:0 encoder="${VIDEOCODECNAME}")
             fi
@@ -1691,7 +1691,7 @@ _lookup_choice(){
         # timecode options
         "none"|"rp188vitc"|"rp188vitc2"|"rp188ltc"|"rp188any"|"vitc"|"vitc2"|"serial")
             TC_TYPE="${1}"
-            EXTRAINPUTOPTIONS+=(-timecode_format "${TC_TYPE}")
+            TC_INPUT_OPTION=(-timecode_format "${TC_TYPE}")
             MIDDLEOPTIONS+=(-map_metadata 0:s:v:0)
             if [[ "${TC_TYPE}" != "none" ]] ; then
                 if [[ "${RUNTYPE}" = "passthrough" ]] ; then
