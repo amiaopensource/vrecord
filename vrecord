@@ -350,7 +350,7 @@ _setup_vrecord_input(){
         fi
     }
     # set up input and playback
-    unset GRAB_INPUT
+    GRAB_INPUT=()
     GRAB_INPUT+=("${EXTRAINPUTOPTIONS[@]}")
     if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] && [[ -z "${DECKLINK_INPUT_CHOICE}" ]] && [[ -z "${ALT_INPUT}" ]] ; then
         _report -w -t "The decklink input is not found."
