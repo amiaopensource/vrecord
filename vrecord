@@ -2172,7 +2172,7 @@ DVPACKAGER_INSTALLED="$(if command -v dvpackager >/dev/null ; then echo true ; e
 if [[ -f "${CONFIG_FILE}" ]] ; then
     . "${CONFIG_FILE}"
 else
-    _report -d "Initiatizing the configuration file at ${CONFIG_FILE}."
+    _report -d "Initializing the configuration file at ${CONFIG_FILE}."
     RUNTYPE="edit"
     STARTUP_VIEW="INPUTSETTINGS"
 fi
