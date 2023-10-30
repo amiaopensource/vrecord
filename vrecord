@@ -2286,6 +2286,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
 elif [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
     _review_option "DV_CONTAINER_CHOICE" "${DV_CONTAINER_OPTIONS[@]}"
     FORMAT="rawvideo"
+    EXTENSION='dv'
 elif [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
     _review_option "AUDIO_MODE_CODEC_CHOICE" "${AUDIO_CODEC_OPTIONS[@]}"
     EXTENSION="${AUDIO_EXT}"
