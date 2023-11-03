@@ -370,10 +370,10 @@ _setup_vrecord_input(){
             GRAB_INPUT+=(-f iec61883)
             GRAB_INPUT+=(-i auto)
         elif [[ "${OS_TYPE}" = "macOS" ]] ; then
-            AVFCTL_INPUT_INDEX="$(echo "${AVFCTL_INPUT_CHOICE}" | cut -c 2)"
-            GRAB_INPUT+=(-device "${AVFCTL_INPUT_INDEX}")
-            GRAB_INPUT+=(-cmd capture)
-            GRAB_INPUT+=(-)
+            AVFCTL_INPUT_INDEX="$(echo "${AVFCTL_INPUT_CHOICE}" | cut -d " " -f1 | sed 's|:$||g')"
+            GRAB_INPUT+=("device://${AVFCTL_INPUT_INDEX}")
+            GRAB_INPUT+=(--capture)
+            GRAB_INPUT+=(-m -)
         fi
         MIDDLEOPTIONS+=(-c copy -map 0)
     elif [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
@@ -473,7 +473,7 @@ _setup_vrecord_process(){
             else
                 VRECORD_STEPS="2" # Steps: record | player
             fi
-            RECORD_COMMAND=(avfctl)
+            RECORD_COMMAND=(dvrescue)
             RECORD_COMMAND+=("${GRAB_INPUT[@]}")
             FF_RECORD_COMMAND=("${FFMPEG_BIN}" -nostdin -nostats "${TIME_LIMIT[@]}")
             FF_RECORD_COMMAND+=(-i -)
@@ -559,7 +559,7 @@ _get_avfctl_inputs(){
     unset AVFCTL_DEVICES
     while read avfctl_device ; do
         AVFCTL_DEVICES+=("${avfctl_device}")
-    done < <(avfctl -list_devices 2>&1 | grep -A 10 "Devices:" | grep -o "\[[0-9]\].*")
+    done < <(dvrescue -list_devices | grep "\[DV\]")
     if [[ "${#AVFCTL_DEVICES[@]}" = 1 ]] ; then # default to first input if only one
         AVFCTL_INPUT_CHOICE="${AVFCTL_DEVICES[0]}"
     fi
@@ -606,7 +606,7 @@ _set_up_edit_form() {
 FFMPEG_STATUS_TMP="$(_maketemp .ffmpeg.status.txt)"
 DECKCONTROL_STATUS_TMP="$(_maketemp .deckcontrol.status.txt)"
 DECKCONTROL_TIMECODE_TMP="$(_maketemp .deckcontrol.timecode.txt)"
-AVFCTL_STATUS_TMP="$(_maketemp .avfctl.status.txt)"
+AVFCTL_STATUS_TMP="$(_maketemp .dvrescue.status.txt)"
 echo "" > "${FFMPEG_STATUS_TMP}"
 echo "disabled" > "$DECKCONTROL_STATUS_TMP"
 echo "--:--:--:--" > "$DECKCONTROL_TIMECODE_TMP"
@@ -881,11 +881,11 @@ if [[ "${OS_TYPE}" = "linux" ]] ; then
         STATUS_CMD='dvcont status '
     elif [[ "${OS_TYPE}" = "macOS" ]] ; then
         DV_REPACK_CMD='{ avfctl -cmd ff -foreground; avfctl -cmd rew; }'
-        DV_RW_CMD='avfctl -cmd rew '
-        DV_PLAY_CMD='avfctl -cmd play '
-        DV_STOP_CMD='avfctl -cmd stop '
-        DV_FF_CMD='avfctl -cmd ff '
-        STATUS_CMD="avfctl -status 2>&1 | grep -o 'Device \[.*' | sed 's|Device ||g;s| status||g'"
+        DV_RW_CMD='dvrescue "device://${AVFCTL_INPUT_INDEX}" -cmd rew '
+        DV_PLAY_CMD='dvrescue "device://${AVFCTL_INPUT_INDEX}" -cmd play '
+        DV_STOP_CMD='dvrescue "device://${AVFCTL_INPUT_INDEX}" -cmd stop '
+        DV_FF_CMD='dvrescue "device://${AVFCTL_INPUT_INDEX}" -cmd ff '
+        STATUS_CMD='dvrescue "device://${AVFCTL_INPUT_INDEX}" -status 2>&1'
 fi
 
 AVFCTL_INPUT_GUI=$(cat << AVFCTL_FORM
@@ -893,7 +893,7 @@ AVFCTL_INPUT_GUI=$(cat << AVFCTL_FORM
     <vbox>
         <hbox>
             <hbox space-expand="true">
-                $(_gtk_vbox_list "AVFCTL_INPUT_CHOICE"         "-1" "Select a DV Device"           "${AVFCTL_DEVICES[@]}")
+                $(_gtk_vbox_list "AVFCTL_INPUT_CHOICE"         "400" "Select a DV Device"           "${AVFCTL_DEVICES[@]}")
             </hbox>
             <vbox>
                 <frame dvpackager options>
