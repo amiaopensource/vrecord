@@ -70,7 +70,7 @@ _update_config_file(){
         echo "USER_SUFFIX=\"${USER_SUFFIX}\""
         echo "NO_SUFFIX=\"${NO_SUFFIX}\""
         echo "TECHNICIAN=\"${TECHNICIAN}\""
-        echo "AVFCTL_INPUT_CHOICE=\"${AVFCTL_INPUT_CHOICE}\""
+        echo "DVRESCUE_INPUT_CHOICE=\"${DVRESCUE_INPUT_CHOICE}\""
         echo "DECKLINK_INPUT_CHOICE=\"${DECKLINK_INPUT_CHOICE}\""
         echo "DECKLINK_UTILITY_CHOICE=\"${DECKLINK_UTILITY_CHOICE}\""
         echo "WAVEFORM_SCALE_CHOICE=\"${WAVEFORM_SCALE_CHOICE}\""
@@ -179,9 +179,9 @@ _get_decklink_input_list(){
     "${FFMPEG_BIN}" -nostdin -v 0 -sources decklink | awk -F'[][]' '{print $2}' | grep -v "^$"
 }
 
-_get_avfctl_input_list(){
-    # set avfctl input options
-    unset AVFCTL_DEVICES
+_get_dvrescue_input_list(){
+    # set dvrescue input options
+    unset DVRESCUE_DEVICES
     if [ "${OS_TYPE}" = "linux" ] ; then
         echo "Default DV Device"
     else
@@ -218,7 +218,7 @@ _get_summary(){
             echo "Playback: ${PLAYBACKVIEW_CHOICE} view (for recording) and ${PLAYBACKVIEW_CHOICE_PASS} view (for passthrough)"
         elif [ "${DEVICE_INPUT_CHOICE}" = "1" ] ; then
             echo "Device Input: DV"
-            echo "Copying video from ${AVFCTL_INPUT_CHOICE}."
+            echo "Copying video from ${DVRESCUE_INPUT_CHOICE}."
             echo "Inputs recorded to ${DIR}"
             echo "Auxiliary files created in ${LOGDIR}"
         elif [ "${DEVICE_INPUT_CHOICE}" = "2" ] ; then
