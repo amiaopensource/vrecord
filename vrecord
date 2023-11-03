@@ -638,6 +638,7 @@ OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
             <hbox>
             $(_gtk_vbox_list "WAVEFORM_SCALE_CHOICE" "100" "Select Waveform Scale"            "${WAVEFORM_SCALE_OPTIONS[@]}")
             $(_gtk_vbox_list "SIGNAL_VIEW_CHOICE"    "100" "Select Video Scale"               "${SIGNAL_OPTIONS[@]}")
+            $(_gtk_vbox_list "SIGNAL_INT_CHOICE"     "100" "Force Interlacement"              "${INT_OPTIONS[@]}")
             $(_gtk_vbox_list "MONITOR_AUDIO_CHOICE"  "100" "Monitor Audio?"                   "${MONITOR_AUDIO_OPTIONS[@]}")
             </hbox>
         </frame>
@@ -1665,7 +1666,10 @@ _lookup_choice(){
                 RECORDINGFILTER+="crop=w=720:h=480:x=0:y=4,"
                 MIDDLEOPTIONS+=(-x264opts bff)
             fi
-            RECORDINGFILTER+="setdar=4/3"
+            if [[ -z "${SIGNAL_INT_CHOICE}" ]] ; then
+                SIGNAL_INT_CHOICE="auto"
+            fi
+            RECORDINGFILTER+="setdar=4/3,setparams=field_mode=${SIGNAL_INT_CHOICE}"
             MIDDLEOPTIONS+=(-color_primaries smpte170m)
             MIDDLEOPTIONS+=(-color_trc bt709)
             MIDDLEOPTIONS+=(-colorspace smpte170m) ;;
@@ -1675,7 +1679,10 @@ _lookup_choice(){
             if [[ "${VIDEO_CODEC_CHOICE}" = "h264" ]] ; then
                 MIDDLEOPTIONS+=(-x264opts tff)
             fi
-            RECORDINGFILTER+="setdar=4/3"
+            if [[ -z "${SIGNAL_INT_CHOICE}" ]] ; then
+                SIGNAL_INT_CHOICE="auto"
+            fi
+            RECORDINGFILTER+="setdar=4/3,setparams=field_mode=${SIGNAL_INT_CHOICE}="
             MIDDLEOPTIONS+=(-color_primaries bt470bg)
             MIDDLEOPTIONS+=(-color_trc bt709)
             MIDDLEOPTIONS+=(-colorspace bt470bg) ;;
@@ -2007,6 +2014,7 @@ _review_all_options(){
     fi
     _review_option -n -d "digital" "WAVEFORM_SCALE_CHOICE" "${WAVEFORM_SCALE_OPTIONS[@]}"
     _review_option -n -d "Broadcast Range" "SIGNAL_VIEW_CHOICE" "${SIGNAL_OPTIONS[@]}"
+    _review_option -n -d "As is" "SIGNAL_INT_CHOICE" "${INT_OPTIONS[@]}"
     _review_option -n -d "Yes" "MONITOR_AUDIO_CHOICE" "${MONITOR_AUDIO_OPTIONS[@]}"
     _set_scopes
     if [[ "${RUNTYPE}" = "passthrough" ]] && [[ -n "${PLAYBACKVIEW_CHOICE_PASS}" ]] && [[ "${PLAYBACKVIEW_CHOICE_PASS}" != "Unselected" ]] ; then
@@ -2160,6 +2168,7 @@ if $MPV_INSTALLED ; then
 fi
 WAVEFORM_SCALE_OPTIONS=("digital" "millivolts" "ire")
 SIGNAL_OPTIONS=("Broadcast Range" "Full Range")
+INT_OPTIONS=("auto" "bff" "tff" "prog")
 MONITOR_AUDIO_OPTIONS=("Yes" "No")
 
 # CLI reset, edit modes
@@ -2295,6 +2304,12 @@ if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] || [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] 
         _report -w "WARNING: Option to invert phase of fourth audio channel has been selected"
     fi
 fi
+if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
+    if [[ ! -z "${SIGNAL_INT_CHOICE}" || "${SIGNAL_INT_CHOICE}" != "auto" ]] ; then
+        _report -w "WARNING: The configuration ignores the interlacement of the input and forces it to ${SIGNAL_INT_CHOICE}. Set to 'auto' if you prefer to keep the interlacement as the device describes it."
+    fi
+fi
+
 _report -q "Hit enter to start recording"
 read
 

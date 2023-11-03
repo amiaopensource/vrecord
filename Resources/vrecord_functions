@@ -127,6 +127,9 @@ _validate_form(){
     if [ "${FREE_SPACE}" -le 40 ] ; then
         echo "WARNING: The recording directory at ${DIR} only has ${FREE_SPACE} gigabytes available."
     fi
+    if [ "${SIGNAL_INT_CHOICE}" != "auto" ] && [ -n "${SIGNAL_INT_CHOICE}" ] ; then
+        echo "WARNING: The configuration ignores the interlacement of the input and forces it to ${SIGNAL_INT_CHOICE}. Set to 'auto' if you prefer to keep the interlacement as the device describes it."
+    fi
 }
 
 _get_output_filename(){
