@@ -274,10 +274,6 @@ _gtk_vbox_list() {
                   <action type="refresh">VRECORD_OUTPUT_NAME</action>'
         elif  [[ "${VARIABLE_NAME}" == "AUDIO_MODE_CODEC_CHOICE" ]] ; then
             echo '<action type="refresh">VRECORD_OUTPUT_NAME</action>'
-        elif  [[ "${VARIABLE_NAME}" == "DECKLINK_UTILITY_CHOICE" ]] ; then
-            echo '<action condition="command_is_true( [ \"$DECKLINK_UTILITY_CHOICE\" = \"bmdcapture\" ] && echo true)">disable:TIMECODE_CHOICE</action>
-                <action condition="command_is_true( [ \"$DECKLINK_UTILITY_CHOICE\" != \"bmdcapture\" ] && echo true)">enable:TIMECODE_CHOICE</action>
-                <action type="refresh">VRECORD_OUTPUT_NAME</action>'
         elif [[ "${VARIABLE_NAME}" == "AUDIO_DEV_CHOICE" ]] ; then
             echo '<action condition="command_is_true(echo \"$AUDIO_DEV_CHOICE\" | grep -vq Blackmagic && echo true)">enable:AUDIO_MODE_SR_CHOICE</action>
                   <action condition="command_is_true(echo \"$AUDIO_DEV_CHOICE\" | grep -q Blackmagic && echo true)">disable:AUDIO_MODE_SR_CHOICE</action>
@@ -359,17 +355,6 @@ _setup_vrecord_input(){
     if [[ -n "${ALT_INPUT}" ]] ; then
         GRAB_INPUT+=(-i "${ALT_INPUT}")
     elif [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
-        if [[ "${DECKLINK_UTILITY_CHOICE}" == "bmdcapture" ]] && [[ -z "${ALT_INPUT}" ]] ; then
-            GRAB_INPUT+=(-A "${BMD_AUDIO_INPUT}")
-            GRAB_INPUT+=(-V "${BMD_VIDEO_INPUT}")
-            GRAB_INPUT+=(-m "${BMD_STANDARD}")
-            GRAB_INPUT+=(-c 8)
-            GRAB_INPUT+=(-s 32)
-            GRAB_INPUT+=(-p "${BMD_PIXEL_FORMAT}")
-            GRAB_INPUT+=(-F "matroska")
-            GRAB_INPUT+=(-d "0")
-            GRAB_INPUT+=(-f pipe:1)
-        else
             _set_ffmpeg_loglevel
             GRAB_INPUT+=(-f decklink)
             GRAB_INPUT+=(-draw_bars 0)
@@ -380,7 +365,6 @@ _setup_vrecord_input(){
             GRAB_INPUT+=(-audio_depth 32)
             GRAB_INPUT+=(-raw_format "${PIXEL_FORMAT}")
             GRAB_INPUT+=(-i "${DECKLINK_INPUT_CHOICE}")
-        fi
     elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
         if [[ "${OS_TYPE}" = "linux" ]] ; then
             GRAB_INPUT+=(-f iec61883)
@@ -447,28 +431,6 @@ _setup_vrecord_process(){
     fi
     if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         # DEVICE_INPUT_CHOICE=0 is decklink, other DEVICE_INPUT_CHOICE values don't yet use such filtering
-        if [[ "${DECKLINK_UTILITY_CHOICE}" == "bmdcapture" ]] && [[ -z "${ALT_INPUT}" ]] ; then
-            if [[ "${RUNTYPE}" = "record" ]] ; then
-                VRECORD_STEPS="3" # Steps: record | ff_record | player
-            else
-                VRECORD_STEPS="2" # Steps: record | player
-            fi
-            RECORD_COMMAND=("bmdcapture")
-            # TO DO adjust TIME_LIMIT for bmdcapture
-            RECORD_COMMAND+=("${GRAB_INPUT[@]}")
-            FF_RECORD_COMMAND=("${FFMPEG_BIN}" -nostdin -nostats "${TIME_LIMIT[@]}")
-            FF_RECORD_COMMAND+=(-i -)
-            if [[ -n "${VIDEOCODECNAME}" ]] ; then
-                MIDDLEOPTIONS+=(-metadata:s:v:0 encoder="${VIDEOCODECNAME}")
-            fi
-            FF_RECORD_COMMAND+=("${MIDDLEOPTIONS[@]}")
-            if  [[ "${RUNTYPE}" = "record" ]] ; then
-                FF_RECORD_COMMAND+=(-filter_complex "[0:v:0]${RECORDINGFILTER}${TC_WRITE}; ${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}")
-                FF_RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
-                FF_RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}")
-            fi
-            FF_RECORD_COMMAND+=("${PIPE_OUTPUT[@]}")
-        else
             if [[ "${RUNTYPE}" = "record" ]] ; then
                 VRECORD_STEPS="2" # Steps: record | player
             else
@@ -494,7 +456,6 @@ _setup_vrecord_process(){
                 RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}")
             fi
             RECORD_COMMAND+=("${PIPE_OUTPUT[@]}")
-        fi
     elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
         if [[ "${OS_TYPE}" = "linux" ]] ; then
             if [[ "${RUNTYPE}" = "record" ]] ; then
@@ -703,14 +664,6 @@ OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
         <frame Optional Tools>
             <hbox>
                 <text>
-                    <label>bmdtools: </label>
-                </text>
-                <pixmap stock-icon-size="1" tooltip-text="If bmdtools is installed, vrecord can offer bmdcapture as an alternate method (to ffmpeg) to receive an input from a Blackmagic capture device.">
-                    <input file stock="$(if $BMDTOOLS_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)"></input>
-                </pixmap>
-            </hbox>
-            <hbox>
-                <text>
                     <label>deckcontrol: </label>
                 </text>
                 <pixmap stock-icon-size="1" tooltip-text="If deckcontrol is installed, vrecord can offer an interface to control videodecks via RS422 via a Blackmagic capture device.">
@@ -826,7 +779,6 @@ DECKLINK_INPUT_GUI=$(cat << DECKLINK_FORM
 <frame Decklink input options>
     <vbox>
         <hbox space-expand="true">
-            $(_gtk_vbox_list "DECKLINK_UTILITY_CHOICE"   "80" "Input Utility"          "${DECKLINK_UTILITIES[@]}")
             $(_gtk_vbox_list "DECKLINK_INPUT_CHOICE"    "120" "Video Card"             "${DECKLINK_DEVICES[@]}")
             $(_gtk_vbox_list "VIDEO_INPUT_CHOICE"       "100" "Video Input"            "${VIDEO_INPUT_OPTIONS[@]}")
             $(_gtk_vbox_list "AUDIO_INPUT_CHOICE"       "140" "Audio Input"            "${AUDIO_INPUT_OPTIONS[@]}")
@@ -1560,15 +1512,15 @@ _lookup_choice(){
     esac
     case "${1}" in
         # video inputs
-        "Composite") VIDEO_INPUT="composite" ; BMD_VIDEO_INPUT="1" ;;
-        "SDI")       VIDEO_INPUT="sdi";        BMD_VIDEO_INPUT="4" ;;
-        "Component") VIDEO_INPUT="component";  BMD_VIDEO_INPUT="2" ;;
-        "S-Video")   VIDEO_INPUT="s_video";    BMD_VIDEO_INPUT="6" ;;
+        "Composite") VIDEO_INPUT="composite" ;;
+        "SDI")       VIDEO_INPUT="sdi" ;;
+        "Component") VIDEO_INPUT="component" ;;
+        "S-Video")   VIDEO_INPUT="s_video" ;;
 
         # audio inputs
-        "Analog")                  AUDIO_INPUT="analog" ;   BMD_AUDIO_INPUT="1" ;;
-        "SDI Embedded Audio")      AUDIO_INPUT="embedded" ; BMD_AUDIO_INPUT="2"  ;;
-        "Digital Audio (AES/EBU)") AUDIO_INPUT="aes_ebu" ;  BMD_AUDIO_INPUT="3"  ;;
+        "Analog")                  AUDIO_INPUT="analog" ;;
+        "SDI Embedded Audio")      AUDIO_INPUT="embedded" ;;
+        "Digital Audio (AES/EBU)") AUDIO_INPUT="aes_ebu" ;;
 
         # container
         "QuickTime")
@@ -1633,8 +1585,8 @@ _lookup_choice(){
             SUFFIX="_huff" ;;
 
         # video pixel format and bit depth
-        "10 bit") PIXEL_FORMAT="yuv422p10" ; BMD_PIXEL_FORMAT="yuv10" ;;
-        "8 bit")  PIXEL_FORMAT="uyvy422" ;   BMD_PIXEL_FORMAT="yuv8" ;;
+        "10 bit") PIXEL_FORMAT="yuv422p10" ;;
+        "8 bit")  PIXEL_FORMAT="uyvy422" ;;
 
         # audio codec
         "24-bit PCM")
@@ -1708,10 +1660,6 @@ _lookup_choice(){
         # video standard
         "NTSC")
             STANDARD="ntsc"
-            if [[ "${DECKLINK_UTILITY_CHOICE}" == "bmdcapture" ]] && [[ -z "${ALT_INPUT}" ]] ; then
-                BMD_STANDARD="$(bmdcapture -h 2>&1 | grep "NTSC.*29.97" | cut -d: -f 1 | sed 's/ //g' | head -n 1)"
-                RECORDINGFILTER+="setfield=bff,"
-            fi
             DECKLINK_FPS="30000/1001"
             if [[ "${VIDEO_CODEC_CHOICE}" = "h264" ]] ; then
                 RECORDINGFILTER+="crop=w=720:h=480:x=0:y=4,"
@@ -1723,10 +1671,6 @@ _lookup_choice(){
             MIDDLEOPTIONS+=(-colorspace smpte170m) ;;
         "PAL")
             STANDARD="pal "
-            if [[ "${DECKLINK_UTILITY_CHOICE}" == "bmdcapture" ]] && [[ -z "${ALT_INPUT}" ]] ; then
-                BMD_STANDARD="$(bmdcapture -h 2>&1 | grep "PAL.*25" | cut -d: -f 1 | sed 's/ //g' | head -n 1)"
-                RECORDINGFILTER+="setfield=tff,"
-            fi
             DECKLINK_FPS="25000/1000"
             if [[ "${VIDEO_CODEC_CHOICE}" = "h264" ]] ; then
                 MIDDLEOPTIONS+=(-x264opts tff)
@@ -2046,14 +1990,11 @@ _review_all_options(){
         PHASE_VALUE_4="-1*"
     fi
     if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
-        _review_option -n -d "ffmpeg" "DECKLINK_UTILITY_CHOICE" "${DECKLINK_UTILITIES[@]}"
         _review_option "VIDEO_INPUT_CHOICE" "${VIDEO_INPUT_OPTIONS[@]}"
         _review_option "AUDIO_INPUT_CHOICE" "${AUDIO_INPUT_OPTIONS[@]}"
         _review_option "VIDEO_BIT_DEPTH_CHOICE" "${VIDEO_BITDEPTH_OPTIONS[@]}"
         _review_option "AUDIO_MAPPING_CHOICE" "${CHANNEL_MAPPING_OPTIONS[@]}"
-        if [[ -z "${ALT_INPUT}" ]] && [[ "${DECKLINK_UTILITY_CHOICE}" == "ffmpeg" ]] ; then
             _review_option "TIMECODE_CHOICE" "${TIMECODE_OPTIONS[@]}"
-        fi
         _review_option "STANDARD_CHOICE" "${STANDARD_OPTIONS[@]}"
     elif [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
         _review_option -n "AVFCTL_INPUT_CHOICE" "${AVFCTL_DEVICES[@]}"
@@ -2166,7 +2107,6 @@ SHARED_FUNCTIONS_FILE="${RESOURCE_PATH}/vrecord_functions"
 . "${SHARED_FUNCTIONS_FILE}"
 
 # optional dependency checks
-BMDTOOLS_INSTALLED="$(if command -v bmdcapture >/dev/null ; then echo true ; else echo false ; fi)"
 DECKCONTROL_INSTALLED="$(if command -v deckcontrol >/dev/null ; then echo true ; else echo false ; fi)"
 GNUPLOT_INSTALLED="$(if command -v gnuplot >/dev/null ; then echo true ; else echo false ; fi)"
 MEDIACONCH_INSTALLED="$(if command -v mediaconch >/dev/null ; then echo true ; else echo false ; fi)"
@@ -2196,10 +2136,6 @@ elif [[ "${OS_TYPE}" = "macOS" ]] ; then
 fi
 
 # list of selections for each vrecord option
-DECKLINK_UTILITIES=("ffmpeg")
-if $BMDTOOLS_INSTALLED ; then
-    DECKLINK_UTILITIES+=("bmdcapture")
-fi
 VIDEO_INPUT_OPTIONS=("Composite" "SDI" "Component" "S-Video")
 AUDIO_INPUT_OPTIONS=("Analog" "SDI Embedded Audio" "Digital Audio (AES/EBU)")
 CONTAINER_OPTIONS=("QuickTime" "Matroska" "AVI" "MXF" "MP4")

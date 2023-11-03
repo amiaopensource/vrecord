@@ -173,11 +173,7 @@ _get_output_filename(){
 _get_decklink_input_list(){
     # get information on what input device options are available
     #unset DECKLINK_DEVICES
-    if [ "${DECKLINK_UTILITY_CHOICE}" = "bmdcapture" ] ; then
-        bmdcapture -h 2>&1 | grep "^->" | head -n 1 | sed 's/.*-> \(.*\) (.*/\1/'
-    else
         "${FFMPEG_BIN}" -nostdin -v 0 -sources decklink | awk -F'[][]' '{print $2}' | grep -v "^$"
-    fi
 }
 
 _get_avfctl_input_list(){
