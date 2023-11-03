@@ -185,7 +185,7 @@ _get_avfctl_input_list(){
     if [ "${OS_TYPE}" = "linux" ] ; then
         echo "Default DV Device"
     else
-        avfctl -list_devices 2>&1 | grep -A 10 "Devices:" | grep -o "\[[0-9]\].*"
+        dvrescue -list_devices | grep "\[DV\]"
     fi
 }
 
