@@ -340,7 +340,7 @@ _gtk_vbox_list() {
     </vbox>"
 }
 
-_setup_vrecord_process(){
+_setup_vrecord_input(){
     _set_ffmpeg_loglevel(){
         if [[ "$VERBOSE" = "true" ]] ; then
             GRAB_INPUT+=(-loglevel debug)
@@ -350,7 +350,7 @@ _setup_vrecord_process(){
         fi
     }
     # set up input and playback
-    unset GRAB_INPUT
+    GRAB_INPUT=()
     GRAB_INPUT+=("${EXTRAINPUTOPTIONS[@]}")
     if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] && [[ -z "${DECKLINK_INPUT_CHOICE}" ]] && [[ -z "${ALT_INPUT}" ]] ; then
         _report -w -t "The decklink input is not found."
@@ -417,7 +417,10 @@ _setup_vrecord_process(){
         _report "Input unknown"
         exit 1
     fi
+}
 
+_setup_vrecord_process(){
+    _setup_vrecord_input
     if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         PIPE_OUTPUT=(-c copy)
         PIPE_OUTPUT+=(-c:a pcm_s24le)
@@ -480,7 +483,7 @@ _setup_vrecord_process(){
                 fi
             fi
             RECORD_COMMAND=("${FFMPEG_BIN}")
-            RECORD_COMMAND+=(-nostdin -nostats "${TIME_LIMIT[@]}" "${GRAB_INPUT[@]}")
+            RECORD_COMMAND+=(-nostdin -nostats "${TIME_LIMIT[@]}" "${TC_INPUT_OPTION[@]}" "${GRAB_INPUT[@]}")
             if [[ -n "${VIDEOCODECNAME}" ]] ; then
                 MIDDLEOPTIONS+=(-metadata:s:v:0 encoder="${VIDEOCODECNAME}")
             fi
@@ -1377,8 +1380,11 @@ _edit_mode(){
         RUNTYPE="edit"
     elif [[ "${EXIT}" = "timecode_scan" ]] ; then
         _report -dt "Scanning each supported type of timecode."
+        _review_all_options
+        _report -dt "Note: some types of timecode are only supported if the video input is set to 'ffmpeg' and 'sdi' (currently the video input is set to '${DECKLINK_UTILITY_CHOICE}' and '${VIDEO_INPUT}')."
+        _setup_vrecord_input
         for timecode_type in "${TIMECODE_OPTIONS[@]}" ; do
-            tc_value="$("${FFPROBE_BIN}" "${GRAB_INPUT[@]}" -timecode_format "${timecode_type}" -show_entries stream_tags=timecode -of default=nw=1:nk=1 2>/dev/null)"
+            tc_value="$("${FFPROBE_BIN}" -timecode_format "${timecode_type}" "${GRAB_INPUT[@]}" -show_entries stream_tags=timecode -of default=nw=1:nk=1 2>/dev/null)"
             if [[ -z "${tc_value}" ]] ; then
                 tc_value="none"
             fi
@@ -1688,7 +1694,7 @@ _lookup_choice(){
         # timecode options
         "none"|"rp188vitc"|"rp188vitc2"|"rp188ltc"|"rp188any"|"vitc"|"vitc2"|"serial")
             TC_TYPE="${1}"
-            EXTRAINPUTOPTIONS+=(-timecode_format "${TC_TYPE}")
+            TC_INPUT_OPTION=(-timecode_format "${TC_TYPE}")
             MIDDLEOPTIONS+=(-map_metadata 0:s:v:0)
             if [[ "${TC_TYPE}" != "none" ]] ; then
                 if [[ "${RUNTYPE}" = "passthrough" ]] ; then
