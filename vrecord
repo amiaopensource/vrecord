@@ -355,16 +355,16 @@ _setup_vrecord_input(){
     if [[ -n "${ALT_INPUT}" ]] ; then
         GRAB_INPUT+=(-i "${ALT_INPUT}")
     elif [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
-            _set_ffmpeg_loglevel
-            GRAB_INPUT+=(-f decklink)
-            GRAB_INPUT+=(-draw_bars 0)
-            GRAB_INPUT+=(-audio_input "${AUDIO_INPUT}")
-            GRAB_INPUT+=(-video_input "${VIDEO_INPUT}")
-            GRAB_INPUT+=(-format_code "${STANDARD}")
-            GRAB_INPUT+=(-channels 8)
-            GRAB_INPUT+=(-audio_depth 32)
-            GRAB_INPUT+=(-raw_format "${PIXEL_FORMAT}")
-            GRAB_INPUT+=(-i "${DECKLINK_INPUT_CHOICE}")
+        _set_ffmpeg_loglevel
+        GRAB_INPUT+=(-f decklink)
+        GRAB_INPUT+=(-draw_bars 0)
+        GRAB_INPUT+=(-audio_input "${AUDIO_INPUT}")
+        GRAB_INPUT+=(-video_input "${VIDEO_INPUT}")
+        GRAB_INPUT+=(-format_code "${STANDARD}")
+        GRAB_INPUT+=(-channels 8)
+        GRAB_INPUT+=(-audio_depth 32)
+        GRAB_INPUT+=(-raw_format "${PIXEL_FORMAT}")
+        GRAB_INPUT+=(-i "${DECKLINK_INPUT_CHOICE}")
     elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
         if [[ "${OS_TYPE}" = "linux" ]] ; then
             GRAB_INPUT+=(-f iec61883)
@@ -431,31 +431,31 @@ _setup_vrecord_process(){
     fi
     if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         # DEVICE_INPUT_CHOICE=0 is decklink, other DEVICE_INPUT_CHOICE values don't yet use such filtering
-            if [[ "${RUNTYPE}" = "record" ]] ; then
+        if [[ "${RUNTYPE}" = "record" ]] ; then
+            VRECORD_STEPS="2" # Steps: record | player
+        else
+            if [[ "${PLAYBACKVIEW_CHOICE_PASS}" = "Audio + Video" ]] ; then
+                VRECORD_STEPS="2" # Steps: record | player
+            elif [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
+                VRECORD_STEPS="2" # Steps: record | player
+            elif [[ "$(basename "${FFPLAY_BIN}")" != "ffplay-dl" ]] ; then
                 VRECORD_STEPS="2" # Steps: record | player
             else
-                if [[ "${PLAYBACKVIEW_CHOICE_PASS}" = "Audio + Video" ]] ; then
-                    VRECORD_STEPS="2" # Steps: record | player
-                elif [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
-                    VRECORD_STEPS="2" # Steps: record | player
-                elif [[ "$(basename "${FFPLAY_BIN}")" != "ffplay-dl" ]] ; then
-                    VRECORD_STEPS="2" # Steps: record | player
-                else
-                    VRECORD_STEPS="1" # Steps: player
-                fi
+                VRECORD_STEPS="1" # Steps: player
             fi
-            RECORD_COMMAND=("${FFMPEG_BIN}")
-            RECORD_COMMAND+=(-nostdin -nostats "${TIME_LIMIT[@]}" "${TC_INPUT_OPTION[@]}" "${GRAB_INPUT[@]}")
-            if [[ -n "${VIDEOCODECNAME}" ]] ; then
-                MIDDLEOPTIONS+=(-metadata:s:v:0 encoder="${VIDEOCODECNAME}")
-            fi
-            RECORD_COMMAND+=("${MIDDLEOPTIONS[@]}")
-            if [[ "${RUNTYPE}" = "record" ]] ; then
-                RECORD_COMMAND+=(-filter_complex "[0:v:0]${RECORDINGFILTER}${TC_WRITE}; ${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}")
-                RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
-                RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}")
-            fi
-            RECORD_COMMAND+=("${PIPE_OUTPUT[@]}")
+        fi
+        RECORD_COMMAND=("${FFMPEG_BIN}")
+        RECORD_COMMAND+=(-nostdin -nostats "${TIME_LIMIT[@]}" "${TC_INPUT_OPTION[@]}" "${GRAB_INPUT[@]}")
+        if [[ -n "${VIDEOCODECNAME}" ]] ; then
+            MIDDLEOPTIONS+=(-metadata:s:v:0 encoder="${VIDEOCODECNAME}")
+        fi
+        RECORD_COMMAND+=("${MIDDLEOPTIONS[@]}")
+        if [[ "${RUNTYPE}" = "record" ]] ; then
+            RECORD_COMMAND+=(-filter_complex "[0:v:0]${RECORDINGFILTER}${TC_WRITE}; ${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}")
+            RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
+            RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}")
+        fi
+        RECORD_COMMAND+=("${PIPE_OUTPUT[@]}")
     elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
         if [[ "${OS_TYPE}" = "linux" ]] ; then
             if [[ "${RUNTYPE}" = "record" ]] ; then
@@ -1994,7 +1994,7 @@ _review_all_options(){
         _review_option "AUDIO_INPUT_CHOICE" "${AUDIO_INPUT_OPTIONS[@]}"
         _review_option "VIDEO_BIT_DEPTH_CHOICE" "${VIDEO_BITDEPTH_OPTIONS[@]}"
         _review_option "AUDIO_MAPPING_CHOICE" "${CHANNEL_MAPPING_OPTIONS[@]}"
-            _review_option "TIMECODE_CHOICE" "${TIMECODE_OPTIONS[@]}"
+        _review_option "TIMECODE_CHOICE" "${TIMECODE_OPTIONS[@]}"
         _review_option "STANDARD_CHOICE" "${STANDARD_OPTIONS[@]}"
     elif [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
         _review_option -n "AVFCTL_INPUT_CHOICE" "${AVFCTL_DEVICES[@]}"

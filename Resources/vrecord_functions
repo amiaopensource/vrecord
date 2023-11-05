@@ -173,7 +173,7 @@ _get_output_filename(){
 _get_decklink_input_list(){
     # get information on what input device options are available
     #unset DECKLINK_DEVICES
-        "${FFMPEG_BIN}" -nostdin -v 0 -sources decklink | awk -F'[][]' '{print $2}' | grep -v "^$"
+    "${FFMPEG_BIN}" -nostdin -v 0 -sources decklink | awk -F'[][]' '{print $2}' | grep -v "^$"
 }
 
 _get_avfctl_input_list(){
