@@ -777,6 +777,10 @@ OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
                     <input file>"${VRECORD_VARS_FILE}"</input>
                 </text>
             </vbox>
+            <button>
+                <label>Reset Environment Variables</label>
+                <action type="exit">env_reset</action>
+            </button>
         </vbox>
     </hbox>
 </frame>
@@ -1372,6 +1376,10 @@ _edit_mode(){
             fi
             echo "${timecode_type}: ${tc_value}"
         done
+        RUNTYPE="edit"
+    elif [[ "${EXIT}" = "env_reset" ]] ; then
+        _remove_env_vars
+        _process_vars_for_gtk
         RUNTYPE="edit"
     else
         _report_unexpected_error EXIT
