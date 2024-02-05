@@ -121,13 +121,33 @@ _maketemp(){
     echo "$(mktemp -q "/tmp/$(basename "${0}").XXXXXX")${EXT}"
 }
 
-_include_var(){
-    while [[ "${@}" != "" ]] ; do
-        VAR_NAME="${1}"
-        VAR_VALUE="${!1}"
-        shift
-        echo "${VAR_NAME}=\"${VAR_VALUE}\"" >> "${VRECORD_VARS_FILE}"
-    done
+_process_vars_for_gtk(){
+    _include_var(){
+        while [[ "${@}" != "" ]] ; do
+            VAR_NAME="${1}"
+            VAR_VALUE="${!1}"
+            shift
+            echo "${VAR_NAME}=\"${VAR_VALUE}\"" >> "${VRECORD_VARS_FILE}"
+        done
+    }
+    if [[ -f "${VRECORD_VARS_FILE}" ]] ; then
+        . "${VRECORD_VARS_FILE}"
+    else
+        _include_var VRECORD_VARS_FILE
+    fi
+
+    if [[ -z "${OS_TYPE}" ]] ; then
+        _setup_env_variables
+        _include_var OS_TYPE RESOURCE_PATH DEFAULTFONT CORE_COUNT OPEN_COMMAND ZCAT_COMMAND COMPUTER_MODEL_NAME DIR_SELECTION_DIALOG
+        if [[ "${OS_TYPE}" = "macOS" ]] ; then
+            _include_var COMPUTER_MODEL_ID COMPUTER_PROCESSOR_NAME COMPUTER_PROCESSOR_SPEED COMPUTER_PROCESSOR_COUNT COMPUTER_MEMORY COMPUTER_SERIAL
+        fi
+    fi
+
+    if [[ -z "${FFMPEG_BIN}" ]] ; then
+        _gather_ffmpeg_vars
+        _include_var CAPTURELOGSUFFIX TIMECODELOGSUFFIX BREW_PREFIX FFMPEG_BIN FFPLAY_BIN FFPROBE_BIN
+    fi
 }
 
 _setup_env_variables(){
@@ -2092,24 +2112,7 @@ VRECORD_INPUT_TMP="$(_maketemp .vrecord_input.log)"
 # manage an include file to pass variables to gtkdialog
 VRECORD_VARS_FILE="/tmp/v_$(echo "${0}" | sed -e "s/[^A-Za-z0-9.]/_/g")_variables.txt"
 
-if [[ -f "${VRECORD_VARS_FILE}" ]] ; then
-    . "${VRECORD_VARS_FILE}"
-else
-    _include_var VRECORD_VARS_FILE
-fi
-
-if [[ -z "${OS_TYPE}" ]] ; then
-    _setup_env_variables
-    _include_var OS_TYPE RESOURCE_PATH DEFAULTFONT CORE_COUNT OPEN_COMMAND ZCAT_COMMAND COMPUTER_MODEL_NAME DIR_SELECTION_DIALOG
-    if [[ "${OS_TYPE}" = "macOS" ]] ; then
-        _include_var COMPUTER_MODEL_ID COMPUTER_PROCESSOR_NAME COMPUTER_PROCESSOR_SPEED COMPUTER_PROCESSOR_COUNT COMPUTER_MEMORY COMPUTER_SERIAL
-    fi
-fi
-
-if [[ -z "${FFMPEG_BIN}" ]] ; then
-    _gather_ffmpeg_vars
-    _include_var CAPTURELOGSUFFIX TIMECODELOGSUFFIX BREW_PREFIX FFMPEG_BIN FFPLAY_BIN FFPROBE_BIN
-fi
+_process_vars_for_gtk
 
 SHARED_FUNCTIONS_FILE="${RESOURCE_PATH}/vrecord_functions"
 . "${SHARED_FUNCTIONS_FILE}"
