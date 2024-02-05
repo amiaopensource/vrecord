@@ -2389,23 +2389,11 @@ if [[ "${VERBOSE_GTKDIALOG}" = "Y" ]] ; then
     echo "STEPS ${VRECORD_STEPS}"
     echo "PLAY ${PLAYER_COMMAND[@]}"
     echo "RECORD ${RECORD_COMMAND[@]}"
-    echo "FFRECORD ${FF_RECORD_COMMAND[@]}"
 fi
 if [[ "${VRECORD_STEPS}" = "2" ]] ; then
-    _writeingestlog "Capture-Record command" "${RECORD_COMMAND[@]}"
+    _writeingestlog "Record command" "${RECORD_COMMAND[@]}"
     _writeingestlog "Playback command" "${PLAYER_COMMAND[@]}"
     "${RECORD_COMMAND[@]}" 2> >(tee "${VRECORD_INPUT_TMP}" 1>&2) | \
-    if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] && [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]]; then
-        tee >("${PLAYER_COMMAND[@]}") | "${QCLI_COMMAND_PIPE[@]}"
-    else
-        "${PLAYER_COMMAND[@]}"
-    fi
-elif [[ "${VRECORD_STEPS}" = "3" ]] ; then
-    _writeingestlog "Capture command" "${RECORD_COMMAND[@]}"
-    _writeingestlog "Record command" "${FF_RECORD_COMMAND[@]}"
-    _writeingestlog "Playback command" "${PLAYER_COMMAND[@]}"
-    "${RECORD_COMMAND[@]}" 2> >(tee "${VRECORD_INPUT_TMP}" 1>&2) | \
-    "${FF_RECORD_COMMAND[@]}" 2> >(tee "${VRECORD_INPUT_TMP}" 1>&2) | \
     if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] && [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]]; then
         tee >("${PLAYER_COMMAND[@]}") | "${QCLI_COMMAND_PIPE[@]}"
     else
@@ -2418,26 +2406,18 @@ fi
 RESULTING_EXIT_CODES=("${PIPESTATUS[@]}")
 P1_ERR="${RESULTING_EXIT_CODES[0]}"
 P2_ERR="${RESULTING_EXIT_CODES[1]}"
-P3_ERR="${RESULTING_EXIT_CODES[2]}"
 
 if [[ "${VRECORD_STEPS}" = "2" ]] ; then
-    _writeingestlog "Capture-Record exit code" "${P1_ERR}"
+    _writeingestlog "Record exit code" "${P1_ERR}"
     _writeingestlog "Playback exit code" "${P2_ERR}"
-elif [[ "${VRECORD_STEPS}" = "3" ]] ; then
-    _writeingestlog "Capture exit code" "${P1_ERR}"
-    _writeingestlog "Record exit code" "${P2_ERR}"
-    _writeingestlog "Playback exit code" "${P3_ERR}"
 fi
 
 if [[ ! -s "${VRECORD_OUTPUT}" ]] ; then
     if [[ "$P1_ERR" != "0" ]] ; then
-        _report_unexpected_error P1_ERR "${RECORD_COMMAND[@]} // ${FF_RECORD_COMMAND[@]} // ${PLAYER_COMMAND}"
+        _report_unexpected_error P1_ERR "${RECORD_COMMAND[@]} // ${PLAYER_COMMAND}"
     fi
     if [[ "$P2_ERR" != "0" && -n "$P2_ERR" ]] ; then
-        _report_unexpected_error P2_ERR "${RECORD_COMMAND[@]} // ${FF_RECORD_COMMAND[@]} // ${PLAYER_COMMAND}"
-    fi
-    if [[ "$P3_ERR" != "0" && -n "$P3_ERR" ]] ; then
-        _report_unexpected_error P3_ERR "${RECORD_COMMAND[@]} // ${FF_RECORD_COMMAND[@]} // ${PLAYER_COMMAND}"
+        _report_unexpected_error P2_ERR "${RECORD_COMMAND[@]} // ${PLAYER_COMMAND}"
     fi
 fi
 
