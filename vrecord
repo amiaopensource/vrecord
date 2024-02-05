@@ -2041,7 +2041,9 @@ _review_all_options(){
         _review_option "AUDIO_INPUT_CHOICE" "${AUDIO_INPUT_OPTIONS[@]}"
         _review_option "VIDEO_BIT_DEPTH_CHOICE" "${VIDEO_BITDEPTH_OPTIONS[@]}"
         _review_option "AUDIO_MAPPING_CHOICE" "${CHANNEL_MAPPING_OPTIONS[@]}"
-        _review_option "TIMECODE_CHOICE" "${TIMECODE_OPTIONS[@]}"
+        if [[ -z "${ALT_INPUT}" ]] ; then
+            _review_option "TIMECODE_CHOICE" "${TIMECODE_OPTIONS[@]}"
+        fi
         _review_option "STANDARD_CHOICE" "${STANDARD_OPTIONS[@]}"
     elif [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
         _review_option -n "AVFCTL_INPUT_CHOICE" "${AVFCTL_DEVICES[@]}"
