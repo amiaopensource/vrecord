@@ -448,7 +448,7 @@ _setup_vrecord_process(){
         PIPE_OUTPUT+=(-map 0)
         PIPE_OUTPUT+=(-f rawvideo)
         PIPE_OUTPUT+=(-)
-        WINDOW_NAME="mode:${RUNTYPE} - input:'${DVRESCUE_INPUT_CHOICE}' - to end recording press q, esc, or close video window"
+        WINDOW_NAME="mode:${RUNTYPE} - DV input:'${DVRESCUE_INPUT_INDEX}' - to end recording press q, esc, or close video window"
     elif [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
         PIPE_OUTPUT+=(-c:a pcm_s16le -ar 48k)
         PIPE_OUTPUT+=(-f wav)
