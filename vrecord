@@ -571,9 +571,6 @@ _get_dvrescue_inputs(){
     if [[ "${#DVRESCUE_DEVICES[@]}" = 1 ]] ; then # default to first input if only one
         DVRESCUE_INPUT_CHOICE="${DVRESCUE_DEVICES[0]}"
     fi
-    if [[ "${OS_TYPE}" = "linux" ]] ; then
-        DVRESCUE_DEVICES+=('Default DV Device')
-    fi
 }
 
 _get_audio_dev_num(){
