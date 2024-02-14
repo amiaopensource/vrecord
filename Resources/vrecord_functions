@@ -127,6 +127,9 @@ _validate_form(){
     if [ "${FREE_SPACE}" -le 40 ] ; then
         echo "WARNING: The recording directory at ${DIR} only has ${FREE_SPACE} gigabytes available."
     fi
+    if [ "${SIGNAL_INT_CHOICE}" != "auto" ] && [ -n "${SIGNAL_INT_CHOICE}" ] ; then
+        echo "WARNING: The configuration ignores the interlacement of the input and forces it to ${SIGNAL_INT_CHOICE}. Set to 'auto' if you prefer to keep the interlacement as the device describes it."
+    fi
 }
 
 _get_output_filename(){
@@ -173,11 +176,7 @@ _get_output_filename(){
 _get_decklink_input_list(){
     # get information on what input device options are available
     #unset DECKLINK_DEVICES
-    if [ "${DECKLINK_UTILITY_CHOICE}" = "bmdcapture" ] ; then
-        bmdcapture -h 2>&1 | grep "^->" | head -n 1 | sed 's/.*-> \(.*\) (.*/\1/'
-    else
-        "${FFMPEG_BIN}" -nostdin -v 0 -sources decklink | awk -F'[][]' '{print $2}' | grep -v "^$"
-    fi
+    "${FFMPEG_BIN}" -nostdin -v 0 -sources decklink | awk -F'[][]' '{print $2}' | grep -v "^$"
 }
 
 _get_avfctl_input_list(){
