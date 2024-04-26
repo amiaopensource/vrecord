@@ -399,9 +399,9 @@ _setup_vrecord_input(){
             GRAB_INPUT+=(-f iec61883)
             GRAB_INPUT+=(-i auto)
         else
-        DVRESCUE_INPUT_INDEX="$(echo "${DVRESCUE_INPUT_CHOICE}" | cut -d " " -f1 | sed 's|:$||g')"
-        GRAB_INPUT+=("device://${DVRESCUE_INPUT_INDEX}")
-        GRAB_INPUT+=(--capture)
+            DVRESCUE_INPUT_INDEX="$(echo "${DVRESCUE_INPUT_CHOICE}" | cut -d " " -f1 | sed 's|:$||g')"
+            GRAB_INPUT+=("device://${DVRESCUE_INPUT_INDEX}")
+            GRAB_INPUT+=(--capture)
         fi
     elif [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
         _set_ffmpeg_loglevel
@@ -491,20 +491,20 @@ _setup_vrecord_process(){
             RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
             RECORD_COMMAND+=(-map 0:v -f rawvideo -c copy -)
         else
-        VRECORD_STEPS="2" # Steps: record | player
-        RECORD_COMMAND=(dvrescue)
-        RECORD_COMMAND+=("${GRAB_INPUT[@]}")
-        if [[ "${RUNTYPE}" = "record" ]] ; then
+            VRECORD_STEPS="2" # Steps: record | player
+            RECORD_COMMAND=(dvrescue)
+            RECORD_COMMAND+=("${GRAB_INPUT[@]}")
+            if [[ "${RUNTYPE}" = "record" ]] ; then
+                RECORD_COMMAND+=(--merge-output-concealed)
+                RECORD_COMMAND+=(--merge-ignore-speed)
+                RECORD_COMMAND+=(--cc-format scc)
+                RECORD_COMMAND+=(--cc-output "${VRECORD_OUTPUT}.dvrescue.scc")
+                RECORD_COMMAND+=(--xml-output "${VRECORD_OUTPUT}.dvrescue.xml")
+                RECORD_COMMAND+=(--merge "${VRECORD_OUTPUT}")
+            fi
             RECORD_COMMAND+=(--merge-output-concealed)
-            RECORD_COMMAND+=(--merge-ignore-speed)
-            RECORD_COMMAND+=(--cc-format scc)
-            RECORD_COMMAND+=(--cc-output "${VRECORD_OUTPUT}.dvrescue.scc")
-            RECORD_COMMAND+=(--xml-output "${VRECORD_OUTPUT}.dvrescue.xml")
-            RECORD_COMMAND+=(--merge "${VRECORD_OUTPUT}")
-        fi
-        RECORD_COMMAND+=(--merge-output-concealed)
-        RECORD_COMMAND+=(--merge-output-speed)
-        RECORD_COMMAND+=(--merge -)
+            RECORD_COMMAND+=(--merge-output-speed)
+            RECORD_COMMAND+=(--merge -)
         fi
     elif [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
         VRECORD_STEPS="2" # Steps: record | player (record is adjusted if actually recording)
