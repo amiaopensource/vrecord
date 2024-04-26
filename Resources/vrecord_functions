@@ -182,10 +182,9 @@ _get_decklink_input_list(){
 _get_dvrescue_input_list(){
     # set dvrescue input options
     unset DVRESCUE_DEVICES
+    dvrescue -list_devices | grep "\[DV\]"
     if [ "${OS_TYPE}" = "linux" ] ; then
-        echo "Default DV Device"
-    else
-        dvrescue -list_devices | grep "\[DV\]"
+        echo "FFmpeg iec61883 Default"
     fi
 }
 
