@@ -284,8 +284,8 @@ _gtk_vbox_list() {
     SELECTION="$(_get_index_of_value "${!VARIABLE_NAME}" "${OPTION_LIST[@]}")"
     if [[ "${VARIABLE_NAME}" == "DECKLINK_INPUT_CHOICE" ]] ; then
         LIST="<input>_get_decklink_input_list</input>"
-    elif [[ "${VARIABLE_NAME}" == "AVFCTL_INPUT_CHOICE" ]] ; then
-        LIST="<input>_get_avfctl_input_list</input>"
+    elif [[ "${VARIABLE_NAME}" == "DVRESCUE_INPUT_CHOICE" ]] ; then
+        LIST="<input>_get_dvrescue_input_list</input>"
     elif [[ "${VARIABLE_NAME}" == "AUDIO_DEV_CHOICE" ]] ; then
         LIST="<input>_get_audio_device_list</input>"
     else
@@ -334,12 +334,12 @@ _gtk_vbox_list() {
                 <action type=\"clear\">DECKLINK_INPUT_CHOICE</action>
                 <action type=\"refresh\">DECKLINK_INPUT_CHOICE</action>
             </button>"
-        elif [[ "${VARIABLE_NAME}" == "AVFCTL_INPUT_CHOICE" ]] ; then
+        elif [[ "${VARIABLE_NAME}" == "DVRESCUE_INPUT_CHOICE" ]] ; then
             echo "
             <button>
                 <label>Rescan</label>
-                <action type=\"clear\">AVFCTL_INPUT_CHOICE</action>
-                <action type=\"refresh\">AVFCTL_INPUT_CHOICE</action>
+                <action type=\"clear\">DVRESCUE_INPUT_CHOICE</action>
+                <action type=\"refresh\">DVRESCUE_INPUT_CHOICE</action>
             </button>"
         elif [[ "${VARIABLE_NAME}" == "AUDIO_DEV_CHOICE" ]] ; then
             echo "
@@ -395,16 +395,14 @@ _setup_vrecord_input(){
         GRAB_INPUT+=(-raw_format "${PIXEL_FORMAT}")
         GRAB_INPUT+=(-i "${DECKLINK_INPUT_CHOICE}")
     elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
-        if [[ "${OS_TYPE}" = "linux" ]] ; then
+        if [[ "${DVRESCUE_INPUT_CHOICE}" = 'FFmpeg iec61883 Default' ]] ; then
             GRAB_INPUT+=(-f iec61883)
             GRAB_INPUT+=(-i auto)
-        elif [[ "${OS_TYPE}" = "macOS" ]] ; then
-            AVFCTL_INPUT_INDEX="$(echo "${AVFCTL_INPUT_CHOICE}" | cut -c 2)"
-            GRAB_INPUT+=(-device "${AVFCTL_INPUT_INDEX}")
-            GRAB_INPUT+=(-cmd capture)
-            GRAB_INPUT+=(-)
+        else
+            DVRESCUE_INPUT_INDEX="$(echo "${DVRESCUE_INPUT_CHOICE}" | cut -d " " -f1 | sed 's|:$||g')"
+            GRAB_INPUT+=("device://${DVRESCUE_INPUT_INDEX}")
+            GRAB_INPUT+=(--capture)
         fi
-        MIDDLEOPTIONS+=(-c copy -map 0)
     elif [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
         _set_ffmpeg_loglevel
         #Mac Options
@@ -444,11 +442,7 @@ _setup_vrecord_process(){
         PIPE_OUTPUT+=(-)
         WINDOW_NAME="mode:${RUNTYPE} - video:'${VIDEO_INPUT}' audio:'${AUDIO_INPUT}' - to end recording press q, esc, or close video window"
     elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
-        PIPE_OUTPUT=(-c copy)
-        PIPE_OUTPUT+=(-map 0)
-        PIPE_OUTPUT+=(-f rawvideo)
-        PIPE_OUTPUT+=(-)
-        WINDOW_NAME="mode:${RUNTYPE} - input:'${AVFCTL_INPUT_INDEX}' - to end recording press q, esc, or close video window"
+        WINDOW_NAME="mode:${RUNTYPE} - DV input:'${DVRESCUE_INPUT_INDEX}' - to end recording press q, esc, or close video window"
     elif [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
         PIPE_OUTPUT+=(-c:a pcm_s16le -ar 48k)
         PIPE_OUTPUT+=(-f wav)
@@ -486,7 +480,7 @@ _setup_vrecord_process(){
         fi
         RECORD_COMMAND+=("${PIPE_OUTPUT[@]}")
     elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
-        if [[ "${OS_TYPE}" = "linux" ]] ; then
+        if [[ "${DVRESCUE_INPUT_CHOICE}" = 'FFmpeg iec61883 Default' ]] ; then
             if [[ "${RUNTYPE}" = "record" ]] ; then
                 VRECORD_STEPS="2" # Steps: record | player
             else
@@ -497,18 +491,20 @@ _setup_vrecord_process(){
             RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
             RECORD_COMMAND+=(-map 0:v -f rawvideo -c copy -)
         else
-            if [[ "${RUNTYPE}" = "record" ]] ; then
-                VRECORD_STEPS="3" # Steps: record | ff_record | player
-            else
-                VRECORD_STEPS="2" # Steps: record | player
-            fi
-            RECORD_COMMAND=(avfctl)
+            VRECORD_STEPS="2" # Steps: record | player
+            RECORD_COMMAND=(dvrescue)
             RECORD_COMMAND+=("${GRAB_INPUT[@]}")
-            FF_RECORD_COMMAND=("${FFMPEG_BIN}" -nostdin -nostats "${TIME_LIMIT[@]}")
-            FF_RECORD_COMMAND+=(-i -)
-            FF_RECORD_COMMAND+=(-map 0:v -c copy)
-            FF_RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
-            FF_RECORD_COMMAND+=(-map 0:v -f rawvideo -c copy -)
+            if [[ "${RUNTYPE}" = "record" ]] ; then
+                RECORD_COMMAND+=(--merge-output-concealed)
+                RECORD_COMMAND+=(--merge-ignore-speed)
+                RECORD_COMMAND+=(--cc-format scc)
+                RECORD_COMMAND+=(--cc-output "${VRECORD_OUTPUT}.dvrescue.scc")
+                RECORD_COMMAND+=(--xml-output "${VRECORD_OUTPUT}.dvrescue.xml")
+                RECORD_COMMAND+=(--merge "${VRECORD_OUTPUT}")
+            fi
+            RECORD_COMMAND+=(--merge-output-concealed)
+            RECORD_COMMAND+=(--merge-output-speed)
+            RECORD_COMMAND+=(--merge -)
         fi
     elif [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
         VRECORD_STEPS="2" # Steps: record | player (record is adjusted if actually recording)
@@ -583,17 +579,17 @@ _get_avfoundation_inputs(){
     done < <("${FFMPEG_BIN}" -nostdin -hide_banner -f avfoundation -list_devices 1 -i dummy 2>&1 | grep -A 10 "AVFoundation audio devices" | grep -o "\[[0-9]\].*" | cut -d " " -f2-)
 }
 
-_get_avfctl_inputs(){
-    # set avfctl input options
-    unset AVFCTL_DEVICES
-    while read avfctl_device ; do
-        AVFCTL_DEVICES+=("${avfctl_device}")
-    done < <(avfctl -list_devices 2>&1 | grep -A 10 "Devices:" | grep -o "\[[0-9]\].*")
-    if [[ "${#AVFCTL_DEVICES[@]}" = 1 ]] ; then # default to first input if only one
-        AVFCTL_INPUT_CHOICE="${AVFCTL_DEVICES[0]}"
+_get_dvrescue_inputs(){
+    # set dvrescue input options
+    unset DVRESCUE_DEVICES
+    while read dvrescue_device ; do
+        DVRESCUE_DEVICES+=("${dvrescue_device}")
+    done < <(dvrescue -list_devices | grep "\[DV\]")
+    if [[ "${OS_TYPE}" = 'linux' ]] ; then
+        DVRESCUE_DEVICES+=( "FFmpeg iec61883 Default" )
     fi
-    if [[ "${OS_TYPE}" = "linux" ]] ; then
-        AVFCTL_DEVICES+=('Default DV Device')
+    if [[ "${#DVRESCUE_DEVICES[@]}" = 1 ]] ; then # default to first input if only one
+        DVRESCUE_INPUT_CHOICE="${DVRESCUE_DEVICES[0]}"
     fi
 }
 
@@ -635,11 +631,11 @@ _set_up_edit_form() {
 FFMPEG_STATUS_TMP="$(_maketemp .ffmpeg.status.txt)"
 DECKCONTROL_STATUS_TMP="$(_maketemp .deckcontrol.status.txt)"
 DECKCONTROL_TIMECODE_TMP="$(_maketemp .deckcontrol.timecode.txt)"
-AVFCTL_STATUS_TMP="$(_maketemp .avfctl.status.txt)"
+DVRESCUE_STATUS_TMP="$(_maketemp .dvrescue.status.txt)"
 echo "" > "${FFMPEG_STATUS_TMP}"
 echo "disabled" > "$DECKCONTROL_STATUS_TMP"
 echo "--:--:--:--" > "$DECKCONTROL_TIMECODE_TMP"
-echo "disabled" > "$AVFCTL_STATUS_TMP"
+echo "disabled" > "$DVRESCUE_STATUS_TMP"
 
 STARTUP_VIEW_TMP=$(_maketemp .startup.txt)
 echo "MAIN" > "${STARTUP_VIEW_TMP}"
@@ -915,19 +911,19 @@ if [[ "${OS_TYPE}" = "linux" ]] ; then
         STATUS_CMD='dvcont status '
     elif [[ "${OS_TYPE}" = "macOS" ]] ; then
         DV_REPACK_CMD='{ avfctl -cmd ff -foreground; avfctl -cmd rew; }'
-        DV_RW_CMD='avfctl -cmd rew '
-        DV_PLAY_CMD='avfctl -cmd play '
-        DV_STOP_CMD='avfctl -cmd stop '
-        DV_FF_CMD='avfctl -cmd ff '
-        STATUS_CMD="avfctl -status 2>&1 | grep -o 'Device \[.*' | sed 's|Device ||g;s| status||g'"
+        DV_RW_CMD='dvrescue "device://${DVRESCUE_INPUT_INDEX}" -cmd rew '
+        DV_PLAY_CMD='dvrescue "device://${DVRESCUE_INPUT_INDEX}" -cmd play '
+        DV_STOP_CMD='dvrescue "device://${DVRESCUE_INPUT_INDEX}" -cmd stop '
+        DV_FF_CMD='dvrescue "device://${DVRESCUE_INPUT_INDEX}" -cmd ff '
+        STATUS_CMD='dvrescue "device://${DVRESCUE_INPUT_INDEX}" -status 2>&1'
 fi
 
-AVFCTL_INPUT_GUI=$(cat << AVFCTL_FORM
-<frame DVRescue avfctl input options>
+DVRESCUE_INPUT_GUI=$(cat << DVRESCUE_FORM
+<frame DVRescue input options>
     <vbox>
         <hbox>
             <hbox space-expand="true">
-                $(_gtk_vbox_list "AVFCTL_INPUT_CHOICE"         "-1" "Select a DV Device"           "${AVFCTL_DEVICES[@]}")
+                $(_gtk_vbox_list "DVRESCUE_INPUT_CHOICE"         "400" "Select a DV Device"           "${DVRESCUE_DEVICES[@]}")
             </hbox>
             <vbox>
                 <frame dvpackager options>
@@ -984,49 +980,49 @@ AVFCTL_INPUT_GUI=$(cat << AVFCTL_FORM
                             <label>Status</label>
                         </text>
                         <entry editable="false" has-frame="false">
-                            <variable export="false">avfctl_status</variable>
-                            <input file>"${AVFCTL_STATUS_TMP}"</input>
+                            <variable export="false">dvrescue_status</variable>
+                            <input file>"${DVRESCUE_STATUS_TMP}"</input>
                         </entry>
                     </vbox>
                     <timer milliseconds="true" interval="300" visible="false" disabled="true">
-                         <variable export="false">avfctl_timer</variable>
+                         <variable export="false">dvrescue_timer</variable>
                          <visible>disabled</visible>
-                         <action>${STATUS_CMD} > "${AVFCTL_STATUS_TMP}" &</action>
-                         <action>refresh:avfctl_status</action>
+                         <action>${STATUS_CMD} > "${DVRESCUE_STATUS_TMP}" &</action>
+                         <action>refresh:dvrescue_status</action>
                     </timer>
                     <togglebutton>
                         <label>Deck Control</label>
                         <default>false</default>
-                        <variable export="false">avfctl_toggle</variable>
+                        <variable export="false">dvrescue_toggle</variable>
                         <input file stock="gtk-execute"></input>
-                        <action>if true enable:avfctl_timer</action>
-                        <action>if true enable:avfctl_status</action>
+                        <action>if true enable:dvrescue_timer</action>
+                        <action>if true enable:dvrescue_status</action>
                         <action>if true enable:avfctl_repack</action>
-                        <action>if true enable:avfctl_rewind</action>
-                        <action>if true enable:avfctl_play</action>
-                        <action>if true enable:avfctl_stop</action>
-                        <action>if true enable:avfctl_ff</action>
-                        <action>if false disable:avfctl_timer</action>
-                        <action>if false disable:avfctl_status</action>
+                        <action>if true enable:dvrescue_rewind</action>
+                        <action>if true enable:dvrescue_play</action>
+                        <action>if true enable:dvrescue_stop</action>
+                        <action>if true enable:dvrescue_ff</action>
+                        <action>if false disable:dvrescue_timer</action>
+                        <action>if false disable:dvrescue_status</action>
                         <action>if false disable:avfctl_repack</action>
-                        <action>if false disable:avfctl_rewind</action>
-                        <action>if false disable:avfctl_play</action>
-                        <action>if false disable:avfctl_stop</action>
-                        <action>if false disable:avfctl_ff</action>
+                        <action>if false disable:dvrescue_rewind</action>
+                        <action>if false disable:dvrescue_play</action>
+                        <action>if false disable:dvrescue_stop</action>
+                        <action>if false disable:dvrescue_ff</action>
                     </togglebutton>
                 </hbox>
                 <hbox>
-                    $(_get_deckcontrol_button "avfctl_repack" ""                  "Repack" "${DV_REPACK_CMD}")
-                    $(_get_deckcontrol_button "avfctl_rewind" "gtk-media-rewind"  "Rewind" "${DV_RW_CMD}")
-                    $(_get_deckcontrol_button "avfctl_play"   "gtk-media-play"    "Play"   "${DV_PLAY_CMD}")
-                    $(_get_deckcontrol_button "avfctl_stop"   "gtk-media-stop"    "Stop"   "${DV_STOP_CMD}")
-                    $(_get_deckcontrol_button "avfctl_ff"     "gtk-media-forward" "FF"     "${DV_FF_CMD}")
+                    $(_get_deckcontrol_button "avfctl_repack"   ""                  "Repack" "${DV_REPACK_CMD}")
+                    $(_get_deckcontrol_button "dvrescue_rewind" "gtk-media-rewind"  "Rewind" "${DV_RW_CMD}")
+                    $(_get_deckcontrol_button "dvrescue_play"   "gtk-media-play"    "Play"   "${DV_PLAY_CMD}")
+                    $(_get_deckcontrol_button "dvrescue_stop"   "gtk-media-stop"    "Stop"   "${DV_STOP_CMD}")
+                    $(_get_deckcontrol_button "dvrescue_ff"     "gtk-media-forward" "FF"     "${DV_FF_CMD}")
                 </hbox>
             </vbox>
         </hbox>
     </frame>
 </frame>
-AVFCTL_FORM
+DVRESCUE_FORM
 )
 
 AUDIO_INPUT_GUI=$(cat << AUDIO_INPUT_FORM
@@ -1110,7 +1106,7 @@ export MAIN_DIALOG='
             <frame Input Options>
             <notebook page="'"${DEVICE_INPUT_CHOICE}"'" tab-labels="Decklink|DV|Audio|Config">
                 '"${DECKLINK_INPUT_GUI}"'
-                '"${AVFCTL_INPUT_GUI}"'
+                '"${DVRESCUE_INPUT_GUI}"'
                 '"${AUDIO_INPUT_GUI}"'
                 '"${OPTIONAL_TOOLS_GUI}"'
                 <variable>DEVICE_INPUT_CHOICE</variable>
@@ -2046,7 +2042,7 @@ _review_all_options(){
         fi
         _review_option "STANDARD_CHOICE" "${STANDARD_OPTIONS[@]}"
     elif [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
-        _review_option -n "AVFCTL_INPUT_CHOICE" "${AVFCTL_DEVICES[@]}"
+        _review_option -n "DVRESCUE_INPUT_CHOICE" "${DVRESCUE_DEVICES[@]}"
     elif [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
         _review_option -n "AUDIO_DEV_CHOICE" "${AUDIO_DEVICES[@]}"
     fi
@@ -2158,7 +2154,7 @@ fi
 
 _get_decklink_inputs
 _get_avfoundation_inputs
-_get_avfctl_inputs
+_get_dvrescue_inputs
 
 if [[ "${OS_TYPE}" = "linux" ]] ; then
     while read audio_device ; do
@@ -2316,7 +2312,7 @@ fi
 if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
     _report -d "Summary: ${VIDEOCODECNAME}/${FORMAT} ${PIXEL_FORMAT} file from ${STANDARD} ${VIDEO_INPUT} ${AUDIO_INPUT}. ${TECHNICIAN_TEXT} Frame MD5s=${FRAMEMD5_CHOICE}, QCTools XML=${QCTOOLSXML_CHOICE}. Inputs recorded to ${VRECORD_OUTPUT} and Auxiliary Files created in ${LOGDIR}. ${DURATION_TEXT}"
 elif [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
-    _report -d "Summary: Copying video from ${AVFCTL_INPUT_CHOICE}. ${TECHNICIAN_TEXT} Inputs recorded to ${VRECORD_OUTPUT} and Auxiliary Files created in ${LOGDIR}. ${DURATION_TEXT}"
+    _report -d "Summary: Copying video from ${DVRESCUE_INPUT_CHOICE}. ${TECHNICIAN_TEXT} Inputs recorded to ${VRECORD_OUTPUT} and Auxiliary Files created in ${LOGDIR}. ${DURATION_TEXT}"
 elif [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
     _report -d "Summary: Recording audio from ${AUDIO_DEV_CHOICE}. ${TECHNICIAN_TEXT} Inputs recorded to ${VRECORD_OUTPUT} and Auxiliary Files created in ${LOGDIR}. ${DURATION_TEXT}"
 fi
@@ -2410,23 +2406,11 @@ if [[ "${VERBOSE_GTKDIALOG}" = "Y" ]] ; then
     echo "STEPS ${VRECORD_STEPS}"
     echo "PLAY ${PLAYER_COMMAND[@]}"
     echo "RECORD ${RECORD_COMMAND[@]}"
-    echo "FFRECORD ${FF_RECORD_COMMAND[@]}"
 fi
 if [[ "${VRECORD_STEPS}" = "2" ]] ; then
-    _writeingestlog "Capture-Record command" "${RECORD_COMMAND[@]}"
+    _writeingestlog "Record command" "${RECORD_COMMAND[@]}"
     _writeingestlog "Playback command" "${PLAYER_COMMAND[@]}"
     "${RECORD_COMMAND[@]}" 2> >(tee "${VRECORD_INPUT_TMP}" 1>&2) | \
-    if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] && [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]]; then
-        tee >("${PLAYER_COMMAND[@]}") | "${QCLI_COMMAND_PIPE[@]}"
-    else
-        "${PLAYER_COMMAND[@]}"
-    fi
-elif [[ "${VRECORD_STEPS}" = "3" ]] ; then
-    _writeingestlog "Capture command" "${RECORD_COMMAND[@]}"
-    _writeingestlog "Record command" "${FF_RECORD_COMMAND[@]}"
-    _writeingestlog "Playback command" "${PLAYER_COMMAND[@]}"
-    "${RECORD_COMMAND[@]}" 2> >(tee "${VRECORD_INPUT_TMP}" 1>&2) | \
-    "${FF_RECORD_COMMAND[@]}" 2> >(tee "${VRECORD_INPUT_TMP}" 1>&2) | \
     if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] && [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]]; then
         tee >("${PLAYER_COMMAND[@]}") | "${QCLI_COMMAND_PIPE[@]}"
     else
@@ -2439,26 +2423,18 @@ fi
 RESULTING_EXIT_CODES=("${PIPESTATUS[@]}")
 P1_ERR="${RESULTING_EXIT_CODES[0]}"
 P2_ERR="${RESULTING_EXIT_CODES[1]}"
-P3_ERR="${RESULTING_EXIT_CODES[2]}"
 
 if [[ "${VRECORD_STEPS}" = "2" ]] ; then
-    _writeingestlog "Capture-Record exit code" "${P1_ERR}"
+    _writeingestlog "Record exit code" "${P1_ERR}"
     _writeingestlog "Playback exit code" "${P2_ERR}"
-elif [[ "${VRECORD_STEPS}" = "3" ]] ; then
-    _writeingestlog "Capture exit code" "${P1_ERR}"
-    _writeingestlog "Record exit code" "${P2_ERR}"
-    _writeingestlog "Playback exit code" "${P3_ERR}"
 fi
 
 if [[ ! -s "${VRECORD_OUTPUT}" ]] ; then
     if [[ "$P1_ERR" != "0" ]] ; then
-        _report_unexpected_error P1_ERR "${RECORD_COMMAND[@]} // ${FF_RECORD_COMMAND[@]} // ${PLAYER_COMMAND}"
+        _report_unexpected_error P1_ERR "${RECORD_COMMAND[@]} // ${PLAYER_COMMAND}"
     fi
     if [[ "$P2_ERR" != "0" && -n "$P2_ERR" ]] ; then
-        _report_unexpected_error P2_ERR "${RECORD_COMMAND[@]} // ${FF_RECORD_COMMAND[@]} // ${PLAYER_COMMAND}"
-    fi
-    if [[ "$P3_ERR" != "0" && -n "$P3_ERR" ]] ; then
-        _report_unexpected_error P3_ERR "${RECORD_COMMAND[@]} // ${FF_RECORD_COMMAND[@]} // ${PLAYER_COMMAND}"
+        _report_unexpected_error P2_ERR "${RECORD_COMMAND[@]} // ${PLAYER_COMMAND}"
     fi
 fi
 
