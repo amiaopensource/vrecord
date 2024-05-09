@@ -560,8 +560,8 @@ _setup_vrecord_process(){
     fi
 }
 
-_get_decklink_inputs(){
-    # get information on what input device options are available
+_get_inputs(){
+    # determine decklink inputs
     unset DECKLINK_DEVICES
     while read decklink_device ; do
         DECKLINK_DEVICES+=("${decklink_device}")
@@ -569,18 +569,14 @@ _get_decklink_inputs(){
     if [[ "${#DECKLINK_DEVICES[@]}" = 1 ]] ; then # default to first input if only one
         DECKLINK_INPUT_CHOICE="${DECKLINK_DEVICES[0]}"
     fi
-}
 
-_get_avfoundation_inputs(){
-    # set avfoundation input options
+    # determine avfoundation inputs
     unset AVFOUNDATION_DEVICES
     while read avf_device ; do
         AVFOUNDATION_DEVICES+=("${avf_device}")
     done < <("${FFMPEG_BIN}" -nostdin -hide_banner -f avfoundation -list_devices 1 -i dummy 2>&1 | grep -A 10 "AVFoundation audio devices" | grep -o "\[[0-9]\].*" | cut -d " " -f2-)
-}
 
-_get_dvrescue_inputs(){
-    # set dvrescue input options
+    # determine dvrescue inputs
     unset DVRESCUE_DEVICES
     while read dvrescue_device ; do
         DVRESCUE_DEVICES+=("${dvrescue_device}")
@@ -2152,9 +2148,7 @@ else
     STARTUP_VIEW="INPUTSETTINGS"
 fi
 
-_get_decklink_inputs
-_get_avfoundation_inputs
-_get_dvrescue_inputs
+_get_inputs
 
 if [[ "${OS_TYPE}" = "linux" ]] ; then
     while read audio_device ; do
