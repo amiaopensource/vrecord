@@ -1744,7 +1744,7 @@ _lookup_choice(){
             if [[ -z "${SIGNAL_INT_CHOICE}" ]] ; then
                 SIGNAL_INT_CHOICE="auto"
             fi
-            RECORDINGFILTER+="setdar=4/3,setparams=field_mode=${SIGNAL_INT_CHOICE}="
+            RECORDINGFILTER+="setdar=4/3,setparams=field_mode=${SIGNAL_INT_CHOICE}"
             MIDDLEOPTIONS+=(-color_primaries bt470bg)
             MIDDLEOPTIONS+=(-color_trc bt709)
             MIDDLEOPTIONS+=(-colorspace bt470bg) ;;
