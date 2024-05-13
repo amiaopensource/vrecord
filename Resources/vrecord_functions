@@ -206,7 +206,7 @@ _get_summary(){
         . "${CONFIG_FILE}"
         if [ "${DEVICE_INPUT_CHOICE}" = "0" ] ; then
             echo "Device Input: Decklink"
-            echo "Settings: ${VIDEO_CODEC_CHOICE} ${VIDEO_BIT_DEPTH_CHOCIE} ${CONTAINER_CHOICE} File"
+            echo "Settings: ${VIDEO_CODEC_CHOICE} ${VIDEO_BIT_DEPTH_CHOICE} ${CONTAINER_CHOICE} File"
             echo "from ${VIDEO_INPUT_CHOICE} video input and ${AUDIO_INPUT_CHOICE} audio input"
             echo "Audio channel mapping: ${AUDIO_MAPPING_CHOICE}"
             echo "Recording audio to ${AUDIO_CODEC_CHOICE}"
