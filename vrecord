@@ -262,6 +262,83 @@ _gather_ffmpeg_vars(){
     fi
 }
 
+_eia608dump2scc(){
+    EIA608DUMP_IN="${1}"
+    SCC_OUT="${2}"
+
+    _smmm_to_hhmmssff(){
+        secs="$1"
+        echo "${secs}" | awk '{ printf "%02i:%02i:%02i:%02i\n", $1/60/60, $1/60%60, $1%60, $1%1*30 }'
+    }
+    _write_cc(){
+        CC="$1"
+        if [[ "$START" == "Y" ]] ; then
+            echo -n "	${CC}" >> "${SCC_OUT}"
+        else
+            echo -n " ${CC}" >> "${SCC_OUT}"
+        fi
+        START="N"
+    }
+    _write_new_cc_line(){
+        SCC_TIME="$(_smmm_to_hhmmssff "${SECS}")"
+        echo -e -n "\n\n${SCC_TIME}" >> "${SCC_OUT}"
+        START="Y"
+    }
+    _start_scc(){
+        echo -n "Scenarist_SCC V1.0" > "${SCC_OUT}"
+    }
+    _end_scc(){
+        echo >> "${SCC_OUT}"
+    }
+    #initialize
+    PREV_CC="8080"
+    CC_PRESENT=0
+    REPORT=0
+
+    _start_scc
+    while read METADATA_LINE ; do
+        if [[ "${METADATA_LINE:0:8}" == "pts_time" ]] ; then
+            SECS="${METADATA_LINE/pts_time:}"
+            REPORT=0
+        elif [[ "${METADATA_LINE:0:21}" == "lavfi.readeia608.0.cc" ]] ; then
+            CC_HEX="${METADATA_LINE/lavfi.readeia608.0.cc=}"
+            REPORT=1
+            if [[ -n "${CC_HEX}" && "${REPORT}" ]] ; then
+                CC="${CC_HEX:2:4}"
+                if { [[ "${CC}" != "8080" ]] && [[ "${PREV_CC}" == "8080" ]] ; } || { [[ "${CC}" == "9420" ]] && [[ "${PREV_CC}" != "9420" ]] ; } ; then
+                    _write_new_cc_line
+                    _write_cc "$CC"
+                elif [[ "${CC}" != "8080" ]] ; then
+                    _write_cc "$CC"
+                fi
+                PREV_CC="$CC"
+                if [[ "$CC_PRESENT" == 0 ]] ; then
+                    CC_PRESENT=1
+                    if [[ -n "${CC_LOG}" ]] ; then
+                        TRANSITION_TIME="$(_smmm_to_hhmmssff "${SECS}")"
+                        _report -d "${CC_LOG} - ${TRANSITION_TIME}."
+                    fi
+                    TRANSITION_TIME="$(_smmm_to_hhmmssff "${SECS}")"
+                    CC_LOG="Caption data  ON: ${TRANSITION_TIME}"
+                fi
+            else
+                if [[ "$CC_PRESENT" == 1 ]] ; then
+                    CC_PRESENT=0
+                    if [[ -n "${CC_LOG}" ]] ; then
+                        TRANSITION_TIME="$(_smmm_to_hhmmssff "${SECS}")"
+                        _report -d "${CC_LOG} - ${TRANSITION_TIME}."
+                    fi
+                    TRANSITION_TIME="$(_smmm_to_hhmmssff "${SECS}")"
+                    CC_LOG="Caption data OFF: ${TRANSITION_TIME}"
+                fi
+                PREV_CC="8080"
+            fi
+            PREV_SECS="$SECS"
+        fi
+    done < <(grep -o "pts_time:[^ ]*\|lavfi.readeia608.0.cc=[^ ]*"  "${EIA608DUMP_IN}")
+    _end_scc
+}
+
 _cleanup(){
     _report -wt "Vrecord is being stopped at $(_get_iso8601), noting this in the capture log."
     _writeingestlog "exit status" "vrecord was forced to quit early at $(_get_iso8601). Some processing may be incomplete."
@@ -467,6 +544,13 @@ _setup_vrecord_process(){
                 VRECORD_STEPS="1" # Steps: player
             fi
         fi
+        
+        # caption handling if ntsc
+        if [[ "${STANDARD}" == "ntsc" ]] ; then
+            CAPTION_TMP="$(_maketemp .eia608.txt)"
+            CAPTION_WRITE=",readeia608=lp=1:spw=0.27,metadata=mode=print:key=lavfi.readeia608.0.cc:file=${CAPTION_TMP}"
+        fi
+
         RECORD_COMMAND=("${FFMPEG_BIN}")
         RECORD_COMMAND+=(-nostdin -nostats "${TIME_LIMIT[@]}" "${TC_INPUT_OPTION[@]}" "${GRAB_INPUT[@]}")
         if [[ -n "${VIDEOCODECNAME}" ]] ; then
@@ -474,7 +558,7 @@ _setup_vrecord_process(){
         fi
         RECORD_COMMAND+=("${MIDDLEOPTIONS[@]}")
         if [[ "${RUNTYPE}" = "record" ]] ; then
-            RECORD_COMMAND+=(-filter_complex "[0:v:0]${RECORDINGFILTER}${TC_WRITE}; ${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}")
+            RECORD_COMMAND+=(-filter_complex "[0:v:0]${RECORDINGFILTER}${TC_WRITE}${CAPTION_WRITE};${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}")
             RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
             RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}")
         fi
@@ -1386,6 +1470,7 @@ _edit_mode(){
 _passthrough_mode(){
     _setup_vrecord_process
     if [[ "${VERBOSE_GTKDIALOG}" = "Y" ]] ; then
+        echo "RUNTYPE ${RUNTYPE}"
         echo "STEPS ${VRECORD_STEPS}"
         echo "PLAY ${PLAYER_COMMAND[@]}"
         echo "RECORD ${RECORD_COMMAND[@]}"
@@ -2274,7 +2359,9 @@ fi
 
 FULL_OUTPUT_ID="${PREFIX}${ID}${SUFFIX}"
 FULL_CAPTURE_LOG="${LOGDIR}/${FULL_OUTPUT_ID}${CAPTURELOGSUFFIX}"
-
+TIMECODE_LOG="${LOGDIR}/${FULL_OUTPUT_ID}_${TC_TYPE}${TIMECODELOGSUFFIX}"
+CAPTION_LOG="${LOGDIR}/${FULL_OUTPUT_ID}_frame_eia608data.txt"
+CAPTION_SCC="${LOGDIR}/${FULL_OUTPUT_ID}.scc"
 VRECORD_OUTPUT="${DIR}/${FULL_OUTPUT_ID}.${EXTENSION}"
 if [[ -f "${VRECORD_OUTPUT}" ]] ; then
     _report -w "A file called ${VRECORD_OUTPUT} already exists."
@@ -2445,7 +2532,12 @@ trap _cleanup SIGHUP SIGINT SIGTERM
 if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
     # timecode document handling
     if [[ -f "${TC_TMP}" ]] ; then
-        mv "${TC_TMP}" "${LOGDIR}/${FULL_OUTPUT_ID}_${TC_TYPE}${TIMECODELOGSUFFIX}"
+        mv "${TC_TMP}" "${TIMECODE_LOG}"
+    fi
+    # caption handling
+    if [[ -f "${CAPTION_TMP}" ]] ; then
+        mv "${CAPTION_TMP}" "${CAPTION_LOG}"
+        _eia608dump2scc "${CAPTION_LOG}" "${CAPTION_SCC}"
     fi
 
     # qc tools process
