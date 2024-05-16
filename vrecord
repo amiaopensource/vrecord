@@ -639,7 +639,11 @@ echo "MAIN" > "${STARTUP_VIEW_TMP}"
 SIDECAR_FILES_GUI="
 <frame Sidecar file options>
     <hbox space-expand=\"true\">
-        $(_gtk_vbox_list "FRAMEMD5_CHOICE"    "80"  "frameMD5s? (recommended)"  "${FRAMEMD5_OPTIONS[@]}")
+        <checkbox>
+            <label>FrameMD5s</label>
+            <default>\"${FRAMEMD5_CHOICE}\"</default>
+            <variable>FRAMEMD5_CHOICE</variable>
+        </checkbox>
         $(_gtk_vbox_list "QCTOOLSXML_CHOICE" "180"  "QCTools XML?"              "${QCTOOLSXML_OPTIONS[@]}")
     </hbox>
 </frame>"
@@ -2141,7 +2145,16 @@ MPV_INSTALLED="$(if command -v mpv >/dev/null ; then echo true ; else echo false
 QCLI_INSTALLED="$(if command -v qcli >/dev/null ; then echo true ; else echo false ; fi)"
 DVPACKAGER_INSTALLED="$(if command -v dvpackager >/dev/null ; then echo true ; else echo false ; fi)"
 
+_upgrade_config_file(){
+    # update value because the framemd5 choice changed from a yes/no picklist to a boolean as was the case in version 2023-08-07 and earlier
+    if [[ -n "$(grep "FRAMEMD5_CHOICE=\"[YN]" "${CONFIG_FILE}")" ]] ; then
+        sed 's|FRAMEMD5_CHOICE="No"|FRAMEMD5_CHOICE="false"|g;s|FRAMEMD5_CHOICE="Yes"|FRAMEMD5_CHOICE="true"|g' > "${CONFIG_FILE}tmp" < "${CONFIG_FILE}"
+        mv "${CONFIG_FILE}tmp" "${CONFIG_FILE}"
+    fi
+}
+
 if [[ -f "${CONFIG_FILE}" ]] ; then
+    _upgrade_config_file
     . "${CONFIG_FILE}"
 else
     _report -d "Initializing the configuration file at ${CONFIG_FILE}."
@@ -2174,7 +2187,6 @@ CHANNEL_MAPPING_OPTIONS=("2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, C
 TIMECODE_OPTIONS=("none" "rp188vitc" "rp188vitc2" "rp188ltc" "rp188any" "vitc" "vitc2" "serial")
 STANDARD_OPTIONS=("NTSC" "PAL")
 QCTOOLSXML_OPTIONS=("Yes, concurrent with recording" "Yes, after recording" "No")
-FRAMEMD5_OPTIONS=("Yes" "No")
 EMBED_LOGS_OPTIONS=("Yes" "No")
 PLAYBACKVIEW_OPTIONS=("Unfiltered" "Visual" "Audio + Video" "Visual + Numerical" "Color Matrix" "Bit Planes" "Frame Positioning")
 PLAYBACKVIEW_PASS_OPTIONS=("Unfiltered" "Visual" "Audio + Video" "Visual + Numerical" "Color Matrix" "Bit Planes" "Frame Positioning")
@@ -2284,8 +2296,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
         _report -w "Such as \`brew install qcli\`."
         exit 1
     fi
-    _review_option "FRAMEMD5_CHOICE" "${FRAMEMD5_OPTIONS[@]}"
-    if [[ "${FRAMEMD5_CHOICE}" = "Yes" ]] ; then
+    if [[ "${FRAMEMD5_CHOICE}" = "true" ]] ; then
         FRAMEMD5NAME="${LOGDIR}/${FULL_OUTPUT_ID}.framemd5"
         EXTRAOUTPUTS=(-an -f framemd5 "${FRAMEMD5NAME}")
     fi
@@ -2482,7 +2493,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
     fi
 
     # check for discontinuities in the Frame MD5s; if user chose not to use Frame MD5s, check for frame discontinuties in the FFmpeg file
-    if [[ "${FRAMEMD5_CHOICE}" = "Yes" ]] ; then
+    if [[ "${FRAMEMD5_CHOICE}" = "true" ]] ; then
         PTS_DISCONTINUITY=$(cat "${FRAMEMD5NAME}" | grep -v "^#" | cut -d, -f3 | sed 's/ //g' | grep -v "^0$" | awk '{if($1!=p+1){if(p+1==$1-1){printf p+1" "}else{printf p+1"-"$1-1" "}}{p=$1}}')
         if [[ -z "${PTS_DISCONTINUITY}" ]] ; then
             _writeingestlog "PTS_DISCONTINUITY" "none"
@@ -2490,7 +2501,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
             _writeingestlog "PTS_DISCONTINUITY" "${PTS_DISCONTINUITY}"
             cowsay "$(_report -w "WARNING: There were presentation timestamp discontinuities in the file's frame MD5s for these frame ranges: ${PTS_DISCONTINUITY}. This error may indicate frames dropped by FFmpeg or vrecord. The file may have sync issues.")"
         fi
-    elif [[ "${FRAMEMD5_CHOICE}" = "No" ]] ; then
+    elif [[ "${FRAMEMD5_CHOICE}" = "false" ]] ; then
         FRAMES_ENCODED=$(cat "${LOGDIR}/${FULL_OUTPUT_ID}"_vrecord_input.log | grep -w "frames encoded" | awk '{print $10}' | grep -m 1 [0-9])
         FRAMES_DECODED=$(cat "${LOGDIR}/${FULL_OUTPUT_ID}"_vrecord_input.log | grep -w "frames decoded" | awk '{print $10}' | grep -m 1 [0-9])
         if [[ "${FRAMES_ENCODED}" -lt $((FRAMES_DECODED-1)) ]] ; then
