@@ -645,11 +645,11 @@ SIDECAR_FILES_GUI="
                 <default>\"${MP4_CHOICE}\"</default>
                 <variable>MP4_CHOICE</variable>
             </checkbox>
-        <checkbox>
-            <label>FrameMD5s</label>
-            <default>\"${FRAMEMD5_CHOICE}\"</default>
-            <variable>FRAMEMD5_CHOICE</variable>
-        </checkbox>
+            <checkbox>
+                <label>FrameMD5s</label>
+                <default>\"${FRAMEMD5_CHOICE}\"</default>
+                <variable>FRAMEMD5_CHOICE</variable>
+            </checkbox>
         </vbox>
         $(_gtk_vbox_list "QCTOOLSXML_CHOICE" "180"  "QCTools XML?"              "${QCTOOLSXML_OPTIONS[@]}")
     </hbox>
