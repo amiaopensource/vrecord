@@ -639,11 +639,18 @@ echo "MAIN" > "${STARTUP_VIEW_TMP}"
 SIDECAR_FILES_GUI="
 <frame Sidecar file options>
     <hbox space-expand=\"true\">
+        <vbox>
+            <checkbox>
+                <label>Access MP4</label>
+                <default>\"${MP4_CHOICE}\"</default>
+                <variable>MP4_CHOICE</variable>
+            </checkbox>
         <checkbox>
             <label>FrameMD5s</label>
             <default>\"${FRAMEMD5_CHOICE}\"</default>
             <variable>FRAMEMD5_CHOICE</variable>
         </checkbox>
+        </vbox>
         $(_gtk_vbox_list "QCTOOLSXML_CHOICE" "180"  "QCTools XML?"              "${QCTOOLSXML_OPTIONS[@]}")
     </hbox>
 </frame>"
@@ -2298,7 +2305,11 @@ if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
     fi
     if [[ "${FRAMEMD5_CHOICE}" = "true" ]] ; then
         FRAMEMD5NAME="${LOGDIR}/${FULL_OUTPUT_ID}.framemd5"
-        EXTRAOUTPUTS=(-an -f framemd5 "${FRAMEMD5NAME}")
+        EXTRAOUTPUTS+=(-an -f framemd5 "${FRAMEMD5NAME}")
+    fi
+    if [[ "${MP4_CHOICE}" = "true" ]] ; then
+        MP4NAME="${LOGDIR}/${FULL_OUTPUT_ID}.mp4"
+        EXTRAOUTPUTS+=(-movflags write_colr+faststart -crf 21 -pix_fmt yuv420p -c:v libx264 -c:a aac "${MP4NAME}")
     fi
     if [[ "${FORMAT}" = "matroska" ]] ; then
         _review_option "EMBED_LOGS_CHOICE" "${EMBED_LOGS_OPTIONS[@]}"
