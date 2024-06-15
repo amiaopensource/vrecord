@@ -683,6 +683,13 @@ OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
                     <default>"${MP4_CRF_VALUE}"</default>
                     <variable>MP4_CRF_VALUE</variable>
                 </entry>
+                <text>
+                    <label>Custom output options. You can add custom optons such as '-vf yadif' here. Use cautiously.</label>
+                </text>
+                <entry activates_default="true">
+                    <default>"${MP4_EXTRA_OPTS}"</default>
+                    <variable>MP4_EXTRA_OPTS</variable>
+                </entry>
             </frame>
         </notebook>
         <frame Invert Audio Phase>
@@ -2323,7 +2330,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
             MP4_CRF_VALUE="21"
         fi
         MP4NAME="${LOGDIR}/${FULL_OUTPUT_ID}.mp4"
-        EXTRAOUTPUTS+=(-movflags write_colr+faststart -crf "${MP4_CRF_VALUE}" -pix_fmt yuv420p -c:v libx264 -c:a aac "${MP4NAME}")
+        EXTRAOUTPUTS+=(-movflags write_colr+faststart -crf "${MP4_CRF_VALUE}" ${MP4_EXTRA_OPTS} -pix_fmt yuv420p -c:v libx264 -c:a aac "${MP4NAME}")
     fi
     if [[ "${FORMAT}" = "matroska" ]] ; then
         _review_option "EMBED_LOGS_CHOICE" "${EMBED_LOGS_OPTIONS[@]}"
