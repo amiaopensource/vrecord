@@ -684,7 +684,7 @@ OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
                     <variable>MP4_CRF_VALUE</variable>
                 </entry>
                 <text>
-                    <label>Custom output options. You can add custom optons such as '-vf yadif' here. Use cautiously.</label>
+                    <label>Custom output options. You can add custom optons such as '-vf yadif' here. Use cautiously and note that '-movflags write_colr+faststart -pix_fmt yuv420p -c:v libx264 -c:a aac' is already set.</label>
                 </text>
                 <entry activates_default="true">
                     <default>"${MP4_EXTRA_OPTS}"</default>
