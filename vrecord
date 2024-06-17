@@ -848,13 +848,13 @@ DECKLINK_INPUT_GUI=$(cat << DECKLINK_FORM
     <vbox>
         <hbox space-expand="true">
             $(_gtk_vbox_list "DECKLINK_INPUT_CHOICE"    "120" "Video Card"             "${DECKLINK_DEVICES[@]}")
-            $(_gtk_vbox_list "VIDEO_INPUT_CHOICE"       "100" "Video Input"            "${VIDEO_INPUT_OPTIONS[@]}")
-            $(_gtk_vbox_list "AUDIO_INPUT_CHOICE"       "140" "Audio Input"            "${AUDIO_INPUT_OPTIONS[@]}")
+            $(_gtk_vbox_list "VIDEO_INPUT_CHOICE"       "80" "Video Input"            "${VIDEO_INPUT_OPTIONS[@]}")
+            $(_gtk_vbox_list "AUDIO_INPUT_CHOICE"       "130" "Audio Input"            "${AUDIO_INPUT_OPTIONS[@]}")
             $(_gtk_vbox_list "AUDIO_MAPPING_CHOICE"      "-1" "Audio Channel Mapping"  "${CHANNEL_MAPPING_OPTIONS[@]}" )
-            $(_gtk_vbox_list "STANDARD_CHOICE"           "60" "Standard"               "${STANDARD_OPTIONS[@]}")
-            $(_gtk_vbox_list "VIDEO_BIT_DEPTH_CHOICE"    "80" "Video Bit Depth"        "${VIDEO_BITDEPTH_OPTIONS[@]}")
-            $(_gtk_vbox_list "ASPECT_RATIO_CHOICE"       "80" "Display Aspect Ratio"   "${ASPECT_RATIO_OPTIONS[@]}")
-            $(_gtk_vbox_list "TIMECODE_CHOICE"           "80" "Timecode format"        "${TIMECODE_OPTIONS[@]}")
+            $(_gtk_vbox_list "STANDARD_CHOICE"           "50" "Standard"               "${STANDARD_OPTIONS[@]}")
+            $(_gtk_vbox_list "VIDEO_BIT_DEPTH_CHOICE"    "60" "Video Bit Depth"        "${VIDEO_BITDEPTH_OPTIONS[@]}")
+            $(_gtk_vbox_list "ASPECT_RATIO_CHOICE"       "60" "Display Aspect Ratio"   "${ASPECT_RATIO_OPTIONS[@]}")
+            $(_gtk_vbox_list "TIMECODE_CHOICE"           "6 0" "Timecode format"        "${TIMECODE_OPTIONS[@]}")
         </hbox>
         <frame Output file options>
             <hbox space-expand="true">
@@ -1141,7 +1141,7 @@ export MAIN_DIALOG='
             <variable export="false">MAIN</variable>
             <action signal="show" type="refresh">VRECORD_SETTINGS_SUMMARY</action>
         </vbox>
-        <vbox scrollable="true" width="1080" height="520" shadow-type="0">
+        <vbox scrollable="true" width="1420" height="520" shadow-type="0">
             <frame Input Options>
             <notebook page="'"${DEVICE_INPUT_CHOICE}"'" tab-labels="Decklink|DV|Audio|Config">
                 '"${DECKLINK_INPUT_GUI}"'
