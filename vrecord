@@ -666,7 +666,7 @@ PLAYBACK_OPT_GUI="
 OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
 <frame Preferences>
     <hbox>
-        <notebook tab-labels="Player|MP4 Sidecar">
+        <notebook tab-labels="Player|MP4 Sidecar|Aspect Ratio">
             <frame Player Settings>
                 <hbox>
                 $(_gtk_vbox_list "WAVEFORM_SCALE_CHOICE" "100" "Select Waveform Scale"            "${WAVEFORM_SCALE_OPTIONS[@]}")
@@ -690,6 +690,19 @@ OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
                     <default>"${MP4_EXTRA_OPTS}"</default>
                     <variable>MP4_EXTRA_OPTS</variable>
                 </entry>
+            </frame>
+            <frame Player AspectRatioSettings>
+                <vbox>
+                    <text width-chars="-1">
+                        <label>Here you can set the sample aspect ratio to use for any display aspect ratio. The recommendation of the vrecord community is the first value of each list. If unset then the recommendation will be used.</label>
+                    </text>
+                    <hbox>
+                        $(_gtk_vbox_list "NTSC_43_SAR_CHOICE"   "-1" "NTSC 4/3"  "${NTSC_43_SAR_OPTIONS[@]}")
+                        $(_gtk_vbox_list "NTSC_169_SAR_CHOICE"  "-1" "NTSC 16/9" "${NTSC_169_SAR_OPTIONS[@]}")
+                        $(_gtk_vbox_list "PAL_43_SAR_CHOICE"    "-1" "PAL 4/3"   "${PAL_43_SAR_OPTIONS[@]}")
+                        $(_gtk_vbox_list "PAL_169_SAR_CHOICE"   "-1" "PAL 16/9"  "${PAL_169_SAR_OPTIONS[@]}")
+                    </hbox>
+                </vbox>
             </frame>
         </notebook>
         <frame Invert Audio Phase>
@@ -1753,17 +1766,17 @@ _lookup_choice(){
         # aspect ratio options
         "4/3")
             if [[ "${STANDARD}" = "ntsc" ]] ; then
-                RECORDINGFILTER+=",setsar=10/11"
+                RECORDINGFILTER+=",setsar=${NTSC_43_SAR_CHOICE}"
             elif [[ "${STANDARD}" = "pal " ]] ; then
-                RECORDINGFILTER+=",setsar=12/11"
+                RECORDINGFILTER+=",setsar=${PAL_43_SAR_CHOICE}"
             else
                 _report -w "Error: the standard wasn't set to an expected when it was expected to be."
             fi ;;
         "16/9")
             if [[ "${STANDARD}" = "ntsc" ]] ; then
-                RECORDINGFILTER+=",setsar=40/33"
+                RECORDINGFILTER+=",setsar=${PAL_43_SAR_CHOICE}"
             elif [[ "${STANDARD}" = "pal " ]] ; then
-                RECORDINGFILTER+=",setsar=16/11"
+                RECORDINGFILTER+=",setsar=${PAL_169_SAR_CHOICE}"
             else
                 _report -w "Error: the standard wasn't set to an expected when it was expected to be."
             fi ;;
@@ -2086,7 +2099,11 @@ _review_all_options(){
             _review_option "TIMECODE_CHOICE" "${TIMECODE_OPTIONS[@]}"
         fi
         _review_option "STANDARD_CHOICE" "${STANDARD_OPTIONS[@]}"
-        _review_option -d "4/3" "ASPECT_RATIO_CHOICE" "${ASPECT_RATIO_OPTIONS[@]}" # needs to follow processing of the standard
+        _review_option -d "4/3" "ASPECT_RATIO_CHOICE" "${ASPECT_RATIO_OPTIONS[@]}"
+        _review_option -d "10/11" "NTSC_43_SAR_CHOICE"  "${NTSC_43_SAR_OPTIONS[@]}"
+        _review_option -d "40/33" "NTSC_169_SAR_CHOICE" "${NTSC_169_SAR_OPTIONS[@]}"
+        _review_option -d "12/11" "PAL_43_SAR_CHOICE"   "${PAL_43_SAR_OPTIONS[@]}"
+        _review_option -d "16/11" "PAL_169_SAR_CHOICE"  "${PAL_169_SAR_OPTIONS[@]}"
     elif [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
         _review_option -n "DVRESCUE_INPUT_CHOICE" "${DVRESCUE_DEVICES[@]}"
     elif [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
@@ -2229,6 +2246,10 @@ AUDIO_CHANNEL_CHOICE_OPTIONS=("Mono" "Stereo")
 AUDIO_MODE_SR_CHOICE_OPTIONS=("96 kHz" "48 kHz" "44.1 kHz")
 VIDEO_BITDEPTH_OPTIONS=("10 bit" "8 bit")
 ASPECT_RATIO_OPTIONS=("4/3" "16/9")
+NTSC_43_SAR_OPTIONS=("10/11" "8/9" "9/10" "4320/4739")
+NTSC_169_SAR_OPTIONS=("40/33" "32/27" "6/5" "5760/4739")
+PAL_43_SAR_OPTIONS=("12/11" "16/15" "128/117")
+PAL_169_SAR_OPTIONS=("16/11" "64/45" "512/351")
 CHANNEL_MAPPING_OPTIONS=("2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, Channels 3 & 4 -> 2nd Track Stereo)" "1 Stereo Track (From Channels 1 & 2)" "1 Stereo Track (From Channels 3 & 4)" "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono" "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono" "Channel 1 -> Single Track Mono" "Channel 2 -> Single Track Mono")
 TIMECODE_OPTIONS=("none" "rp188vitc" "rp188vitc2" "rp188ltc" "rp188any" "vitc" "vitc2" "serial")
 STANDARD_OPTIONS=("NTSC" "PAL")
