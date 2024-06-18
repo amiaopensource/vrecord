@@ -1604,7 +1604,7 @@ _lookup_choice(){
         "Matroska")
             EXTENSION="mkv"
             DV_EXTENSION="mkv"
-            MIDDLEOPTIONS+=(-reserve_index_space 1M)
+            MIDDLEOPTIONS+=(-reserve_index_space 10M)
             FORMAT="matroska" ;;
         "AVI")
             EXTENSION="avi"
