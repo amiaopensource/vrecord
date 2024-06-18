@@ -2100,10 +2100,10 @@ _review_all_options(){
         fi
         _review_option "STANDARD_CHOICE" "${STANDARD_OPTIONS[@]}"
         _review_option -d "4/3" "ASPECT_RATIO_CHOICE" "${ASPECT_RATIO_OPTIONS[@]}"
-        _review_option -d "10/11" "NTSC_43_SAR_CHOICE"  "${NTSC_43_SAR_OPTIONS[@]}"
-        _review_option -d "40/33" "NTSC_169_SAR_CHOICE" "${NTSC_169_SAR_OPTIONS[@]}"
-        _review_option -d "12/11" "PAL_43_SAR_CHOICE"   "${PAL_43_SAR_OPTIONS[@]}"
-        _review_option -d "16/11" "PAL_169_SAR_CHOICE"  "${PAL_169_SAR_OPTIONS[@]}"
+        _review_option -n -d "10/11" "NTSC_43_SAR_CHOICE"  "${NTSC_43_SAR_OPTIONS[@]}"
+        _review_option -n -d "40/33" "NTSC_169_SAR_CHOICE" "${NTSC_169_SAR_OPTIONS[@]}"
+        _review_option -n -d "12/11" "PAL_43_SAR_CHOICE"   "${PAL_43_SAR_OPTIONS[@]}"
+        _review_option -n -d "16/11" "PAL_169_SAR_CHOICE"  "${PAL_169_SAR_OPTIONS[@]}"
     elif [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
         _review_option -n "DVRESCUE_INPUT_CHOICE" "${DVRESCUE_DEVICES[@]}"
     elif [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
