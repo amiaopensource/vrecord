@@ -1742,10 +1742,7 @@ _lookup_choice(){
                 RECORDINGFILTER+="crop=w=720:h=480:x=0:y=4,"
                 MIDDLEOPTIONS+=(-x264opts bff)
             fi
-            if [[ -z "${SIGNAL_INT_CHOICE}" ]] ; then
-                SIGNAL_INT_CHOICE="auto"
-            fi
-            RECORDINGFILTER+="setparams=field_mode=${SIGNAL_INT_CHOICE}"
+            RECORDINGFILTER+="setparams=field_mode=${SIGNAL_INT_CHOICE:-auto}"
             MIDDLEOPTIONS+=(-color_primaries smpte170m)
             MIDDLEOPTIONS+=(-color_trc bt709)
             MIDDLEOPTIONS+=(-colorspace smpte170m) ;;
@@ -1755,10 +1752,8 @@ _lookup_choice(){
             if [[ "${VIDEO_CODEC_CHOICE}" = "h264" ]] ; then
                 MIDDLEOPTIONS+=(-x264opts tff)
             fi
-            if [[ -z "${SIGNAL_INT_CHOICE}" ]] ; then
-                SIGNAL_INT_CHOICE="auto"
-            fi
-            RECORDINGFILTER+="setparams=field_mode=${SIGNAL_INT_CHOICE}"
+            RECORDINGFILTER+="setparams=field_mode=${SIGNAL_INT_CHOICE:-auto}"
+
             MIDDLEOPTIONS+=(-color_primaries bt470bg)
             MIDDLEOPTIONS+=(-color_trc bt709)
             MIDDLEOPTIONS+=(-colorspace bt470bg) ;;
@@ -2406,7 +2401,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] || [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] 
     fi
 fi
 if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
-    if [[ ! -z "${SIGNAL_INT_CHOICE}" || "${SIGNAL_INT_CHOICE}" != "auto" ]] ; then
+    if [[ "${SIGNAL_INT_CHOICE}" != "auto" ]] ; then
         _report -w "WARNING: The configuration ignores the interlacement of the input and forces it to ${SIGNAL_INT_CHOICE}. Set to 'auto' if you prefer to keep the interlacement as the device describes it."
     fi
 fi
