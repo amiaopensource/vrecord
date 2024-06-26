@@ -2371,7 +2371,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
         if [[ -z "${MP4_CRF_VALUE}" ]] ; then
             MP4_CRF_VALUE="21"
         fi
-        MP4NAME="${LOGDIR}/${FULL_OUTPUT_ID}.mp4"
+        MP4NAME="${DIR}/${FULL_OUTPUT_ID}.mp4"
         EXTRAOUTPUTS+=(-movflags write_colr+faststart -crf "${MP4_CRF_VALUE}" ${MP4_EXTRA_OPTS} -pix_fmt yuv420p -c:v libx264 -c:a aac "${MP4NAME}")
     fi
     if [[ "${FORMAT}" = "matroska" ]] ; then
