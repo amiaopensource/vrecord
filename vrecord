@@ -448,7 +448,7 @@ _setup_vrecord_input(){
             GRAB_INPUT+=(-loglevel debug)
             _report -wt "When running vrecord in verbose mode, avoid using Visual + Numerical option."
         else
-            GRAB_INPUT+=(-loglevel info)
+            GRAB_INPUT+=(-loglevel warning)
         fi
     }
     # set up input and playback
