@@ -554,9 +554,9 @@ _setup_vrecord_process(){
         RECORD_COMMAND=("${FFMPEG_BIN}")
         RECORD_COMMAND+=(-nostdin -nostats "${TIME_LIMIT[@]}" "${TC_INPUT_OPTION[@]}" "${GRAB_INPUT[@]}")
         if [[ -n "${VIDEOCODECNAME}" ]] ; then
-            MIDDLEOPTIONS+=(-metadata:s:v:0 encoder="${VIDEOCODECNAME}")
+            MIDDLEOPTIONS_PRES+=(-metadata:s:v:0 encoder="${VIDEOCODECNAME}")
         fi
-        RECORD_COMMAND+=("${MIDDLEOPTIONS[@]}")
+        RECORD_COMMAND+=("${MIDDLEOPTIONS_PRES[@]}" "${MIDDLEOPTIONS_ALL[@]}")
         if [[ "${RUNTYPE}" = "record" ]] ; then
             RECORD_COMMAND+=(-filter_complex "[0:v:0]${RECORDINGFILTER}${TC_WRITE}${CAPTION_WRITE};${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}")
             RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
@@ -594,7 +594,7 @@ _setup_vrecord_process(){
         VRECORD_STEPS="2" # Steps: record | player (record is adjusted if actually recording)
         RECORD_COMMAND=("${FFMPEG_BIN}")
         RECORD_COMMAND+=(-nostdin -nostats "${TIME_LIMIT[@]}" "${GRAB_INPUT[@]}")
-        RECORD_COMMAND+=("${MIDDLEOPTIONS[@]}")
+        RECORD_COMMAND+=("${MIDDLEOPTIONS_PRES[@]}" "${MIDDLEOPTIONS_ALL[@]}")
         if [[ "${RUNTYPE}" = "record" ]] ; then
             RECORD_COMMAND+=(-f "${FORMAT}" -filter_complex "${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" "${VRECORD_OUTPUT}")
         fi
@@ -1684,12 +1684,12 @@ _lookup_choice(){
         "QuickTime")
             EXTENSION="mov"
             DV_EXTENSION="mov"
-            MIDDLEOPTIONS+=(-movflags write_colr)
+            MIDDLEOPTIONS_PRES+=(-movflags write_colr)
             FORMAT="mov" ;;
         "Matroska")
             EXTENSION="mkv"
             DV_EXTENSION="mkv"
-            MIDDLEOPTIONS+=(-reserve_index_space 10M)
+            MIDDLEOPTIONS_PRES+=(-reserve_index_space 10M)
             FORMAT="matroska" ;;
         "AVI")
             EXTENSION="avi"
@@ -1699,7 +1699,7 @@ _lookup_choice(){
             FORMAT="mxf" ;;
         "MP4")
             EXTENSION="mp4"
-            MIDDLEOPTIONS+=(-movflags write_colr)
+            MIDDLEOPTIONS_PRES+=(-movflags write_colr)
             FORMAT="mp4" ;;
         "DV")
             EXTENSION="dv"
@@ -1709,37 +1709,37 @@ _lookup_choice(){
         "Uncompressed Video")
             if [[ "${PIXEL_FORMAT}" = "yuv422p10" ]] ; then
                 VIDEOCODECNAME="Uncompressed 10-bit 4:2:2"
-                MIDDLEOPTIONS+=(-c:v v210)
+                MIDDLEOPTIONS_PRES+=(-c:v v210)
             elif [[ "${PIXEL_FORMAT}" = "uyvy422" ]] ; then
                 VIDEOCODECNAME="Uncompressed 8-bit 4:2:2"
-                MIDDLEOPTIONS+=(-c:v rawvideo -pix_fmt uyvy422 -tag:v 2vuy)
+                MIDDLEOPTIONS_PRES+=(-c:v rawvideo -pix_fmt uyvy422 -tag:v 2vuy)
             fi ;;
         "FFV1 version 3")
             VIDEOCODECNAME="FFV1 version 3"
-            MIDDLEOPTIONS+=(-c:v ffv1 -level 3 -g 1 -slices "${FFV1_SLICE_CHOICE}" -slicecrc 1)
+            MIDDLEOPTIONS_PRES+=(-c:v ffv1 -level 3 -g 1 -slices "${FFV1_SLICE_CHOICE}" -slicecrc 1)
             SUFFIX="_ffv1" ;;
         "JPEG2000")
             VIDEOCODECNAME="JPEG2000"
-            MIDDLEOPTIONS+=(-c:v libopenjpeg)
+            MIDDLEOPTIONS_PRES+=(-c:v libopenjpeg)
             SUFFIX="_j2k" ;;
         "ProRes")
             VIDEOCODECNAME="Apple ProRes 422"
-            MIDDLEOPTIONS+=(-c:v prores_ks -flags +ildct -profile:v 2)
+            MIDDLEOPTIONS_PRES+=(-c:v prores_ks -flags +ildct -profile:v 2)
             SUFFIX="_prores" ;;
         "ProRes (HQ)")
             VIDEOCODECNAME="Apple ProRes 422 HQ"
-            MIDDLEOPTIONS+=(-c:v prores_ks -flags +ildct -profile:v 3)
+            MIDDLEOPTIONS_PRES+=(-c:v prores_ks -flags +ildct -profile:v 3)
             SUFFIX="_prores" ;;
         "h264")
             VIDEOCODECNAME="H.264"
-            MIDDLEOPTIONS+=(-c:v libx264 -crf 18 -pix_fmt yuv420p)
+            MIDDLEOPTIONS_PRES+=(-c:v libx264 -crf 18 -pix_fmt yuv420p)
             SUFFIX="" ;;
         "HuffYUV")
             VIDEOCODECNAME="HuffYUV"
             if [[ "${PIXEL_FORMAT}" = "yuv422p10" ]] ; then
-                MIDDLEOPTIONS+=(-c:v ffvhuff -pix_fmt yuv422p10le -pred median -context 1)
+                MIDDLEOPTIONS_PRES+=(-c:v ffvhuff -pix_fmt yuv422p10le -pred median -context 1)
             elif [[ "${PIXEL_FORMAT}" = "uyvy422" ]] ; then
-                MIDDLEOPTIONS+=(-c:v ffvhuff -pix_fmt yuv422p -pred median -context 1)
+                MIDDLEOPTIONS_PRES+=(-c:v ffvhuff -pix_fmt yuv422p -pred median -context 1)
             fi
             SUFFIX="_huff" ;;
 
@@ -1749,14 +1749,14 @@ _lookup_choice(){
 
         # audio codec
         "24-bit PCM")
-            MIDDLEOPTIONS+=(-c:a pcm_s24le)
+            MIDDLEOPTIONS_PRES+=(-c:a pcm_s24le)
             AUDIO_EXT='wav' ;;
         "24-bit FLAC")
-            MIDDLEOPTIONS+=(-c:a flac)
-            MIDDLEOPTIONS+=(-sample_fmt s32)
+            MIDDLEOPTIONS_PRES+=(-c:a flac)
+            MIDDLEOPTIONS_PRES+=(-sample_fmt s32)
             AUDIO_EXT='flac' ;;
         "AAC")
-            MIDDLEOPTIONS+=(-c:a aac) ;;
+            MIDDLEOPTIONS_PRES+=(-c:a aac) ;;
 
         # audio mappings
         "2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, Channels 3 & 4 -> 2nd Track Stereo)")
@@ -1798,18 +1798,18 @@ _lookup_choice(){
         # Audio mode sample rate options
         "96 kHz")
             S_RATE='-ar 96k'
-            MIDDLEOPTIONS+=(${S_RATE}) ;;
+            MIDDLEOPTIONS_PRES+=(${S_RATE}) ;;
         "48 kHz")
             S_RATE='-ar 48k'
-            MIDDLEOPTIONS+=(${S_RATE}) ;;
+            MIDDLEOPTIONS_PRES+=(${S_RATE}) ;;
         "44.1 kHz")
             S_RATE='-ar 44.1k'
-            MIDDLEOPTIONS+=(${S_RATE}) ;;
+            MIDDLEOPTIONS_PRES+=(${S_RATE}) ;;
         # timecode options
         "none"|"rp188vitc"|"rp188vitc2"|"rp188ltc"|"rp188any"|"vitc"|"vitc2"|"serial")
             TC_TYPE="${1}"
             TC_INPUT_OPTION=(-timecode_format "${TC_TYPE}")
-            MIDDLEOPTIONS+=(-map_metadata 0:s:v:0)
+            MIDDLEOPTIONS_PRES+=(-map_metadata 0:s:v:0)
             if [[ "${TC_TYPE}" != "none" ]] ; then
                 if [[ "${RUNTYPE}" = "passthrough" ]] ; then
                 TIMECODE_OVERLAY=",drawtext=fontfile=${DEFAULTFONT}:x=(w-text_w)*0.5:y=(h-text_h)*0.75:fontcolor=white:box=1:boxcolor=gray@0.7:boxborderw=4:fontsize=22:shadowx=1:shadowy=1:text=%{metadata\\\:timecode\\\:no ${TC_TYPE} timecode}"
@@ -1825,28 +1825,22 @@ _lookup_choice(){
             DECKLINK_FPS="30000/1001"
             if [[ "${VIDEO_CODEC_CHOICE}" = "h264" ]] ; then
                 RECORDINGFILTER+="crop=w=720:h=480:x=0:y=4,"
-                MIDDLEOPTIONS+=(-x264opts bff)
+                MIDDLEOPTIONS_PRES+=(-x264opts bff)
             fi
-            if [[ -z "${SIGNAL_INT_CHOICE}" ]] ; then
-                SIGNAL_INT_CHOICE="auto"
-            fi
-            RECORDINGFILTER+="setparams=field_mode=${SIGNAL_INT_CHOICE}"
-            MIDDLEOPTIONS+=(-color_primaries smpte170m)
-            MIDDLEOPTIONS+=(-color_trc bt709)
-            MIDDLEOPTIONS+=(-colorspace smpte170m) ;;
+            RECORDINGFILTER+="setparams=field_mode=${SIGNAL_INT_CHOICE:-auto}"
+            MIDDLEOPTIONS_ALL+=(-color_primaries smpte170m)
+            MIDDLEOPTIONS_ALL+=(-color_trc bt709)
+            MIDDLEOPTIONS_ALL+=(-colorspace smpte170m) ;;
         "PAL")
             STANDARD="pal "
             DECKLINK_FPS="25000/1000"
             if [[ "${VIDEO_CODEC_CHOICE}" = "h264" ]] ; then
-                MIDDLEOPTIONS+=(-x264opts tff)
+                MIDDLEOPTIONS_PRES+=(-x264opts tff)
             fi
-            if [[ -z "${SIGNAL_INT_CHOICE}" ]] ; then
-                SIGNAL_INT_CHOICE="auto"
-            fi
-            RECORDINGFILTER+="setparams=field_mode=${SIGNAL_INT_CHOICE}"
-            MIDDLEOPTIONS+=(-color_primaries bt470bg)
-            MIDDLEOPTIONS+=(-color_trc bt709)
-            MIDDLEOPTIONS+=(-colorspace bt470bg) ;;
+            RECORDINGFILTER+="setparams=field_mode=${SIGNAL_INT_CHOICE:-auto}"
+            MIDDLEOPTIONS_ALL+=(-color_primaries bt470bg)
+            MIDDLEOPTIONS_ALL+=(-color_trc bt709)
+            MIDDLEOPTIONS_ALL+=(-colorspace bt470bg) ;;
 
         # aspect ratio options
         "4/3")
@@ -2128,12 +2122,12 @@ _set_scopes(){
     if [[ "${SIGNAL_VIEW_CHOICE}" == "Full Range" ]] ; then
         SIGNAL_FILTER="format=yuv444p,pseudocolor=if(between(1\,val\,amax)+between(val\,254\,amax)\,65\,-1):if(between(1\,val\,amax)+between(val\,254\,amax)\,100\,-1):if(between(1\,val\,amax)+between(val\,254\,amax)\,212\,-1)"
         if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
-            MIDDLEOPTIONS+=(-color_range jpeg)
+            MIDDLEOPTIONS_ALL+=(-color_range jpeg)
         fi
     else
         SIGNAL_FILTER="signalstats=out=brng"
         if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
-            MIDDLEOPTIONS+=(-color_range mpeg)
+            MIDDLEOPTIONS_ALL+=(-color_range mpeg)
         fi
     fi
 }
@@ -2217,8 +2211,8 @@ _review_all_options(){
         _review_option -d "Visual" "PLAYBACKVIEW_CHOICE" "${PLAYBACKVIEW_OPTIONS[@]}"
     fi
     if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
-        MIDDLEOPTIONS+=(-metadata creation_time=now)
-        MIDDLEOPTIONS+=(${EXTRAOUTPUTOPTIONS[@]})
+        MIDDLEOPTIONS_ALL+=(-metadata creation_time=now)
+        MIDDLEOPTIONS_PRES+=(${EXTRAOUTPUTOPTIONS[@]})
     elif [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
         PLAYBACKVIEW_CHOICE_PASS="Unfiltered"
         PLAYBACKVIEW_CHOICE="Unfiltered"
@@ -2243,7 +2237,7 @@ _review_all_options(){
         if [[ "${AUDIO_DEV_CHOICE}" != *"Blackmagic"* ]] ; then
             _review_option "AUDIO_MODE_SR_CHOICE" "${AUDIO_MODE_SR_CHOICE_OPTIONS[@]}"
         else
-            MIDDLEOPTIONS+=(-ar 48k)
+            MIDDLEOPTIONS_PRES+=(-ar 48k)
         fi
         PLAYBACKVIEW_CHOICE_PASS="Audio"
         PLAYBACKVIEW_CHOICE="Audio"
@@ -2466,8 +2460,8 @@ if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
         if [[ -z "${MP4_CRF_VALUE}" ]] ; then
             MP4_CRF_VALUE="21"
         fi
-        MP4NAME="${LOGDIR}/${FULL_OUTPUT_ID}.mp4"
-        EXTRAOUTPUTS+=(-movflags write_colr+faststart -crf "${MP4_CRF_VALUE}" ${MP4_EXTRA_OPTS} -pix_fmt yuv420p -c:v libx264 -c:a aac "${MP4NAME}")
+        MP4NAME="${DIR}/${FULL_OUTPUT_ID}.mp4"
+        EXTRAOUTPUTS+=("${MIDDLEOPTIONS_ALL[@]}" -movflags write_colr+faststart -crf "${MP4_CRF_VALUE}" ${MP4_EXTRA_OPTS} -pix_fmt yuv420p -c:v libx264 -c:a aac "${MP4NAME}")
     fi
     if [[ "${FORMAT}" = "matroska" ]] ; then
         _review_option "EMBED_LOGS_CHOICE" "${EMBED_LOGS_OPTIONS[@]}"
@@ -2501,7 +2495,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] || [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] 
     fi
 fi
 if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
-    if [[ ! -z "${SIGNAL_INT_CHOICE}" || "${SIGNAL_INT_CHOICE}" != "auto" ]] ; then
+    if [[ "${SIGNAL_INT_CHOICE}" != "auto" ]] ; then
         _report -w "WARNING: The configuration ignores the interlacement of the input and forces it to ${SIGNAL_INT_CHOICE}. Set to 'auto' if you prefer to keep the interlacement as the device describes it."
     fi
 fi
