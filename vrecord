@@ -459,6 +459,7 @@ _setup_vrecord_input(){
         exit 1
     fi
     if [[ -n "${ALT_INPUT}" ]] ; then
+        _set_ffmpeg_loglevel
         GRAB_INPUT+=(-i "${ALT_INPUT}")
     elif [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         _set_ffmpeg_loglevel
