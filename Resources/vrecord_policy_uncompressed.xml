@@ -15,7 +15,6 @@
             <rule name="Is the Codec ID 2vuy?" value="CodecID" tracktype="Video" operator="=">2vuy</rule>
         </policy>
         <rule name="Is the bitrate mode CBR?" value="BitRate_Mode" tracktype="Video" operator="=">CBR</rule>
-        <rule name="Is the display aspect ratio 1.333?" value="DisplayAspectRatio" tracktype="Video" operator="=">1.333</rule>
         <!--add rotation?-->
         <rule name="Is the frame rate mode constant?" value="FrameRate_Mode" tracktype="Video" operator="=">CFR</rule>
         <rule name="Is the color space YUV?" value="ColorSpace" tracktype="Video" operator="=">YUV</rule>
@@ -50,7 +49,6 @@
                 <rule name="Is the height 486?" value="Height" tracktype="Video" operator="=">486</rule>
                 <rule name="Is the width 720?" value="Width" tracktype="Video" operator="=">720</rule>
                 <rule name="Is the frame rate 29.970?" value="FrameRate" tracktype="Video" operator="=">29.970</rule>
-                <rule name="Is the pixel aspect ratio 0.900?" value="PixelAspectRatio" tracktype="Video" operator="=">0.900</rule>
                 <rule name="Is the scan order bottom field first?" value="ScanOrder" tracktype="Video" operator="=">BFF</rule>
                 <rule name="Are the colour primaries BT.601 NTSC?" value="colour_primaries" tracktype="Video" operator="=">BT.601 NTSC</rule>
             </policy>
@@ -59,7 +57,6 @@
                 <rule name="Is the height 576?" value="Height" tracktype="Video" operator="=">576</rule>
                 <rule name="Is the width 720?" value="Width" tracktype="Video" operator="=">720</rule>
                 <rule name="Is the frame rate 25.000?" value="FrameRate" tracktype="Video" operator="=">25.000</rule>
-                <rule name="Is the pixel aspect ratio 1.067?" value="PixelAspectRatio" tracktype="Video" operator="=">1.067</rule>
                 <rule name="Is the scan order top field first?" value="ScanOrder" tracktype="Video" operator="=">TFF</rule>
                 <rule name="Are the colour primaries BT.601 PAL?" value="colour_primaries" tracktype="Video" operator="=">BT.601 PAL</rule>
             </policy>
