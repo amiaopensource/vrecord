@@ -917,6 +917,19 @@ OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
                 <action type="exit">env_reset</action>
             </button>
         </vbox>
+        <vbox>
+            <text>
+                <label>Alternate Dependency Source</label>
+            </text>
+            <entry>
+                <default>"${DEPENDENCYDIR}"</default>
+                <variable>DEPENDENCYDIR</variable>
+            </entry>
+            <button tooltip-text="Select alternate dependency directory and then reset environmental variables">
+                <input file stock="gtk-open"></input>
+                <action type="fileselect">DEPENDENCYDIR</action>
+            </button>
+        </vbox>
     </hbox>
 </frame>
 CONFIG_FORM
