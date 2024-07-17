@@ -157,6 +157,7 @@ _remove_env_vars(){
     unset OS_TYPE RESOURCE_PATH DEFAULTFONT CORE_COUNT OPEN_COMMAND ZCAT_COMMAND COMPUTER_MODEL_NAME DIR_SELECTION_DIALOG
     unset COMPUTER_MODEL_ID COMPUTER_PROCESSOR_NAME COMPUTER_PROCESSOR_SPEED COMPUTER_PROCESSOR_COUNT COMPUTER_MEMORY COMPUTER_SERIAL
     unset CAPTURELOGSUFFIX TIMECODELOGSUFFIX BREW_PREFIX FFMPEG_BIN FFPLAY_BIN FFPROBE_BIN
+    VRECORD_VARS_FILE="/tmp/v_$(echo "${0}" | sed -e "s/[^A-Za-z0-9.]/_/g")_variables.txt"
 }
 
 _setup_env_variables(){
@@ -247,7 +248,7 @@ _gather_ffmpeg_vars(){
             BREW_PREFIX+=".reinstall"
         fi
     fi
-    if which ffmpeg-dl ; then
+    if which ffmpeg-dl &> /dev/null ; then
         FFMPEG_BIN="$(which ffmpeg-dl)"
         FFPROBE_BIN="$(which ffprobe-dl)"
         FFPLAY_BIN="$(which ffplay-dl)"
@@ -2249,7 +2250,7 @@ _review_all_options(){
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":hc:erpaxvI:O:i:G" opt ; do
+while getopts ":hc:erpaxnvI:O:i:G" opt ; do
     case "${opt}" in
         h) _usage ; exit 0 ;;
         c) CONFIG_FILE="${OPTARG}" ;;
@@ -2258,6 +2259,7 @@ while getopts ":hc:erpaxvI:O:i:G" opt ; do
         p) RUNTYPE="passthrough" ;;
         a) RUNTYPE="audiopassthrough" ;;
         x) RUNTYPE="reset" ;;
+        n) RUNTYPE="resetenvironment" ;;
         v) VERBOSE="true" ;;
         I) EXTRAINPUTOPTIONS=(${OPTARG}) ;;
         O) EXTRAOUTPUTOPTIONS=(${OPTARG}) ;;
@@ -2369,6 +2371,22 @@ if [[ "${RUNTYPE}" = "reset" ]] ; then
         exit 0
     fi
 fi
+
+if [[ "${RUNTYPE}" = "resetenvironment" ]] ; then
+    _report -q -n "Resetting the configuration will clear ${VRECORD_VARS_FILE}. Please enter [Y] to confirm: "
+    read RESET_RESPONSE
+    if [[ "${RESET_RESPONSE}" = [Yy] ]] ; then
+        _report -d "Clearing ${VRECORD_VARS_FILE}."
+        _remove_env_vars
+        _process_vars_for_gtk
+        RUNTYPE="edit"
+        STARTUP_VIEW="INPUTSETTINGS"
+    else
+        _report -d "Reset aborted. Exiting."
+        exit 0
+    fi
+fi
+
 while [[ "${RUNTYPE}" = "edit" ]] ; do
     STARTUP_VIEW="INPUTSETTINGS"
     _edit_mode
