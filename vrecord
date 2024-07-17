@@ -138,7 +138,7 @@ _process_vars_for_gtk(){
 
     if [[ -z "${OS_TYPE}" ]] ; then
         _setup_env_variables
-        _include_var OS_TYPE RESOURCE_PATH DEFAULTFONT CORE_COUNT OPEN_COMMAND ZCAT_COMMAND COMPUTER_MODEL_NAME DIR_SELECTION_DIALOG
+        _include_var OS_TYPE RESOURCE_PATH DEFAULTFONT CORE_COUNT OPEN_COMMAND ZCAT_COMMAND COMPUTER_MODEL_NAME DIR_SELECTION_DIALOG GTKDIALOGBIN
         if [[ "${OS_TYPE}" = "macOS" ]] ; then
             _include_var COMPUTER_MODEL_ID COMPUTER_PROCESSOR_NAME COMPUTER_PROCESSOR_SPEED COMPUTER_PROCESSOR_COUNT COMPUTER_MEMORY COMPUTER_SERIAL
         fi
@@ -156,7 +156,7 @@ _remove_env_vars(){
     unset VRECORD_VARS_FILE
     unset OS_TYPE RESOURCE_PATH DEFAULTFONT CORE_COUNT OPEN_COMMAND ZCAT_COMMAND COMPUTER_MODEL_NAME DIR_SELECTION_DIALOG
     unset COMPUTER_MODEL_ID COMPUTER_PROCESSOR_NAME COMPUTER_PROCESSOR_SPEED COMPUTER_PROCESSOR_COUNT COMPUTER_MEMORY COMPUTER_SERIAL
-    unset CAPTURELOGSUFFIX TIMECODELOGSUFFIX BREW_PREFIX FFMPEG_BIN FFPLAY_BIN FFPROBE_BIN
+    unset CAPTURELOGSUFFIX TIMECODELOGSUFFIX BREW_PREFIX FFMPEG_BIN FFPLAY_BIN FFPROBE_BIN GTKDIALOGBIN
     VRECORD_VARS_FILE="/tmp/v_$(echo "${0}" | sed -e "s/[^A-Za-z0-9.]/_/g")_variables.txt"
 }
 
@@ -233,6 +233,13 @@ _setup_env_variables(){
         echo "Unsupported OS, ${QUERY_OS_TYPE}, detected. Exiting."
         exit 1
     fi
+    # set gtkdialog path
+    if [[ -n "${DEPENDENCYDIR}" ]] ; then
+        GTKDIALOGBIN=$(find "${DEPENDENCYDIR}" -iname "gtkdialog" | head -n1)
+    fi
+    if [[ -z "${GTKDIALOGBIN}" ]] ; then
+        GTKDIALOGBIN="$(which gtkdialog)"
+    fi
 }
 
 _gather_ffmpeg_vars(){
@@ -248,7 +255,14 @@ _gather_ffmpeg_vars(){
             BREW_PREFIX+=".reinstall"
         fi
     fi
-    if which ffmpeg-dl &> /dev/null ; then
+    if [[ -n "${DEPENDENCYDIR}" ]] ; then
+        ffmpegalt=$(find "${DEPENDENCYDIR}" -iname "ffmpeg-dl" | head -n1)
+            if [[ -n "${ffmpegalt}" ]] ; then
+                FFMPEG_BIN="${ffmpegalt}"
+                FFPLAY_BIN=$(find "${DEPENDENCYDIR}" -iname "ffplay-dl" | head -n1)
+                FFPROBE_BIN=$(find "${DEPENDENCYDIR}" -iname "ffprobe-dl" | head -n1)
+            fi
+    elif which ffmpeg-dl &> /dev/null ; then
         FFMPEG_BIN="$(which ffmpeg-dl)"
         FFPROBE_BIN="$(which ffprobe-dl)"
         FFPLAY_BIN="$(which ffplay-dl)"
@@ -1464,9 +1478,9 @@ _edit_mode(){
     cat "${SHARED_FUNCTIONS_FILE}" >> "${GTK_INC}"
 
     if [[ "${VERBOSE_GTKDIALOG}" = "Y" ]] ; then
-        eval "$(gtkdialog --include="${GTK_INC}" --program MAIN_DIALOG --center)"
+        eval "$("${GTKDIALOGBIN}" --include="${GTK_INC}" --program MAIN_DIALOG --center)"
     else
-        eval "$(gtkdialog --include="${GTK_INC}" --program MAIN_DIALOG --center 2> /dev/null)"
+        eval "$("${GTKDIALOGBIN}" --include="${GTK_INC}" --program MAIN_DIALOG --center 2> /dev/null)"
     fi
     MAIN_DIALOG="${MAIN_DIALOG_TMP}"
 
@@ -2250,7 +2264,7 @@ _review_all_options(){
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":hc:erpaxnvI:O:i:G" opt ; do
+while getopts ":hc:erpaxnvI:O:D:i:G" opt ; do
     case "${opt}" in
         h) _usage ; exit 0 ;;
         c) CONFIG_FILE="${OPTARG}" ;;
@@ -2263,6 +2277,7 @@ while getopts ":hc:erpaxnvI:O:i:G" opt ; do
         v) VERBOSE="true" ;;
         I) EXTRAINPUTOPTIONS=(${OPTARG}) ;;
         O) EXTRAOUTPUTOPTIONS=(${OPTARG}) ;;
+        D) DEPENDENCYDIR=(${OPTARG}) && RUNTYPE="resetenvironment";;
         i) ALT_INPUT="${OPTARG}" ;;
         G) VERBOSE_GTKDIALOG="Y" ;;
         :) _report -w "Option -${OPTARG} requires an argument" ; _usage ; exit 1 ;;
@@ -2373,7 +2388,11 @@ if [[ "${RUNTYPE}" = "reset" ]] ; then
 fi
 
 if [[ "${RUNTYPE}" = "resetenvironment" ]] ; then
-    _report -q -n "Resetting the configuration will clear ${VRECORD_VARS_FILE}. Please enter [Y] to confirm: "
+    if [[ -n "${DEPENDENCYDIR}" ]] ; then
+        _report -q -n "Rewriting the configuration to include dependencies found in ${DEPENDENCYDIR}. Please enter [Y] to confirm: "
+    else
+        _report -q -n "Resetting the configuration will clear ${VRECORD_VARS_FILE}. Please enter [Y] to confirm: "
+    fi
     read RESET_RESPONSE
     if [[ "${RESET_RESPONSE}" = [Yy] ]] ; then
         _report -d "Clearing ${VRECORD_VARS_FILE}."
