@@ -65,7 +65,6 @@
     <rule name="Is the video format FFV1?" value="Format" tracktype="Video" operator="=">FFV1</rule>
     <rule name="FFV1 is version 3.4 or later?" value="Format_Version" tracktype="Video" operator="&gt;=">3.4</rule>
     <rule name="FFV1 is encoded in GOP size of 1?" value="Format_Settings_GOP" tracktype="Video" operator="=">N=1</rule>
-    <rule name="Is the display aspect ratio 1.333?" value="DisplayAspectRatio" tracktype="Video" operator="=">1.333</rule>
     <rule name="Is the frame rate mode constant?" value="FrameRate_Mode" tracktype="Video" operator="=">CFR</rule>
     <rule name="Is the color space YUV?" value="ColorSpace" tracktype="Video" operator="=">YUV</rule>
     <rule name="Is the chroma subsampling 4:2:2?" value="ChromaSubsampling" tracktype="Video" operator="=">4:2:2</rule>
@@ -85,7 +84,6 @@
             <rule name="NTSC height 486?" value="Height" tracktype="Video" operator="=">486</rule>
             <rule name="NTSC width 720?" value="Width" tracktype="Video" operator="=">720</rule>
             <rule name="NTSC FrameRate 29.970?" value="FrameRate" tracktype="Video" operator="=">29.970</rule>
-            <rule name="NTSC pixel aspect ratio 0.900?" value="PixelAspectRatio" tracktype="Video" operator="=">0.900</rule>
             <rule name="NTSC scan order bottom field first?" value="ScanOrder" tracktype="Video" operator="=">BFF</rule>
             <rule name="NTSC colour primaries BT.601 NTSC?" value="colour_primaries" tracktype="Video" operator="=">BT.601 NTSC</rule>
             <rule name="Are the matrix coefficients BT.601?" value="matrix_coefficients" tracktype="Video" operator="=">BT.601</rule>
@@ -94,7 +92,6 @@
             <rule name="PAL height 576?" value="Height" tracktype="Video" operator="=">576</rule>
             <rule name="PAL Width 720?" value="Width" tracktype="Video" operator="=">720</rule>
             <rule name="PAL FrameRate 25.000?" value="FrameRate" tracktype="Video" operator="=">25.000</rule>
-            <rule name="PAL pixel aspect ratio 1.067?" value="PixelAspectRatio" tracktype="Video" operator="=">1.067</rule>
             <rule name="PAL scan order top field first?" value="ScanOrder" tracktype="Video" operator="=">TFF</rule>
             <rule name="PAL colour primaries BT.601 PAL?" value="colour_primaries" tracktype="Video" operator="=">BT.601 PAL</rule>
         </policy>
