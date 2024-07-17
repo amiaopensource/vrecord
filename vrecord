@@ -247,17 +247,18 @@ _gather_ffmpeg_vars(){
             BREW_PREFIX+=".reinstall"
         fi
     fi
-    if [[ -d "${BREW_PREFIX}/bin" ]] ; then
+    if which ffmpeg-dl ; then
+        FFMPEG_BIN="$(which ffmpeg-dl)"
+        FFPROBE_BIN="$(which ffprobe-dl)"
+        FFPLAY_BIN="$(which ffplay-dl)"
+    elif
+        [[ -d "${BREW_PREFIX}/bin" ]] ; then
         FFMPEG_BIN="${BREW_PREFIX}/bin/ffmpeg-dl"
         FFPROBE_BIN="${BREW_PREFIX}/bin/ffprobe-dl"
+        FFPLAY_BIN="${BREW_PREFIX}/bin/ffplay-dl"
     else
         FFMPEG_BIN="$(which ffmpeg)"
         FFPROBE_BIN="$(which ffprobe)"
-    fi
-
-    if "${BREW_PREFIX}/bin/ffplay-dl" -v 0 -f lavfi smptebars=duration=1/25 -autoexit ; then
-        FFPLAY_BIN="${BREW_PREFIX}/bin/ffplay-dl"
-    else
         FFPLAY_BIN="$(which ffplay)"
     fi
 }
