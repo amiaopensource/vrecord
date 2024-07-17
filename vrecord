@@ -256,12 +256,12 @@ _gather_ffmpeg_vars(){
         fi
     fi
     if [[ -n "${DEPENDENCYDIR}" ]] ; then
-        ffmpegalt=$(find "${DEPENDENCYDIR}" -iname "ffmpeg-dl" | head -n1)
-            if [[ -n "${ffmpegalt}" ]] ; then
-                FFMPEG_BIN="${ffmpegalt}"
-                FFPLAY_BIN=$(find "${DEPENDENCYDIR}" -iname "ffplay-dl" | head -n1)
-                FFPROBE_BIN=$(find "${DEPENDENCYDIR}" -iname "ffprobe-dl" | head -n1)
-            fi
+        FFMPEGALT=$(find "${DEPENDENCYDIR}" -iname "ffmpeg-dl" | head -n1)
+    fi
+    if [[ -n "${FFMPEGALT}" ]] ; then
+        FFMPEG_BIN="${FFMPEGALT}"
+        FFPLAY_BIN=$(find "${DEPENDENCYDIR}" -iname "ffplay-dl" | head -n1)
+        FFPROBE_BIN=$(find "${DEPENDENCYDIR}" -iname "ffprobe-dl" | head -n1)
     elif which ffmpeg-dl &> /dev/null ; then
         FFMPEG_BIN="$(which ffmpeg-dl)"
         FFPROBE_BIN="$(which ffprobe-dl)"
@@ -921,7 +921,7 @@ OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
             <text>
                 <label>Alternate Dependency Source</label>
             </text>
-            <entry>
+            <entry accept="directory">
                 <default>"${DEPENDENCYDIR}"</default>
                 <variable>DEPENDENCYDIR</variable>
             </entry>
@@ -2290,7 +2290,7 @@ while getopts ":hc:erpaxnvI:O:D:i:G" opt ; do
         v) VERBOSE="true" ;;
         I) EXTRAINPUTOPTIONS=(${OPTARG}) ;;
         O) EXTRAOUTPUTOPTIONS=(${OPTARG}) ;;
-        D) DEPENDENCYDIR=(${OPTARG}) && RUNTYPE="resetenvironment";;
+        D) DEPENDENCYDIR=("${OPTARG}") && RUNTYPE="resetenvironment";;
         i) ALT_INPUT="${OPTARG}" ;;
         G) VERBOSE_GTKDIALOG="Y" ;;
         :) _report -w "Option -${OPTARG} requires an argument" ; _usage ; exit 1 ;;
