@@ -511,7 +511,7 @@ _setup_vrecord_input(){
 _setup_vrecord_process(){
     _setup_vrecord_input
     if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
-        PIPE_OUTPUT=(-c copy)
+        PIPE_OUTPUT=(-c:v copy)
         PIPE_OUTPUT+=(-c:a pcm_s24le)
         PIPE_OUTPUT+=(-map 0)
         PIPE_OUTPUT+=(-f matroska)
