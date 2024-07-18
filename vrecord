@@ -511,7 +511,7 @@ _setup_vrecord_input(){
 _setup_vrecord_process(){
     _setup_vrecord_input
     if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
-        PIPE_OUTPUT=(-c copy)
+        PIPE_OUTPUT=(-c:v copy)
         PIPE_OUTPUT+=(-c:a pcm_s24le)
         PIPE_OUTPUT+=(-map 0)
         PIPE_OUTPUT+=(-f matroska)
@@ -2527,7 +2527,7 @@ _writeingestlog "operating_system_VERSION" "$(uname -v)"
 _writeingestlog "vrecord version" "${VERSION}"
 _writeingestlog "datetime_start" "$(_get_iso8601)"
 
-MOUNT_PATH="$(df -Ph "${DIR}" | tail -n 1 | awk '{print $6}')"
+MOUNT_PATH="$(df -Ph "${DIR}" 2>/dev/null | tail -n 1 | awk '{print $6}')"
 if [[ "${OS_TYPE}" = "macOS" ]] ; then
     VOLUME_INFO="$(diskutil info "${MOUNT_PATH}")"
     PART_OF_WHOLE="/dev/$(_parse_report "Part of Whole" "${VOLUME_INFO}")"
