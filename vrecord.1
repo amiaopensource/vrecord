@@ -1,4 +1,4 @@
-.TH vrecord 1 "https://github.com/amiaopensource/vrecord" "2024-01-26" "AMIA Open Source"
+.TH vrecord 1 "https://github.com/amiaopensource/vrecord" "2024-07-18" "AMIA Open Source"
 .\" Turn off justification for nroff.
 .if n .ad l
 .\" Turn off hyphenation.
@@ -6,7 +6,7 @@
 .SH NAME
 vrecord - An Open-Source Video Capture Tool for Archivists
 .SH SYNOPSIS
-\fBvrecord\fR [\fB-e\fR | \fB-r \fIidentifier\fR | \fB-p\fR | \fB-a\fR | \fB-x\fR | \fB-v\fR | \fB-h\fR]
+\fBvrecord\fR [\fB-e\fR | \fB-r \fIidentifier\fR | \fB-p\fR | \fB-a\fR | \fB-x\fR | \fB-n\fR | \fB-v\fR | \fB-h\fR]
 .SH DESCRIPTION
 Vrecord is open-source software for capturing a video signal and turning it into a digital file. Its purpose is to make videotape digitization or transfer easier. Vrecord can capture analog and digital signals through a variety of inputs and can create digital video files in a variety of formats and codecs. Vrecord has been designed with needs of audiovisual archivists in mind.
 .PP
@@ -28,6 +28,9 @@ Running vrecord in \fBEdit Mode\fR opens a GUI window that allows you to change 
 .B -x
 \fBClear Configuration:\fR Use if you would like to clear all options set in the configuration file.
 .TP
+.B -n
+\fBReset environmental variables:\fR Use if you would like to reset stored environmental variables such as path to ffmpeg-dl dependency.
+.TP
 .B -v
 In the \fBVerbose Mode\fR ffmpeg runs with '-loglevel debug'. Using this option creates a very large log file, so avoid using this option with 'Visual + Numerical' or any playback option that display the log as part of the view.
 .TP
@@ -40,6 +43,9 @@ Provide a string of input options for the recording ffmpeg to use. For example "
 .TP
 .B -O
 Provide a string of output options for the recording ffmpeg to use.
+.TP
+.B -D
+Provide a directory containing vrecord dependencies to store their paths in vrecord's environmental variables instead of defaults.
 .TP
 .B -i
 Provide a file as an input to vrecord, rather than using the decklink device. For testing without a decklink device.

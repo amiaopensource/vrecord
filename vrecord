@@ -24,7 +24,7 @@ Dependencies: cowsay, amiaopensource/amiaos/decklinksdk,
   xmlstarlet
 Optional Dependencies: deckcontrol, gnuplot, mediaconch, mkvtoolnix, mpv, qcli
 
-Usage: ${SCRIPTNAME} [ -e | -r | -p | -a | -x | -v | -h ] [IDENTIFIER]
+Usage: ${SCRIPTNAME} [ -e | -r | -p | -a | -x | -n|  -v | -h ] [IDENTIFIER]
 
   IDENTIFIER will be used for the filenaming of the output files. It is only
   required in record mode.
@@ -39,6 +39,8 @@ Usage: ${SCRIPTNAME} [ -e | -r | -p | -a | -x | -v | -h ] [IDENTIFIER]
       too long.
   -x  reset the configuration: this will replace the default configuration file
       at '${CONFIG_FILE}' with an empty one.
+  -n  reset Vrecord's stored environment variables. These include
+      variables such as the paths to certain dependencies such as ffmpeg-dl.
   -v  Run ffmpeg with '-loglevel debug'. Using this option creates a very large
       log file, so avoid using this option with 'Visual + Numerical' or any
       playback option that display the log as part of the view.
@@ -53,6 +55,9 @@ Advanced options
       device. For testing without a decklink device.
   -G  Share warnings from gtkdialog and vrecord, otherwise there are suppressed
       by default.
+  -D  Provide a path to a directory containing dependencies to override
+      Vrecord's default dependency paths. These new paths will be stored in
+      Vrecord's environmental variables.
   -c  Provide a recording configuration file, rather than the default one at
       '${CONFIG_FILE}'.
 
