@@ -24,7 +24,7 @@ Dependencies: cowsay, amiaopensource/amiaos/decklinksdk,
   xmlstarlet
 Optional Dependencies: deckcontrol, gnuplot, mediaconch, mkvtoolnix, mpv, qcli
 
-Usage: ${SCRIPTNAME} [ -e | -r | -p | -a | -x | -v | -h ] [IDENTIFIER]
+Usage: ${SCRIPTNAME} [ -e | -r | -p | -a | -x | -n|  -v | -h ] [IDENTIFIER]
 
   IDENTIFIER will be used for the filenaming of the output files. It is only
   required in record mode.
@@ -39,6 +39,8 @@ Usage: ${SCRIPTNAME} [ -e | -r | -p | -a | -x | -v | -h ] [IDENTIFIER]
       too long.
   -x  reset the configuration: this will replace the default configuration file
       at '${CONFIG_FILE}' with an empty one.
+  -n  reset Vrecord's stored environment variables. These include
+      variables such as the paths to certain dependencies such as ffmpeg-dl.
   -v  Run ffmpeg with '-loglevel debug'. Using this option creates a very large
       log file, so avoid using this option with 'Visual + Numerical' or any
       playback option that display the log as part of the view.
@@ -53,6 +55,9 @@ Advanced options
       device. For testing without a decklink device.
   -G  Share warnings from gtkdialog and vrecord, otherwise there are suppressed
       by default.
+  -D  Provide a path to a directory containing dependencies to override
+      Vrecord's default dependency paths. These new paths will be stored in
+      Vrecord's environmental variables.
   -c  Provide a recording configuration file, rather than the default one at
       '${CONFIG_FILE}'.
 
@@ -138,7 +143,7 @@ _process_vars_for_gtk(){
 
     if [[ -z "${OS_TYPE}" ]] ; then
         _setup_env_variables
-        _include_var OS_TYPE RESOURCE_PATH DEFAULTFONT CORE_COUNT OPEN_COMMAND ZCAT_COMMAND COMPUTER_MODEL_NAME DIR_SELECTION_DIALOG
+        _include_var OS_TYPE RESOURCE_PATH DEFAULTFONT CORE_COUNT OPEN_COMMAND ZCAT_COMMAND COMPUTER_MODEL_NAME DIR_SELECTION_DIALOG GTKDIALOGBIN
         if [[ "${OS_TYPE}" = "macOS" ]] ; then
             _include_var COMPUTER_MODEL_ID COMPUTER_PROCESSOR_NAME COMPUTER_PROCESSOR_SPEED COMPUTER_PROCESSOR_COUNT COMPUTER_MEMORY COMPUTER_SERIAL
         fi
@@ -156,7 +161,8 @@ _remove_env_vars(){
     unset VRECORD_VARS_FILE
     unset OS_TYPE RESOURCE_PATH DEFAULTFONT CORE_COUNT OPEN_COMMAND ZCAT_COMMAND COMPUTER_MODEL_NAME DIR_SELECTION_DIALOG
     unset COMPUTER_MODEL_ID COMPUTER_PROCESSOR_NAME COMPUTER_PROCESSOR_SPEED COMPUTER_PROCESSOR_COUNT COMPUTER_MEMORY COMPUTER_SERIAL
-    unset CAPTURELOGSUFFIX TIMECODELOGSUFFIX BREW_PREFIX FFMPEG_BIN FFPLAY_BIN FFPROBE_BIN
+    unset CAPTURELOGSUFFIX TIMECODELOGSUFFIX BREW_PREFIX FFMPEG_BIN FFPLAY_BIN FFPROBE_BIN GTKDIALOGBIN
+    VRECORD_VARS_FILE="/tmp/v_$(echo "${0}" | sed -e "s/[^A-Za-z0-9.]/_/g")_variables.txt"
 }
 
 _setup_env_variables(){
@@ -232,6 +238,13 @@ _setup_env_variables(){
         echo "Unsupported OS, ${QUERY_OS_TYPE}, detected. Exiting."
         exit 1
     fi
+    # set gtkdialog path
+    if [[ -n "${DEPENDENCYDIR}" ]] ; then
+        GTKDIALOGBIN=$(find "${DEPENDENCYDIR}" -iname "gtkdialog" | head -n1)
+    fi
+    if [[ -z "${GTKDIALOGBIN}" ]] ; then
+        GTKDIALOGBIN="$(which gtkdialog)"
+    fi
 }
 
 _gather_ffmpeg_vars(){
@@ -247,17 +260,25 @@ _gather_ffmpeg_vars(){
             BREW_PREFIX+=".reinstall"
         fi
     fi
-    if [[ -d "${BREW_PREFIX}/bin" ]] ; then
+    if [[ -n "${DEPENDENCYDIR}" ]] ; then
+        FFMPEGALT=$(find "${DEPENDENCYDIR}" -iname "ffmpeg-dl" | head -n1)
+    fi
+    if [[ -n "${FFMPEGALT}" ]] ; then
+        FFMPEG_BIN="${FFMPEGALT}"
+        FFPLAY_BIN=$(find "${DEPENDENCYDIR}" -iname "ffplay-dl" | head -n1)
+        FFPROBE_BIN=$(find "${DEPENDENCYDIR}" -iname "ffprobe-dl" | head -n1)
+    elif which ffmpeg-dl &> /dev/null ; then
+        FFMPEG_BIN="$(which ffmpeg-dl)"
+        FFPROBE_BIN="$(which ffprobe-dl)"
+        FFPLAY_BIN="$(which ffplay-dl)"
+    elif
+        [[ -d "${BREW_PREFIX}/bin" ]] ; then
         FFMPEG_BIN="${BREW_PREFIX}/bin/ffmpeg-dl"
         FFPROBE_BIN="${BREW_PREFIX}/bin/ffprobe-dl"
+        FFPLAY_BIN="${BREW_PREFIX}/bin/ffplay-dl"
     else
         FFMPEG_BIN="$(which ffmpeg)"
         FFPROBE_BIN="$(which ffprobe)"
-    fi
-
-    if "${BREW_PREFIX}/bin/ffplay-dl" -v 0 -f lavfi smptebars=duration=1/25 -autoexit ; then
-        FFPLAY_BIN="${BREW_PREFIX}/bin/ffplay-dl"
-    else
         FFPLAY_BIN="$(which ffplay)"
     fi
 }
@@ -901,6 +922,19 @@ OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
                 <action type="exit">env_reset</action>
             </button>
         </vbox>
+        <vbox>
+            <text>
+                <label>Alternate Dependency Source</label>
+            </text>
+            <entry accept="directory">
+                <default>"${DEPENDENCYDIR}"</default>
+                <variable>DEPENDENCYDIR</variable>
+            </entry>
+            <button tooltip-text="Select alternate dependency directory and then reset environmental variables">
+                <input file stock="gtk-open"></input>
+                <action type="fileselect">DEPENDENCYDIR</action>
+            </button>
+        </vbox>
     </hbox>
 </frame>
 CONFIG_FORM
@@ -1462,9 +1496,9 @@ _edit_mode(){
     cat "${SHARED_FUNCTIONS_FILE}" >> "${GTK_INC}"
 
     if [[ "${VERBOSE_GTKDIALOG}" = "Y" ]] ; then
-        eval "$(gtkdialog --include="${GTK_INC}" --program MAIN_DIALOG --center)"
+        eval "$("${GTKDIALOGBIN}" --include="${GTK_INC}" --program MAIN_DIALOG --center)"
     else
-        eval "$(gtkdialog --include="${GTK_INC}" --program MAIN_DIALOG --center 2> /dev/null)"
+        eval "$("${GTKDIALOGBIN}" --include="${GTK_INC}" --program MAIN_DIALOG --center 2> /dev/null)"
     fi
     MAIN_DIALOG="${MAIN_DIALOG_TMP}"
 
@@ -2248,7 +2282,7 @@ _review_all_options(){
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":hc:erpaxvI:O:i:G" opt ; do
+while getopts ":hc:erpaxnvI:O:D:i:G" opt ; do
     case "${opt}" in
         h) _usage ; exit 0 ;;
         c) CONFIG_FILE="${OPTARG}" ;;
@@ -2257,9 +2291,11 @@ while getopts ":hc:erpaxvI:O:i:G" opt ; do
         p) RUNTYPE="passthrough" ;;
         a) RUNTYPE="audiopassthrough" ;;
         x) RUNTYPE="reset" ;;
+        n) RUNTYPE="resetenvironment" ;;
         v) VERBOSE="true" ;;
         I) EXTRAINPUTOPTIONS=(${OPTARG}) ;;
         O) EXTRAOUTPUTOPTIONS=(${OPTARG}) ;;
+        D) DEPENDENCYDIR=("${OPTARG}") && RUNTYPE="resetenvironment";;
         i) ALT_INPUT="${OPTARG}" ;;
         G) VERBOSE_GTKDIALOG="Y" ;;
         :) _report -w "Option -${OPTARG} requires an argument" ; _usage ; exit 1 ;;
@@ -2368,6 +2404,26 @@ if [[ "${RUNTYPE}" = "reset" ]] ; then
         exit 0
     fi
 fi
+
+if [[ "${RUNTYPE}" = "resetenvironment" ]] ; then
+    if [[ -n "${DEPENDENCYDIR}" ]] ; then
+        _report -q -n "Rewriting the configuration to include dependencies found in ${DEPENDENCYDIR}. Please enter [Y] to confirm: "
+    else
+        _report -q -n "Resetting the configuration will clear ${VRECORD_VARS_FILE}. Please enter [Y] to confirm: "
+    fi
+    read RESET_RESPONSE
+    if [[ "${RESET_RESPONSE}" = [Yy] ]] ; then
+        _report -d "Clearing ${VRECORD_VARS_FILE}."
+        _remove_env_vars
+        _process_vars_for_gtk
+        RUNTYPE="edit"
+        STARTUP_VIEW="INPUTSETTINGS"
+    else
+        _report -d "Reset aborted. Exiting."
+        exit 0
+    fi
+fi
+
 while [[ "${RUNTYPE}" = "edit" ]] ; do
     STARTUP_VIEW="INPUTSETTINGS"
     _edit_mode
