@@ -384,9 +384,6 @@ _gtk_vbox_list() {
             echo '<action condition="command_is_true(echo \"$AUDIO_DEV_CHOICE\" | grep -vq Blackmagic && echo true)">enable:AUDIO_MODE_SR_CHOICE</action>
                   <action condition="command_is_true(echo \"$AUDIO_DEV_CHOICE\" | grep -q Blackmagic && echo true)">disable:AUDIO_MODE_SR_CHOICE</action>
                   <action type="refresh">VRECORD_OUTPUT_NAME</action>'
-        elif [[ "${VARIABLE_NAME}" == "DV_CONTAINER_CHOICE" ]] && $DVPACKAGER_INSTALLED ; then
-            echo '<action condition="command_is_true( [ \"$DV_CONTAINER_CHOICE\" = \"DV\" ] && echo true)">disable:DV_RESCUE_OPTION_TC</action>
-                <action condition="command_is_true( [ \"$DV_CONTAINER_CHOICE\" != \"DV\" ] && echo true)">enable:DV_RESCUE_OPTION_TC</action>'
         fi
     }
 
@@ -1079,12 +1076,6 @@ DVRESCUE_INPUT_GUI=$(cat << DVRESCUE_FORM
                             <text>
                                 <label>Other options:</label>
                             </text>
-                            <checkbox>
-                                $(if [[ ${DVPACKAGER_INSTALLED} != "true" ]] ; then echo "<sensitive>false</sensitive>" ; fi)
-                                <label>Create technical subtitle track</label>
-                                <default>"${DV_RESCUE_OPTION_TC}"</default>
-                                <variable>DV_RESCUE_OPTION_TC</variable>
-                            </checkbox>
                         </vbox>
                         $(_gtk_vbox_list "DV_CONTAINER_CHOICE"         "100" "Select File Format"            "${DV_CONTAINER_OPTIONS[@]}")
                     </hbox>
@@ -2230,9 +2221,6 @@ _review_all_options(){
             DV_RESCUE_OPTS+=(-t)
         fi
 
-        if [[ "${DV_RESCUE_OPTION_TC}" = 'true' ]] ; then
-            DV_RESCUE_OPTS+=(-S)
-        fi
     elif [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
         _review_option "AUDIO_CHANNEL_CHOICE" "${AUDIO_CHANNEL_CHOICE_OPTIONS[@]}"
         if [[ "${AUDIO_DEV_CHOICE}" != *"Blackmagic"* ]] ; then
