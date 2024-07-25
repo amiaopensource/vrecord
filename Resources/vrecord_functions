@@ -59,6 +59,7 @@ _update_config_file(){
         echo "NTSC_169_SAR_CHOICE=\"${NTSC_169_SAR_CHOICE}\""
         echo "PAL_43_SAR_CHOICE=\"${PAL_43_SAR_CHOICE}\""
         echo "PAL_169_SAR_CHOICE=\"${PAL_169_SAR_CHOICE}\""
+        echo "DECK_CONTROL_CHOICE=\"${DECK_CONTROL_CHOICE}\""
         echo "AUDIO_MAPPING_CHOICE=\"${AUDIO_MAPPING_CHOICE}\""
         echo "TIMECODE_CHOICE=\"${TIMECODE_CHOICE}\""
         echo "STANDARD_CHOICE=\"${STANDARD_CHOICE}\""

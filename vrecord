@@ -706,9 +706,13 @@ _set_up_edit_form() {
   }
 
 # initialize deckcontrol temp files
+if [[ -n "$(which sony9pin)" ]] ; then
+    SONY9PIN_DEVICE_ID="$( (sony9pin > /dev/null) 2>&1 | grep "A10K" | head -n 1 | cut -d ":" -f 1 | sed 's| ||g')"
+fi
 FFMPEG_STATUS_TMP="$(_maketemp .ffmpeg.status.txt)"
 DECKCONTROL_STATUS_TMP="$(_maketemp .deckcontrol.status.txt)"
 DECKCONTROL_TIMECODE_TMP="$(_maketemp .deckcontrol.timecode.txt)"
+DECKCONTROL_TIMECODE_TMP2="$(_maketemp .deckcontrol.timecode2.txt)"
 DVRESCUE_STATUS_TMP="$(_maketemp .dvrescue.status.txt)"
 echo "" > "${FFMPEG_STATUS_TMP}"
 echo "disabled" > "$DECKCONTROL_STATUS_TMP"
@@ -748,7 +752,7 @@ PLAYBACK_OPT_GUI="
 OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
 <frame Preferences>
     <hbox>
-        <notebook tab-labels="Player|MP4 Sidecar|Aspect Ratio">
+        <notebook tab-labels="Player|MP4 Sidecar|Aspect Ratio|Deck Control">
             <frame Player Settings>
                 <hbox>
                 $(_gtk_vbox_list "WAVEFORM_SCALE_CHOICE" "100" "Select Waveform Scale"            "${WAVEFORM_SCALE_OPTIONS[@]}")
@@ -783,6 +787,16 @@ OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
                         $(_gtk_vbox_list "NTSC_169_SAR_CHOICE"  "-1" "NTSC 16/9" "${NTSC_169_SAR_OPTIONS[@]}")
                         $(_gtk_vbox_list "PAL_43_SAR_CHOICE"    "-1" "PAL 4/3"   "${PAL_43_SAR_OPTIONS[@]}")
                         $(_gtk_vbox_list "PAL_169_SAR_CHOICE"   "-1" "PAL 16/9"  "${PAL_169_SAR_OPTIONS[@]}")
+                    </hbox>
+                </vbox>
+            </frame>
+            <frame Player Deck Control>
+                <vbox>
+                    <text width-chars="-1">
+                        <label>For Decklink devices select which deck control tool you want. sony9pin uses a Commander Cable and deckcontrol uses the Decklink Control API.</label>
+                    </text>
+                    <hbox>
+                        $(_gtk_vbox_list "DECK_CONTROL_CHOICE"  "-1" "deckcontrol"  "${DECK_CONTROL_OPTIONS[@]}")
                     </hbox>
                 </vbox>
             </frame>
@@ -925,6 +939,137 @@ _get_deckcontrol_button(){
     fi
 }
 
+_get_deckcontrol_interface(){
+    DECK_CONTROL_CHOICE="${1}"
+    if [[ "${DECK_CONTROL_CHOICE}" == "deckcontrol" ]] ; then
+        echo "<hbox>
+                <vbox>
+                    <text>
+                        <label>Status</label>
+                    </text>
+                    <entry editable=\"false\" has-frame=\"false\">
+                        <variable export=\"false\">decklink_status</variable>
+                        <input file>\"${DECKCONTROL_STATUS_TMP}\"</input>
+                    </entry>
+                </vbox>
+                <vbox>
+                    <text>
+                        <label>Timecode</label>
+                    </text>
+                    <entry editable=\"false\" has-frame=\"false\">
+                        <variable export=\"false\">decklink_timecode</variable>
+                        <input file>\"${DECKCONTROL_TIMECODE_TMP}\"</input>
+                    </entry>
+                </vbox>
+            </hbox>
+            <timer milliseconds=\"true\" interval=\"500\" visible=\"false\" disabled=\"true\">
+                 <variable export=\"false\">deckcontrol_timer</variable>
+                 <visible>disabled</visible>
+                 <action>{ deckcontrol getcurrentstate | grep \"state:\|detect\" | sed \"s/VTR control state: //g\" > \"${DECKCONTROL_STATUS_TMP}\" ; deckcontrol gettimecode | grep \"TC=\" | cut -c 4- > \"${DECKCONTROL_TIMECODE_TMP}\" ; } &</action>
+                 <action>refresh:decklink_status</action>
+                 <action>refresh:decklink_timecode</action>
+            </timer>
+            <hbox>
+                <togglebutton>
+                    <label>Deck Control</label>
+                    <default>false</default>
+                    <variable export=\"false\">deckcontrol_toggle</variable>
+                    <input file stock=\"gtk-execute\"></input>
+                    <action>if true enable:deckcontrol_timer</action>
+                    <action>if true enable:decklink_status</action>
+                    <action>if true enable:decklink_timecode</action>
+                    <action>if true enable:deckcontrol_rewind</action>
+                    <action>if true enable:deckcontrol_prev</action>
+                    <action>if true enable:deckcontrol_play</action>
+                    <action>if true enable:deckcontrol_stop</action>
+                    <action>if true enable:deckcontrol_next</action>
+                    <action>if true enable:deckcontrol_ff</action>
+                    <action>if true enable:deckcontrol_eject</action>
+                    <action>if false disable:deckcontrol_timer</action>
+                    <action>if false disable:decklink_status</action>
+                    <action>if false disable:decklink_timecode</action>
+                    <action>if false disable:deckcontrol_rewind</action>
+                    <action>if false disable:deckcontrol_prev</action>
+                    <action>if false disable:deckcontrol_play</action>
+                    <action>if false disable:deckcontrol_stop</action>
+                    <action>if false disable:deckcontrol_next</action>
+                    <action>if false disable:deckcontrol_ff</action>
+                    <action>if false disable:deckcontrol_eject</action>
+                </togglebutton>
+                $(_get_deckcontrol_button "deckcontrol_rewind" "gtk-media-rewind"   "Rewind"    "deckcontrol rewind")
+                $(_get_deckcontrol_button "deckcontrol_prev"   "gtk-media-previous" "Step Back" "deckcontrol stepback")
+                $(_get_deckcontrol_button "deckcontrol_play"   "gtk-media-play"     "Play"      "deckcontrol play")
+                $(_get_deckcontrol_button "deckcontrol_stop"   "gtk-media-stop"     "Stop"      "deckcontrol stop")
+                $(_get_deckcontrol_button "deckcontrol_next"   "gtk-media-next"     "Step Fwd"  "deckcontrol stepforward")
+                $(_get_deckcontrol_button "deckcontrol_ff"     "gtk-media-forward"  "FF"        "deckcontrol fastforward")
+                $(_get_deckcontrol_button "deckcontrol_eject"  ""                   "Eject"     "deckcontrol eject")
+            </hbox>"
+    elif [[ "${DECK_CONTROL_CHOICE}" == "sony9pin" && -n "${SONY9PIN_DEVICE_ID}" ]] ; then
+        echo "<hbox>
+            <vbox>
+                <text>
+                    <label>LTC Timecode</label>
+                </text>
+                <entry editable=\"false\" has-frame=\"false\">
+                    <variable export=\"false\">decklink_timecode</variable>
+                    <input file>\"${DECKCONTROL_TIMECODE_TMP}\"</input>
+                </entry>
+            </vbox>
+        </hbox>
+        <timer milliseconds=\"true\" interval=\"500\" visible=\"false\" disabled=\"true\">
+             <variable export=\"false\">deckcontrol_timer2</variable>
+             <visible>disabled</visible>
+             <action>{ (sony9pin \"${SONY9PIN_DEVICE_ID}\" 2 > /dev/null) 2>&1 | awk '{print \$2}' > \"${DECKCONTROL_TIMECODE_TMP}\" ; } &</action>
+             <action>refresh:decklink_timecode</action>
+        </timer>
+        <hbox>
+            <button>
+                <variable export=\"false\">rewind_report</variable>
+                <label>Rewind Report</label>
+                <visible>disabled</visible>
+                <action>sony9pin -c ${SONY9PIN_DEVICE_ID} r 1>&2 & >/dev/null</action>
+            </button>
+            <togglebutton>
+                <label>Deck Control</label>
+                <default>false</default>
+                <variable export=\"false\">deckcontrol_toggle</variable>
+                <input file stock=\"gtk-execute\"></input>
+                <action>if true enable:rewind_report</action>
+                <action>if true enable:deckcontrol_timer</action>
+                <action>if true enable:deckcontrol_timer2</action>
+                <action>if true enable:decklink_status</action>
+                <action>if true enable:decklink_timecode</action>
+                <action>if true enable:deckcontrol_rewind</action>
+                <action>if true enable:deckcontrol_prev</action>
+                <action>if true enable:deckcontrol_play</action>
+                <action>if true enable:deckcontrol_stop</action>
+                <action>if true enable:deckcontrol_next</action>
+                <action>if true enable:deckcontrol_ff</action>
+                <action>if true enable:deckcontrol_eject</action>
+                <action>if false disable:rewind_report</action>
+                <action>if false disable:deckcontrol_timer</action>
+                <action>if false disable:deckcontrol_timer2</action>
+                <action>if false disable:decklink_status</action>
+                <action>if false disable:decklink_timecode</action>
+                <action>if false disable:deckcontrol_rewind</action>
+                <action>if false disable:deckcontrol_prev</action>
+                <action>if false disable:deckcontrol_play</action>
+                <action>if false disable:deckcontrol_stop</action>
+                <action>if false disable:deckcontrol_next</action>
+                <action>if false disable:deckcontrol_ff</action>
+                <action>if false disable:deckcontrol_eject</action>
+            </togglebutton>
+            $(_get_deckcontrol_button "deckcontrol_rewind" "gtk-media-rewind"   "Rewind"    "sony9pin ${SONY9PIN_DEVICE_ID} r")
+            $(_get_deckcontrol_button "deckcontrol_prev"   "gtk-media-previous" "Step Back" "sony9pin ${SONY9PIN_DEVICE_ID} w")
+            $(_get_deckcontrol_button "deckcontrol_play"   "gtk-media-play"     "Play"      "sony9pin ${SONY9PIN_DEVICE_ID} p")
+            $(_get_deckcontrol_button "deckcontrol_stop"   "gtk-media-stop"     "Stop"      "sony9pin ${SONY9PIN_DEVICE_ID} s")
+            $(_get_deckcontrol_button "deckcontrol_next"   "gtk-media-next"     "Step Fwd"  "sony9pin ${SONY9PIN_DEVICE_ID} x")
+            $(_get_deckcontrol_button "deckcontrol_ff"     "gtk-media-forward"  "FF"        "sony9pin ${SONY9PIN_DEVICE_ID} f")
+            $(_get_deckcontrol_button "deckcontrol_eject"  ""                   "Eject"     "sony9pin ${SONY9PIN_DEVICE_ID} e")
+        </hbox>"
+    fi
+}
+
 DECKLINK_INPUT_GUI=$(cat << DECKLINK_FORM
 <frame Decklink input options>
     <vbox>
@@ -951,70 +1096,10 @@ DECKLINK_INPUT_GUI=$(cat << DECKLINK_FORM
             ${PLAYBACK_OPT_GUI}
             ${SIDECAR_FILES_GUI}
             <frame RS422 deck control>
-                <hbox>
-                    <vbox>
-                        <text>
-                            <label>Status</label>
-                        </text>
-                        <entry editable="false" has-frame="false">
-                            <variable export="false">decklink_status</variable>
-                            <input file>"${DECKCONTROL_STATUS_TMP}"</input>
-                        </entry>
-                    </vbox>
-                    <vbox>
-                        <text>
-                            <label>Timecode</label>
-                        </text>
-                        <entry editable="false" has-frame="false">
-                            <variable export="false">decklink_timecode</variable>
-                            <input file>"${DECKCONTROL_TIMECODE_TMP}"</input>
-                        </entry>
-                    </vbox>
-                    <timer milliseconds="true" interval="500" visible="false" disabled="true">
-                         <variable export="false">deckcontrol_timer</variable>
-                         <visible>disabled</visible>
-                         <action>{ deckcontrol getcurrentstate | grep "state:\|detect" | sed "s/VTR control state: //g" > "${DECKCONTROL_STATUS_TMP}" ; deckcontrol gettimecode | grep "TC=" | cut -c 4- > "${DECKCONTROL_TIMECODE_TMP}" ; } &</action>
-                         <action>refresh:decklink_status</action>
-                         <action>refresh:decklink_timecode</action>
-                    </timer>
-                </hbox>
-                <hbox>
-                    <togglebutton>
-                        <label>Deck Control</label>
-                        <default>false</default>
-                        <variable export="false">deckcontrol_toggle</variable>
-                        <input file stock="gtk-execute"></input>
-                        <action>if true enable:deckcontrol_timer</action>
-                        <action>if true enable:decklink_status</action>
-                        <action>if true enable:decklink_timecode</action>
-                        <action>if true enable:deckcontrol_rewind</action>
-                        <action>if true enable:deckcontrol_prev</action>
-                        <action>if true enable:deckcontrol_play</action>
-                        <action>if true enable:deckcontrol_stop</action>
-                        <action>if true enable:deckcontrol_next</action>
-                        <action>if true enable:deckcontrol_ff</action>
-                        <action>if true enable:deckcontrol_eject</action>
-                        <action>if false disable:deckcontrol_timer</action>
-                        <action>if false disable:decklink_status</action>
-                        <action>if false disable:decklink_timecode</action>
-                        <action>if false disable:deckcontrol_rewind</action>
-                        <action>if false disable:deckcontrol_prev</action>
-                        <action>if false disable:deckcontrol_play</action>
-                        <action>if false disable:deckcontrol_stop</action>
-                        <action>if false disable:deckcontrol_next</action>
-                        <action>if false disable:deckcontrol_ff</action>
-                        <action>if false disable:deckcontrol_eject</action>
-                    </togglebutton>
-                    <hbox>
-                        $(_get_deckcontrol_button "deckcontrol_rewind" "gtk-media-rewind"   "Rewind"    "deckcontrol rewind")
-                        $(_get_deckcontrol_button "deckcontrol_prev"   "gtk-media-previous" "Step Back" "deckcontrol stepback")
-                        $(_get_deckcontrol_button "deckcontrol_play"   "gtk-media-play"     "Play"      "deckcontrol play")
-                        $(_get_deckcontrol_button "deckcontrol_stop"   "gtk-media-stop"     "Stop"      "deckcontrol stop")
-                        $(_get_deckcontrol_button "deckcontrol_next"   "gtk-media-next"     "Step Fwd"  "deckcontrol stepforward")
-                        $(_get_deckcontrol_button "deckcontrol_ff"     "gtk-media-forward"  "FF"        "deckcontrol fastforward")
-                        $(_get_deckcontrol_button "deckcontrol_eject"  ""                   "Eject"     "deckcontrol eject")
-                    </hbox>
-                </hbox>
+                <text>
+                    <label>Style: ${DECK_CONTROL_CHOICE}</label>
+                </text>
+                $(_get_deckcontrol_interface "${DECK_CONTROL_CHOICE}")
             </frame>
         </hbox>
     </vbox>
@@ -2326,6 +2411,7 @@ NTSC_43_SAR_OPTIONS=("10/11" "8/9" "9/10" "4320/4739")
 NTSC_169_SAR_OPTIONS=("40/33" "32/27" "6/5" "5760/4739")
 PAL_43_SAR_OPTIONS=("12/11" "16/15" "128/117")
 PAL_169_SAR_OPTIONS=("16/11" "64/45" "512/351")
+DECK_CONTROL_OPTIONS=("deckcontrol" "sony9pin")
 CHANNEL_MAPPING_OPTIONS=("2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, Channels 3 & 4 -> 2nd Track Stereo)" "1 Stereo Track (From Channels 1 & 2)" "1 Stereo Track (From Channels 3 & 4)" "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono" "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono" "Channel 1 -> Single Track Mono" "Channel 2 -> Single Track Mono")
 TIMECODE_OPTIONS=("none" "rp188vitc" "rp188vitc2" "rp188ltc" "rp188any" "vitc" "vitc2" "serial")
 STANDARD_OPTIONS=("NTSC" "PAL")
