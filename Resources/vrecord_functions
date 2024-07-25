@@ -124,6 +124,7 @@ _validate_form(){
         echo "WARNING: Option to invert phase of fourth audio channel has been selected."
     fi
 
+    if [ -d "${DIR}" ] ; then
     if [ $(mount | grep $(df -P "${DIR}" | tail +2 | awk '{print $1}') | grep -c "(.*local,") = "0" ] && [ "${OS_TYPE}" != "linux" ] ; then
         echo "WARNING: The recording directory at ${DIR} is not a local directory. Please verify that you can write to the disk fast enough."
     fi
@@ -134,6 +135,7 @@ _validate_form(){
     fi
     if [ "${FREE_SPACE}" -le 40 ] ; then
         echo "WARNING: The recording directory at ${DIR} only has ${FREE_SPACE} gigabytes available."
+    fi
     fi
     if [ "${SIGNAL_INT_CHOICE}" != "auto" ] && [ -n "${SIGNAL_INT_CHOICE}" ] ; then
         echo "WARNING: The configuration ignores the interlacement of the input and forces it to ${SIGNAL_INT_CHOICE}. Set to 'auto' if you prefer to keep the interlacement as the device describes it."
