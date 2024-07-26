@@ -1027,7 +1027,8 @@ _get_deckcontrol_interface(){
                 <variable export=\"false\">rewind_report</variable>
                 <label>Rewind Report</label>
                 <visible>disabled</visible>
-                <action>sony9pin -c ${SONY9PIN_DEVICE_ID} r 1>&2 & >/dev/null</action>
+                <action>_update_config_file</action>
+                <action type=\"exit\">rewind_report</action>
             </button>
             <togglebutton>
                 <label>Deck Control</label>
@@ -1559,6 +1560,12 @@ _edit_mode(){
     elif [[ "${EXIT}" = "audiopassthrough" ]] ; then
         RUNTYPE="audiopassthrough"
     elif [[ "${EXIT}" = "refresh" ]] ; then
+        RUNTYPE="edit"
+    elif [[ "${EXIT}" = "rewind_report" ]] ; then
+        _report -dt "Gathering a rewind report. We'll rewind it while reporting on what the deck is saying."
+        _review_all_options
+        sony9pin -c ${SONY9PIN_DEVICE_ID} r
+        _report -dt "End of rewind report"
         RUNTYPE="edit"
     elif [[ "${EXIT}" = "timecode_scan" ]] ; then
         _report -dt "Scanning each supported type of timecode."
