@@ -59,6 +59,7 @@ _update_config_file(){
         echo "NTSC_169_SAR_CHOICE=\"${NTSC_169_SAR_CHOICE}\""
         echo "PAL_43_SAR_CHOICE=\"${PAL_43_SAR_CHOICE}\""
         echo "PAL_169_SAR_CHOICE=\"${PAL_169_SAR_CHOICE}\""
+        echo "DECK_CONTROL_CHOICE=\"${DECK_CONTROL_CHOICE}\""
         echo "AUDIO_MAPPING_CHOICE=\"${AUDIO_MAPPING_CHOICE}\""
         echo "TIMECODE_CHOICE=\"${TIMECODE_CHOICE}\""
         echo "STANDARD_CHOICE=\"${STANDARD_CHOICE}\""
@@ -86,7 +87,6 @@ _update_config_file(){
         echo "DV_RESCUE_OPTION_S=\"${DV_RESCUE_OPTION_S}\""
         echo "DV_RESCUE_OPTION_D=\"${DV_RESCUE_OPTION_D}\""
         echo "DV_RESCUE_OPTION_T=\"${DV_RESCUE_OPTION_T}\""
-        echo "DV_RESCUE_OPTION_TC=\"${DV_RESCUE_OPTION_TC}\""
         echo "MP4_CRF_VALUE=\"${MP4_CRF_VALUE}\""
         echo "MP4_EXTRA_OPTS=\"${MP4_EXTRA_OPTS}\""
     } > "${CONFIG_FILE}"
@@ -124,16 +124,18 @@ _validate_form(){
         echo "WARNING: Option to invert phase of fourth audio channel has been selected."
     fi
 
-    if [ $(mount | grep $(df -P "${DIR}" | tail +2 | awk '{print $1}') | grep -c "(.*local,") = "0" ] && [ "${OS_TYPE}" != "linux" ] ; then
-        echo "WARNING: The recording directory at ${DIR} is not a local directory. Please verify that you can write to the disk fast enough."
-    fi
-    if [ "${OS_TYPE}" = "linux" ] ; then
-        FREE_SPACE="$(df -BG "${DIR}" | tail +2 | awk '{print $4}' | tr 'G' ' ')"
-    else
-        FREE_SPACE="$(df -g "${DIR}" | tail +2 | awk '{print $4}')"
-    fi
-    if [ "${FREE_SPACE}" -le 40 ] ; then
-        echo "WARNING: The recording directory at ${DIR} only has ${FREE_SPACE} gigabytes available."
+    if [ -d "${DIR}" ] ; then
+        if [ $(mount | grep $(df -P "${DIR}" | tail +2 | awk '{print $1}') | grep -c "(.*local,") = "0" ] && [ "${OS_TYPE}" != "linux" ] ; then
+            echo "WARNING: The recording directory at ${DIR} is not a local directory. Please verify that you can write to the disk fast enough."
+        fi
+        if [ "${OS_TYPE}" = "linux" ] ; then
+            FREE_SPACE="$(df -BG "${DIR}" | tail +2 | awk '{print $4}' | tr 'G' ' ')"
+        else
+            FREE_SPACE="$(df -g "${DIR}" | tail +2 | awk '{print $4}')"
+        fi
+        if [ "${FREE_SPACE}" -le 40 ] ; then
+            echo "WARNING: The recording directory at ${DIR} only has ${FREE_SPACE} gigabytes available."
+        fi
     fi
     if [ "${SIGNAL_INT_CHOICE}" != "auto" ] && [ -n "${SIGNAL_INT_CHOICE}" ] ; then
         echo "WARNING: The configuration ignores the interlacement of the input and forces it to ${SIGNAL_INT_CHOICE}. Set to 'auto' if you prefer to keep the interlacement as the device describes it."
