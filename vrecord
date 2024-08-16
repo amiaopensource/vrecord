@@ -1068,7 +1068,7 @@ if [[ "${OS_TYPE}" = "linux" ]] ; then
         DV_FF_CMD='dvcont ff '
         STATUS_CMD='dvcont status '
     elif [[ "${OS_TYPE}" = "macOS" ]] ; then
-        DV_REPACK_CMD='{ avfctl -cmd ff -foreground; avfctl -cmd rew; }'
+        DV_REPACK_CMD='{ dvrescue -cmd ff --foreground; dvrescue -cmd rew; }'
         DV_RW_CMD='dvrescue "device://${DVRESCUE_INPUT_INDEX}" -cmd rew '
         DV_PLAY_CMD='dvrescue "device://${DVRESCUE_INPUT_INDEX}" -cmd play '
         DV_STOP_CMD='dvrescue "device://${DVRESCUE_INPUT_INDEX}" -cmd stop '
@@ -1155,14 +1155,14 @@ DVRESCUE_INPUT_GUI=$(cat << DVRESCUE_FORM
                         <input file stock="gtk-execute"></input>
                         <action>if true enable:dvrescue_timer</action>
                         <action>if true enable:dvrescue_status</action>
-                        <action>if true enable:avfctl_repack</action>
+                        <action>if true enable:dvrescue_repack</action>
                         <action>if true enable:dvrescue_rewind</action>
                         <action>if true enable:dvrescue_play</action>
                         <action>if true enable:dvrescue_stop</action>
                         <action>if true enable:dvrescue_ff</action>
                         <action>if false disable:dvrescue_timer</action>
                         <action>if false disable:dvrescue_status</action>
-                        <action>if false disable:avfctl_repack</action>
+                        <action>if false disable:dvrescue_repack</action>
                         <action>if false disable:dvrescue_rewind</action>
                         <action>if false disable:dvrescue_play</action>
                         <action>if false disable:dvrescue_stop</action>
@@ -1170,7 +1170,7 @@ DVRESCUE_INPUT_GUI=$(cat << DVRESCUE_FORM
                     </togglebutton>
                 </hbox>
                 <hbox>
-                    $(_get_deckcontrol_button "avfctl_repack"   ""                  "Repack" "${DV_REPACK_CMD}")
+                    $(_get_deckcontrol_button "dvrescue_repack" ""                  "Repack" "${DV_REPACK_CMD}")
                     $(_get_deckcontrol_button "dvrescue_rewind" "gtk-media-rewind"  "Rewind" "${DV_RW_CMD}")
                     $(_get_deckcontrol_button "dvrescue_play"   "gtk-media-play"    "Play"   "${DV_PLAY_CMD}")
                     $(_get_deckcontrol_button "dvrescue_stop"   "gtk-media-stop"    "Stop"   "${DV_STOP_CMD}")
