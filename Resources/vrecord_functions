@@ -74,7 +74,7 @@ _update_config_file(){
         echo "DURATION=\"${DURATION}\""
         echo "PREFIX=\"${PREFIX}\""
         echo "USER_SUFFIX=\"${USER_SUFFIX}\""
-        echo "NO_SUFFIX=\"${NO_SUFFIX}\""
+        echo "YES_SUFFIX=\"${YES_SUFFIX}\""
         echo "TECHNICIAN=\"${TECHNICIAN}\""
         echo "DVRESCUE_INPUT_CHOICE=\"${DVRESCUE_INPUT_CHOICE}\""
         echo "DECKLINK_INPUT_CHOICE=\"${DECKLINK_INPUT_CHOICE}\""
@@ -145,19 +145,20 @@ _get_output_filename(){
     if [[ -z "${DIR}" ]] ; then
         DIR="$(pwd)"
     fi
-    if [ "${NO_SUFFIX}" = 'true' ] ; then
+    if [ "${YES_SUFFIX}" = 'true' ] ; then
         SUFFIX=""
-    elif [ -n "${USER_SUFFIX}" ] ; then
-        SUFFIX="${USER_SUFFIX}"
-    elif [ "${DEVICE_INPUT_CHOICE}" = "0" ] ; then
-        case "${VIDEO_CODEC_CHOICE}" in
-            "FFV1 version 3")   SUFFIX="_ffv1" ;;
-            "JPEG2000")         SUFFIX="_j2k" ;;
-            "ProRes")           SUFFIX="_prores" ;;
-            "ProRes (HQ)")      SUFFIX="_prores" ;;
-            "h264")             SUFFIX="" ;;
-            "HuffYUV")          SUFFIX="_huff" ;;
-        esac
+        if [ -n "${USER_SUFFIX}" ] ; then
+            SUFFIX="${USER_SUFFIX}"
+        elif [ "${DEVICE_INPUT_CHOICE}" = "0" ] ; then
+            case "${VIDEO_CODEC_CHOICE}" in
+                "FFV1 version 3")   SUFFIX="_ffv1" ;;
+                "JPEG2000")         SUFFIX="_j2k" ;;
+                "ProRes")           SUFFIX="_prores" ;;
+                "ProRes (HQ)")      SUFFIX="_prores" ;;
+                "h264")             SUFFIX="" ;;
+                "HuffYUV")          SUFFIX="_huff" ;;
+            esac
+        fi
     fi
 
     # Get extension by container choice
