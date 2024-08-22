@@ -1768,7 +1768,7 @@ _lookup_choice(){
         "h264")
             VIDEOCODECNAME="H.264"
             MIDDLEOPTIONS_PRES+=(-c:v libx264 -crf 18 -pix_fmt yuv420p)
-            SUFFIX="" ;;
+            SUFFIX="_h264" ;;
         "HuffYUV")
             VIDEOCODECNAME="HuffYUV"
             if [[ "${PIXEL_FORMAT}" = "yuv422p10" ]] ; then

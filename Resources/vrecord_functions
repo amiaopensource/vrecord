@@ -155,7 +155,7 @@ _get_output_filename(){
                 "JPEG2000")         SUFFIX="_j2k" ;;
                 "ProRes")           SUFFIX="_prores" ;;
                 "ProRes (HQ)")      SUFFIX="_prores" ;;
-                "h264")             SUFFIX="" ;;
+                "h264")             SUFFIX="_h264" ;;
                 "HuffYUV")          SUFFIX="_huff" ;;
             esac
         fi
