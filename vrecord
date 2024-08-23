@@ -1378,9 +1378,9 @@ export MAIN_DIALOG='
                     </vbox>
                     <vbox>
                         <checkbox>
-                            <label>Disable suffixes</label>
-                            <default>"'"${NO_SUFFIX}"'"</default>
-                            <variable>NO_SUFFIX</variable>
+                            <label>Enable suffixes</label>
+                            <default>"'"${YES_SUFFIX}"'"</default>
+                            <variable>YES_SUFFIX</variable>
                             <action signal="key-release-event" type="refresh">VRECORD_OUTPUT_NAME</action>
                         </checkbox>
                     </vbox>
@@ -1768,7 +1768,7 @@ _lookup_choice(){
         "h264")
             VIDEOCODECNAME="H.264"
             MIDDLEOPTIONS_PRES+=(-c:v libx264 -crf 18 -pix_fmt yuv420p)
-            SUFFIX="" ;;
+            SUFFIX="_h264" ;;
         "HuffYUV")
             VIDEOCODECNAME="HuffYUV"
             if [[ "${PIXEL_FORMAT}" = "yuv422p10" ]] ; then
@@ -2484,13 +2484,16 @@ elif [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
 fi
 
 # Check for user suffix to override automatic settings
-if [[ "${NO_SUFFIX}" = 'true' ]] ; then
-    SUFFIX=""
-elif [[ -n "${USER_SUFFIX}" ]] ; then
+if [[ -n "${USER_SUFFIX}" ]] ; then
     SUFFIX="${USER_SUFFIX}"
 fi
 
-FULL_OUTPUT_ID="${PREFIX}${ID}${SUFFIX}"
+FULL_OUTPUT_ID="${PREFIX}${ID}"
+if [[ "${YES_SUFFIX}" = 'true' ]] ; then
+    FULL_OUTPUT_ID="${PREFIX}${ID}${SUFFIX}"
+else
+    FULL_OUTPUT_ID="${PREFIX}${ID}"
+fi
 FULL_CAPTURE_LOG="${LOGDIR}/${FULL_OUTPUT_ID}${CAPTURELOGSUFFIX}"
 TIMECODE_LOG="${LOGDIR}/${FULL_OUTPUT_ID}_${TC_TYPE}${TIMECODELOGSUFFIX}"
 CAPTION_LOG="${LOGDIR}/${FULL_OUTPUT_ID}_frame_eia608data.txt"
