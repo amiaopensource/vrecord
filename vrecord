@@ -686,7 +686,7 @@ _get_inputs(){
     unset DVRESCUE_DEVICES
     while read dvrescue_device ; do
         DVRESCUE_DEVICES+=("${dvrescue_device}")
-    done < <(dvrescue -list_devices | grep "\[DV\]")
+    done < <(dvrescue -list_devices 2>/dev/null | grep "\[DV\]")
     if [[ "${OS_TYPE}" = 'linux' ]] ; then
         DVRESCUE_DEVICES+=( "FFmpeg iec61883 Default" )
     fi
