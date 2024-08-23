@@ -89,6 +89,8 @@ _update_config_file(){
         echo "DV_RESCUE_OPTION_TC=\"${DV_RESCUE_OPTION_TC}\""
         echo "MP4_CRF_VALUE=\"${MP4_CRF_VALUE}\""
         echo "MP4_EXTRA_OPTS=\"${MP4_EXTRA_OPTS}\""
+        echo "CC2VTT=\"${CC2VTT}\""
+        echo "CC2SRT=\"${CC2SRT}\""
     } > "${CONFIG_FILE}"
     . "${CONFIG_FILE}"
 }
