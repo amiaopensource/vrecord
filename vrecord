@@ -772,7 +772,7 @@ PLAYBACK_OPT_GUI="
 OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
 <frame Preferences>
     <hbox>
-        <notebook tab-labels="Player|MP4 Sidecar|Aspect Ratio">
+        <notebook tab-labels="Player|MP4 Sidecar|Aspect Ratio|Closed Captioning">
             <frame Player Settings>
                 <hbox>
                 $(_gtk_vbox_list "WAVEFORM_SCALE_CHOICE" "100" "Select Waveform Scale"            "${WAVEFORM_SCALE_OPTIONS[@]}")
@@ -808,6 +808,23 @@ OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
                         $(_gtk_vbox_list "PAL_43_SAR_CHOICE"    "-1" "PAL 4/3"   "${PAL_43_SAR_OPTIONS[@]}")
                         $(_gtk_vbox_list "PAL_169_SAR_CHOICE"   "-1" "PAL 16/9"  "${PAL_169_SAR_OPTIONS[@]}")
                     </hbox>
+                </vbox>
+            </frame>
+            <frame Closed Captioning Settings>
+                <vbox>
+                    <text width-chars="-1">
+                        <label>For NTSC decklink captures, vrecord will try to make an scc file for you. Any other requests.</label>
+                    </text>
+                    <checkbox>
+                        <label>Make a webVTT</label>
+                        <default>"${CC2VTT}"</default>
+                        <variable>CC2VTT</variable>
+                    </checkbox>
+                    <checkbox>
+                        <label>Make an SRT</label>
+                        <default>"${CC2SRT}"</default>
+                        <variable>CC2SRT</variable>
+                    </checkbox>
                 </vbox>
             </frame>
         </notebook>
@@ -2677,6 +2694,12 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
     if [[ -s "${CAPTION_TMP}" ]] ; then
         mv "${CAPTION_TMP}" "${CAPTION_LOG}"
         _eia608dump2scc "${CAPTION_LOG}" "${CAPTION_SCC}"
+        if [[ "${CC2VTT}" = 'true' ]] ; then
+            "${FFMPEG_BIN}" -nostdin -v 0 -y "${CAPTION_SCC}" "${CAPTION_SCC%.*}.vtt"
+        fi
+        if [[ "${CC2SRT}" = 'true' ]] ; then
+            "${FFMPEG_BIN}" -nostdin -v 0 -y "${CAPTION_SCC}" "${CAPTION_SCC%.*}.srt"
+        fi
     fi
 
     # qc tools process
