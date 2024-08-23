@@ -2674,7 +2674,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         mv "${TC_TMP}" "${TIMECODE_LOG}"
     fi
     # caption handling
-    if [[ -f "${CAPTION_TMP}" ]] ; then
+    if [[ -s "${CAPTION_TMP}" ]] ; then
         mv "${CAPTION_TMP}" "${CAPTION_LOG}"
         _eia608dump2scc "${CAPTION_LOG}" "${CAPTION_SCC}"
     fi
