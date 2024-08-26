@@ -1826,17 +1826,21 @@ _lookup_choice(){
             AUDIO_CHANNEL_MAP+=(-map "[stereo1]") ;;
         "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono")
             AUDIOMAP="[0:a:0]pan=mono| c0=c0[mono1];[0:a:0]pan=mono| c0=${PHASE_VALUE_2}c1[mono2]"
+            AUDIO_PLAY_MAP="pan=stereo|c0=c0|c1=${PHASE_VALUE_2}c1"
             AUDIO_CHANNEL_MAP+=(-map "[mono1]")
             AUDIO_CHANNEL_MAP+=(-map "[mono2]") ;;
         "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono")
             AUDIOMAP="[0:a:0]pan=mono| c0=${PHASE_VALUE_2}c1[mono1];[0:a:0]pan=mono| c0=c0[mono2]"
+            AUDIO_PLAY_MAP="pan=stereo|c0=${PHASE_VALUE_2}c1|c1=c0"
             AUDIO_CHANNEL_MAP+=(-map "[mono1]")
             AUDIO_CHANNEL_MAP+=(-map "[mono2]") ;;
         "Channel 1 -> Single Track Mono")
             AUDIOMAP="[0:a:0]pan=mono| c0=c0[mono1]"
+            AUDIO_PLAY_MAP="pan=mono| c0=c0"
             AUDIO_CHANNEL_MAP+=(-map "[mono1]") ;;
         "Channel 2 -> Single Track Mono")
             AUDIOMAP="[0:a:0]pan=mono| c0=c1[mono1]"
+            AUDIO_PLAY_MAP="pan=mono| c0=c1"
             AUDIO_CHANNEL_MAP+=(-map "[mono1]") ;;
         # Audio mode channel options
         "Mono")
