@@ -2698,10 +2698,10 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         mv "${CAPTION_TMP}" "${CAPTION_LOG}"
         _eia608dump2scc "${CAPTION_LOG}" "${CAPTION_SCC}"
         if [[ "${CC2VTT}" = 'true' ]] ; then
-            "${FFMPEG_BIN}" -nostdin -v 0 -y "${CAPTION_SCC}" "${CAPTION_SCC%.*}.vtt"
+            "${FFMPEG_BIN}" -nostdin -v 0 -y -i "${CAPTION_SCC}" "${CAPTION_SCC%.*}.vtt"
         fi
         if [[ "${CC2SRT}" = 'true' ]] ; then
-            "${FFMPEG_BIN}" -nostdin -v 0 -y "${CAPTION_SCC}" "${CAPTION_SCC%.*}.srt"
+            "${FFMPEG_BIN}" -nostdin -v 0 -y -i "${CAPTION_SCC}" "${CAPTION_SCC%.*}.srt"
         fi
     fi
 
@@ -2793,7 +2793,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
             elif [[ "$STATUS" = "fail" ]] ; then
                 _report -wt "File did not pass vrecord policy check for uncompressed video and may not conform to digital preservation standards. Try another file?"
                 mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_uncompressed.xml" "${VRECORD_OUTPUT}" | xmlstarlet fo > "${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml"
-                _report -wt "See ${DIR}/${ID}${SUFFIX}_mediaconchreport.xml for a full MediaConch policy report."
+                _report -wt "See ${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml for a full MediaConch policy report."
             else
                 mediaconch -p "${RESOURCE_PATH}/vrecord_policy_uncompressed.xml" "${VRECORD_OUTPUT}"
             fi
@@ -2805,7 +2805,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
             elif [[ "$STATUS" = "fail" ]] ; then
                 _report -wt "File did not pass vrecord policy check for FFV1 video and may not conform to digital preservation standards. Try another file?"
                 mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_ffv1.xml" "${VRECORD_OUTPUT}" | xmlstarlet fo > "${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml"
-                _report -wt "See ${DIR}/${ID}${SUFFIX}_mediaconchreport.xml for a full MediaConch policy report."
+                _report -wt "See ${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml for a full MediaConch policy report."
             else
                 mediaconch -p "${RESOURCE_PATH}/vrecord_policy_ffv1.xml" "${VRECORD_OUTPUT}"
             fi
