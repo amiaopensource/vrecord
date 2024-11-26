@@ -1,60 +1,67 @@
 # DV Capture
 
-To capture DV formats in vrecord (when installed in macOS), you will need to have your DV deck connected directly to your computer via FireWire input. Make sure your deck is turned on and in “Remote” mode. Additional settings for your DV device may apply. To view manuals and settings notes for specific decks, players and camcorders, please see the [DV Deck Guide]([url](https://mipops.github.io/dvrescue/sections/deck_guide.html)).
+**macOS:** To capture DV formats (DV, DVCAM, MiniDV, DVCPRO and Digital8) in vrecord, you will need to have your DV deck connected directly to your computer via <a href="https://mipops.github.io/dvrescue/sections/dv_transfer_station.html" target="_blank">FireWire input</a>. Make sure your deck is turned on and in “Remote” mode. Additional settings for your DV device may apply to ensure a successful connection. To view manuals and settings notes for specific decks, players and camcorders, please see the <a href="https://mipops.github.io/dvrescue/sections/deck_guide.html" target="_blank">DVRescue Deck Guide</a>. You may also need to adjust your  <a href="https://mipops.github.io/dvrescue/sections/troubleshooting.html" target="_blank">privacy settings</a> and allow each DV device to connect prior to use with vrecord.
+
+> **_NOTE:_** vrecord uses the <a href="https://github.com/mipops/dvrescue" target="_blank">DVRescue toolkit</a>  to facilitate dvcapture. HDV tapes are not in the current scope of this project and cannot be captured using DVRescue or vrecord. For more information, please see this <a href="https://github.com/mipops/dvrescue/issues/53" target="_blank">issue</a> discussing the differences between DV and HDV. 
 
 ## DV Settings
 
-1. To select the deck you would like to use, go into the configuration mode either by:
-   - run `vrecord -e`
-   - clicking on the "Edit Settings" button in the GUI (run `vrecord`)
+1. Open vrecord's configuration mode via one of the following options:
+   - run `vrecord -e` to open the settings menu in the GUI.
+   - run `vrecord` and click on the "Edit Settings" button in the GUI.
 
 ![Decklink](../dv_vrecord_decklink.jpg "DV Capture") 
 
-2. If using vrecord to capture DV for the first time, you will need to switch from the "Decklink" tab to the "DV" tab under "Input Options" at the top of the configuration window. All of the devices you have connected via FireWire will be listed under the "DVRescue input options" at the top of the window.
+2. If using vrecord to capture DV for the first time or if you recently used vrecord to capture via decklink, you will need to switch from the "Decklink" tab to the "DV" tab under "Input Options" at the top of the configuration window. All of the devices you have connected via FireWire will be listed under the "DVRescue input options" at the top of the window.
 
-![dv_vrecord_configuration](https://github.com/user-attachments/assets/3882dfd6-b441-4821-8676-2c5240e808c5)
+![dv_vrecord_configuration](../dv_vrecord_configuration.jpg)
 
-3. If no devices are listed, click the "rescan" button below the list. If this doesn't work, make sure your device is connected and turned on. For additional troubleshooting related to device connectivity, please see the [DVRescue Troubleshooting]([url](https://mipops.github.io/dvrescue/sections/troubleshooting.html)) documentation page.
+> **_TIP:_** If no devices are listed, click the "Rescan" button below the list. If this doesn't produce any results, make sure your device is connected and turned on. For additional troubleshooting related to device connectivity, please see the <a href="https://mipops.github.io/dvrescue/sections/troubleshooting.html" target="_blank">Troubleshooting</a> page on the DVRescue documentation website.
 
-4. Select the name of the DV device you want to use from the "Select a DV Device" list.
+3. Select the name of the DV device you want to use from the "Select a DV Device" list. The names correspond with the make and model of the connected decks, as well as a unique device identifier. 
+> **_TIP:_** If you have two decks of the same make and model connected, you will need to determine the corresponding identifier for each (the number listed before the make and model of each deck). To determine the device identifier numbers for two or more decks of the same make and model:
+> - Turn the decks off except one.
+> - Check the name of the device still listed in the vrecord GUI.
+> - Note the device identifier number displayed.
+> - Repeat this for all decks of the same make and model.
+> ![dv_vrecord_device_identifier](../dv_vrecord_device_identifier.jpg)
 
-5. Specify the playback, sidecar, file naming, recording event and directory options as you normally would for vrecord. For details see [Editing Settings](Resources/Documentation/settings.md)
 
-6. Click "Save Settings" to save.
+4. Specify the playback, sidecar, file naming, recording event and directory options as you normally would for vrecord. For details see [Editing Settings](Resources/Documentation/settings.md).
 
-7. You can then run passthrough and record modes the same as you would with analog videotape. Make sure you have a tape inserted before attempting playback or recording.
+5. Click "Save Settings" to save.
 
-8. When using the GUI, environment parameters can be adjusted in the "Config" tab.
+6. You can then use the passthrough and record modes the same as you would with analog videotape in the "Decklink" tab. Make sure you have a tape inserted before attempting playback or recording. Please see the corresponding sections below for instructions on how to facilitate playback and recording DV tapes.
 
-![dv_vrecord_configuration2](https://github.com/user-attachments/assets/aebdf1d8-4cfa-4866-8f09-eae68cccb0c8)
+7. When using dvcapture in the vrecord GUI, environment parameters can be adjusted in the "Config" tab.
+
+![dv_vrecord_configuration2](../dv_vrecord_configuration2.jpg)
 
 
 
 ## Playback
 
-![dv_vrecord_playback_NEW](https://github.com/user-attachments/assets/7624a24f-8f20-43f4-b937-c143355782ec)
+![dv_vrecord_playback](../dv_vrecord_playback.jpg)
 
+1. Select the name of the DV device you want to use from the "Select a DV Device" list. If you have two decks of the same make and model connected, please see the "DV Settings" section for steps to determine the device identifier for each one.
 
-1. Select the name of the DV device you want to use from the "Select a DV Device" list.
+2.  Click the "Deck Control" button to allow vrecord to control your device. The status should switch to display "stopped" in the status field (the status will say "disabled" if "Deck Control" is not selected). 
 
-2.  Click the "deck control" button to allow vrecord to control your device. The status should switch to display "stopped" in status field (the status will "disabled" if "deck control" is selected). 
+3.  Use the corresponding buttons to fast forward, rewind, play and stop the tape. These buttons will not respond if "Deck Control" is disabled. The status of the deck (i.e. stopped, rewinding, play, etc.) will be displayed in the "Status" field based on what the deck is currently doing.
 
-3.  Use the cooresponding buttons under "status" to fast forward, rewind, play and stop the tape. These buttons will not respond if "deck control" is disabled. The status of the deck (i.e. stopped, rewinding, play, etc.) will be displayed in the "status" field.
+4. Click the "Repack" to repack your tape (fast forward the tape all the way and then rewind it). This button will not respond if "Deck Control" is disabled. The status of the deck (i.e. rewinding or fast forwarding) will be displayed in the "Status" field as the tape is repacked.
 
-4. Click the "repack" to repack your tape (fast forward the tape all the way and then rewind it). This button will not respond if "deck control" is disabled.
+5. To preview the tape, click on the "Playback" button in the bottom right of the "Settings" window. The settings menu will close and the Terminal window will display the settings you have entered.
 
-5. To view the tape, click on the "Playback" button in the bottom right of the "Settings" window. The settings menu will close and the Terminal window will display the settings you have entered.
+6. A mpv window will open displaying the playback of the tape. It may take ~20 seconds for the deck to respond and begin playing.
+> **_NOTE:_** If the timecode does not start at the very beginning of the tape, the playback window will not open until the timecode is detected. As soon as the counter starts moving on your deck and in the Terminal window, the viewer window should pop-up and begin playback. ![dv_vrecord_timecode-record-start](../dv_vrecord_timecode-record-start.gif)
 
-6. A mpv window will open displaying the playback of the tape once dvrescue starts the recording. Please note that if the timecode does not start at the very beginning of the tape, the record mode viewer will not open until the timecode is detected (as soon as the counter starts moving on your deck, the viewer window should pop-up).
-
-[insert dv_vrecord_timecode-record-start.gif here]
-
-7. To end playback, click the x in the playback window or hit the "esc" key.
+7. To end playback, click the `x` in the upper left hand corner of the playback window or hit the "esc" key.
 
 
 ## Recording
 
-[insert dv_vrecord_record-instructions.gif here]
+![dv_vrecord_record-instructions](../dv_vrecord_record-instructions.mp4)
 
 1. Select the name of the DV device you want to use from the "Select a DV Device" list.
 
@@ -66,15 +73,16 @@ To capture DV formats in vrecord (when installed in macOS), you will need to hav
 
 5. When you are ready hit the "Return" button to begin the recording.
 
-6. A mpv window will open displaying the playback of the tape once dvrescue starts the recording. Please note that if the timecode does not start at the very beginning of the tape, the record mode viewer will not open until the timecode is detected (as soon as the counter starts moving on your deck, the viewer window should pop-up).
+6. A mpv window will open displaying the playback of the tape once dvrescue starts the recording. 
+> **_NOTE:_** If the timecode does not start at the very beginning of the tape, the record mode viewer will not open until the timecode is detected (as soon as the counter starts moving on your deck, the viewer window should pop-up). Please see the "Playback" section for an example.
 
 7. When dvrescue encounters an error, the software will automatically rewind and attempt to recapture the problematic frames.
 
-8. To begin another capture on a separate deck, open a new Terminal window and run vrecord -e.
+8. To begin another capture on a separate deck, open a new Terminal window and run `vrecord -e`.
    - Select a different device from the list in the "DV" tab.
    - Repeat steps 2-7 listed above.  
 
-9. To end the recording, click the x in the playback window or hit the "esc" key.
+9. Typically, vrecord will end the capture once the recording ends. If you entered a duration for the capture in "Settings," vrecord will end the capture when it reaches that duration. To end the capture manually, click the `x` in the upper left hand corner of the playback window or hit the "esc" key.
 
 10. The Terminal window will display how the frames were merged for any moments when dvrescue reattempted to recapture problematic frames and how many frames remain with errors in the final recording. 
 
@@ -82,7 +90,7 @@ To capture DV formats in vrecord (when installed in macOS), you will need to hav
 
 12. Depending on the settings you selected, a set of logs and the video file should all be saved at the location you selected in the settings.
 
-![dv_vrecord_check-files](https://github.com/user-attachments/assets/c31785b5-f123-4543-a0c2-1a4b88e7c42e)
+![dv_vrecord_check-files](../dv_vrecord_check-files.jpg)
 
 
 13. Review your files and logs to ensure they were captured correctly. 
@@ -97,3 +105,22 @@ If vrecord detects that the DV device is concealing bitstream errors, this will 
 
 ### No Audio During Playback
 Currently, no audio will play during record mode, but dvrescue will record the audio stream. You will need to monitor the audio directly on the deck. 
+
+### dvpackager Not Currently Supported via vrecord
+Currently, the dvpackager segmenting options in vrecord do not work. You can use dvpackager to split files using the dvrescue GUI or CLI. For more information, please see the <a href="https://mipops.github.io/dvrescue/sections/packaging.html" target="_blank">dvpackager documentation</a>.
+
+### vrecord Permissions Error
+If you receive the following error while capturing via vrecord using macOS 10.14.6:
+
+![dv_vrecord_permissions_error](../dv_vrecord_permissions_error.png)
+
+The key part here is “this app is not authorized to use DV-VCR” (the name of the deck noted in the error will reflect the one you selected from the list in the vrecord “Edit Settings” menu). You will need to change the OS camera permissions by following these steps:
+   - Ensure you are logged into your computer as the Administrator.
+   - Open "System Preferences."
+   - Click on "Security and Privacy."
+   - Select the "Privacy" tab.
+   - Select "Camera" from the list on the left hand side of the window.
+   - To make changes to the settings, you will need to unlock the lock located in the bottom left hand corner of the window, by clicking on the lock and entering your password when prompted.
+   - If not already included, add the Terminal to the list, by clicking on the `+` button and selecting it from from the applications list.
+   - If the Camera menu does not have the `+/-` you can add the Terminal to the "Full Disk Access" list instead.
+   - Reboot your Mac for the changes to take effect.
