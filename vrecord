@@ -789,13 +789,6 @@ OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
                     <default>"${MP4_CRF_VALUE}"</default>
                     <variable>MP4_CRF_VALUE</variable>
                 </entry>
-                <text>
-                    <label>Custom output options. You can add custom optons such as '-vf yadif' here. Use cautiously and note that '-movflags write_colr+faststart -pix_fmt yuv420p -c:v libx264 -c:a aac' is already set.</label>
-                </text>
-                <entry activates_default="true">
-                    <default>"${MP4_EXTRA_OPTS}"</default>
-                    <variable>MP4_EXTRA_OPTS</variable>
-                </entry>
             </frame>
             <frame Player AspectRatioSettings>
                 <vbox>
@@ -2548,7 +2541,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
         RECORDINGFILTER_MP4+=",bwdif"
         RECORD_COMMAND_MP4+=(-filter_complex "[0:v:0]${RECORDINGFILTER_MP4#,*}[mp4_v_out];${AUDIOMAP}")
         MP4NAME="${DIR}/${FULL_OUTPUT_ID}.mp4"
-        EXTRAOUTPUTS+=("${MIDDLEOPTIONS_ALL[@]}" -movflags write_colr+faststart -crf "${MP4_CRF_VALUE}" "${RECORD_COMMAND_MP4[@]}" ${MP4_EXTRA_OPTS} -pix_fmt yuv420p -c:v libx264 -c:a aac -map "[mp4_v_out]" "${AUDIO_CHANNEL_MAP[@]}" "${MP4NAME}")
+        EXTRAOUTPUTS+=("${MIDDLEOPTIONS_ALL[@]}" -movflags write_colr+faststart -crf "${MP4_CRF_VALUE}" "${RECORD_COMMAND_MP4[@]}" -pix_fmt yuv420p -c:v libx264 -c:a aac -map "[mp4_v_out]" "${AUDIO_CHANNEL_MAP[@]}" "${MP4NAME}")
     fi
     if [[ "${FORMAT}" = "matroska" ]] ; then
         _review_option "EMBED_LOGS_CHOICE" "${EMBED_LOGS_OPTIONS[@]}"
