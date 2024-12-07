@@ -1882,6 +1882,7 @@ _lookup_choice(){
                 RECORDINGFILTER+=",crop=w=720:h=480:x=0:y=4,"
                 MIDDLEOPTIONS_PRES+=(-x264opts bff)
             fi
+            RECORDINGFILTER_MP4+=",crop=w=720:h=480:x=0:y=4"
             RECORDINGFILTER+=",setparams=field_mode=${SIGNAL_INT_CHOICE:-auto}"
             MIDDLEOPTIONS_ALL+=(-color_primaries smpte170m)
             MIDDLEOPTIONS_ALL+=(-color_trc bt709)
@@ -1901,16 +1902,20 @@ _lookup_choice(){
         "4/3")
             if [[ "${STANDARD}" = "ntsc" ]] ; then
                 RECORDINGFILTER+=",setsar=${NTSC_43_SAR_CHOICE}"
+                RECORDINGFILTER_MP4+=",setsar=${NTSC_43_SAR_CHOICE}"
             elif [[ "${STANDARD}" = "pal " ]] ; then
                 RECORDINGFILTER+=",setsar=${PAL_43_SAR_CHOICE}"
+                RECORDINGFILTER_MP4+=",setsar=${PAL_43_SAR_CHOICE}"
             else
                 _report -w "Error: the standard wasn't set to an expected when it was expected to be."
             fi ;;
         "16/9")
             if [[ "${STANDARD}" = "ntsc" ]] ; then
                 RECORDINGFILTER+=",setsar=${PAL_43_SAR_CHOICE}"
+                RECORDINGFILTER_MP4+=",setsar=${PAL_43_SAR_CHOICE}"
             elif [[ "${STANDARD}" = "pal " ]] ; then
                 RECORDINGFILTER+=",setsar=${PAL_169_SAR_CHOICE}"
+                RECORDINGFILTER_MP4+=",setsar=${PAL_169_SAR_CHOICE}"
             else
                 _report -w "Error: the standard wasn't set to an expected when it was expected to be."
             fi ;;
@@ -2540,8 +2545,9 @@ if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
         if [[ -z "${MP4_CRF_VALUE}" ]] ; then
             MP4_CRF_VALUE="21"
         fi
+        RECORD_COMMAND_MP4+=(-filter_complex "[0:v:0]${RECORDINGFILTER_MP4#,*}[mp4_v_out];${AUDIOMAP}")
         MP4NAME="${DIR}/${FULL_OUTPUT_ID}.mp4"
-        EXTRAOUTPUTS+=("${MIDDLEOPTIONS_ALL[@]}" -movflags write_colr+faststart -crf "${MP4_CRF_VALUE}" ${MP4_EXTRA_OPTS} -pix_fmt yuv420p -c:v libx264 -filter_complex "${AUDIOMAP}" -c:a aac "${AUDIO_CHANNEL_MAP[@]}" -map 0:v "${MP4NAME}")
+        EXTRAOUTPUTS+=("${MIDDLEOPTIONS_ALL[@]}" -movflags write_colr+faststart -crf "${MP4_CRF_VALUE}" "${RECORD_COMMAND_MP4[@]}" ${MP4_EXTRA_OPTS} -pix_fmt yuv420p -c:v libx264 -c:a aac -map "[mp4_v_out]" "${AUDIO_CHANNEL_MAP[@]}" "${MP4NAME}")
     fi
     if [[ "${FORMAT}" = "matroska" ]] ; then
         _review_option "EMBED_LOGS_CHOICE" "${EMBED_LOGS_OPTIONS[@]}"
