@@ -2545,6 +2545,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
         if [[ -z "${MP4_CRF_VALUE}" ]] ; then
             MP4_CRF_VALUE="21"
         fi
+        RECORDINGFILTER_MP4+=",bwdif"
         RECORD_COMMAND_MP4+=(-filter_complex "[0:v:0]${RECORDINGFILTER_MP4#,*}[mp4_v_out];${AUDIOMAP}")
         MP4NAME="${DIR}/${FULL_OUTPUT_ID}.mp4"
         EXTRAOUTPUTS+=("${MIDDLEOPTIONS_ALL[@]}" -movflags write_colr+faststart -crf "${MP4_CRF_VALUE}" "${RECORD_COMMAND_MP4[@]}" ${MP4_EXTRA_OPTS} -pix_fmt yuv420p -c:v libx264 -c:a aac -map "[mp4_v_out]" "${AUDIO_CHANNEL_MAP[@]}" "${MP4NAME}")
