@@ -580,7 +580,7 @@ _setup_vrecord_process(){
         fi
         RECORD_COMMAND+=("${MIDDLEOPTIONS_PRES[@]}" "${MIDDLEOPTIONS_ALL[@]}")
         if [[ "${RUNTYPE}" = "record" ]] ; then
-            RECORD_COMMAND+=(-filter_complex "[0:v:0]${RECORDINGFILTER}${TC_WRITE}${CAPTION_WRITE};${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}")
+            RECORD_COMMAND+=(-filter_complex "[0:v:0]${RECORDINGFILTER#,*}${TC_WRITE}${CAPTION_WRITE};${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}")
             RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
             RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}")
         fi
@@ -788,13 +788,6 @@ OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
                 <entry activates_default="true" tooltip-text="Intergers only from 0 to 51 please. Leave blank for the default value of 21.">
                     <default>"${MP4_CRF_VALUE}"</default>
                     <variable>MP4_CRF_VALUE</variable>
-                </entry>
-                <text>
-                    <label>Custom output options. You can add custom optons such as '-vf yadif' here. Use cautiously and note that '-movflags write_colr+faststart -pix_fmt yuv420p -c:v libx264 -c:a aac' is already set.</label>
-                </text>
-                <entry activates_default="true">
-                    <default>"${MP4_EXTRA_OPTS}"</default>
-                    <variable>MP4_EXTRA_OPTS</variable>
                 </entry>
             </frame>
             <frame Player AspectRatioSettings>
@@ -1879,10 +1872,11 @@ _lookup_choice(){
             STANDARD="ntsc"
             DECKLINK_FPS="30000/1001"
             if [[ "${VIDEO_CODEC_CHOICE}" = "h264" ]] ; then
-                RECORDINGFILTER+="crop=w=720:h=480:x=0:y=4,"
+                RECORDINGFILTER+=",crop=w=720:h=480:x=0:y=4,"
                 MIDDLEOPTIONS_PRES+=(-x264opts bff)
             fi
-            RECORDINGFILTER+="setparams=field_mode=${SIGNAL_INT_CHOICE:-auto}"
+            RECORDINGFILTER_MP4+=",crop=w=720:h=480:x=0:y=4"
+            RECORDINGFILTER+=",setparams=field_mode=${SIGNAL_INT_CHOICE:-auto}"
             MIDDLEOPTIONS_ALL+=(-color_primaries smpte170m)
             MIDDLEOPTIONS_ALL+=(-color_trc bt709)
             MIDDLEOPTIONS_ALL+=(-colorspace smpte170m) ;;
@@ -1892,7 +1886,7 @@ _lookup_choice(){
             if [[ "${VIDEO_CODEC_CHOICE}" = "h264" ]] ; then
                 MIDDLEOPTIONS_PRES+=(-x264opts tff)
             fi
-            RECORDINGFILTER+="setparams=field_mode=${SIGNAL_INT_CHOICE:-auto}"
+            RECORDINGFILTER+=",setparams=field_mode=${SIGNAL_INT_CHOICE:-auto}"
             MIDDLEOPTIONS_ALL+=(-color_primaries bt470bg)
             MIDDLEOPTIONS_ALL+=(-color_trc bt709)
             MIDDLEOPTIONS_ALL+=(-colorspace bt470bg) ;;
@@ -1901,16 +1895,20 @@ _lookup_choice(){
         "4/3")
             if [[ "${STANDARD}" = "ntsc" ]] ; then
                 RECORDINGFILTER+=",setsar=${NTSC_43_SAR_CHOICE}"
+                RECORDINGFILTER_MP4+=",setsar=${NTSC_43_SAR_CHOICE}"
             elif [[ "${STANDARD}" = "pal " ]] ; then
                 RECORDINGFILTER+=",setsar=${PAL_43_SAR_CHOICE}"
+                RECORDINGFILTER_MP4+=",setsar=${PAL_43_SAR_CHOICE}"
             else
                 _report -w "Error: the standard wasn't set to an expected when it was expected to be."
             fi ;;
         "16/9")
             if [[ "${STANDARD}" = "ntsc" ]] ; then
                 RECORDINGFILTER+=",setsar=${PAL_43_SAR_CHOICE}"
+                RECORDINGFILTER_MP4+=",setsar=${PAL_43_SAR_CHOICE}"
             elif [[ "${STANDARD}" = "pal " ]] ; then
                 RECORDINGFILTER+=",setsar=${PAL_169_SAR_CHOICE}"
+                RECORDINGFILTER_MP4+=",setsar=${PAL_169_SAR_CHOICE}"
             else
                 _report -w "Error: the standard wasn't set to an expected when it was expected to be."
             fi ;;
@@ -2540,8 +2538,10 @@ if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
         if [[ -z "${MP4_CRF_VALUE}" ]] ; then
             MP4_CRF_VALUE="21"
         fi
+        RECORDINGFILTER_MP4+=",bwdif"
+        RECORD_COMMAND_MP4+=(-filter_complex "[0:v:0]${RECORDINGFILTER_MP4#,*}[mp4_v_out];${AUDIOMAP}")
         MP4NAME="${DIR}/${FULL_OUTPUT_ID}.mp4"
-        EXTRAOUTPUTS+=("${MIDDLEOPTIONS_ALL[@]}" -movflags write_colr+faststart -crf "${MP4_CRF_VALUE}" ${MP4_EXTRA_OPTS} -pix_fmt yuv420p -c:v libx264 -filter_complex "${AUDIOMAP}" -c:a aac "${AUDIO_CHANNEL_MAP[@]}" -map 0:v "${MP4NAME}")
+        EXTRAOUTPUTS+=("${MIDDLEOPTIONS_ALL[@]}" -movflags write_colr+faststart -crf "${MP4_CRF_VALUE}" "${RECORD_COMMAND_MP4[@]}" -pix_fmt yuv420p -c:v libx264 -c:a aac -map "[mp4_v_out]" "${AUDIO_CHANNEL_MAP[@]}" "${MP4NAME}")
     fi
     if [[ "${FORMAT}" = "matroska" ]] ; then
         _review_option "EMBED_LOGS_CHOICE" "${EMBED_LOGS_OPTIONS[@]}"
