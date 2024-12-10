@@ -2525,7 +2525,7 @@ fi
 
 if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
     _review_option "QCTOOLSXML_CHOICE" "${QCTOOLSXML_OPTIONS[@]}"
-    if [[ "${QCTOOLSXML_CHOICE}" != "No" && ! "$(command -v qcli)" ]] ; then
+    if [[ "${QCTOOLSXML_CHOICE}" != "No" && "${QCLI_INSTALLED}" != "true" ]]; then
         _report -w "Please install qcli to use the qctools reporting option."
         _report -w "Such as \`brew install qcli\`."
         exit 1
