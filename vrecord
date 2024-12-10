@@ -657,7 +657,9 @@ _setup_vrecord_process(){
             if [[ -n "${PLAYBACKFILTER}" ]] ; then
                 FFPLAY_OPTIONS+=(-vf "${PLAYBACKFILTER}")
             fi
-            FFPLAY_OPTIONS+=(-af "${AUDIO_PLAY_MAP}")
+            if [[ -n "${AUDIO_PLAY_MAP}" ]] ; then
+                FFPLAY_OPTIONS+=(-af "${AUDIO_PLAY_MAP}")
+            fi
         fi
         if [[ "${MONITOR_AUDIO_CHOICE}" = "No" ]] ; then
             FFPLAY_OPTIONS+=(-an)
