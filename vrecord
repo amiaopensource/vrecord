@@ -2797,6 +2797,8 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
                 _report -wt "File did not pass vrecord policy check for uncompressed video and may not conform to digital preservation standards. Try another file?"
                 mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_uncompressed.xml" "${VRECORD_OUTPUT}" | xmlstarlet fo > "${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml"
                 _report -wt "See ${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml for a full MediaConch policy report."
+                _report -wt "Or review this attempt to summarize the issue:"
+                xmlstarlet edit -N "mc=https://mediaarea.net/mediaconch" -d "//*[@outcome='pass']" "${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml"
             else
                 mediaconch -p "${RESOURCE_PATH}/vrecord_policy_uncompressed.xml" "${VRECORD_OUTPUT}"
             fi
@@ -2809,7 +2811,10 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
                 _report -wt "File did not pass vrecord policy check for FFV1 video and may not conform to digital preservation standards. Try another file?"
                 mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_ffv1.xml" "${VRECORD_OUTPUT}" | xmlstarlet fo > "${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml"
                 _report -wt "See ${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml for a full MediaConch policy report."
+                _report -wt "Or review this attempt to summarize the issue:"
+                xmlstarlet edit -N "mc=https://mediaarea.net/mediaconch" -d "//*[@outcome='pass']" "${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml"
             else
+                _report -wt "Mediaconch ended in an unexpected way (${STATUS}). Here is its output."
                 mediaconch -p "${RESOURCE_PATH}/vrecord_policy_ffv1.xml" "${VRECORD_OUTPUT}"
             fi
         fi
