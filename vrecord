@@ -2587,8 +2587,8 @@ read
 INGESTLOG="${LOGDIR}/${FULL_OUTPUT_ID}_capture_options.log"
 QCTOOLS_REPORT="${LOGDIR}/${FULL_OUTPUT_ID}.${EXTENSION}.qctools.mkv"
 QCXML="$(_maketemp)"
-QCLI_COMMAND_PIPE=(qcli -f signalstats+aphasemeter+astats+ssim -i - -o "${QCTOOLS_REPORT}")
-QCLI_COMMAND_FILE=(qcli -f signalstats+aphasemeter+astats+ssim -i "${VRECORD_OUTPUT}" -o "${QCTOOLS_REPORT}")
+QCLI_COMMAND_PIPE=(qcli -audio all -f signalstats+aphasemeter+astats+ssim -i - -o "${QCTOOLS_REPORT}")
+QCLI_COMMAND_FILE=(qcli -audio all -f signalstats+aphasemeter+astats+ssim -i "${VRECORD_OUTPUT}" -o "${QCTOOLS_REPORT}")
 touch "${INGESTLOG}"
 _writeingestlog "computer_name" "$(uname -n)"
 _writeingestlog "computer_model_name" "${COMPUTER_MODEL_NAME}"
