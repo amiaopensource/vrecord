@@ -2527,7 +2527,7 @@ fi
 
 if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
     _review_option "QCTOOLSXML_CHOICE" "${QCTOOLSXML_OPTIONS[@]}"
-    if [[ "${QCTOOLSXML_CHOICE}" != "No" && ! "$(command -v qcli)" ]] ; then
+    if [[ "${QCTOOLSXML_CHOICE}" != "No" && "${QCLI_INSTALLED}" != "true" ]]; then
         _report -w "Please install qcli to use the qctools reporting option."
         _report -w "Such as \`brew install qcli\`."
         exit 1
@@ -2589,8 +2589,8 @@ read
 INGESTLOG="${LOGDIR}/${FULL_OUTPUT_ID}_capture_options.log"
 QCTOOLS_REPORT="${LOGDIR}/${FULL_OUTPUT_ID}.${EXTENSION}.qctools.mkv"
 QCXML="$(_maketemp)"
-QCLI_COMMAND_PIPE=(qcli -f signalstats+aphasemeter+astats+ssim -i - -o "${QCTOOLS_REPORT}")
-QCLI_COMMAND_FILE=(qcli -f signalstats+aphasemeter+astats+ssim -i "${VRECORD_OUTPUT}" -o "${QCTOOLS_REPORT}")
+QCLI_COMMAND_PIPE=(qcli -audio all -f signalstats+aphasemeter+astats+ssim -i - -o "${QCTOOLS_REPORT}")
+QCLI_COMMAND_FILE=(qcli -audio all -f signalstats+aphasemeter+astats+ssim -i "${VRECORD_OUTPUT}" -o "${QCTOOLS_REPORT}")
 touch "${INGESTLOG}"
 _writeingestlog "computer_name" "$(uname -n)"
 _writeingestlog "computer_model_name" "${COMPUTER_MODEL_NAME}"
@@ -2799,6 +2799,8 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
                 _report -wt "File did not pass vrecord policy check for uncompressed video and may not conform to digital preservation standards. Try another file?"
                 mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_uncompressed.xml" "${VRECORD_OUTPUT}" | xmlstarlet fo > "${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml"
                 _report -wt "See ${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml for a full MediaConch policy report."
+                _report -wt "Or review this attempt to summarize the issue:"
+                xmlstarlet edit -N "mc=https://mediaarea.net/mediaconch" -d "//*[@outcome='pass']" "${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml"
             else
                 mediaconch -p "${RESOURCE_PATH}/vrecord_policy_uncompressed.xml" "${VRECORD_OUTPUT}"
             fi
@@ -2807,11 +2809,14 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
             STATUS=$(mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_ffv1.xml" "${VRECORD_OUTPUT}" | xmlstarlet sel -N mc="https://mediaarea.net/mediaconch" -t -v mc:MediaConch/mc:media/mc:policy/@outcome -n)
             if [[ "${STATUS}" = "pass" ]] ; then
                 _report -dt "File passed policy check for FFV1 video."
-            elif [[ "$STATUS" = "fail" ]] ; then
+            elif [[ "${STATUS}" = "fail" ]] ; then
                 _report -wt "File did not pass vrecord policy check for FFV1 video and may not conform to digital preservation standards. Try another file?"
                 mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_ffv1.xml" "${VRECORD_OUTPUT}" | xmlstarlet fo > "${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml"
                 _report -wt "See ${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml for a full MediaConch policy report."
+                _report -wt "Or review this attempt to summarize the issue:"
+                xmlstarlet edit -N "mc=https://mediaarea.net/mediaconch" -d "//*[@outcome='pass']" "${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml"
             else
+                _report -wt "Mediaconch ended in an unexpected way (${STATUS}). Here is its output."
                 mediaconch -p "${RESOURCE_PATH}/vrecord_policy_ffv1.xml" "${VRECORD_OUTPUT}"
             fi
         fi
