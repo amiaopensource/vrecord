@@ -51,7 +51,7 @@
 
 5. To preview the tape, click on the "Playback" button in the bottom right of the "Settings" window. The settings menu will close and the Terminal window will display the settings you have entered.
 
-6. A mpv window will open displaying the playback of the tape. It may take ~20 seconds for the deck to respond and begin playing.
+6. A window will open displaying the playback of the tape. It may take ~20 seconds for the deck to respond and begin playing.
 > **_NOTE:_** If the timecode does not start at the very beginning of the tape, the playback window will not open until the timecode is detected. As soon as the counter starts moving on your deck and in the Terminal window, the viewer window should pop-up and begin playback. ![dv_vrecord_timecode-record-start](../dv_vrecord_timecode-record-start.gif)
 
 7. To end playback, close the playback window or hit the "esc" key.
