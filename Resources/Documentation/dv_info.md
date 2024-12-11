@@ -10,8 +10,6 @@
    - run `vrecord -e` to open the settings menu in the GUI.
    - run `vrecord` and click on the "Edit Settings" button in the GUI.
 
-![Decklink](../dv_vrecord_decklink.jpg "DV Capture") 
-
 2. Select the "DV" tab under "Input Options" at the top of the configuration window. All of the devices you have connected via FireWire will be listed under the "DVRescue input options" at the top of the window.
 
 ![dv_vrecord_configuration](../dv_vrecord_configuration.jpg)
