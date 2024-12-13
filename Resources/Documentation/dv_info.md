@@ -1,8 +1,10 @@
 # DV Capture
 
-**macOS:** To capture DV formats (DV, DVCAM, MiniDV, DVCPRO and Digital8) in vrecord, you will need to have your DV deck connected directly to your computer via <a href="https://mipops.github.io/dvrescue/sections/dv_transfer_station.html" target="_blank">FireWire input</a>. Make sure your deck is turned on and in “Remote” mode. Additional settings for your DV device may apply to ensure a successful connection. To view manuals and settings notes for specific decks, players and camcorders, please see the <a href="https://mipops.github.io/dvrescue/sections/deck_guide.html" target="_blank">DVRescue Deck Guide</a>. You may also need to adjust your  <a href="https://mipops.github.io/dvrescue/sections/troubleshooting.html" target="_blank">privacy settings</a> and allow each DV device to connect prior to use with vrecord.
+To capture DV formats (DV, DVCAM, MiniDV, DVCPRO and Digital8) in vrecord, you will need to have your DV deck connected directly to your computer via <a href="https://mipops.github.io/dvrescue/sections/dv_transfer_station.html" target="_blank">FireWire input</a>. Make sure your deck is turned on and in “Remote” mode. Additional settings for your DV device may apply to ensure a successful connection. To view manuals and settings notes for specific decks, players and camcorders, please see the <a href="https://mipops.github.io/dvrescue/sections/deck_guide.html" target="_blank">DVRescue Deck Guide</a>. You may also need to adjust your  <a href="https://mipops.github.io/dvrescue/sections/troubleshooting.html" target="_blank">privacy settings</a> and allow each DV device to connect prior to use with vrecord.
 
 > **_NOTE:_** vrecord uses the <a href="https://github.com/mipops/dvrescue" target="_blank">DVRescue toolkit</a>  to facilitate dvcapture. <a href="https://github.com/mipops/dvrescue/issues/53" target="_blank">HDV tapes</a> are not in the current scope of this project and cannot be captured using DVRescue or vrecord.
+>
+> On Linux systems Vrecord can also use FFmpeg for DV capture in the event that DVRescue is not available/installed. To do this select 'FFmpeg iec61883 Default' from the list of DV devices in the GUI. Vrecord will then capture from the first detected DV device using FFmpeg instead of DVRescue. 
 
 ## DV Settings
 
@@ -100,6 +102,9 @@ If vrecord detects that the DV device is concealing bitstream errors, this will 
 
 
 ## Known Issues
+
+### Deck control does not work/tape does not automatically start on playback/capture
+On some systems/players automated control of the DV Deck will not function as intended. In this case, the deck can be put into 'local' mode and playback manually controlled for capture in the same way as an analog tape.
 
 ### vrecord Permissions Error
 If you receive the following error while capturing via vrecord using macOS 10.14.6:
