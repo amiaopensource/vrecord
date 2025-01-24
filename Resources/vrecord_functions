@@ -206,6 +206,10 @@ _get_audio_device_list(){
     fi
 }
 
+_get_profile_list(){
+    "$(ls -1 "${PROFILE_DIR}/*.conf" | sed 's|.conf$||g')"
+}
+
 _get_summary(){
     if [[ ! -f "${CONFIG_FILE}" ]] ; then
         echo "VRecord configuration file is missing, please visit the Settings panel."

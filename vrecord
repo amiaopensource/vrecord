@@ -6,10 +6,34 @@
 VERSION="2024-10-18"
 SCRIPTNAME="$(basename "${0}")"
 SCRIPTDIR="$(dirname "${0}")"
-CONFIG_FILE="${HOME}/.${SCRIPTNAME}.conf"
+PROFILE_DIR="${HOME}/.vrecord_profiles"
+PROFILE_SELECTED_FILE="${PROFILE_DIR}/selected_profile.txt"
 SAT_OUTLIER_THRSHLD=14
 AUD_OUTLIER_THRSHLD=10
 BRNG_OUTLIER_THRSHLD=14
+
+_update_profile(){
+    # steps to upgrade profile management
+    OLD_CONFIG_FILE="${HOME}/.${SCRIPTNAME}.conf"
+    NEW_CONFIG_NAME="Primary Profile"
+    NEW_CONFIG_FILE="${PROFILE_DIR}/${NEW_CONFIG_NAME}.conf"
+    if [[ ! -d "${PROFILE_DIR}" ]] ; then
+        mkdir "${PROFILE_DIR}"
+        if [[ -f "${OLD_CONFIG_FILE}" ]] ; then
+            mv -n "${OLD_CONFIG_FILE}" "${NEW_CONFIG_FILE}"
+            echo "${NEW_CONFIG_NAME}" > "${PROFILE_SELECTED_FILE}"
+        fi
+    fi
+    if [[ -f "${PROFILE_SELECTED_FILE}" ]] ; then
+        CONFIG_FILE="$(cat "${PROFILE_SELECTED_FILE}").conf"
+    else
+        if [[ -d "${PROFILE_DIR}" ]] ; then
+            CONFIG_FILE="$(ls -1 "${PROFILE_DIR}/*.conf" | head -n 1)"
+        else
+            CONFIG_FILE="${NEW_CONFIG_FILE}"
+        fi
+    fi
+}
 
 _usage(){
     cat <<EOF
@@ -386,6 +410,8 @@ _gtk_vbox_list() {
         LIST="<input>_get_dvrescue_input_list</input>"
     elif [[ "${VARIABLE_NAME}" == "AUDIO_DEV_CHOICE" ]] ; then
         LIST="<input>_get_audio_device_list</input>"
+    elif [[ "${VARIABLE_NAME}" == "SELECTED_PROFILE" ]] ; then
+        LIST="<input>_get_profile_list</input>"
     else
         LIST="$(_expand_list2items "${OPTION_LIST[@]}")"
     fi
@@ -1260,6 +1286,17 @@ export MAIN_DIALOG='
                 </hbox>
             </vbox>
             <vbox space-expand="true">
+                <hbox>
+                    <text>
+                        <label>Selected Profile</label>
+                    </text>
+                    <comboboxtext>
+                        <variable>SELECTED_PROFILE</variable>
+                        <sensitive>enabled</sensitive>
+                        <item>1</item>
+                        <item>2</item>
+                    </comboboxtext>
+                </hbox>
                 <frame Settings Summary>
                     <vbox scrollable="true" height="320">
                         <text wrap="false" xalign="0">
