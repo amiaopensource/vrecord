@@ -102,8 +102,23 @@ _validate_form(){
         echo "ERROR: Incompatible audio codecs and containers have been selected."
     fi
     if [ -z "${DIR}" ] ; then
-        echo "WARNING: The recording directory is not set. $(pwd) will be used."
-    elif [ ! -d "${DIR}" ] ; then
+        NEW_DEFAULT_DIR="$(pwd)"
+        echo "WARNING: The recording directory is not set. ${NEW_DEFAULT_DIR} will be used."
+        DIR="${NEW_DEFAULT_DIR}"
+    fi
+    if [ -d "${DIR}" ] ; then
+        if [ $(mount | grep $(df -P "${DIR}" | tail +2 | awk '{print $1}') | grep -c "(.*local,") = "0" ] && [ "${OS_TYPE}" != "linux" ] ; then
+            echo "WARNING: The recording directory at ${DIR} is not a local directory. Please verify that you can write to the disk fast enough."
+        fi
+        if [ "${OS_TYPE}" = "linux" ] ; then
+            FREE_SPACE="$(df -BG "${DIR}" | tail +2 | awk '{print $4}' | tr 'G' ' ')"
+        else
+            FREE_SPACE="$(df -g "${DIR}" | tail +2 | awk '{print $4}')"
+        fi
+        if [ "${FREE_SPACE}" -le 40 ] ; then
+            echo "WARNING: The recording directory at ${DIR} only has ${FREE_SPACE} gigabytes available."
+        fi
+    else
         echo "ERROR: The recording directory (${DIR}) does not exist. Please set or $(pwd) will be used instead."
     fi
     if [ ! -d "${LOGDIR}" ] && [ -n "${LOGDIR}" ] ; then
@@ -207,7 +222,7 @@ _get_audio_device_list(){
 }
 
 _get_profile_list(){
-    "$(ls -1 "${PROFILE_DIR}/*.conf" | sed 's|.conf$||g')"
+    ls -1 "${PROFILE_DIR}" | grep ".conf$" | sed "s|.conf$||g"
 }
 
 _get_summary(){
