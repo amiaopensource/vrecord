@@ -1551,7 +1551,7 @@ _edit_mode(){
 
     GTK_INC="$(_maketemp .vrecord.gtkdialog.inc)"
     cat "${VRECORD_VARS_FILE}" > "${GTK_INC}"
-    echo "CONFIG_FILE=${CONFIG_FILE}" >> "${GTK_INC}"
+    echo "CONFIG_FILE=\"${CONFIG_FILE}\"" >> "${GTK_INC}"
     cat "${SHARED_FUNCTIONS_FILE}" >> "${GTK_INC}"
 
     if [[ "${VERBOSE_GTKDIALOG}" = "Y" ]] ; then
