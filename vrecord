@@ -61,7 +61,7 @@ Usage: ${SCRIPTNAME} [ -e | -r | -p | -a | -x | -n|  -v | -h ] [IDENTIFIER]
   -a  enable audio passthrough mode. Identical to passthrough except for the
       addition of audio bars. Note: Will eventually lag and crash if left on
       too long.
-  -x  reset the configuration: this will replace the default configuration file
+  -x  reset the configuration: this will replace the selected configuration file
       at '${CONFIG_FILE}' with an empty one.
   -n  reset Vrecord's stored environment variables. These include
       variables such as the paths to certain dependencies such as ffmpeg-dl.
@@ -82,7 +82,7 @@ Advanced options
   -D  Provide a path to a directory containing dependencies to override
       Vrecord's default dependency paths. These new paths will be stored in
       Vrecord's environmental variables.
-  -c  Provide a recording configuration file, rather than the default one at
+  -c  Provide a recording configuration file, rather than the selected one at
       '${CONFIG_FILE}'.
 
 See also the man page: man ${SCRIPTNAME}
