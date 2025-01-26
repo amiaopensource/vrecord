@@ -398,6 +398,14 @@ _check_mpv(){
 }
 
 _gtk_vbox_list() {
+    OPTION_STYLE="list" #default
+    OPTIND=1
+    while getopts "s:" opt ; do
+        case "${opt}" in
+            s) OPTION_STYLE="${OPTARG}" ;;
+        esac
+    done
+    shift "$((OPTIND-1))"
     VARIABLE_NAME="${1}"
     WIDTH="${2}"
     LABEL="${3}"
@@ -475,16 +483,26 @@ _gtk_vbox_list() {
         fi
     }
 
+    if [[ "${OPTION_STYLE}" == "list" ]] ; then
+        OPTION_ATTRIBUTES=" selection-mode=\"1\" selected-row=\"${SELECTION}\""
+        OPTION_ELEMENTS="<width>${WIDTH}</width>"
+    elif [[ "${OPTION_STYLE}" == "comboboxtext" ]] ; then
+        unset OPTION_ATTRIBUTES
+        if [[ -n "${!VARIABLE_NAME}" ]] ; then
+            OPTION_ELEMENTS="<default>${!VARIABLE_NAME}</default>"
+        fi
+    fi
+
     echo "<vbox space-fill=\"true\">
       <text>
           <label>${LABEL}</label>
       </text>
-      <list selection-mode=\"1\" selected-row=\"${SELECTION}\">
-          <width>${WIDTH}</width>
+      <${OPTION_STYLE}${OPTION_ATTRIBUTES}>
           <variable>${VARIABLE_NAME}</variable>
+          ${OPTION_ELEMENTS}
           ${LIST}
           $(_get_list_extras)
-      </list>
+      </${OPTION_STYLE}>
       $(_get_vbox_extras)
     </vbox>"
 }
@@ -1287,15 +1305,7 @@ export MAIN_DIALOG='
             </vbox>
             <vbox space-expand="true">
                 <hbox>
-                    <text>
-                        <label>Selected Profile</label>
-                    </text>
-                    <comboboxtext>
-                        <variable>SELECTED_PROFILE</variable>
-                        <sensitive>enabled</sensitive>
-                        <item>1</item>
-                        <item>2</item>
-                    </comboboxtext>
+                    '$(_gtk_vbox_list -s comboboxtext "SELECTED_PROFILE"    "120" "Selected Profile"             "${DECKLINK_DEVICES[@]}")'
                 </hbox>
                 <frame Settings Summary>
                     <vbox scrollable="true" height="320">
