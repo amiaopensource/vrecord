@@ -162,7 +162,7 @@ _process_vars_for_gtk(){
     if [[ -f "${VRECORD_VARS_FILE}" ]] ; then
         . "${VRECORD_VARS_FILE}"
     else
-        _include_var VRECORD_VARS_FILE
+        _include_var VRECORD_VARS_FILE PROFILE_DIR
     fi
 
     if [[ -z "${OS_TYPE}" ]] ; then
