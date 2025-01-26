@@ -33,6 +33,7 @@ _update_profile(){
             CONFIG_FILE="${NEW_CONFIG_FILE}"
         fi
     fi
+    SELECTED_PROFILE="$(cat "${PROFILE_SELECTED_FILE}")"
 }
 
 _usage(){
