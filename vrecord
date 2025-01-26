@@ -2347,6 +2347,24 @@ _review_all_options(){
     fi
 }
 
+_upgrade_config_file(){
+    # update value because the framemd5 choice changed from a yes/no picklist to a boolean as was the case in version 2023-08-07 and earlier
+    if [[ -n "$(grep "FRAMEMD5_CHOICE=\"[YN]" "${CONFIG_FILE}")" ]] ; then
+        sed 's|FRAMEMD5_CHOICE="No"|FRAMEMD5_CHOICE="false"|g;s|FRAMEMD5_CHOICE="Yes"|FRAMEMD5_CHOICE="true"|g' > "${CONFIG_FILE}tmp" < "${CONFIG_FILE}"
+        mv "${CONFIG_FILE}tmp" "${CONFIG_FILE}"
+    fi
+}
+
+_update_profile
+if [[ -f "${CONFIG_FILE}" ]] ; then
+    _upgrade_config_file
+    . "${CONFIG_FILE}"
+else
+    _report -d "Initializing the configuration file at ${CONFIG_FILE}."
+    RUNTYPE="edit"
+    STARTUP_VIEW="INPUTSETTINGS"
+fi
+
 # command-line options to set media id and original variables
 OPTIND=1
 while getopts ":hc:erpaxnvI:O:D:i:G" opt ; do
@@ -2397,23 +2415,6 @@ MKVPROPEDIT_INSTALLED="$(if command -v mkvpropedit >/dev/null ; then echo true ;
 MPV_INSTALLED="$(if command -v mpv >/dev/null ; then echo true ; else echo false ; fi)"
 QCLI_INSTALLED="$(if command -v qcli >/dev/null ; then echo true ; else echo false ; fi)"
 DVPACKAGER_INSTALLED="$(if command -v dvpackager >/dev/null ; then echo true ; else echo false ; fi)"
-
-_upgrade_config_file(){
-    # update value because the framemd5 choice changed from a yes/no picklist to a boolean as was the case in version 2023-08-07 and earlier
-    if [[ -n "$(grep "FRAMEMD5_CHOICE=\"[YN]" "${CONFIG_FILE}")" ]] ; then
-        sed 's|FRAMEMD5_CHOICE="No"|FRAMEMD5_CHOICE="false"|g;s|FRAMEMD5_CHOICE="Yes"|FRAMEMD5_CHOICE="true"|g' > "${CONFIG_FILE}tmp" < "${CONFIG_FILE}"
-        mv "${CONFIG_FILE}tmp" "${CONFIG_FILE}"
-    fi
-}
-
-if [[ -f "${CONFIG_FILE}" ]] ; then
-    _upgrade_config_file
-    . "${CONFIG_FILE}"
-else
-    _report -d "Initializing the configuration file at ${CONFIG_FILE}."
-    RUNTYPE="edit"
-    STARTUP_VIEW="INPUTSETTINGS"
-fi
 
 _get_inputs
 
