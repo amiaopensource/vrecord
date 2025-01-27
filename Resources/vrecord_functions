@@ -38,6 +38,7 @@ _check_ffmpeg_install(){
 }
 
 _update_config_file(){
+    CONFIG_FILE="${PROFILE_DIR}/$(cat "${PROFILE_SELECTED_FILE}").conf"
     # write config file
     {
         echo "# Set these variables to a valid option or leave as empty quotes (like \"\") to request each run."
@@ -213,6 +214,7 @@ _get_profile_list(){
 }
 
 _get_summary(){
+    CONFIG_FILE="${PROFILE_DIR}/$(cat "${PROFILE_SELECTED_FILE}").conf"
     if [[ ! -f "${CONFIG_FILE}" ]] ; then
         echo "VRecord configuration file is missing, please visit the Settings panel."
     else

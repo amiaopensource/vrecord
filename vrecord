@@ -25,15 +25,16 @@ _update_profile(){
         fi
     fi
     if [[ -f "${PROFILE_SELECTED_FILE}" ]] ; then
-        CONFIG_FILE="$(cat "${PROFILE_SELECTED_FILE}").conf"
+        LOADED_PROFILE="$(cat "${PROFILE_SELECTED_FILE}")"
+        echo "${PROFILE_DIR}/${LOADED_PROFILE}.conf"
+        >&2 echo "Loading the profile: ${LOADED_PROFILE}"
     else
         if [[ -d "${PROFILE_DIR}" ]] ; then
-            CONFIG_FILE="$(ls -1 "${PROFILE_DIR}/*.conf" | head -n 1)"
+            echo "${PROFILE_DIR}/$(ls -1 "${PROFILE_DIR}/*.conf" | head -n 1)"
         else
-            CONFIG_FILE="${NEW_CONFIG_FILE}"
+            echo "${PROFILE_DIR}/${NEW_CONFIG_FILE}.conf"
         fi
     fi
-    SELECTED_PROFILE="$(cat "${PROFILE_SELECTED_FILE}")"
 }
 
 _usage(){
@@ -439,7 +440,6 @@ _gtk_vbox_list() {
     }
 
     SELECTION="$(_get_index_of_value "${!VARIABLE_NAME}" "${OPTION_LIST[@]}")"
-    echo "vn ${VARIABLE_NAME} vn! ${!VARIABLE_NAME} w $WIDTH l $LABEL ol ${OPTION_LIST[@]}" >> /tmp/hey
     if [[ "${VARIABLE_NAME}" == "DECKLINK_INPUT_CHOICE" ]] ; then
         LIST="<input>_get_decklink_input_list</input>"
     elif [[ "${VARIABLE_NAME}" == "DVRESCUE_INPUT_CHOICE" ]] ; then
@@ -472,7 +472,7 @@ _gtk_vbox_list() {
                 <action condition="command_is_true( [ \"$DV_CONTAINER_CHOICE\" != \"DV\" ] && echo true)">enable:DV_RESCUE_OPTION_TC</action>'
         elif [[ "${VARIABLE_NAME}" == "SELECTED_PROFILE" ]] ; then
             echo '<action>echo "$SELECTED_PROFILE" > "'$PROFILE_SELECTED_FILE'"</action>
-                  <action type="exit">refresh</action>'
+                  <action type="exit">switch_profile</action>'
         fi
     }
 
@@ -1565,8 +1565,10 @@ export MAIN_DIALOG='
 
 # edit mode
 _edit_mode(){
+    CONFIG_FILE="$(_update_profile)"
+    SELECTED_PROFILE="$(cat "${PROFILE_SELECTED_FILE}")"
+    . "${CONFIG_FILE}"
     _set_up_edit_form
-
     # run the edit form in gtkdialog
     MAIN_DIALOG_TMP="${MAIN_DIALOG}"
 
@@ -1575,7 +1577,6 @@ _edit_mode(){
     
     GTK_INC="$(_maketemp .vrecord.gtkdialog.inc)"
     cat "${VRECORD_VARS_FILE}" > "${GTK_INC}"
-    echo "CONFIG_FILE=\"${PROFILE_DIR}/$(cat "${PROFILE_SELECTED_FILE}").conf\"" >> "${GTK_INC}"
     cat "${SHARED_FUNCTIONS_FILE}" >> "${GTK_INC}"
 
     if [[ "${VERBOSE_GTKDIALOG}" = "Y" ]] ; then
@@ -1600,6 +1601,9 @@ _edit_mode(){
     elif [[ "${EXIT}" = "audiopassthrough" ]] ; then
         RUNTYPE="audiopassthrough"
     elif [[ "${EXIT}" = "refresh" ]] ; then
+        RUNTYPE="edit"
+    elif [[ "${EXIT}" = "switch_profile" ]] ; then
+        STARTUP_VIEW="MAIN"
         RUNTYPE="edit"
     elif [[ "${EXIT}" = "timecode_scan" ]] ; then
         _report -dt "Scanning each supported type of timecode."
@@ -2379,7 +2383,8 @@ _upgrade_config_file(){
     fi
 }
 
-_update_profile
+CONFIG_FILE="$(_update_profile)"
+SELECTED_PROFILE="$(cat "${PROFILE_SELECTED_FILE}")"
 if [[ -f "${CONFIG_FILE}" ]] ; then
     _upgrade_config_file
     . "${CONFIG_FILE}"
