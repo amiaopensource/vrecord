@@ -163,7 +163,7 @@ _process_vars_for_gtk(){
     if [[ -f "${VRECORD_VARS_FILE}" ]] ; then
         . "${VRECORD_VARS_FILE}"
     else
-        _include_var VRECORD_VARS_FILE PROFILE_DIR
+        _include_var VRECORD_VARS_FILE PROFILE_DIR PROFILE_SELECTED_FILE
     fi
 
     if [[ -z "${OS_TYPE}" ]] ; then
@@ -399,8 +399,8 @@ _check_mpv(){
 }
 
 _gtk_vbox_list() {
+    local OPTIND OPTARG
     OPTION_STYLE="list" #default
-    OPTIND=1
     while getopts "s:" opt ; do
         case "${opt}" in
             s) OPTION_STYLE="${OPTARG}" ;;
@@ -412,7 +412,34 @@ _gtk_vbox_list() {
     LABEL="${3}"
     shift 3
     OPTION_LIST=("${@}")
+
+    _expand_list2items(){
+      LIST=( "$@" )
+      for i in "${LIST[@]}" ; do
+          echo "<item>${i}</item>"
+      done
+    }
+    _get_index_of_value(){
+      # run with function, value to look for as first argument, and array to look in as 2nd argument, such function as
+      # _get_index_of_value "${VIDEO_INPUT_CHOICE}" "${VIDEO_INPUT_OPTIONS[@]}"
+      VALUE="${1}"
+      shift
+      LIST=( "$@" )
+      INDEX=0
+      MATCH=""
+      for ITEM in "${LIST[@]}" ; do
+          if [[ "${VALUE}" = "${ITEM}" ]] ; then
+              MATCH="$INDEX"
+          fi
+          (( ++INDEX ))
+      done
+      if [[ -n "${MATCH}" ]] ; then
+          echo -n "${MATCH}"
+      fi
+    }
+
     SELECTION="$(_get_index_of_value "${!VARIABLE_NAME}" "${OPTION_LIST[@]}")"
+    echo "vn ${VARIABLE_NAME} vn! ${!VARIABLE_NAME} w $WIDTH l $LABEL ol ${OPTION_LIST[@]}" >> /tmp/hey
     if [[ "${VARIABLE_NAME}" == "DECKLINK_INPUT_CHOICE" ]] ; then
         LIST="<input>_get_decklink_input_list</input>"
     elif [[ "${VARIABLE_NAME}" == "DVRESCUE_INPUT_CHOICE" ]] ; then
@@ -443,6 +470,9 @@ _gtk_vbox_list() {
         elif [[ "${VARIABLE_NAME}" == "DV_CONTAINER_CHOICE" ]] && $DVPACKAGER_INSTALLED ; then
             echo '<action condition="command_is_true( [ \"$DV_CONTAINER_CHOICE\" = \"DV\" ] && echo true)">disable:DV_RESCUE_OPTION_TC</action>
                 <action condition="command_is_true( [ \"$DV_CONTAINER_CHOICE\" != \"DV\" ] && echo true)">enable:DV_RESCUE_OPTION_TC</action>'
+        elif [[ "${VARIABLE_NAME}" == "SELECTED_PROFILE" ]] ; then
+            echo '<action>echo "$SELECTED_PROFILE" > "'$PROFILE_SELECTED_FILE'"</action>
+                  <action type="exit">refresh</action>'
         fi
     }
 
@@ -751,31 +781,6 @@ _get_audio_dev_num(){
 }
 
 _set_up_edit_form() {
-  _expand_list2items(){
-    LIST=( "$@" )
-    for i in "${LIST[@]}" ; do
-        echo "<item>${i}</item>"
-    done
-  }
-  _get_index_of_value(){
-    # run with function, value to look for as first argument, and array to look in as 2nd argument, such function as
-    # _get_index_of_value "${VIDEO_INPUT_CHOICE}" "${VIDEO_INPUT_OPTIONS[@]}"
-    VALUE="${1}"
-    shift
-    LIST=( "$@" )
-    INDEX=0
-    MATCH=""
-    for ITEM in "${LIST[@]}" ; do
-        if [[ "${VALUE}" = "${ITEM}" ]] ; then
-            MATCH="$INDEX"
-        fi
-        (( ++INDEX ))
-    done
-    if [[ -n "${MATCH}" ]] ; then
-        echo -n "${MATCH}"
-    fi
-  }
-
 # initialize deckcontrol temp files
 FFMPEG_STATUS_TMP="$(_maketemp .ffmpeg.status.txt)"
 DECKCONTROL_STATUS_TMP="$(_maketemp .deckcontrol.status.txt)"
@@ -1307,6 +1312,21 @@ export MAIN_DIALOG='
             <vbox space-expand="true">
                 <hbox>
                     '$(_gtk_vbox_list -s comboboxtext "SELECTED_PROFILE"    "120" "Selected Profile"             "${DECKLINK_DEVICES[@]}")'
+                    <hbox>
+                        <vbox>
+                            <text>
+                                <label>New Profile Name</label>
+                            </text>
+                            <entry>
+                                <variable>NEW_PROFILE</variable>
+                            </entry>
+                        </vbox>
+                        <button>
+                            <input file stock="gtk-new"></input>
+                            <variable export="false">NEW_PROFILE_BUTTON</variable>
+                            <action>echo hi</action>
+                        </button>
+                    </hbox>
                 </hbox>
                 <frame Settings Summary>
                     <vbox scrollable="true" height="320">
@@ -1550,9 +1570,12 @@ _edit_mode(){
     # run the edit form in gtkdialog
     MAIN_DIALOG_TMP="${MAIN_DIALOG}"
 
+    echo "$MAIN_DIALOG" > /tmp/main
+    mate /tmp/main
+    
     GTK_INC="$(_maketemp .vrecord.gtkdialog.inc)"
     cat "${VRECORD_VARS_FILE}" > "${GTK_INC}"
-    echo "CONFIG_FILE=\"${CONFIG_FILE}\"" >> "${GTK_INC}"
+    echo "CONFIG_FILE=\"${PROFILE_DIR}/$(cat "${PROFILE_SELECTED_FILE}").conf\"" >> "${GTK_INC}"
     cat "${SHARED_FUNCTIONS_FILE}" >> "${GTK_INC}"
 
     if [[ "${VERBOSE_GTKDIALOG}" = "Y" ]] ; then
@@ -2352,7 +2375,7 @@ _upgrade_config_file(){
     # update value because the framemd5 choice changed from a yes/no picklist to a boolean as was the case in version 2023-08-07 and earlier
     if [[ -n "$(grep "FRAMEMD5_CHOICE=\"[YN]" "${CONFIG_FILE}")" ]] ; then
         sed 's|FRAMEMD5_CHOICE="No"|FRAMEMD5_CHOICE="false"|g;s|FRAMEMD5_CHOICE="Yes"|FRAMEMD5_CHOICE="true"|g' > "${CONFIG_FILE}tmp" < "${CONFIG_FILE}"
-        mv "${CONFIG_FILE}tmp" "${CONFIG_FILE}"
+        mv -v "${CONFIG_FILE}tmp" "${CONFIG_FILE}"
     fi
 }
 
