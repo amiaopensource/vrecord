@@ -42,7 +42,6 @@ _update_config_file(){
     # write config file
     {
         echo "# Set these variables to a valid option or leave as empty quotes (like \"\") to request each run."
-        echo "STARTUP_VIEW=\"${STARTUP_VIEW}\""
         echo "DEVICE_INPUT_CHOICE=\"${DEVICE_INPUT_CHOICE}\""
         echo "VIDEO_INPUT_CHOICE=\"${VIDEO_INPUT_CHOICE}\""
         echo "AUDIO_INPUT_CHOICE=\"${AUDIO_INPUT_CHOICE}\""
@@ -220,6 +219,7 @@ _get_summary(){
     else
         . "${CONFIG_FILE}"
         if [ "${DEVICE_INPUT_CHOICE}" = "0" ] ; then
+            echo "Selected Profile: $(cat "${PROFILE_SELECTED_FILE}")"
             echo "Device Input: Decklink"
             echo "Settings: ${VIDEO_CODEC_CHOICE} ${VIDEO_BIT_DEPTH_CHOICE} ${CONTAINER_CHOICE} File"
             echo "from ${VIDEO_INPUT_CHOICE} video input and ${AUDIO_INPUT_CHOICE} audio input"
@@ -235,11 +235,13 @@ _get_summary(){
             echo "QCTools XML: ${QCTOOLSXML_CHOICE}"
             echo "Playback: ${PLAYBACKVIEW_CHOICE} view (for recording) and ${PLAYBACKVIEW_CHOICE_PASS} view (for passthrough)"
         elif [ "${DEVICE_INPUT_CHOICE}" = "1" ] ; then
+            echo "Selected Profile: $(cat "${PROFILE_SELECTED_FILE}")"
             echo "Device Input: DV"
             echo "Copying video from ${DVRESCUE_INPUT_CHOICE}."
             echo "Inputs recorded to ${DIR}"
             echo "Auxiliary files created in ${LOGDIR}"
         elif [ "${DEVICE_INPUT_CHOICE}" = "2" ] ; then
+            echo "Selected Profile: $(cat "${PROFILE_SELECTED_FILE}")"
             echo "Device Input: Audio"
             echo "Recording audio from ${AUDIO_DEV_CHOICE}."
             echo "Audio codec: ${AUDIO_MODE_CODEC_CHOICE}"
