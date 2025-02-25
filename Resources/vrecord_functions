@@ -38,10 +38,10 @@ _check_ffmpeg_install(){
 }
 
 _update_config_file(){
+    CONFIG_FILE="${PROFILE_DIR}/$(cat "${PROFILE_SELECTED_FILE}").conf"
     # write config file
     {
         echo "# Set these variables to a valid option or leave as empty quotes (like \"\") to request each run."
-        echo "STARTUP_VIEW=\"${STARTUP_VIEW}\""
         echo "DEVICE_INPUT_CHOICE=\"${DEVICE_INPUT_CHOICE}\""
         echo "VIDEO_INPUT_CHOICE=\"${VIDEO_INPUT_CHOICE}\""
         echo "AUDIO_INPUT_CHOICE=\"${AUDIO_INPUT_CHOICE}\""
@@ -95,15 +95,29 @@ _update_config_file(){
 }
 
 _validate_form(){
-    
     if [ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" ] && [ "${CONTAINER_CHOICE}" = "MXF" ] ; then
         echo "ERROR: Incompatible video codecs and containers have been selected."
     elif [ "${AUDIO_CODEC_CHOICE}" = "24-bit FLAC" ] && [ "${CONTAINER_CHOICE}" = "QuickTime" ] ; then
         echo "ERROR: Incompatible audio codecs and containers have been selected."
     fi
     if [ -z "${DIR}" ] ; then
-        echo "WARNING: The recording directory is not set. $(pwd) will be used."
-    elif [ ! -d "${DIR}" ] ; then
+        NEW_DEFAULT_DIR="$(pwd)"
+        echo "WARNING: The recording directory is not set. ${NEW_DEFAULT_DIR} will be used."
+        DIR="${NEW_DEFAULT_DIR}"
+    fi
+    if [ -d "${DIR}" ] ; then
+        if [ $(mount | grep $(df -P "${DIR}" | tail +2 | awk '{print $1}') | grep -c "(.*local,") = "0" ] && [ "${OS_TYPE}" != "linux" ] ; then
+            echo "WARNING: The recording directory at ${DIR} is not a local directory. Please verify that you can write to the disk fast enough."
+        fi
+        if [ "${OS_TYPE}" = "linux" ] ; then
+            FREE_SPACE="$(df -BG "${DIR}" | tail +2 | awk '{print $4}' | tr 'G' ' ')"
+        else
+            FREE_SPACE="$(df -g "${DIR}" | tail +2 | awk '{print $4}')"
+        fi
+        if [ "${FREE_SPACE}" -le 40 ] ; then
+            echo "WARNING: The recording directory at ${DIR} only has ${FREE_SPACE} gigabytes available."
+        fi
+    else
         echo "ERROR: The recording directory (${DIR}) does not exist. Please set or $(pwd) will be used instead."
     fi
     if [ ! -d "${LOGDIR}" ] && [ -n "${LOGDIR}" ] ; then
@@ -123,18 +137,6 @@ _validate_form(){
     fi
     if [ "${INVERT_PHASE_4}" = "true" ] ; then
         echo "WARNING: Option to invert phase of fourth audio channel has been selected."
-    fi
-
-    if [ $(mount | grep $(df -P "${DIR}" | tail +2 | awk '{print $1}') | grep -c "(.*local,") = "0" ] && [ "${OS_TYPE}" != "linux" ] ; then
-        echo "WARNING: The recording directory at ${DIR} is not a local directory. Please verify that you can write to the disk fast enough."
-    fi
-    if [ "${OS_TYPE}" = "linux" ] ; then
-        FREE_SPACE="$(df -BG "${DIR}" | tail +2 | awk '{print $4}' | tr 'G' ' ')"
-    else
-        FREE_SPACE="$(df -g "${DIR}" | tail +2 | awk '{print $4}')"
-    fi
-    if [ "${FREE_SPACE}" -le 40 ] ; then
-        echo "WARNING: The recording directory at ${DIR} only has ${FREE_SPACE} gigabytes available."
     fi
     if [ "${SIGNAL_INT_CHOICE}" != "auto" ] && [ -n "${SIGNAL_INT_CHOICE}" ] ; then
         echo "WARNING: The configuration ignores the interlacement of the input and forces it to ${SIGNAL_INT_CHOICE}. Set to 'auto' if you prefer to keep the interlacement as the device describes it."
@@ -206,12 +208,18 @@ _get_audio_device_list(){
     fi
 }
 
+_get_profile_list(){
+    ls -1 "${PROFILE_DIR}" | grep ".conf$" | sed "s|.conf$||g"
+}
+
 _get_summary(){
+    CONFIG_FILE="${PROFILE_DIR}/$(cat "${PROFILE_SELECTED_FILE}").conf"
     if [[ ! -f "${CONFIG_FILE}" ]] ; then
         echo "VRecord configuration file is missing, please visit the Settings panel."
     else
         . "${CONFIG_FILE}"
         if [ "${DEVICE_INPUT_CHOICE}" = "0" ] ; then
+            echo "Selected Profile: $(cat "${PROFILE_SELECTED_FILE}")"
             echo "Device Input: Decklink"
             echo "Settings: ${VIDEO_CODEC_CHOICE} ${VIDEO_BIT_DEPTH_CHOICE} ${CONTAINER_CHOICE} File"
             echo "from ${VIDEO_INPUT_CHOICE} video input and ${AUDIO_INPUT_CHOICE} audio input"
@@ -227,11 +235,13 @@ _get_summary(){
             echo "QCTools XML: ${QCTOOLSXML_CHOICE}"
             echo "Playback: ${PLAYBACKVIEW_CHOICE} view (for recording) and ${PLAYBACKVIEW_CHOICE_PASS} view (for passthrough)"
         elif [ "${DEVICE_INPUT_CHOICE}" = "1" ] ; then
+            echo "Selected Profile: $(cat "${PROFILE_SELECTED_FILE}")"
             echo "Device Input: DV"
             echo "Copying video from ${DVRESCUE_INPUT_CHOICE}."
             echo "Inputs recorded to ${DIR}"
             echo "Auxiliary files created in ${LOGDIR}"
         elif [ "${DEVICE_INPUT_CHOICE}" = "2" ] ; then
+            echo "Selected Profile: $(cat "${PROFILE_SELECTED_FILE}")"
             echo "Device Input: Audio"
             echo "Recording audio from ${AUDIO_DEV_CHOICE}."
             echo "Audio codec: ${AUDIO_MODE_CODEC_CHOICE}"
