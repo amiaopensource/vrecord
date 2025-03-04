@@ -1892,7 +1892,15 @@ _lookup_choice(){
             MIDDLEOPTIONS_ALL+=(-color_primaries bt470bg)
             MIDDLEOPTIONS_ALL+=(-color_trc bt709)
             MIDDLEOPTIONS_ALL+=(-colorspace bt470bg) ;;
-
+        "Hi59")
+            STANDARD="Hi59"
+            DECKLINK_FPS="30000/1001"
+            if [[ "${VIDEO_CODEC_CHOICE}" = "h264" ]] ; then
+                MIDDLEOPTIONS+=(-x264opts tff)
+            fi
+            MIDDLEOPTIONS+=(-color_primaries bt709)
+            MIDDLEOPTIONS+=(-color_trc bt709)
+            MIDDLEOPTIONS+=(-colorspace bt709) ;;
         # aspect ratio options
         "4/3")
             if [[ "${STANDARD}" = "ntsc" ]] ; then
@@ -1901,6 +1909,9 @@ _lookup_choice(){
             elif [[ "${STANDARD}" = "pal " ]] ; then
                 RECORDINGFILTER+=",setsar=${PAL_43_SAR_CHOICE}"
                 RECORDINGFILTER_MP4+=",setsar=${PAL_43_SAR_CHOICE}"
+            elif [[ "${STANDARD}" = "Hi59" ]] ; then
+                RECORDINGFILTER+=",setdar=4/3"
+                RECORDINGFILTER_MP4+=",setdar=4/3"
             else
                 _report -w "Error: the standard wasn't set to an expected when it was expected to be."
             fi ;;
@@ -1911,6 +1922,9 @@ _lookup_choice(){
             elif [[ "${STANDARD}" = "pal " ]] ; then
                 RECORDINGFILTER+=",setsar=${PAL_169_SAR_CHOICE}"
                 RECORDINGFILTER_MP4+=",setsar=${PAL_169_SAR_CHOICE}"
+            elif [[ "${STANDARD}" = "Hi59" ]] ; then
+                RECORDINGFILTER+=",setdar=16/9"
+                RECORDINGFILTER_MP4+=",setdar=16/9"
             else
                 _report -w "Error: the standard wasn't set to an expected when it was expected to be."
             fi ;;
@@ -2396,7 +2410,7 @@ PAL_43_SAR_OPTIONS=("12/11" "16/15" "128/117")
 PAL_169_SAR_OPTIONS=("16/11" "64/45" "512/351")
 CHANNEL_MAPPING_OPTIONS=("2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, Channels 3 & 4 -> 2nd Track Stereo)" "1 Stereo Track (From Channels 1 & 2)" "1 Stereo Track (From Channels 3 & 4)" "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono" "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono" "Channel 1 -> Single Track Mono" "Channel 2 -> Single Track Mono")
 TIMECODE_OPTIONS=("none" "rp188vitc" "rp188vitc2" "rp188ltc" "rp188any" "vitc" "vitc2" "serial")
-STANDARD_OPTIONS=("NTSC" "PAL")
+STANDARD_OPTIONS=("NTSC" "PAL" "Hi59")
 QCTOOLSXML_OPTIONS=("Yes, concurrent with recording" "Yes, after recording" "No")
 EMBED_LOGS_OPTIONS=("Yes" "No")
 PLAYBACKVIEW_OPTIONS=("Unfiltered" "Visual" "Audio + Video" "Visual + Numerical" "Color Matrix" "Bit Planes" "Frame Positioning" "Captions")
