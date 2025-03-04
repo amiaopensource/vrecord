@@ -475,13 +475,16 @@ _setup_vrecord_input(){
     # set up input and playback
     GRAB_INPUT=()
     GRAB_INPUT+=("${EXTRAINPUTOPTIONS[@]}")
-    if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] && [[ -z "${DECKLINK_INPUT_CHOICE}" ]] && [[ -z "${ALT_INPUT}" ]] ; then
+    if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] && [[ -z "${DECKLINK_INPUT_CHOICE}" ]] && [[ -z "${ALT_INPUT}" ]] && [[ -z "${SIGNAL_INPUT}" ]]; then
         _report -w -t "The decklink input is not found."
         exit 1
     fi
     if [[ -n "${ALT_INPUT}" ]] ; then
         _set_ffmpeg_loglevel
         GRAB_INPUT+=(-i "${ALT_INPUT}")
+    elif [[ "${SIGNAL_INPUT}" = 'true' ]] ; then
+        TEST_SIGNAL_CHOICE='smptebars'
+        GRAB_INPUT+=(-f lavfi -i "${TEST_SIGNAL_CHOICE}" -f lavfi -i sine=440)
     elif [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         _set_ffmpeg_loglevel
         GRAB_INPUT+=(-f decklink)
@@ -532,7 +535,12 @@ _setup_vrecord_input(){
 _setup_vrecord_process(){
     _setup_vrecord_input
     if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
-        PIPE_OUTPUT=(-c:v copy)
+        if [[ "${SIGNAL_INPUT}" != 'true' ]] ; then
+            PIPE_OUTPUT=(-c:v copy)
+        fi
+        if [[ "${SIGNAL_INPUT}" = 'true' ]] ; then
+            PIPE_OUTPUT+=(-map 1)
+        fi
         PIPE_OUTPUT+=(-c:a pcm_s24le)
         PIPE_OUTPUT+=(-map 0)
         PIPE_OUTPUT+=(-f matroska)
@@ -556,7 +564,9 @@ _setup_vrecord_process(){
         if [[ "${RUNTYPE}" = "record" ]] ; then
             VRECORD_STEPS="2" # Steps: record | player
         else
-            if [[ "${PLAYBACKVIEW_CHOICE_PASS}" = "Audio + Video" ]] ; then
+            if [[ "${SIGNAL_INPUT}" = 'true' ]] ; then
+                VRECORD_STEPS="2" # Steps: record | player
+            elif [[ "${PLAYBACKVIEW_CHOICE_PASS}" = "Audio + Video" ]] ; then
                 VRECORD_STEPS="2" # Steps: record | player
             elif [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
                 VRECORD_STEPS="2" # Steps: record | player
@@ -574,7 +584,12 @@ _setup_vrecord_process(){
         fi
 
         RECORD_COMMAND=("${FFMPEG_BIN}")
-        RECORD_COMMAND+=(-nostdin -nostats "${TIME_LIMIT[@]}" "${TC_INPUT_OPTION[@]}" "${GRAB_INPUT[@]}")
+        if [[ "${SIGNAL_INPUT}" = 'true' ]] ; then
+            AUDIOMAP=$(sed "s/0:a:0/1:a:0/" <<< "$AUDIOMAP")
+            RECORD_COMMAND+=(-nostdin -nostats "${TIME_LIMIT[@]}" "${GRAB_INPUT[@]}")
+        else
+            RECORD_COMMAND+=(-nostdin -nostats "${TIME_LIMIT[@]}" "${TC_INPUT_OPTION[@]}" "${GRAB_INPUT[@]}")
+        fi
         if [[ -n "${VIDEOCODECNAME}" ]] ; then
             MIDDLEOPTIONS_PRES+=(-metadata:s:v:0 encoder="${VIDEOCODECNAME}")
         fi
@@ -1561,6 +1576,7 @@ _passthrough_mode(){
         echo "PLAY ${PLAYER_COMMAND[@]}"
         echo "RECORD ${RECORD_COMMAND[@]}"
     fi
+
     if [[ "${VRECORD_STEPS}" = "1" ]] ; then
         "${PLAYER_COMMAND[@]}" 2> "${VRECORD_INPUT_TMP}"
     elif [[ "${VRECORD_STEPS}" = "2" ]] ; then
@@ -2302,7 +2318,7 @@ _review_all_options(){
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":hc:erpaxnvI:O:D:i:G" opt ; do
+while getopts ":hc:erpaxnvI:O:D:i:sG" opt ; do
     case "${opt}" in
         h) _usage ; exit 0 ;;
         c) CONFIG_FILE="${OPTARG}" ;;
@@ -2317,6 +2333,7 @@ while getopts ":hc:erpaxnvI:O:D:i:G" opt ; do
         O) EXTRAOUTPUTOPTIONS=(${OPTARG}) ;;
         D) DEPENDENCYDIR=("${OPTARG}") && RUNTYPE="resetenvironment";;
         i) ALT_INPUT="${OPTARG}" ;;
+        s) SIGNAL_INPUT="true" ;;
         G) VERBOSE_GTKDIALOG="Y" ;;
         :) _report -w "Option -${OPTARG} requires an argument" ; _usage ; exit 1 ;;
         *) _report -w "Error: bad option -${OPTARG}" ; _usage ; exit 1 ;;
