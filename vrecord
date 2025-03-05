@@ -128,11 +128,8 @@ _maketemp(){
 
 _process_vars_for_gtk(){
     _include_var(){
-        while [[ "${@}" != "" ]] ; do
-            VAR_NAME="${1}"
-            VAR_VALUE="${!1}"
-            shift
-            echo "${VAR_NAME}=\"${VAR_VALUE}\"" >> "${VRECORD_VARS_FILE}"
+        for VAR_NAME in "$@"; do
+            echo "${VAR_NAME}=\"${!VAR_NAME}\"" >> "${VRECORD_VARS_FILE}"
         done
     }
     if [[ -f "${VRECORD_VARS_FILE}" ]] ; then
