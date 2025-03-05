@@ -785,7 +785,7 @@ OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
             </frame>
             <frame Player MP4Settings>
                 <text>
-                    <label>Set a custom CRF value (constant rate factor) for the h264 encoding used in the option sidecar MP4. If empty, we'll default to 21. Must be in a range of 0-51, with 51 being the most lossy.</label>
+                    <label>Set a custom CRF value (constant rate factor) for the h264 encoding used in the option sidecar MP4. If empty, we will default to 21. Must be in a range of 0-51, with 51 being the most lossy.</label>
                 </text>
                 <entry activates_default="true" tooltip-text="Intergers only from 0 to 51 please. Leave blank for the default value of 21.">
                     <default>"${MP4_CRF_VALUE}"</default>
