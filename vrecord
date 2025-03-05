@@ -151,7 +151,7 @@ _process_vars_for_gtk(){
 
     if [[ -z "${FFMPEG_BIN}" ]] ; then
         _gather_ffmpeg_vars
-        _include_var CAPTURELOGSUFFIX TIMECODELOGSUFFIX BREW_PREFIX FFMPEG_BIN FFPLAY_BIN FFPROBE_BIN
+        _include_var CAPTURELOGSUFFIX TIMECODELOGSUFFIX BREW_PREFIX FFMPEG_BIN FFPLAY_BIN
     fi
 }
 
@@ -161,7 +161,7 @@ _remove_env_vars(){
     unset VRECORD_VARS_FILE
     unset OS_TYPE RESOURCE_PATH DEFAULTFONT CORE_COUNT OPEN_COMMAND ZCAT_COMMAND COMPUTER_MODEL_NAME DIR_SELECTION_DIALOG
     unset COMPUTER_MODEL_ID COMPUTER_PROCESSOR_NAME COMPUTER_PROCESSOR_SPEED COMPUTER_PROCESSOR_COUNT COMPUTER_MEMORY COMPUTER_SERIAL
-    unset CAPTURELOGSUFFIX TIMECODELOGSUFFIX BREW_PREFIX FFMPEG_BIN FFPLAY_BIN FFPROBE_BIN GTKDIALOGBIN
+    unset CAPTURELOGSUFFIX TIMECODELOGSUFFIX BREW_PREFIX FFMPEG_BIN FFPLAY_BIN GTKDIALOGBIN
     VRECORD_VARS_FILE="/tmp/v_$(echo "${0}" | sed -e "s/[^A-Za-z0-9.]/_/g")_variables.txt"
 }
 
@@ -266,19 +266,15 @@ _gather_ffmpeg_vars(){
     if [[ -n "${FFMPEGALT}" ]] ; then
         FFMPEG_BIN="${FFMPEGALT}"
         FFPLAY_BIN=$(find "${DEPENDENCYDIR}" -iname "ffplay-dl" | head -n1)
-        FFPROBE_BIN=$(find "${DEPENDENCYDIR}" -iname "ffprobe-dl" | head -n1)
     elif which ffmpeg-dl &> /dev/null ; then
         FFMPEG_BIN="$(which ffmpeg-dl)"
-        FFPROBE_BIN="$(which ffprobe-dl)"
         FFPLAY_BIN="$(which ffplay-dl)"
     elif
         [[ -d "${BREW_PREFIX}/bin" ]] ; then
         FFMPEG_BIN="${BREW_PREFIX}/bin/ffmpeg-dl"
-        FFPROBE_BIN="${BREW_PREFIX}/bin/ffprobe-dl"
         FFPLAY_BIN="${BREW_PREFIX}/bin/ffplay-dl"
     else
         FFMPEG_BIN="$(which ffmpeg)"
-        FFPROBE_BIN="$(which ffprobe)"
         FFPLAY_BIN="$(which ffplay)"
     fi
 }
@@ -1536,7 +1532,7 @@ _edit_mode(){
         _report -dt "Note: some types of timecode are only supported if the video input is set to 'ffmpeg' and 'sdi' (currently the video input is set to '${DECKLINK_UTILITY_CHOICE}' and '${VIDEO_INPUT}')."
         _setup_vrecord_input
         for timecode_type in "${TIMECODE_OPTIONS[@]}" ; do
-            tc_value="$("${FFPROBE_BIN}" -timecode_format "${timecode_type}" "${GRAB_INPUT[@]}" -show_entries stream_tags=timecode -of default=nw=1:nk=1 2>/dev/null)"
+            tc_value="$("${FFMPEG_BIN}" -timecode_format "${timecode_type}" "${GRAB_INPUT[@]}" 2>&1 | grep " timecode " | cut -d ":" -f2- | sed 's/ //g')"
             if [[ -z "${tc_value}" ]] ; then
                 tc_value="none"
             fi
