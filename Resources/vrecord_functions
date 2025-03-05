@@ -103,6 +103,7 @@ _validate_form(){
     fi
     if [ -z "${DIR}" ] ; then
         echo "WARNING: The recording directory is not set. $(pwd) will be used."
+        DIR="$(pwd)"
     elif [ ! -d "${DIR}" ] ; then
         echo "ERROR: The recording directory (${DIR}) does not exist. Please set or $(pwd) will be used instead."
     fi
