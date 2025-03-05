@@ -138,7 +138,7 @@ _process_vars_for_gtk(){
         _include_var VRECORD_VARS_FILE
     fi
 
-    if [[ -z "${OS_TYPE}" ]] ; then
+    if [[ -z "${OS_TYPE}" || -z "${GTKDIALOGBIN}" ]] ; then
         _setup_env_variables
         _include_var OS_TYPE RESOURCE_PATH DEFAULTFONT CORE_COUNT OPEN_COMMAND ZCAT_COMMAND COMPUTER_MODEL_NAME DIR_SELECTION_DIALOG GTKDIALOGBIN
         if [[ "${OS_TYPE}" = "macOS" ]] ; then
