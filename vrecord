@@ -484,7 +484,7 @@ _setup_vrecord_input(){
         GRAB_INPUT+=(-i "${ALT_INPUT}")
     elif [[ "${SIGNAL_INPUT}" = 'true' ]] ; then
         TEST_SIGNAL_CHOICE='smptebars'
-        GRAB_INPUT+=(-f lavfi -i "${TEST_SIGNAL_CHOICE}" -f lavfi -i sine=440)
+        GRAB_INPUT+=(-f lavfi -i "${TEST_SIGNAL_CHOICE}" -f lavfi -i sine=440 -ar 48k)
     elif [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         _set_ffmpeg_loglevel
         GRAB_INPUT+=(-f decklink)
@@ -585,7 +585,7 @@ _setup_vrecord_process(){
 
         RECORD_COMMAND=("${FFMPEG_BIN}")
         if [[ "${SIGNAL_INPUT}" = 'true' ]] ; then
-            AUDIOMAP=$(sed "s/0:a:0/1:a:0/" <<< "$AUDIOMAP")
+            AUDIOMAP=$(sed "s/0:a:0/1:a:0/g" <<< "$AUDIOMAP")
             RECORD_COMMAND+=(-nostdin -nostats "${TIME_LIMIT[@]}" "${GRAB_INPUT[@]}")
         else
             RECORD_COMMAND+=(-nostdin -nostats "${TIME_LIMIT[@]}" "${TC_INPUT_OPTION[@]}" "${GRAB_INPUT[@]}")
