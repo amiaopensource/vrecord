@@ -45,6 +45,7 @@ Usage: ${SCRIPTNAME} [ -e | -r | -p | -a | -x | -n|  -v | -h ] [IDENTIFIER]
       log file, so avoid using this option with 'Visual + Numerical' or any
       playback option that display the log as part of the view.
   -h  display this help menu
+  -s  Generate a test signal and use it in place of external input
 
 Advanced options
   -I  Provide a string of input options for the recording ffmpeg to use.
@@ -484,6 +485,8 @@ _setup_vrecord_input(){
         GRAB_INPUT+=(-i "${ALT_INPUT}")
     elif [[ "${SIGNAL_INPUT}" = 'true' ]] ; then
         TEST_SIGNAL_CHOICE='smptebars'
+        VIDEO_INPUT="Test signal: ${TEST_SIGNAL_CHOICE}"
+        AUDIO_INPUT="Test signal: 440Hz"
         GRAB_INPUT+=(-f lavfi -i "${TEST_SIGNAL_CHOICE}" -f lavfi -i sine=440 -ar 48k)
     elif [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         _set_ffmpeg_loglevel
