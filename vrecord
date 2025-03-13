@@ -484,10 +484,10 @@ _setup_vrecord_input(){
         _set_ffmpeg_loglevel
         GRAB_INPUT+=(-i "${ALT_INPUT}")
     elif [[ "${SIGNAL_INPUT}" = 'true' ]] ; then
-        TEST_SIGNAL_CHOICE='smptebars'
+        TEST_SIGNAL_CHOICE='testsrc2=size=720x486:r=30000/1001'
         VIDEO_INPUT="Test signal: ${TEST_SIGNAL_CHOICE}"
         AUDIO_INPUT="Test signal: 440Hz"
-        GRAB_INPUT+=(-f lavfi -i "${TEST_SIGNAL_CHOICE}" -f lavfi -i sine=440 -ar 48k)
+        GRAB_INPUT+=(-f lavfi -i "${TEST_SIGNAL_CHOICE}" -f lavfi -i sine=440:r=48000)
     elif [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         _set_ffmpeg_loglevel
         GRAB_INPUT+=(-f decklink)
@@ -2555,6 +2555,9 @@ if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
     if [[ "${FRAMEMD5_CHOICE}" = "true" ]] ; then
         FRAMEMD5NAME="${LOGDIR}/${FULL_OUTPUT_ID}.framemd5"
         EXTRAOUTPUTS+=(-an -f framemd5 "${FRAMEMD5NAME}")
+    fi
+    if [[ "${SIGNAL_INPUT}" = 'true' ]] ; then
+            AUDIOMAP=$(sed "s/0:a:0/1:a:0/g" <<< "$AUDIOMAP")
     fi
     if [[ "${MP4_CHOICE}" = "true" ]] ; then
         if [[ -z "${MP4_CRF_VALUE}" ]] ; then
