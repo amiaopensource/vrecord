@@ -484,10 +484,11 @@ _setup_vrecord_input(){
         _set_ffmpeg_loglevel
         GRAB_INPUT+=(-i "${ALT_INPUT}")
     elif [[ "${SIGNAL_INPUT}" = 'true' ]] ; then
-        TEST_SIGNAL_CHOICE='testsrc2=size=720x486:r=30000/1001'
+        TEST_SIGNAL_CHOICE='testsrc=size=720x486:r=30000/1001'
         VIDEO_INPUT="Test signal: ${TEST_SIGNAL_CHOICE}"
         AUDIO_INPUT="Test signal: 440Hz"
         GRAB_INPUT+=(-f lavfi -i "${TEST_SIGNAL_CHOICE}" -f lavfi -i sine=440:r=48000)
+        GRAB_INPUT+=(-pix_fmt yuv422p10le)
     elif [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         _set_ffmpeg_loglevel
         GRAB_INPUT+=(-f decklink)
@@ -2680,6 +2681,7 @@ if [[ "${VERBOSE_GTKDIALOG}" = "Y" ]] ; then
     echo "STEPS ${VRECORD_STEPS}"
     echo "PLAY ${PLAYER_COMMAND[@]}"
     echo "RECORD ${RECORD_COMMAND[@]}"
+    echo "QCLI ${QCLI_COMMAND_PIPE[@]}"
 fi
 if [[ "${VRECORD_STEPS}" = "2" ]] ; then
     _writeingestlog "Record command" "${RECORD_COMMAND[@]}"
