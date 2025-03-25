@@ -6,10 +6,36 @@
 VERSION="2024-10-18"
 SCRIPTNAME="$(basename "${0}")"
 SCRIPTDIR="$(dirname "${0}")"
-CONFIG_FILE="${HOME}/.${SCRIPTNAME}.conf"
+PROFILE_DIR="${HOME}/.vrecord_profiles"
+PROFILE_SELECTED_FILE="${PROFILE_DIR}/selected_profile.txt"
 SAT_OUTLIER_THRSHLD=14
 AUD_OUTLIER_THRSHLD=10
 BRNG_OUTLIER_THRSHLD=14
+
+_update_profile(){
+    # steps to upgrade profile management
+    OLD_CONFIG_FILE="${HOME}/.${SCRIPTNAME}.conf"
+    NEW_CONFIG_NAME="Primary Profile"
+    NEW_CONFIG_FILE="${PROFILE_DIR}/${NEW_CONFIG_NAME}.conf"
+    if [[ ! -d "${PROFILE_DIR}" ]] ; then
+        mkdir "${PROFILE_DIR}"
+        if [[ -f "${OLD_CONFIG_FILE}" ]] ; then
+            mv -n "${OLD_CONFIG_FILE}" "${NEW_CONFIG_FILE}"
+            echo "${NEW_CONFIG_NAME}" > "${PROFILE_SELECTED_FILE}"
+        fi
+    fi
+    if [[ -f "${PROFILE_SELECTED_FILE}" ]] ; then
+        LOADED_PROFILE="$(cat "${PROFILE_SELECTED_FILE}")"
+        echo "${PROFILE_DIR}/${LOADED_PROFILE}.conf"
+        >&2 echo "Loading the profile: ${LOADED_PROFILE}"
+    else
+        if [[ -d "${PROFILE_DIR}" ]] ; then
+            echo "${PROFILE_DIR}/$(ls -1 "${PROFILE_DIR}/*.conf" | head -n 1)"
+        else
+            echo "${PROFILE_DIR}/${NEW_CONFIG_FILE}.conf"
+        fi
+    fi
+}
 
 _usage(){
     cat <<EOF
@@ -24,12 +50,11 @@ Dependencies: cowsay, amiaopensource/amiaos/decklinksdk,
   xmlstarlet
 Optional Dependencies: deckcontrol, gnuplot, mediaconch, mkvtoolnix, mpv, qcli
 
-Usage: ${SCRIPTNAME} [ -e | -r | -p | -a | -x | -n|  -v | -h ] [IDENTIFIER]
+Usage: ${SCRIPTNAME} [ -r | -p | -a | -x | -n|  -v | -h ] [IDENTIFIER]
 
   IDENTIFIER will be used for the filenaming of the output files. It is only
   required in record mode.
 
-  -e  edit the configuration file before recording
   -r  enable record mode [default]
   -p  enable passthrough mode where the video signal coming into the computer
       can be monitored, but not written to a file. Useful for testing equipment
@@ -37,7 +62,7 @@ Usage: ${SCRIPTNAME} [ -e | -r | -p | -a | -x | -n|  -v | -h ] [IDENTIFIER]
   -a  enable audio passthrough mode. Identical to passthrough except for the
       addition of audio bars. Note: Will eventually lag and crash if left on
       too long.
-  -x  reset the configuration: this will replace the default configuration file
+  -x  reset the configuration: this will replace the selected configuration file
       at '${CONFIG_FILE}' with an empty one.
   -n  reset Vrecord's stored environment variables. These include
       variables such as the paths to certain dependencies such as ffmpeg-dl.
@@ -58,7 +83,7 @@ Advanced options
   -D  Provide a path to a directory containing dependencies to override
       Vrecord's default dependency paths. These new paths will be stored in
       Vrecord's environmental variables.
-  -c  Provide a recording configuration file, rather than the default one at
+  -c  Provide a recording configuration file, rather than the selected one at
       '${CONFIG_FILE}'.
 
 See also the man page: man ${SCRIPTNAME}
@@ -138,7 +163,7 @@ _process_vars_for_gtk(){
     if [[ -f "${VRECORD_VARS_FILE}" ]] ; then
         . "${VRECORD_VARS_FILE}"
     else
-        _include_var VRECORD_VARS_FILE
+        _include_var VRECORD_VARS_FILE PROFILE_DIR PROFILE_SELECTED_FILE
     fi
 
     if [[ -z "${OS_TYPE}" ]] ; then
@@ -370,11 +395,45 @@ _check_mpv(){
 }
 
 _gtk_vbox_list() {
+    local OPTIND OPTARG
+    OPTION_STYLE="list" #default
+    while getopts "s:" opt ; do
+        case "${opt}" in
+            s) OPTION_STYLE="${OPTARG}" ;;
+        esac
+    done
+    shift "$((OPTIND-1))"
     VARIABLE_NAME="${1}"
     WIDTH="${2}"
     LABEL="${3}"
     shift 3
     OPTION_LIST=("${@}")
+
+    _expand_list2items(){
+      LIST=( "$@" )
+      for i in "${LIST[@]}" ; do
+          echo "<item>${i}</item>"
+      done
+    }
+    _get_index_of_value(){
+      # run with function, value to look for as first argument, and array to look in as 2nd argument, such function as
+      # _get_index_of_value "${VIDEO_INPUT_CHOICE}" "${VIDEO_INPUT_OPTIONS[@]}"
+      VALUE="${1}"
+      shift
+      LIST=( "$@" )
+      INDEX=0
+      MATCH=""
+      for ITEM in "${LIST[@]}" ; do
+          if [[ "${VALUE}" = "${ITEM}" ]] ; then
+              MATCH="$INDEX"
+          fi
+          (( ++INDEX ))
+      done
+      if [[ -n "${MATCH}" ]] ; then
+          echo -n "${MATCH}"
+      fi
+    }
+
     SELECTION="$(_get_index_of_value "${!VARIABLE_NAME}" "${OPTION_LIST[@]}")"
     if [[ "${VARIABLE_NAME}" == "DECKLINK_INPUT_CHOICE" ]] ; then
         LIST="<input>_get_decklink_input_list</input>"
@@ -382,6 +441,8 @@ _gtk_vbox_list() {
         LIST="<input>_get_dvrescue_input_list</input>"
     elif [[ "${VARIABLE_NAME}" == "AUDIO_DEV_CHOICE" ]] ; then
         LIST="<input>_get_audio_device_list</input>"
+    elif [[ "${VARIABLE_NAME}" == "SELECTED_PROFILE" ]] ; then
+        LIST="<input>_get_profile_list</input>"
     else
         LIST="$(_expand_list2items "${OPTION_LIST[@]}")"
     fi
@@ -404,6 +465,9 @@ _gtk_vbox_list() {
         elif [[ "${VARIABLE_NAME}" == "DV_CONTAINER_CHOICE" ]] && $DVPACKAGER_INSTALLED ; then
             echo '<action condition="command_is_true( [ \"$DV_CONTAINER_CHOICE\" = \"DV\" ] && echo true)">disable:DV_RESCUE_OPTION_TC</action>
                 <action condition="command_is_true( [ \"$DV_CONTAINER_CHOICE\" != \"DV\" ] && echo true)">enable:DV_RESCUE_OPTION_TC</action>'
+        elif [[ "${VARIABLE_NAME}" == "SELECTED_PROFILE" ]] ; then
+            echo '<action>echo "$SELECTED_PROFILE" > "'$PROFILE_SELECTED_FILE'"</action>
+                  <action type="refresh">VRECORD_SETTINGS_SUMMARY</action>'
         fi
     }
 
@@ -445,16 +509,26 @@ _gtk_vbox_list() {
         fi
     }
 
+    if [[ "${OPTION_STYLE}" == "list" ]] ; then
+        OPTION_ATTRIBUTES=" selection-mode=\"1\" selected-row=\"${SELECTION}\""
+        OPTION_ELEMENTS="<width>${WIDTH}</width>"
+    elif [[ "${OPTION_STYLE}" == "comboboxtext" ]] ; then
+        unset OPTION_ATTRIBUTES
+        if [[ -n "${!VARIABLE_NAME}" ]] ; then
+            OPTION_ELEMENTS="<default>${!VARIABLE_NAME}</default>"
+        fi
+    fi
+
     echo "<vbox space-fill=\"true\">
       <text>
           <label>${LABEL}</label>
       </text>
-      <list selection-mode=\"1\" selected-row=\"${SELECTION}\">
-          <width>${WIDTH}</width>
+      <${OPTION_STYLE}${OPTION_ATTRIBUTES}>
           <variable>${VARIABLE_NAME}</variable>
+          ${OPTION_ELEMENTS}
           ${LIST}
           $(_get_list_extras)
-      </list>
+      </${OPTION_STYLE}>
       $(_get_vbox_extras)
     </vbox>"
 }
@@ -702,31 +776,6 @@ _get_audio_dev_num(){
 }
 
 _set_up_edit_form() {
-  _expand_list2items(){
-    LIST=( "$@" )
-    for i in "${LIST[@]}" ; do
-        echo "<item>${i}</item>"
-    done
-  }
-  _get_index_of_value(){
-    # run with function, value to look for as first argument, and array to look in as 2nd argument, such function as
-    # _get_index_of_value "${VIDEO_INPUT_CHOICE}" "${VIDEO_INPUT_OPTIONS[@]}"
-    VALUE="${1}"
-    shift
-    LIST=( "$@" )
-    INDEX=0
-    MATCH=""
-    for ITEM in "${LIST[@]}" ; do
-        if [[ "${VALUE}" = "${ITEM}" ]] ; then
-            MATCH="$INDEX"
-        fi
-        (( ++INDEX ))
-    done
-    if [[ -n "${MATCH}" ]] ; then
-        echo -n "${MATCH}"
-    fi
-  }
-
 # initialize deckcontrol temp files
 FFMPEG_STATUS_TMP="$(_maketemp .ffmpeg.status.txt)"
 DECKCONTROL_STATUS_TMP="$(_maketemp .deckcontrol.status.txt)"
@@ -736,9 +785,6 @@ echo "" > "${FFMPEG_STATUS_TMP}"
 echo "disabled" > "$DECKCONTROL_STATUS_TMP"
 echo "--:--:--:--" > "$DECKCONTROL_TIMECODE_TMP"
 echo "disabled" > "$DVRESCUE_STATUS_TMP"
-
-STARTUP_VIEW_TMP=$(_maketemp .startup.txt)
-echo "MAIN" > "${STARTUP_VIEW_TMP}"
 
 SIDECAR_FILES_GUI="
 <frame Sidecar file options>
@@ -1208,6 +1254,40 @@ AUDIO_INPUT_GUI=$(cat << AUDIO_INPUT_FORM
 AUDIO_INPUT_FORM
 )
 
+export SETTINGS_DIALOG='
+<window title="Edit settings for Selected Profile"
+ modal="true">
+    <vbox scrollable="true" width="1420" height="620" shadow-type="0">
+            <frame Input Options>
+            <notebook page="'"${DEVICE_INPUT_CHOICE}"'" tab-labels="Decklink|DV|Audio|Config">
+                '"${DECKLINK_INPUT_GUI}"'
+                '"${DVRESCUE_INPUT_GUI}"'
+                '"${AUDIO_INPUT_GUI}"'
+                '"${OPTIONAL_TOOLS_GUI}"'
+                <variable>DEVICE_INPUT_CHOICE</variable>
+                <action signal="button-release-event" type="refresh">VRECORD_OUTPUT_NAME</action>
+                <action signal="button-release-event" condition="command_is_true( [ \"${DEVICE_INPUT_CHOICE}\" != 3 -a -n \"${ID}\" ] && echo true)">enable:record_button</action>
+                <action signal="button-release-event" condition="command_is_true( [ \"${DEVICE_INPUT_CHOICE}\" =  3 -o -z \"${ID}\" ] && echo true)">disable:record_button</action>
+                <action signal="button-release-event" condition="command_is_true( [ \"${DEVICE_INPUT_CHOICE}\" != 3 -a -n \"${ID}\" ] && echo true)">enable:record_button_main</action>
+                <action signal="button-release-event" condition="command_is_true( [ \"${DEVICE_INPUT_CHOICE}\" =  3 -o -z \"${ID}\" ] && echo true)">disable:record_button_main</action>
+                <action signal="button-release-event" condition="command_is_true( [ \"${DEVICE_INPUT_CHOICE}\" != 3 ] && echo true)">enable:passthrough_button</action>
+                <action signal="button-release-event" condition="command_is_true( [ \"${DEVICE_INPUT_CHOICE}\" =  3 ] && echo true)">disable:passthrough_button</action>
+            </notebook>
+        </frame>
+        <hbox>
+            <button>
+                <label>Save Settings</label>
+                <input file stock="gtk-save"></input>
+                <variable export="false">save_button</variable>
+                <action>_update_config_file</action>
+                <action function="closewindow">INPUTSETTINGS</action>
+            </button>
+        </hbox>
+        <variable export="false">INPUTSETTINGS</variable>
+        <action type="exit">_update_config_file</action>
+    </vbox>
+</window>'
+
 export MAIN_DIALOG='
 <window title="Welcome to Vrecord!">
     <vbox shadow-type="0">
@@ -1234,14 +1314,6 @@ export MAIN_DIALOG='
                         <action type="exit">audiopassthrough</action>
                     </button>
                     <button image-position="Top">
-                        <label>Edit Settings</label>
-                        <width>100</width>
-                        <input file>"'"${RESOURCE_PATH}/vrecord_logo_edit.png"'"</input>
-                        <action type="show">INPUTSETTINGS</action>
-                        <action type="hide">MAIN</action>
-                        <action>echo "INPUTSETTINGS" > "'"$STARTUP_VIEW_TMP"'"</action>
-                    </button>
-                    <button image-position="Top">
                         <label>Help</label>
                         <width>100</width>
                         <input file>"'"${RESOURCE_PATH}/vrecord_logo_help.png"'"</input>
@@ -1256,6 +1328,34 @@ export MAIN_DIALOG='
                 </hbox>
             </vbox>
             <vbox space-expand="true">
+                <hbox>
+                    '$(_gtk_vbox_list -s comboboxtext "SELECTED_PROFILE"    "120" "Selected Profile"             "${DECKLINK_DEVICES[@]}")'
+                    <button>
+                        <label>Edit</label>
+                        <input file stock="gtk-index"></input>
+                        <variable export="false">settings_button</variable>
+                        <action function="launch">SETTINGS_DIALOG</action>
+                    </button>
+                    <hbox>
+                        <vbox>
+                            <text>
+                                <label>New Profile Name</label>
+                            </text>
+                            <entry>
+                                <variable>NEW_PROFILE</variable>
+                            </entry>
+                        </vbox>
+                        <button>
+                            <label>Edit New</label>
+                            <input file stock="gtk-new"></input>
+                            <variable export="false">NEW_PROFILE_BUTTON</variable>
+                            <action>{ echo $NEW_PROFILE > "'$PROFILE_SELECTED_FILE'" ; touch "'${PROFILE_DIR}/'"$NEW_PROFILE"'.conf'" ; } &</action>
+                            <action type="refresh">SELECTED_PROFILE</action>
+                            <action function="launch">SETTINGS_DIALOG</action>
+                        </button>
+                    </hbox>
+                    <hbox space-expand="true" space-fill="true"><text><label>""</label></text></hbox>
+                </hbox>
                 <frame Settings Summary>
                     <vbox scrollable="true" height="320">
                         <text wrap="false" xalign="0">
@@ -1268,25 +1368,6 @@ export MAIN_DIALOG='
             <variable export="false">MAIN</variable>
             <action signal="show" type="refresh">VRECORD_SETTINGS_SUMMARY</action>
         </vbox>
-        <vbox scrollable="true" width="1420" height="520" shadow-type="0">
-            <frame Input Options>
-            <notebook page="'"${DEVICE_INPUT_CHOICE}"'" tab-labels="Decklink|DV|Audio|Config">
-                '"${DECKLINK_INPUT_GUI}"'
-                '"${DVRESCUE_INPUT_GUI}"'
-                '"${AUDIO_INPUT_GUI}"'
-                '"${OPTIONAL_TOOLS_GUI}"'
-                <variable>DEVICE_INPUT_CHOICE</variable>
-                <action signal="button-release-event" type="refresh">VRECORD_OUTPUT_NAME</action>
-                <action signal="button-release-event" condition="command_is_true( [ \"${DEVICE_INPUT_CHOICE}\" != 3 -a -n \"${ID}\" ] && echo true)">enable:record_button</action>
-                <action signal="button-release-event" condition="command_is_true( [ \"${DEVICE_INPUT_CHOICE}\" =  3 -o -z \"${ID}\" ] && echo true)">disable:record_button</action>
-                <action signal="button-release-event" condition="command_is_true( [ \"${DEVICE_INPUT_CHOICE}\" != 3 -a -n \"${ID}\" ] && echo true)">enable:record_button_main</action>
-                <action signal="button-release-event" condition="command_is_true( [ \"${DEVICE_INPUT_CHOICE}\" =  3 -o -z \"${ID}\" ] && echo true)">disable:record_button_main</action>
-                <action signal="button-release-event" condition="command_is_true( [ \"${DEVICE_INPUT_CHOICE}\" != 3 ] && echo true)">enable:passthrough_button</action>
-                <action signal="button-release-event" condition="command_is_true( [ \"${DEVICE_INPUT_CHOICE}\" =  3 ] && echo true)">disable:passthrough_button</action>
-            </notebook>
-        </frame>
-        <variable export="false">INPUTSETTINGS</variable>
-    </vbox>
     <vbox>
         <hbox>
             <frame Select a recording directory>
@@ -1316,12 +1397,6 @@ export MAIN_DIALOG='
                     </button>
                 </hbox>
             </frame>
-            <entry visible="false">
-                <variable>STARTUP_VIEW</variable>
-                <default>'"${STARTUP_VIEW:-MAIN}"'</default>
-                <input file>'"${STARTUP_VIEW_TMP}"'</input>
-                <action type="refresh">STARTUP_VIEW</action>
-            </entry>
         </hbox>
         <hbox>
             <frame Recording event options>
@@ -1419,26 +1494,6 @@ export MAIN_DIALOG='
         </vbox>
     </vbox>
         <hbox space-expand="false" space-fill="false">
-            <button>
-                <label>Home</label>
-                <input file stock="gtk-index"></input>
-                <variable export="false">home_button</variable>
-                <action>_update_config_file</action>
-                <action type="show">MAIN</action>
-                <action type="hide">INPUTSETTINGS</action>
-                <action>echo "MAIN" > "'"$STARTUP_VIEW_TMP"'"</action>
-                <action type="refresh">STARTUP_VIEW</action>
-            </button>
-            <button>
-                <label>Settings</label>
-                <input file stock="gtk-index"></input>
-                <variable export="false">settings_button</variable>
-                <action>_update_config_file</action>
-                <action type="show">INPUTSETTINGS</action>
-                <action type="hide">MAIN</action>
-                <action>echo "INPUTSETTINGS" > "'"$STARTUP_VIEW_TMP"'"</action>
-                <action type="refresh">STARTUP_VIEW</action>
-            </button>
             <hbox space-expand="true" space-fill="true"><text><label>""</label></text></hbox>
             <button>
                 <label>Record</label>
@@ -1471,13 +1526,12 @@ export MAIN_DIALOG='
         </hbox>
     </vbox>
     <variable export="false">MAIN_DIALOG</variable>
-    <action signal="realize" type="show">MAIN</action>
-    <action signal="realize" type="hide">INPUTSETTINGS</action>
-    <action signal="realize" condition="command_is_true( [ \"$STARTUP_VIEW\" = \"INPUTSETTINGS\" ] && echo true)" type="show">INPUTSETTINGS</action>
-    <action signal="realize" condition="command_is_true( [ \"$STARTUP_VIEW\" = \"INPUTSETTINGS\" ] && echo true)" type="hide">MAIN</action>
     <action signal="show" type="refresh">VRECORD_FORM_VALIDATION</action>
+    <action signal="show" type="refresh">VRECORD_SETTINGS_SUMMARY</action>
     <action signal="enter-notify-event" type="refresh">VRECORD_FORM_VALIDATION</action>
+    <action signal="enter-notify-event" type="refresh">VRECORD_SETTINGS_SUMMARY</action>
     <action signal="leave-notify-event" type="refresh">VRECORD_FORM_VALIDATION</action>
+    <action signal="leave-notify-event" type="refresh">VRECORD_SETTINGS_SUMMARY</action>
     <action signal="show" type="refresh">VRECORD_OUTPUT_NAME</action>
     <action signal="show" condition="command_is_true(echo \"$AUDIO_DEV_CHOICE\" | grep -vq Blackmagic && echo true)">enable:AUDIO_MODE_SR_CHOICE</action>
     <action signal="show" condition="command_is_true(echo \"$AUDIO_DEV_CHOICE\" | grep -q Blackmagic && echo true)">disable:AUDIO_MODE_SR_CHOICE</action>
@@ -1493,14 +1547,19 @@ export MAIN_DIALOG='
 
 # edit mode
 _edit_mode(){
+    CONFIG_FILE="$(_update_profile)"
+    SELECTED_PROFILE="$(cat "${PROFILE_SELECTED_FILE}")"
+    . "${CONFIG_FILE}"
     _set_up_edit_form
-
     # run the edit form in gtkdialog
+    export SETTINGS_DIALOG
     MAIN_DIALOG_TMP="${MAIN_DIALOG}"
 
+    echo "$MAIN_DIALOG" > /tmp/main
+    mate /tmp/main
+    
     GTK_INC="$(_maketemp .vrecord.gtkdialog.inc)"
     cat "${VRECORD_VARS_FILE}" > "${GTK_INC}"
-    echo "CONFIG_FILE=${CONFIG_FILE}" >> "${GTK_INC}"
     cat "${SHARED_FUNCTIONS_FILE}" >> "${GTK_INC}"
 
     if [[ "${VERBOSE_GTKDIALOG}" = "Y" ]] ; then
@@ -1525,6 +1584,8 @@ _edit_mode(){
     elif [[ "${EXIT}" = "audiopassthrough" ]] ; then
         RUNTYPE="audiopassthrough"
     elif [[ "${EXIT}" = "refresh" ]] ; then
+        RUNTYPE="edit"
+    elif [[ "${EXIT}" = "switch_profile" ]] ; then
         RUNTYPE="edit"
     elif [[ "${EXIT}" = "timecode_scan" ]] ; then
         _report -dt "Scanning each supported type of timecode."
@@ -2296,13 +2357,31 @@ _review_all_options(){
     fi
 }
 
+_upgrade_config_file(){
+    # update value because the framemd5 choice changed from a yes/no picklist to a boolean as was the case in version 2023-08-07 and earlier
+    if [[ -n "$(grep "FRAMEMD5_CHOICE=\"[YN]" "${CONFIG_FILE}")" ]] ; then
+        sed 's|FRAMEMD5_CHOICE="No"|FRAMEMD5_CHOICE="false"|g;s|FRAMEMD5_CHOICE="Yes"|FRAMEMD5_CHOICE="true"|g' > "${CONFIG_FILE}tmp" < "${CONFIG_FILE}"
+        mv -v "${CONFIG_FILE}tmp" "${CONFIG_FILE}"
+    fi
+}
+
+CONFIG_FILE="$(_update_profile)"
+SELECTED_PROFILE="$(cat "${PROFILE_SELECTED_FILE}")"
+if [[ -f "${CONFIG_FILE}" ]] ; then
+    _upgrade_config_file
+    . "${CONFIG_FILE}"
+else
+    _report -d "Initializing the configuration file at ${CONFIG_FILE}."
+    RUNTYPE="edit"
+fi
+
 # command-line options to set media id and original variables
 OPTIND=1
 while getopts ":hc:erpaxnvI:O:D:i:G" opt ; do
     case "${opt}" in
         h) _usage ; exit 0 ;;
         c) CONFIG_FILE="${OPTARG}" ;;
-        e) RUNTYPE="edit" ;;
+        e) : ;; # edit mode is deprecated
         r) RUNTYPE="record" ;;
         p) RUNTYPE="passthrough" ;;
         a) RUNTYPE="audiopassthrough" ;;
@@ -2346,23 +2425,6 @@ MKVPROPEDIT_INSTALLED="$(if command -v mkvpropedit >/dev/null ; then echo true ;
 MPV_INSTALLED="$(if command -v mpv >/dev/null ; then echo true ; else echo false ; fi)"
 QCLI_INSTALLED="$(if command -v qcli >/dev/null ; then echo true ; else echo false ; fi)"
 DVPACKAGER_INSTALLED="$(if command -v dvpackager >/dev/null ; then echo true ; else echo false ; fi)"
-
-_upgrade_config_file(){
-    # update value because the framemd5 choice changed from a yes/no picklist to a boolean as was the case in version 2023-08-07 and earlier
-    if [[ -n "$(grep "FRAMEMD5_CHOICE=\"[YN]" "${CONFIG_FILE}")" ]] ; then
-        sed 's|FRAMEMD5_CHOICE="No"|FRAMEMD5_CHOICE="false"|g;s|FRAMEMD5_CHOICE="Yes"|FRAMEMD5_CHOICE="true"|g' > "${CONFIG_FILE}tmp" < "${CONFIG_FILE}"
-        mv "${CONFIG_FILE}tmp" "${CONFIG_FILE}"
-    fi
-}
-
-if [[ -f "${CONFIG_FILE}" ]] ; then
-    _upgrade_config_file
-    . "${CONFIG_FILE}"
-else
-    _report -d "Initializing the configuration file at ${CONFIG_FILE}."
-    RUNTYPE="edit"
-    STARTUP_VIEW="INPUTSETTINGS"
-fi
 
 _get_inputs
 
@@ -2414,7 +2476,6 @@ if [[ "${RUNTYPE}" = "reset" ]] ; then
         _report -d "Clearing ${CONFIG_FILE}."
         echo -n "" > "${CONFIG_FILE}"
         RUNTYPE="edit"
-        STARTUP_VIEW="INPUTSETTINGS"
     else
         _report -d "Reset aborted. Exiting."
         exit 0
@@ -2433,7 +2494,6 @@ if [[ "${RUNTYPE}" = "resetenvironment" ]] ; then
         _remove_env_vars
         _process_vars_for_gtk
         RUNTYPE="edit"
-        STARTUP_VIEW="INPUTSETTINGS"
     else
         _report -d "Reset aborted. Exiting."
         exit 0
@@ -2441,7 +2501,6 @@ if [[ "${RUNTYPE}" = "resetenvironment" ]] ; then
 fi
 
 while [[ "${RUNTYPE}" = "edit" ]] ; do
-    STARTUP_VIEW="INPUTSETTINGS"
     _edit_mode
 done
 
