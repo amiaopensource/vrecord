@@ -1725,11 +1725,13 @@ _lookup_choice(){
 
         # container
         "QuickTime")
+            _add_mediaconch_rule_set "${CONTAINER_QUICKTIME_TEST}"
             EXTENSION="mov"
             DV_EXTENSION="mov"
             MIDDLEOPTIONS_PRES+=(-movflags write_colr)
             FORMAT="mov" ;;
         "Matroska")
+            _add_mediaconch_rule_set "${CONTAINER_MATROSKA_TEST}"
             EXTENSION="mkv"
             DV_EXTENSION="mkv"
             FORMAT="matroska" ;;
@@ -1749,6 +1751,7 @@ _lookup_choice(){
 
         # video codec
         "Uncompressed Video")
+            _add_mediaconch_rule_set "${CODEC_UNCOMPRESSED_TEST}"
             if [[ "${PIXEL_FORMAT}" = "yuv422p10" ]] ; then
                 VIDEOCODECNAME="Uncompressed 10-bit 4:2:2"
                 MIDDLEOPTIONS_PRES+=(-c:v v210)
@@ -1757,6 +1760,7 @@ _lookup_choice(){
                 MIDDLEOPTIONS_PRES+=(-c:v rawvideo -pix_fmt uyvy422 -tag:v 2vuy)
             fi ;;
         "FFV1 version 3")
+            _add_mediaconch_rule_set "${CODEC_FFV1_TEST}"
             VIDEOCODECNAME="FFV1 version 3"
             MIDDLEOPTIONS_PRES+=(-c:v ffv1 -level 3 -g 1 -slices "${FFV1_SLICE_CHOICE}" -slicecrc 1)
             SUFFIX="_ffv1" ;;
@@ -1869,6 +1873,7 @@ _lookup_choice(){
         "NTSC")
             STANDARD="ntsc"
             DECKLINK_FPS="30000/1001"
+            _add_mediaconch_rule_set "${STANDARD_NTSC_TEST}"
             if [[ "${VIDEO_CODEC_CHOICE}" = "h264" ]] ; then
                 RECORDINGFILTER+=",crop=w=720:h=480:x=0:y=4,"
                 MIDDLEOPTIONS_PRES+=(-x264opts bff)
@@ -1881,6 +1886,7 @@ _lookup_choice(){
         "PAL")
             STANDARD="pal "
             DECKLINK_FPS="25000/1000"
+            _add_mediaconch_rule_set "${STANDARD_PAL_TEST}"
             if [[ "${VIDEO_CODEC_CHOICE}" = "h264" ]] ; then
                 MIDDLEOPTIONS_PRES+=(-x264opts tff)
             fi
@@ -2296,6 +2302,130 @@ _review_all_options(){
     fi
 }
 
+# Define mediaconch test fragments - start
+CONTAINER_GENERAL_TEST='
+    <rule name="Is the video stream first?" value="StreamOrder" tracktype="Video" operator="=">0</rule>
+    <rule name="Is the audio stream on track 2?" value="StreamOrder" tracktype="Audio" operator="=">1</rule>
+'
+CONTAINER_QUICKTIME_TEST='
+    <rule name="Is the file extension mov?" value="FileExtension" tracktype="General" operator="=">mov</rule>
+    <rule name="Is the format MPEG-4?" value="Format" tracktype="General" operator="=">MPEG-4</rule>
+    <rule name="Is the format profile QuickTime?" value="Format_Profile" tracktype="General" operator="=">QuickTime</rule>
+    <rule name="Is the codec ID qt  ?" value="CodecID" tracktype="General" operator="=">qt  </rule>
+'
+
+CONTAINER_MATROSKA_TEST='
+    <rule name="Is the file extension mkv?" value="FileExtension" tracktype="General" operator="=">mkv</rule>
+    <rule name="Is it Matroska?" value="Format" tracktype="General" operator="=">Matroska</rule>
+    <rule name="Matroska version 4 or greater?" value="Format_Version" tracktype="General" operator="&gt;=">4</rule>
+    <rule name="Unique ID is present?" value="UniqueID" tracktype="General"/>
+    <policy type="and" name="Has Matroska finished writing?">
+        <rule name="Duration is greater than zero?" scope="mmt" operator="&gt;" value="Segment/Info/Duration/Data">0</rule>
+        <rule name="SeekHead is present?" scope="mmt" value="Segment/SeekHead/"/>
+        <rule name="Cues is present?" scope="mmt" value="Segment/Cues/"/>
+        <policy type="and" name="Select Top-Level Elements have CRCs?">
+            <rule name="SeekHead CRC-32 is present?" scope="mmt" value="Segment/SeekHead/CRC-32/"/>
+            <rule name="Info CRC-32 is present?" scope="mmt" value="Segment/Info/CRC-32/"/>
+            <rule name="Tracks CRC-32 is present?" scope="mmt" value="Segment/Tracks/CRC-32/"/>
+            <rule name="Cluster CRC-32 is present?" scope="mmt" value="Segment/Cluster/CRC-32/"/>
+            <rule name="Cues CRC-32 is present?" scope="mmt" value="Segment/Cues/CRC-32/"/>
+            <rule name="Tags CRC-32 is present?" scope="mmt" value="Segment/Tags/CRC-32/"/>
+        </policy>
+    </policy>
+'
+
+CODEC_GENERAL_TEST='
+    <rule name="Is the video format YUV?" value="Format" tracktype="Video" operator="=">YUV</rule>
+    <rule name="Is the bitrate mode CBR?" value="BitRate_Mode" tracktype="Video" operator="=">CBR</rule>
+    <rule name="Is the frame rate mode constant?" value="FrameRate_Mode" tracktype="Video" operator="=">CFR</rule>
+    <rule name="Is the color space YUV?" value="ColorSpace" tracktype="Video" operator="=">YUV</rule>
+    <policy type="or" name="Is the video bit depth 8 or 10?">
+        <rule name="Is the video 2yuv?" value="CodecID" tracktype="Video" operator="=">2vuy</rule>
+        <!--MediaInfo library does not currently store explicit video BitDepth value for 2yuv-->
+        <rule name="Is the video bit depth 8?" value="BitDepth" tracktype="Video" operator="=">8</rule>
+        <rule name="Is the video bit depth 10?" value="BitDepth" tracktype="Video" operator="=">10</rule>
+    </policy>
+    <rule name="Is the video interlaced?" value="ScanType" tracktype="Video" operator="=">Interlaced</rule>
+'
+
+CODEC_UNCOMPRESSED_TEST='
+    <policy type="or" name="Is the Codec ID v210 or 2vuy?">
+        <rule name="Is the Codec ID v210?" value="CodecID" tracktype="Video" operator="=">v210</rule>
+        <rule name="Is the Codec ID 2vuy?" value="CodecID" tracktype="Video" operator="=">2vuy</rule>
+    </policy>
+'
+
+CODEC_FFV1_TEST='
+    <rule name="Is the video format FFV1?" value="Format" tracktype="Video" operator="=">FFV1</rule>
+    <rule name="FFV1 is version 3.4 or later?" value="Format_Version" tracktype="Video" operator="&gt;=">3.4</rule>
+    <rule name="FFV1 is encoded in GOP size of 1?" value="Format_Settings_GOP" tracktype="Video" operator="=">N=1</rule>
+'
+
+STANDARD_NTSC_TEST='
+    <policy type="and" name="Is it NTSC?">
+        <rule name="Is the height 486?" value="Height" tracktype="Video" operator="=">486</rule>
+        <rule name="Is the width 720?" value="Width" tracktype="Video" operator="=">720</rule>
+        <rule name="Is the frame rate 29.970?" value="FrameRate" tracktype="Video" operator="=">29.970</rule>
+        <rule name="Is the scan order bottom field first?" value="ScanOrder" tracktype="Video" operator="=">BFF</rule>
+        <rule name="Are the colour primaries BT.601 NTSC?" value="colour_primaries" tracktype="Video" operator="=">BT.601 NTSC</rule>
+        <rule name="Are the matrix coefficients BT.601?" value="matrix_coefficients" tracktype="Video" operator="=">BT.601</rule>
+    </policy>
+'
+
+STANDARD_PAL_TEST='
+    <policy type="and" name="Is it PAL?">
+        <rule name="Is the height 576?" value="Height" tracktype="Video" operator="=">576</rule>
+        <rule name="Is the width 720?" value="Width" tracktype="Video" operator="=">720</rule>
+        <rule name="Is the frame rate 25.000?" value="FrameRate" tracktype="Video" operator="=">25.000</rule>
+        <rule name="Is the scan order top field first?" value="ScanOrder" tracktype="Video" operator="=">TFF</rule>
+        <rule name="Are the colour primaries BT.601 PAL?" value="colour_primaries" tracktype="Video" operator="=">BT.601 PAL</rule>
+        <policy type="or" name="Are the matrix coefficients BT.601, BT.470 System B, BT.470 System G?">
+            <rule name="Are the matrix coefficients BT.470 System B, BT.470 System G?" value="matrix_coefficients" tracktype="Video" operator="=">BT.470 System B, BT.470 System G</rule>
+            <rule name="Are the matrix coefficients BT.470 System B/G?" value="matrix_coefficients" tracktype="Video" operator="=">BT.470 System B/G</rule>
+            <rule name="Are the matrix coefficients BT.601?" value="matrix_coefficients" tracktype="Video" operator="=">BT.601</rule>
+        </policy>
+    </policy>
+'
+
+AUDIO_CODEC_TEST='
+    <policy type="or" name="Is the audio PCM or FLAC or AAC?">
+        <rule name="Is the audio PCM?" value="Format" tracktype="Audio" operator="=">PCM</rule>
+        <rule name="Is the audio FLAC?" value="Format" tracktype="Audio" operator="=">FLAC</rule>
+        <rule name="Is the audio AAC?" value="Format" tracktype="Audio" operator="=">AAC</rule>
+    </policy>
+    <rule name="Is the endianness Little?" value="Format_Settings_Endianness" tracktype="Audio" operator="=">Little</rule>
+    <rule name="Is the signedness Signed?" value="Format_Settings_Sign" tracktype="Audio" operator="=">Signed</rule>
+    <rule name="Is the bitrate mode CBR?" value="BitRate_Mode" tracktype="Audio" operator="=">CBR</rule>
+    <policy type="or" name="1 or 2 channels of audio?">
+        <rule name="1 channel of audio?" value="Channels" tracktype="Audio" operator="=">1</rule>
+        <rule name="2 channels of audio?" value="Channels" tracktype="Audio" operator="=">2</rule>
+    </policy>
+    <rule name="Is the sample rate 48kHz?" value="SamplingRate" tracktype="Audio" operator="=">48000</rule>
+    <rule name="Is the audio bit depth 24?" value="BitDepth" tracktype="Audio" operator="=">24</rule>
+'
+# define mediaconch test fragment -end
+
+_start_mediaconch_policy(){
+    MEDIACONCH_POLICY_TMP="$(_maketemp .mediaconch.xml)"
+cat <<MC_START > "${MEDIACONCH_POLICY_TMP}"
+<?xml version="1.0"?>
+<policy type="and" name="Check validity of a vrecord output">
+    <description>This policy tests FFV1 Matroska and Quicktime files made using vrecord and checks their validity</description>
+MC_START
+}
+
+_end_mediaconch_policy(){
+    cat <<MC_END >> "${MEDIACONCH_POLICY_TMP}"
+</policy>
+<!-- :) -->
+MC_END
+}
+
+_add_mediaconch_rule_set(){
+    RULE_SET="${1}"
+    echo "$RULE_SET" >> "${MEDIACONCH_POLICY_TMP}"
+}
+
 # command-line options to set media id and original variables
 OPTIND=1
 while getopts ":hc:erpaxnvI:O:D:i:G" opt ; do
@@ -2445,6 +2575,10 @@ while [[ "${RUNTYPE}" = "edit" ]] ; do
     _edit_mode
 done
 
+_start_mediaconch_policy
+_add_mediaconch_rule_set "${CONTAINER_GENERAL_TEST}"
+_add_mediaconch_rule_set "${CODEC_GENERAL_TEST}"
+_add_mediaconch_rule_set "${AUDIO_CODEC_TEST}"
 _review_all_options
 
 # CLI passthrough and audiopassthrough modes
@@ -2498,6 +2632,8 @@ elif [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
     EXTENSION="${AUDIO_EXT}"
     FORMAT="${AUDIO_EXT}"
 fi
+
+_end_mediaconch_policy
 
 # Check for user suffix to override automatic settings
 if [[ -n "${USER_SUFFIX}" ]] ; then
@@ -2786,30 +2922,17 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
 
     # policy checks with mediaconch
     if "$MEDIACONCH_INSTALLED" ; then
-        if [[ "${VIDEO_CODEC_CHOICE}" = "Uncompressed Video" ]] ; then
-            _report -d "Checking file conformance against uncompressed video policy..."
-            STATUS=$(mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_uncompressed.xml" "${VRECORD_OUTPUT}" | xmlstarlet sel -N mc="https://mediaarea.net/mediaconch" -t -v mc:MediaConch/mc:media/mc:policy/@outcome -n)
-            if [[ "$STATUS" = "pass" ]] ; then
-                _report -dt "File passed policy check for uncompressed video."
-            elif [[ "$STATUS" = "fail" ]] ; then
-                _report -wt "File did not pass vrecord policy check for uncompressed video and may not conform to digital preservation standards. Try another file?"
-                mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_uncompressed.xml" "${VRECORD_OUTPUT}" | xmlstarlet fo > "${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml"
-                _report -wt "See ${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml for a full MediaConch policy report."
-            else
-                mediaconch -p "${RESOURCE_PATH}/vrecord_policy_uncompressed.xml" "${VRECORD_OUTPUT}"
-            fi
-        elif [[ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" ]] ; then
-            _report -d "Checking file conformance against FFV1 video policy..."
-            STATUS=$(mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_ffv1.xml" "${VRECORD_OUTPUT}" | xmlstarlet sel -N mc="https://mediaarea.net/mediaconch" -t -v mc:MediaConch/mc:media/mc:policy/@outcome -n)
-            if [[ "${STATUS}" = "pass" ]] ; then
-                _report -dt "File passed policy check for FFV1 video."
-            elif [[ "$STATUS" = "fail" ]] ; then
-                _report -wt "File did not pass vrecord policy check for FFV1 video and may not conform to digital preservation standards. Try another file?"
-                mediaconch -fx -p "${RESOURCE_PATH}/vrecord_policy_ffv1.xml" "${VRECORD_OUTPUT}" | xmlstarlet fo > "${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml"
-                _report -wt "See ${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml for a full MediaConch policy report."
-            else
-                mediaconch -p "${RESOURCE_PATH}/vrecord_policy_ffv1.xml" "${VRECORD_OUTPUT}"
-            fi
+        _report -d "Checking file conformance against a mediaconch policy..."
+        STATUS=$(mediaconch -fx -p "${MEDIACONCH_POLICY_TMP}" "${VRECORD_OUTPUT}" | xmlstarlet sel -N mc="https://mediaarea.net/mediaconch" -t -v mc:MediaConch/mc:media/mc:policy/@outcome -n)
+        if [[ "$STATUS" = "pass" ]] ; then
+            _report -dt "File passed policy check for the video."
+        elif [[ "$STATUS" = "fail" ]] ; then
+            _report -wt "File did not pass vrecord policy check and may not conform to digital preservation standards."
+            mediaconch -fx -p "${MEDIACONCH_POLICY_TMP}" "${VRECORD_OUTPUT}" | xmlstarlet fo > "${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml"
+            mv -v -n "${MEDIACONCH_POLICY_TMP}" "${DIR}/${FULL_OUTPUT_ID}_mediaconch_policy.xml"
+            _report -wt "See ${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml for a full MediaConch policy report."
+        else
+            mediaconch -p "${MEDIACONCH_POLICY_TMP}" "${VRECORD_OUTPUT}"
         fi
     fi
 
