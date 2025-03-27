@@ -487,7 +487,9 @@ _setup_vrecord_input(){
         TEST_SIGNAL_CHOICE='testsrc=size=720x486:r=30000/1001'
         VIDEO_INPUT="Test signal: ${TEST_SIGNAL_CHOICE}"
         AUDIO_INPUT="Test signal: 440Hz"
-        GRAB_INPUT+=(-f lavfi -i "${TEST_SIGNAL_CHOICE}" -f lavfi -i sine=440:r=48000)
+        GRAB_INPUT+=(-f lavfi -i "${TEST_SIGNAL_CHOICE}")
+        GRAB_INPUT+=("${TIME_LIMIT[@]}")
+        GRAB_INPUT+=(-f lavfi -i sine=440:r=48000)
         GRAB_INPUT+=(-pix_fmt yuv422p10le)
     elif [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         _set_ffmpeg_loglevel
@@ -589,7 +591,6 @@ _setup_vrecord_process(){
 
         RECORD_COMMAND=("${FFMPEG_BIN}")
         if [[ "${SIGNAL_INPUT}" = 'true' ]] ; then
-            AUDIOMAP=$(sed "s/0:a:0/1:a:0/g" <<< "$AUDIOMAP")
             RECORD_COMMAND+=(-nostdin -nostats "${TIME_LIMIT[@]}" "${GRAB_INPUT[@]}")
         else
             RECORD_COMMAND+=(-nostdin -nostats "${TIME_LIMIT[@]}" "${TC_INPUT_OPTION[@]}" "${GRAB_INPUT[@]}")
