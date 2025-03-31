@@ -538,12 +538,13 @@ _setup_vrecord_process(){
     _setup_vrecord_input
     if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         if [[ "${SIGNAL_INPUT}" = 'true' ]] ; then
-            PIPE_OUTPUT+=(-map 1)
+            AUD_PIPE_MAP='1:a'
         else
             PIPE_OUTPUT=(-c:v copy)
+            AUD_PIPE_MAP='0:a'
         fi
         PIPE_OUTPUT+=(-c:a pcm_s24le)
-        PIPE_OUTPUT+=(-map 0:v -map 0:a)
+        PIPE_OUTPUT+=(-map 0:v -map "${AUD_PIPE_MAP}")
         PIPE_OUTPUT+=(-f matroska)
         PIPE_OUTPUT+=(-write_crc32 0)
         PIPE_OUTPUT+=(-live true)
