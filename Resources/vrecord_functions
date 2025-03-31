@@ -125,7 +125,14 @@ _validate_form(){
         echo "WARNING: Option to invert phase of fourth audio channel has been selected."
     fi
 
-    if [ $(mount | grep $(df -P "${DIR}" | tail +2 | awk '{print $1}') | grep -c "(.*local,") = "0" ] && [ "${OS_TYPE}" != "linux" ] ; then
+    if [ "${STANDARD_CHOICE}" = "Hi59" ] && [ "${PLAYBACKVIEW_CHOICE}" != "Unfiltered" ] ; then
+        echo "WARNING: For playback of HD signals, we recommend the 'Unfiltered' view."
+    fi
+    if [ "${STANDARD_CHOICE}" = "Hi59" ] && [ "${ASPECT_RATIO_CHOICE}" != "16/9" ] ; then
+        echo "WARNING: We noticed that you're recording Hi59 but to ${ASPECT_RATIO_CHOICE} rather than 16/9. Maybe it's fine, just noting."
+    fi
+
+    if [ -n "${DIR}" ] && [ $(mount | grep $(df -P "${DIR}" | tail +2 | awk '{print $1}') | grep -c "(.*local,") = "0" ] && [ "${OS_TYPE}" != "linux" ] ; then
         echo "WARNING: The recording directory at ${DIR} is not a local directory. Please verify that you can write to the disk fast enough."
     fi
     if [ "${OS_TYPE}" = "linux" ] ; then
