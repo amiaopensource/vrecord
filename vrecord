@@ -2260,7 +2260,7 @@ _review_option(){
     CHOICES=("${@}")
     if [[ -z "${SELECTED}" ]] && [[ -n "${DEFAULT}" ]] ; then
         SELECTED="${DEFAULT}"
-        declare -g "${VALUE_NAME}"="${SELECTED}"
+        export "${VALUE_NAME}"="${SELECTED}"
     fi
     if [[ ! " ${CHOICES[@]} " =~ " ${SELECTED} " ]] ; then
         if [[ -z "${SELECTED}" ]] ; then
