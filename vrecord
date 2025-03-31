@@ -2219,7 +2219,7 @@ _review_option(){
     CHOICES=("${@}")
     if [[ -z "${SELECTED}" ]] && [[ -n "${DEFAULT}" ]] ; then
         SELECTED="${DEFAULT}"
-        declare -g "${VALUE_NAME}"="${SELECTED}"
+        export "${VALUE_NAME}"="${SELECTED}"
     fi
     if [[ ! " ${CHOICES[@]} " =~ " ${SELECTED} " ]] ; then
         if [[ -z "${SELECTED}" ]] ; then
@@ -2673,7 +2673,7 @@ fi
 
 if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
     _review_option "QCTOOLSXML_CHOICE" "${QCTOOLSXML_OPTIONS[@]}"
-    if [[ "${QCTOOLSXML_CHOICE}" != "No" && ! "$(command -v qcli)" ]] ; then
+    if [[ "${QCTOOLSXML_CHOICE}" != "No" && "${QCLI_INSTALLED}" != "true" ]]; then
         _report -w "Please install qcli to use the qctools reporting option."
         _report -w "Such as \`brew install qcli\`."
         exit 1
@@ -2938,14 +2938,17 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
     if "$MEDIACONCH_INSTALLED" ; then
         _report -d "Checking file conformance against a mediaconch policy..."
         STATUS=$(mediaconch -fx -p "${MEDIACONCH_POLICY_TMP}" "${VRECORD_OUTPUT}" | xmlstarlet sel -N mc="https://mediaarea.net/mediaconch" -t -v mc:MediaConch/mc:media/mc:policy/@outcome -n)
-        if [[ "$STATUS" = "pass" ]] ; then
+        if [[ "${STATUS}" = "pass" ]] ; then
             _report -dt "File passed policy check for the video."
-        elif [[ "$STATUS" = "fail" ]] ; then
+        elif [[ "${STATUS}" = "fail" ]] ; then
             _report -wt "File did not pass vrecord policy check and may not conform to digital preservation standards."
             mediaconch -fx -p "${MEDIACONCH_POLICY_TMP}" "${VRECORD_OUTPUT}" | xmlstarlet fo > "${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml"
             mv -v -n "${MEDIACONCH_POLICY_TMP}" "${DIR}/${FULL_OUTPUT_ID}_mediaconch_policy.xml"
             _report -wt "See ${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml for a full MediaConch policy report."
+            _report -wt "Or review this attempt to summarize the issue:"
+            xmlstarlet edit -N "mc=https://mediaarea.net/mediaconch" -d "//*[@outcome='pass']" "${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml"
         else
+            _report -wt "Mediaconch ended in an unexpected way (${STATUS}). Here is its output."
             mediaconch -p "${MEDIACONCH_POLICY_TMP}" "${VRECORD_OUTPUT}"
         fi
     fi
