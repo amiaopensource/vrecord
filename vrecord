@@ -1894,7 +1894,7 @@ _lookup_choice(){
         "NTSC")
             STANDARD="ntsc"
             DECKLINK_FPS="30000/1001"
-            SIG_GEN_SIZE="720x480"
+            SIG_GEN_SIZE="720x486"
             _add_mediaconch_rule_set "${STANDARD_NTSC_TEST}"
 
             if [[ "${VIDEO_CODEC_CHOICE}" = "h264" ]] ; then
@@ -1921,6 +1921,7 @@ _lookup_choice(){
         "Hi59")
             STANDARD="Hi59"
             DECKLINK_FPS="30000/1001"
+            SIG_GEN_SIZE="1920X1080"
             if [[ "${VIDEO_CODEC_CHOICE}" = "h264" ]] ; then
                 MIDDLEOPTIONS+=(-x264opts tff)
             fi
