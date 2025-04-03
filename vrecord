@@ -1922,7 +1922,7 @@ _lookup_choice(){
             MIDDLEOPTIONS+=(-color_primaries bt709)
             MIDDLEOPTIONS+=(-color_trc bt709)
             MIDDLEOPTIONS+=(-colorspace bt709) ;;
-        "Hi50 - 1080i25")
+        "Hi50 - 1080i50")
             STANDARD="Hi50"
             DECKLINK_FPS="25000/1000"
             if [[ "${VIDEO_CODEC_CHOICE}" = "h264" ]] ; then
@@ -1931,7 +1931,7 @@ _lookup_choice(){
             MIDDLEOPTIONS+=(-color_primaries bt709)
             MIDDLEOPTIONS+=(-color_trc bt709)
             MIDDLEOPTIONS+=(-colorspace bt709) ;;
-        "Hi59 - 1080i29.97")
+        "Hi59 - 1080i59.94")
             STANDARD="Hi59"
             DECKLINK_FPS="30000/1001"
             if [[ "${VIDEO_CODEC_CHOICE}" = "h264" ]] ; then
@@ -1940,7 +1940,7 @@ _lookup_choice(){
             MIDDLEOPTIONS+=(-color_primaries bt709)
             MIDDLEOPTIONS+=(-color_trc bt709)
             MIDDLEOPTIONS+=(-colorspace bt709) ;;
-        "Hi60 - 1080i30")
+        "Hi60 - 1080i60")
             STANDARD="Hi60"
             DECKLINK_FPS="30000/1000"
             if [[ "${VIDEO_CODEC_CHOICE}" = "h264" ]] ; then
