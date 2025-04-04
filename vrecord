@@ -1812,11 +1812,11 @@ _lookup_choice(){
             AUDIO_CHANNEL_MAP+=(-map "[stereo2]") ;;
         "1 Stereo Track (From Channels 1 & 2)")
             AUDIOMAP="[0:a:0]pan=stereo| c0=c0 | c1=${PHASE_VALUE_2}c1[stereo1]"
-            AUDIO_PLAY_MAP="pan=stereo|c0=c0|c1=${PHASE_VALUE_2}c1"
+            AUDIO_PLAY_MAP="pan=quad|c0=c0|c1=${PHASE_VALUE_2}c1|c2=0.01*c2|c3=0.01*c3"
             AUDIO_CHANNEL_MAP+=(-map "[stereo1]") ;;
         "1 Stereo Track (From Channels 3 & 4)")
             AUDIOMAP="[0:a:0]pan=stereo| c0=c2 | c1=${PHASE_VALUE_2}c3[stereo1]"
-            AUDIO_PLAY_MAP="pan=stereo|c0=c2|c1=${PHASE_VALUE_2}c3"
+            AUDIO_PLAY_MAP="pan=quad|c0=0.01*c0|c1=0.0*c1|c2=c2|c3=${PHASE_VALUE_2}c3"
             AUDIO_CHANNEL_MAP+=(-map "[stereo1]") ;;
         "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono")
             AUDIOMAP="[0:a:0]pan=mono| c0=c0[mono1];[0:a:0]pan=mono| c0=${PHASE_VALUE_2}c1[mono2]"
@@ -2002,16 +2002,17 @@ else
         SPECTRUM_SIZE='1155x200'
         PAN="${AUDIO_PLAY_MAP}"
     fi
-    PLAYBACKFILTER="streams=dv+da[vid][aud],[aud]${PAN},asplit=${AUDIO_SPLIT},\
+    PLAYBACKFILTER="streams=dv+da[vid][aud],[aud]asplit=2[aa][cc],[cc]${PAN},asplit=${AUDIO_SPLIT},\
     ${PHASE_MAP},\
     ${CHANNEL_PARAMS},\
-    [c]showvolume=t=0:h=17:w=200:rate=30[c1],\
+    [c]showvolume=t=0:h=17:w=200:rate=30[c1],[aa]showvolume=t=0:h=17:w=200:rate=30:c=0xff0000ff:t=0:v=0[c2],\
     [d]showspectrum=s=${SPECTRUM_SIZE}:fps=10:color=rainbow:saturation=2:legend=1[d1],\
     [vid]split=4[vid1][vid2][vid3][vid4],[vid1]scale=400x400,${SIGNAL_FILTER}[vidscale],\
     [vid2]field=top,${WAVEFORM_FILTER}[TFIELD],\
     [vid3]field=bottom,${WAVEFORM_FILTER}[BFIELD],\
     [vid4]${VECTORSCOPE_FILTER}[vector],\
-    [vidscale][c1]overlay=10:10[x],\
+    [vidscale][c2]overlay=10:10[xx],\
+    [xx][c1]overlay=10:10[x],\
     ${AP_MAP}"
 fi ;;
         "Visual")
