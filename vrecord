@@ -419,6 +419,18 @@ _gtk_vbox_list() {
                 <action>_update_config_file</action>
                 <action type=\"exit\">timecode_scan</action>
             </button>"
+        elif [[ "${VARIABLE_NAME}" == "STANDARD_CHOICE" ]] ; then
+            echo "
+            <checkbox>
+                <label>Show HD Formats</label>
+                <default>\"${HD_CHOICE}\"</default>
+                <variable>HD_CHOICE</variable>
+                <action>_update_config_file</action>
+                <action type=\"clear\">STANDARD_CHOICE</action>
+                <action type=\"refresh\">STANDARD_CHOICE</action>
+                <action signal=\"key-release-event\" type=\"refresh\">STANDARD_CHOICE</action>
+                <action type=\"exit\">refresh</action>
+            </checkbox>"
         elif [[ "${VARIABLE_NAME}" == "EMBED_LOGS_CHOICE" ]] ; then
             echo "<sensitive>$(if $MKVPROPEDIT_INSTALLED ; then echo true ; else echo false ; fi)</sensitive>"
         elif [[ "${VARIABLE_NAME}" == "QCTOOLSXML_CHOICE" ]] ; then
@@ -566,7 +578,7 @@ _setup_vrecord_process(){
                 VRECORD_STEPS="1" # Steps: player
             fi
         fi
-        
+
         # caption handling if ntsc
         if [[ "${STANDARD}" == "ntsc" ]] ; then
             CAPTION_TMP="$(_maketemp .eia608.txt)"
@@ -2500,7 +2512,11 @@ PAL_43_SAR_OPTIONS=("12/11" "16/15" "128/117")
 PAL_169_SAR_OPTIONS=("16/11" "64/45" "512/351")
 CHANNEL_MAPPING_OPTIONS=("2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, Channels 3 & 4 -> 2nd Track Stereo)" "1 Stereo Track (From Channels 1 & 2)" "1 Stereo Track (From Channels 3 & 4)" "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono" "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono" "Channel 1 -> Single Track Mono" "Channel 2 -> Single Track Mono")
 TIMECODE_OPTIONS=("none" "rp188vitc" "rp188vitc2" "rp188ltc" "rp188any" "vitc" "vitc2" "serial")
-STANDARD_OPTIONS=("NTSC" "PAL" "23ps - 1080p23.98" "24ps - 1080p24" "Hp25 - 1080p25" "Hp29 - 1080p29.97" "Hp30 - 1080p30" "Hi50 - 1080i50" "Hi59 - 1080i59.94" "Hi60 - 1080i60" "hp50 - 720p50" "hp59 - 720p59.94" "hp60 - 720p60")
+if [[ ${HD_CHOICE} != "true" ]] ; then
+  STANDARD_OPTIONS=("NTSC" "PAL")
+else
+  STANDARD_OPTIONS=("NTSC" "PAL" "23ps - 1080p23.98" "24ps - 1080p24" "Hp25 - 1080p25" "Hp29 - 1080p29.97" "Hp30 - 1080p30" "Hi50 - 1080i50" "Hi59 - 1080i59.94" "Hi60 - 1080i60" "hp50 - 720p50" "hp59 - 720p59.94" "hp60 - 720p60")
+fi
 QCTOOLSXML_OPTIONS=("Yes, concurrent with recording" "Yes, after recording" "No")
 EMBED_LOGS_OPTIONS=("Yes" "No")
 PLAYBACKVIEW_OPTIONS=("Unfiltered" "Visual" "Audio + Video" "Visual + Numerical" "Color Matrix" "Bit Planes" "Frame Positioning" "Captions")

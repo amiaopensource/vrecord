@@ -90,12 +90,13 @@ _update_config_file(){
         echo "MP4_CRF_VALUE=\"${MP4_CRF_VALUE}\""
         echo "CC2VTT=\"${CC2VTT}\""
         echo "CC2SRT=\"${CC2SRT}\""
+        echo "HD_CHOICE=\"${HD_CHOICE}\""
     } > "${CONFIG_FILE}"
     . "${CONFIG_FILE}"
 }
 
 _validate_form(){
-    
+
     if [ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" ] && [ "${CONTAINER_CHOICE}" = "MXF" ] ; then
         echo "ERROR: Incompatible video codecs and containers have been selected."
     elif [ "${AUDIO_CODEC_CHOICE}" = "24-bit FLAC" ] && [ "${CONTAINER_CHOICE}" = "QuickTime" ] ; then
