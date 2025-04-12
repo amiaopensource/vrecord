@@ -2390,8 +2390,7 @@ CONTAINER_MATROSKA_TEST='
 '
 
 CODEC_GENERAL_TEST='
-    <rule name="Is the video format YUV?" value="Format" tracktype="Video" operator="=">YUV</rule>
-    <rule name="Is the bitrate mode CBR?" value="BitRate_Mode" tracktype="Video" operator="=">CBR</rule>
+    <rule name="Is the video format YUV?" value="ColorSpace" tracktype="Video" operator="=">YUV</rule>
     <rule name="Is the frame rate mode constant?" value="FrameRate_Mode" tracktype="Video" operator="=">CFR</rule>
     <rule name="Is the color space YUV?" value="ColorSpace" tracktype="Video" operator="=">YUV</rule>
     <policy type="or" name="Is the video bit depth 8 or 10?">
@@ -2404,6 +2403,7 @@ CODEC_GENERAL_TEST='
 '
 
 CODEC_UNCOMPRESSED_TEST='
+    <rule name="Is the bitrate mode CBR?" value="BitRate_Mode" tracktype="Video" operator="=">CBR</rule>
     <policy type="or" name="Is the Codec ID v210 or 2vuy?">
         <rule name="Is the Codec ID v210?" value="CodecID" tracktype="Video" operator="=">v210</rule>
         <rule name="Is the Codec ID 2vuy?" value="CodecID" tracktype="Video" operator="=">2vuy</rule>
