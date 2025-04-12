@@ -24,7 +24,7 @@ Dependencies: cowsay, amiaopensource/amiaos/decklinksdk,
   xmlstarlet
 Optional Dependencies: deckcontrol, gnuplot, mediaconch, mkvtoolnix, mpv, qcli
 
-Usage: ${SCRIPTNAME} [ -e | -r | -p | -a | -x | -n|  -v | -h ] [IDENTIFIER]
+Usage: ${SCRIPTNAME} [ -e | -r | -p | -a | -x | -n|  -v | -s | -h ] [IDENTIFIER]
 
   IDENTIFIER will be used for the filenaming of the output files. It is only
   required in record mode.
@@ -44,6 +44,7 @@ Usage: ${SCRIPTNAME} [ -e | -r | -p | -a | -x | -n|  -v | -h ] [IDENTIFIER]
   -v  Run ffmpeg with '-loglevel debug'. Using this option creates a very large
       log file, so avoid using this option with 'Visual + Numerical' or any
       playback option that display the log as part of the view.
+  -s  Generate a test signal and use it in place of external input
   -h  display this help menu
 
 Advanced options
@@ -471,13 +472,21 @@ _setup_vrecord_input(){
     # set up input and playback
     GRAB_INPUT=()
     GRAB_INPUT+=("${EXTRAINPUTOPTIONS[@]}")
-    if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] && [[ -z "${DECKLINK_INPUT_CHOICE}" ]] && [[ -z "${ALT_INPUT}" ]] ; then
+    if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] && [[ -z "${DECKLINK_INPUT_CHOICE}" ]] && [[ -z "${ALT_INPUT}" ]] && [[ -z "${SIGNAL_INPUT}" ]]; then
         _report -w -t "The decklink input is not found."
         exit 1
     fi
     if [[ -n "${ALT_INPUT}" ]] ; then
         _set_ffmpeg_loglevel
         GRAB_INPUT+=(-i "${ALT_INPUT}")
+    elif [[ "${SIGNAL_INPUT}" = 'true' ]] ; then
+        TEST_SIGNAL_CHOICE="testsrc=size=${SIG_GEN_SIZE}:r=${DECKLINK_FPS}"
+        VIDEO_INPUT="Test signal: ${TEST_SIGNAL_CHOICE}"
+        AUDIO_INPUT="Test signal: 440Hz"
+        GRAB_INPUT+=(-f lavfi -i "${TEST_SIGNAL_CHOICE}")
+        GRAB_INPUT+=("${TIME_LIMIT[@]}")
+        GRAB_INPUT+=(-f lavfi -i sine=440:r=48000)
+        GRAB_INPUT+=(-pix_fmt yuv422p10le)
     elif [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         _set_ffmpeg_loglevel
         GRAB_INPUT+=(-f decklink)
@@ -528,9 +537,14 @@ _setup_vrecord_input(){
 _setup_vrecord_process(){
     _setup_vrecord_input
     if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
-        PIPE_OUTPUT=(-c:v copy)
+        if [[ "${SIGNAL_INPUT}" = 'true' ]] ; then
+            AUD_PIPE_MAP='1:a'
+        else
+            PIPE_OUTPUT=(-c:v copy)
+            AUD_PIPE_MAP='0:a'
+        fi
         PIPE_OUTPUT+=(-c:a pcm_s24le)
-        PIPE_OUTPUT+=(-map 0:v -map 0:a)
+        PIPE_OUTPUT+=(-map 0:v -map "${AUD_PIPE_MAP}")
         PIPE_OUTPUT+=(-f matroska)
         PIPE_OUTPUT+=(-write_crc32 0)
         PIPE_OUTPUT+=(-live true)
@@ -552,7 +566,9 @@ _setup_vrecord_process(){
         if [[ "${RUNTYPE}" = "record" ]] ; then
             VRECORD_STEPS="2" # Steps: record | player
         else
-            if [[ "${PLAYBACKVIEW_CHOICE_PASS}" = "Audio + Video" ]] ; then
+            if [[ "${SIGNAL_INPUT}" = 'true' ]] ; then
+                VRECORD_STEPS="2" # Steps: record | player
+            elif [[ "${PLAYBACKVIEW_CHOICE_PASS}" = "Audio + Video" ]] ; then
                 VRECORD_STEPS="2" # Steps: record | player
             elif [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
                 VRECORD_STEPS="2" # Steps: record | player
@@ -570,7 +586,11 @@ _setup_vrecord_process(){
         fi
 
         RECORD_COMMAND=("${FFMPEG_BIN}")
-        RECORD_COMMAND+=(-nostdin -nostats "${TIME_LIMIT[@]}" "${TC_INPUT_OPTION[@]}" "${GRAB_INPUT[@]}")
+        if [[ "${SIGNAL_INPUT}" = 'true' ]] ; then
+            RECORD_COMMAND+=(-nostdin -nostats "${TIME_LIMIT[@]}" "${GRAB_INPUT[@]}")
+        else
+            RECORD_COMMAND+=(-nostdin -nostats "${TIME_LIMIT[@]}" "${TC_INPUT_OPTION[@]}" "${GRAB_INPUT[@]}")
+        fi
         if [[ -n "${VIDEOCODECNAME}" ]] ; then
             MIDDLEOPTIONS_PRES+=(-metadata:s:v:0 encoder="${VIDEOCODECNAME}")
         fi
@@ -1557,6 +1577,7 @@ _passthrough_mode(){
         echo "PLAY ${PLAYER_COMMAND[@]}"
         echo "RECORD ${RECORD_COMMAND[@]}"
     fi
+
     if [[ "${VRECORD_STEPS}" = "1" ]] ; then
         "${PLAYER_COMMAND[@]}" 2> "${VRECORD_INPUT_TMP}"
     elif [[ "${VRECORD_STEPS}" = "2" ]] ; then
@@ -1873,32 +1894,52 @@ _lookup_choice(){
         "NTSC")
             STANDARD="ntsc"
             DECKLINK_FPS="30000/1001"
+            SIG_GEN_SIZE="720x486"
+            SIG_INTERLACEMENT="bff"
             _add_mediaconch_rule_set "${STANDARD_NTSC_TEST}"
+
             if [[ "${VIDEO_CODEC_CHOICE}" = "h264" ]] ; then
                 RECORDINGFILTER+=",crop=w=720:h=480:x=0:y=4,"
-                MIDDLEOPTIONS_PRES+=(-x264opts bff)
+                MIDDLEOPTIONS_PRES+=(-x264opts "${SIG_INTERLACEMENT}")
             fi
             RECORDINGFILTER_MP4+=",crop=w=720:h=480:x=0:y=4"
-            RECORDINGFILTER+=",setparams=field_mode=${SIGNAL_INT_CHOICE:-auto}"
+            if [[ "${SIGNAL_INPUT}" = 'true' ]] ; then
+                RECORDINGFILTER+=",setparams=field_mode=${SIG_INTERLACEMENT}"
+            else
+                RECORDINGFILTER+=",setparams=field_mode=${SIGNAL_INT_CHOICE:-auto}"
+            fi
             MIDDLEOPTIONS_ALL+=(-color_primaries smpte170m)
             MIDDLEOPTIONS_ALL+=(-color_trc bt709)
             MIDDLEOPTIONS_ALL+=(-colorspace smpte170m) ;;
         "PAL")
             STANDARD="pal "
             DECKLINK_FPS="25000/1000"
+            SIG_GEN_SIZE="720x576"
+            SIG_INTERLACEMENT="tff"
             _add_mediaconch_rule_set "${STANDARD_PAL_TEST}"
             if [[ "${VIDEO_CODEC_CHOICE}" = "h264" ]] ; then
-                MIDDLEOPTIONS_PRES+=(-x264opts tff)
+                MIDDLEOPTIONS_PRES+=(-x264opts "${SIG_INTERLACEMENT}")
             fi
-            RECORDINGFILTER+=",setparams=field_mode=${SIGNAL_INT_CHOICE:-auto}"
+            if [[ "${SIGNAL_INPUT}" = 'true' ]] ; then
+                RECORDINGFILTER+=",setparams=field_mode=${SIG_INTERLACEMENT}"
+            else
+                RECORDINGFILTER+=",setparams=field_mode=${SIGNAL_INT_CHOICE:-auto}"
+            fi
             MIDDLEOPTIONS_ALL+=(-color_primaries bt470bg)
             MIDDLEOPTIONS_ALL+=(-color_trc bt709)
             MIDDLEOPTIONS_ALL+=(-colorspace bt470bg) ;;
         "Hi59")
             STANDARD="Hi59"
             DECKLINK_FPS="30000/1001"
+            SIG_GEN_SIZE="1920X1080"
+            SIG_INTERLACEMENT="tff"
             if [[ "${VIDEO_CODEC_CHOICE}" = "h264" ]] ; then
-                MIDDLEOPTIONS+=(-x264opts tff)
+                MIDDLEOPTIONS+=(-x264opts "${SIG_INTERLACEMENT}")
+            fi
+            if [[ "${SIGNAL_INPUT}" = 'true' ]] ; then
+                RECORDINGFILTER+=",setparams=field_mode=${SIG_INTERLACEMENT}"
+            else
+                RECORDINGFILTER+=",setparams=field_mode=${SIGNAL_INT_CHOICE:-auto}"
             fi
             MIDDLEOPTIONS+=(-color_primaries bt709)
             MIDDLEOPTIONS+=(-color_trc bt709)
@@ -2349,8 +2390,7 @@ CONTAINER_MATROSKA_TEST='
 '
 
 CODEC_GENERAL_TEST='
-    <rule name="Is the video format YUV?" value="Format" tracktype="Video" operator="=">YUV</rule>
-    <rule name="Is the bitrate mode CBR?" value="BitRate_Mode" tracktype="Video" operator="=">CBR</rule>
+    <rule name="Is the video format YUV?" value="ColorSpace" tracktype="Video" operator="=">YUV</rule>
     <rule name="Is the frame rate mode constant?" value="FrameRate_Mode" tracktype="Video" operator="=">CFR</rule>
     <rule name="Is the color space YUV?" value="ColorSpace" tracktype="Video" operator="=">YUV</rule>
     <policy type="or" name="Is the video bit depth 8 or 10?">
@@ -2363,6 +2403,7 @@ CODEC_GENERAL_TEST='
 '
 
 CODEC_UNCOMPRESSED_TEST='
+    <rule name="Is the bitrate mode CBR?" value="BitRate_Mode" tracktype="Video" operator="=">CBR</rule>
     <policy type="or" name="Is the Codec ID v210 or 2vuy?">
         <rule name="Is the Codec ID v210?" value="CodecID" tracktype="Video" operator="=">v210</rule>
         <rule name="Is the Codec ID 2vuy?" value="CodecID" tracktype="Video" operator="=">2vuy</rule>
@@ -2442,7 +2483,7 @@ _add_mediaconch_rule_set(){
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":hc:erpaxnvI:O:D:i:G" opt ; do
+while getopts ":hc:erpaxnvI:O:D:i:sG" opt ; do
     case "${opt}" in
         h) _usage ; exit 0 ;;
         c) CONFIG_FILE="${OPTARG}" ;;
@@ -2457,6 +2498,7 @@ while getopts ":hc:erpaxnvI:O:D:i:G" opt ; do
         O) EXTRAOUTPUTOPTIONS=(${OPTARG}) ;;
         D) DEPENDENCYDIR=("${OPTARG}") && RUNTYPE="resetenvironment";;
         i) ALT_INPUT="${OPTARG}" ;;
+        s) SIGNAL_INPUT="true" ;;
         G) VERBOSE_GTKDIALOG="Y" ;;
         :) _report -w "Option -${OPTARG} requires an argument" ; _usage ; exit 1 ;;
         *) _report -w "Error: bad option -${OPTARG}" ; _usage ; exit 1 ;;
@@ -2682,6 +2724,9 @@ if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
         FRAMEMD5NAME="${LOGDIR}/${FULL_OUTPUT_ID}.framemd5"
         EXTRAOUTPUTS+=(-an -f framemd5 "${FRAMEMD5NAME}")
     fi
+    if [[ "${SIGNAL_INPUT}" = 'true' ]] ; then
+            AUDIOMAP=$(sed "s/0:a:0/1:a:0/g" <<< "$AUDIOMAP")
+    fi
     if [[ "${MP4_CHOICE}" = "true" ]] ; then
         if [[ -z "${MP4_CRF_VALUE}" ]] ; then
             MP4_CRF_VALUE="21"
@@ -2803,6 +2848,7 @@ if [[ "${VERBOSE_GTKDIALOG}" = "Y" ]] ; then
     echo "STEPS ${VRECORD_STEPS}"
     echo "PLAY ${PLAYER_COMMAND[@]}"
     echo "RECORD ${RECORD_COMMAND[@]}"
+    echo "QCLI ${QCLI_COMMAND_PIPE[@]}"
 fi
 if [[ "${VRECORD_STEPS}" = "2" ]] ; then
     _writeingestlog "Record command" "${RECORD_COMMAND[@]}"
@@ -2940,10 +2986,12 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         STATUS=$(mediaconch -fx -p "${MEDIACONCH_POLICY_TMP}" "${VRECORD_OUTPUT}" | xmlstarlet sel -N mc="https://mediaarea.net/mediaconch" -t -v mc:MediaConch/mc:media/mc:policy/@outcome -n)
         if [[ "$STATUS" = "pass" ]] ; then
             _report -dt "File passed policy check for the video."
+            _writeingestlog "mediaconch_outcome" "passed"
         elif [[ "$STATUS" = "fail" ]] ; then
             _report -wt "File did not pass vrecord policy check and may not conform to digital preservation standards."
             mediaconch -fx -p "${MEDIACONCH_POLICY_TMP}" "${VRECORD_OUTPUT}" | xmlstarlet fo > "${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml"
             mv -v -n "${MEDIACONCH_POLICY_TMP}" "${DIR}/${FULL_OUTPUT_ID}_mediaconch_policy.xml"
+            _writeingestlog "mediaconch_outcome" "failed ${DIR}/${FULL_OUTPUT_ID}_mediaconch_policy.xml"
             _report -wt "See ${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml for a full MediaConch policy report."
         else
             mediaconch -p "${MEDIACONCH_POLICY_TMP}" "${VRECORD_OUTPUT}"
