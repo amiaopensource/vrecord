@@ -2986,10 +2986,12 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         STATUS=$(mediaconch -fx -p "${MEDIACONCH_POLICY_TMP}" "${VRECORD_OUTPUT}" | xmlstarlet sel -N mc="https://mediaarea.net/mediaconch" -t -v mc:MediaConch/mc:media/mc:policy/@outcome -n)
         if [[ "$STATUS" = "pass" ]] ; then
             _report -dt "File passed policy check for the video."
+            _writeingestlog "mediaconch_outcome" "passed"
         elif [[ "$STATUS" = "fail" ]] ; then
             _report -wt "File did not pass vrecord policy check and may not conform to digital preservation standards."
             mediaconch -fx -p "${MEDIACONCH_POLICY_TMP}" "${VRECORD_OUTPUT}" | xmlstarlet fo > "${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml"
             mv -v -n "${MEDIACONCH_POLICY_TMP}" "${DIR}/${FULL_OUTPUT_ID}_mediaconch_policy.xml"
+            _writeingestlog "mediaconch_outcome" "failed ${DIR}/${FULL_OUTPUT_ID}_mediaconch_policy.xml"
             _report -wt "See ${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml for a full MediaConch policy report."
         else
             mediaconch -p "${MEDIACONCH_POLICY_TMP}" "${VRECORD_OUTPUT}"
