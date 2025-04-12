@@ -1895,14 +1895,19 @@ _lookup_choice(){
             STANDARD="ntsc"
             DECKLINK_FPS="30000/1001"
             SIG_GEN_SIZE="720x486"
+            SIG_INTERLACEMENT="bff"
             _add_mediaconch_rule_set "${STANDARD_NTSC_TEST}"
 
             if [[ "${VIDEO_CODEC_CHOICE}" = "h264" ]] ; then
                 RECORDINGFILTER+=",crop=w=720:h=480:x=0:y=4,"
-                MIDDLEOPTIONS_PRES+=(-x264opts bff)
+                MIDDLEOPTIONS_PRES+=(-x264opts "${SIG_INTERLACEMENT}")
             fi
             RECORDINGFILTER_MP4+=",crop=w=720:h=480:x=0:y=4"
-            RECORDINGFILTER+=",setparams=field_mode=${SIGNAL_INT_CHOICE:-auto}"
+            if [[ "${SIGNAL_INPUT}" = 'true' ]] ; then
+                RECORDINGFILTER+=",setparams=field_mode=${SIG_INTERLACEMENT}"
+            else
+                RECORDINGFILTER+=",setparams=field_mode=${SIGNAL_INT_CHOICE:-auto}"
+            fi
             MIDDLEOPTIONS_ALL+=(-color_primaries smpte170m)
             MIDDLEOPTIONS_ALL+=(-color_trc bt709)
             MIDDLEOPTIONS_ALL+=(-colorspace smpte170m) ;;
@@ -1910,11 +1915,16 @@ _lookup_choice(){
             STANDARD="pal "
             DECKLINK_FPS="25000/1000"
             SIG_GEN_SIZE="720x576"
+            SIG_INTERLACEMENT="tff"
             _add_mediaconch_rule_set "${STANDARD_PAL_TEST}"
             if [[ "${VIDEO_CODEC_CHOICE}" = "h264" ]] ; then
-                MIDDLEOPTIONS_PRES+=(-x264opts tff)
+                MIDDLEOPTIONS_PRES+=(-x264opts "${SIG_INTERLACEMENT}")
             fi
-            RECORDINGFILTER+=",setparams=field_mode=${SIGNAL_INT_CHOICE:-auto}"
+            if [[ "${SIGNAL_INPUT}" = 'true' ]] ; then
+                RECORDINGFILTER+=",setparams=field_mode=${SIG_INTERLACEMENT}"
+            else
+                RECORDINGFILTER+=",setparams=field_mode=${SIGNAL_INT_CHOICE:-auto}"
+            fi
             MIDDLEOPTIONS_ALL+=(-color_primaries bt470bg)
             MIDDLEOPTIONS_ALL+=(-color_trc bt709)
             MIDDLEOPTIONS_ALL+=(-colorspace bt470bg) ;;
@@ -1922,8 +1932,14 @@ _lookup_choice(){
             STANDARD="Hi59"
             DECKLINK_FPS="30000/1001"
             SIG_GEN_SIZE="1920X1080"
+            SIG_INTERLACEMENT="tff"
             if [[ "${VIDEO_CODEC_CHOICE}" = "h264" ]] ; then
-                MIDDLEOPTIONS+=(-x264opts tff)
+                MIDDLEOPTIONS+=(-x264opts "${SIG_INTERLACEMENT}")
+            fi
+            if [[ "${SIGNAL_INPUT}" = 'true' ]] ; then
+                RECORDINGFILTER+=",setparams=field_mode=${SIG_INTERLACEMENT}"
+            else
+                RECORDINGFILTER+=",setparams=field_mode=${SIGNAL_INT_CHOICE:-auto}"
             fi
             MIDDLEOPTIONS+=(-color_primaries bt709)
             MIDDLEOPTIONS+=(-color_trc bt709)
