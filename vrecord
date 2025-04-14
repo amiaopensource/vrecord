@@ -2021,25 +2021,25 @@ else
     vectorscope=i=0.04:mode=color2:c=1:envelope=instant:graticule=green:flags=name,\
     scale=400:400"
     if [[ "${AUDIO_MAPPING_CHOICE}" = '2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, Channels 3 & 4 -> 2nd Track Stereo)' ]] ; then
-        PRINT_PHASE=",drawtext=fontfile=${DEFAULTFONT}:box=1:text=Phase\\\: %{metadata\\\:lavfi.aphasemeter.phase}:x=135:y=180:fontcolor=black"
+        PRINT_PHASE=",drawtext=fontfile=${DEFAULTFONT}:box=1:text=Phase\\\: %{metadata\\\:lavfi.astats.1.DC_offset}:x=135:y=180:fontcolor=black"
         PRINT_CHANNELS_1_2=",drawtext=fontfile=${DEFAULTFONT}:text=Ch.1/2:x=10: y=10:fontcolor=white"
         PRINT_CHANNELS_3_4=",drawtext=fontfile=${DEFAULTFONT}:text=Ch.3/4:x=10: y=10:fontcolor=white"
         AUDIO_SPLIT='7[a][aa][b][c][d][e][out1]'
         CHANNEL_PARAMS="[b]pan=stereo|c0=c0|c1=c1,avectorscope=s=320x400${PRINT_CHANNELS_1_2}[b1],[e]pan=stereo|c0=c2|c1=c3,avectorscope=s=320x400${PRINT_CHANNELS_3_4}[e1]"
         AP_MAP='[phase1][phase2][b1][e1][x][d1][TFIELD][BFIELD][vector]xstack=inputs=9:layout=0_0|0_h0|w0_0|w0+w2_0|w0+w2+w3_0|0_h0+h1|0_h0+h1+h5|w6_h0+h1+h5|w5_h0+h1,fps=25[out0]'
         PHASE_LOCATION='x=135:y=180'
-        PHASE_MAP="[a]pan=stereo|c0=c0|c1=c1,aphasemeter=video=0,adrawgraph=lavfi.aphasemeter.phase:max=1:min=-1:size=400x200:bg=black:fg1=0x99999999,drawbox=x=0:y=100:w=400:c=white:h=1${PRINT_PHASE}${PRINT_CHANNELS_1_2}[phase1],\
-        [aa]pan=stereo|c0=c2|c1=c3,aphasemeter=video=0,adrawgraph=lavfi.aphasemeter.phase:max=1:min=-1:size=400x200:bg=black:fg1=0x99999999,drawbox=x=0:y=100:w=400:c=white:h=1${PRINT_PHASE}${PRINT_CHANNELS_3_4}[phase2]"
+        PHASE_MAP="[a]pan=stereo|c0=c0|c1=c1,channelsplit,axcorrelate=algo=fast,astats=metadata=1:reset=1,adrawgraph=lavfi.astats.1.DC_offset:max=1.01:min=-1.01:size=400x200:bg=black:fg1=0x99999999,drawbox=x=0:y=100:w=400:c=white:h=1${PRINT_PHASE}${PRINT_CHANNELS_1_2}[phase1],\
+        [aa]pan=stereo|c0=c2|c1=c3,channelsplit,axcorrelate=algo=fast,astats=metadata=1:reset=1,adrawgraph=lavfi.astats.1.DC_offset:max=1.01:min=-1.01:size=400x200:bg=black:fg1=0x99999999,drawbox=x=0:y=100:w=400:c=white:h=1${PRINT_PHASE}${PRINT_CHANNELS_3_4}[phase2]"
         SPECTRUM_SIZE='755x265'
         PAN="${AUDIO_PLAY_MAP}"
     else
-        PRINT_PHASE=",drawtext=fontfile=${DEFAULTFONT}:box=1:text=Phase\\\: %{metadata\\\:lavfi.aphasemeter.phase}:x=135:y=380:fontcolor=black"
+        PRINT_PHASE=",drawtext=fontfile=${DEFAULTFONT}:box=1:text=Phase\\\: %{metadata\\\:lavfi.astats.1.DC_offset}:x=135:y=380:fontcolor=black"
         PRINT_CHANNELS_1_2=",drawtext=fontfile=${DEFAULTFONT}:text=Ch.1/2:x=10: y=10:fontcolor=white"
         AUDIO_SPLIT='5[a][b][c][d][out1]'
         CHANNEL_PARAMS="[b]pan=stereo|c0=c0|c1=c1,avectorscope=s=320x400${PRINT_CHANNELS_1_2}[b1]"
         AP_MAP='[a1][b1][x][d1][TFIELD][BFIELD][vector]xstack=inputs=7:layout=0_0|w0_0|w0+w1_0|0_h0+h4|0_h0|w4_h0|w0+w1+w2_0,fps=25[out0]'
         PHASE_LOCATION='x=135:y=380'
-        PHASE_MAP="[a]aphasemeter=video=0,adrawgraph=lavfi.aphasemeter.phase:max=1:min=-1:size=320x400:bg=black:fg1=0x99999999,drawbox=x=0:y=200:w=400:c=white:h=1${PRINT_PHASE}${PRINT_CHANNELS_1_2}[a1]"
+        PHASE_MAP="[a]channelsplit,axcorrelate=algo=fast,astats=metadata=1:reset=1,adrawgraph=lavfi.astats.1.DC_offset:max=1.01:min=-1.01:size=320x400:bg=black:fg1=0x99999999,drawbox=x=0:y=200:w=400:c=white:h=1${PRINT_PHASE}${PRINT_CHANNELS_1_2}[a1]"
         SPECTRUM_SIZE='1155x200'
         PAN="${AUDIO_PLAY_MAP}"
     fi
