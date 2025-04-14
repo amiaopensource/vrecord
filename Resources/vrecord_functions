@@ -95,15 +95,29 @@ _update_config_file(){
 }
 
 _validate_form(){
-    
     if [ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" ] && [ "${CONTAINER_CHOICE}" = "MXF" ] ; then
         echo "ERROR: Incompatible video codecs and containers have been selected."
     elif [ "${AUDIO_CODEC_CHOICE}" = "24-bit FLAC" ] && [ "${CONTAINER_CHOICE}" = "QuickTime" ] ; then
         echo "ERROR: Incompatible audio codecs and containers have been selected."
     fi
     if [ -z "${DIR}" ] ; then
-        echo "WARNING: The recording directory is not set. $(pwd) will be used."
-    elif [ ! -d "${DIR}" ] ; then
+        NEW_DEFAULT_DIR="$(pwd)"
+        echo "WARNING: The recording directory is not set. ${NEW_DEFAULT_DIR} will be used."
+        DIR="${NEW_DEFAULT_DIR}"
+    fi
+    if [ -d "${DIR}" ] ; then
+        if [ $(mount | grep $(df -P "${DIR}" | tail +2 | awk '{print $1}') | grep -c "(.*local,") = "0" ] && [ "${OS_TYPE}" != "linux" ] ; then
+            echo "WARNING: The recording directory at ${DIR} is not a local directory. Please verify that you can write to the disk fast enough."
+        fi
+        if [ "${OS_TYPE}" = "linux" ] ; then
+            FREE_SPACE="$(df -BG "${DIR}" | tail +2 | awk '{print $4}' | tr 'G' ' ')"
+        else
+            FREE_SPACE="$(df -g "${DIR}" | tail +2 | awk '{print $4}')"
+        fi
+        if [ "${FREE_SPACE}" -le 40 ] ; then
+            echo "WARNING: The recording directory at ${DIR} only has ${FREE_SPACE} gigabytes available."
+        fi
+    else
         echo "ERROR: The recording directory (${DIR}) does not exist. Please set or $(pwd) will be used instead."
     fi
     if [ ! -d "${LOGDIR}" ] && [ -n "${LOGDIR}" ] ; then
@@ -132,17 +146,6 @@ _validate_form(){
         echo "WARNING: We noticed that you're recording Hi59 but to ${ASPECT_RATIO_CHOICE} rather than 16/9. Maybe it's fine, just noting."
     fi
 
-    if [ -n "${DIR}" ] && [ $(mount | grep $(df -P "${DIR}" | tail +2 | awk '{print $1}') | grep -c "(.*local,") = "0" ] && [ "${OS_TYPE}" != "linux" ] ; then
-        echo "WARNING: The recording directory at ${DIR} is not a local directory. Please verify that you can write to the disk fast enough."
-    fi
-    if [ "${OS_TYPE}" = "linux" ] ; then
-        FREE_SPACE="$(df -BG "${DIR}" | tail +2 | awk '{print $4}' | tr 'G' ' ')"
-    else
-        FREE_SPACE="$(df -g "${DIR}" | tail +2 | awk '{print $4}')"
-    fi
-    if [ "${FREE_SPACE}" -le 40 ] ; then
-        echo "WARNING: The recording directory at ${DIR} only has ${FREE_SPACE} gigabytes available."
-    fi
     if [ "${SIGNAL_INT_CHOICE}" != "auto" ] && [ -n "${SIGNAL_INT_CHOICE}" ] ; then
         echo "WARNING: The configuration ignores the interlacement of the input and forces it to ${SIGNAL_INT_CHOICE}. Set to 'auto' if you prefer to keep the interlacement as the device describes it."
     fi
