@@ -1982,7 +1982,7 @@ if [[ "${RUNTYPE}" = "record" ]] ; then
     [f]astats=metadata=1:reset=1,adrawgraph=m1=lavfi.astats.2.Min_level:m2=lavfi.astats.2.Max_level:size=700x160:bg=Black:fg1=0xFF00FF00:fg2=0xFF00FF00:slide=scroll:min=-32767:max=32767[wav2]"
     AP_MAP='[c1][wav1][wav2]xstack=inputs=3:layout=0_0|0_h0|0_h0+h1[out0]'
 else
-    PRINT_PHASE=",drawtext=fontfile=${DEFAULTFONT}:box=1:text=Phase\\\: %{metadata\\\:lavfi.aphasemeter.phase}:x=135:y=380:fontcolor=black"
+    PRINT_PHASE=",drawtext=fontfile=${DEFAULTFONT}:box=1:text=Phase\\\: %{metadata\\\:lavfi.astats.1.DC_offset}:x=135:y=380:fontcolor=black"
     PRINT_CHANNELS_1_2=",drawtext=fontfile=${DEFAULTFONT}:text=Ch.1/2:x=10: y=10:fontcolor=white"
     AUDIO_SPLIT='7[a][b][c][d][e][f][out1],'
     WAVEFORM="[e]astats=metadata=1:reset=1,adrawgraph=m1=lavfi.astats.1.Min_level:m2=lavfi.astats.1.Max_level:size=800x200:bg=Black:fg1=0xFFFF0000:fg2=0xFFFF0000:slide=scroll:min=-32767:max=32767[wav1],\
@@ -1992,7 +1992,7 @@ else
     PHASE_LOCATION='x=135:y=380'
     SHOW_SPECTUM="[d]showspectrum=s=1155x200:fps=10:color=rainbow:saturation=2:legend=1[d1],"
     VOLUME_OVERLAY='[d1][c1]overlay=640:0:format=yuv444[x],'
-    PHASE_MAP="[a]aphasemeter=video=0,adrawgraph=lavfi.aphasemeter.phase:max=1:min=-1:size=320x400:bg=black:fg1=0x99999999,drawbox=x=0:y=200:w=400:c=white:h=1${PRINT_PHASE}${PRINT_CHANNELS_1_2}[a1],"
+    PHASE_MAP="[a]channelsplit,axcorrelate=algo=fast,astats=metadata=1:reset=1,adrawgraph=lavfi.astats.1.DC_offset:max=1.01:min=-1.01:size=320x400:bg=black:fg1=0x99999999,drawbox=x=0:y=200:w=400:c=white:h=1${PRINT_PHASE}${PRINT_CHANNELS_1_2}[a1],"
 fi
 PLAYBACKFILTER="${PASSTHROUGH_MAP},asplit=${AUDIO_SPLIT}\
 ${PHASE_MAP}\
