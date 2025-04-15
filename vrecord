@@ -1828,7 +1828,7 @@ _lookup_choice(){
         # audio mappings
         "2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, Channels 3 & 4 -> 2nd Track Stereo)")
             AUDIOMAP="[0:a:0]pan=stereo| c0=c0 | c1=${PHASE_VALUE_2}c1[stereo1];[0:a:0]pan=stereo| c0=c2 | c1=${PHASE_VALUE_4}c3[stereo2]"
-            AUDIO_PLAY_MAP="pan=quad|c0=c0|c1=${PHASE_VALUE_2}c1|c2=c2|c3=${PHASE_VALUE_4}c3"
+            AUDIO_PLAY_MAP="pan=4c|c0=c0|c1=${PHASE_VALUE_2}c1|c2=c2|c3=${PHASE_VALUE_4}c3"
             AUDIO_CHANNEL_MAP+=(-map "[stereo1]")
             AUDIO_CHANNEL_MAP+=(-map "[stereo2]") ;;
         "1 Stereo Track (From Channels 1 & 2)")
