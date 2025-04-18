@@ -578,7 +578,7 @@ _setup_vrecord_process(){
                 VRECORD_STEPS="1" # Steps: player
             fi
         fi
-        
+
         # caption handling if ntsc
         if [[ "${STANDARD}" == "ntsc" ]] ; then
             CAPTION_TMP="$(_maketemp .eia608.txt)"
@@ -2745,6 +2745,11 @@ if [[ -n "${DURATION}" ]] ; then
     DUR_SECONDS=$(bc <<< "${DURATION} * 60" | sed "s/^\./0./")
     TIME_LIMIT=(-t "${DUR_SECONDS}")
     DURATION_TEXT="Tape duration set to: ${DURATION} minutes."
+fi
+
+if [[ "${DURATION}" -gt 200 ]] ; then
+    _report -w "WARNING: Recording duration set to greater than 200 minutes. QCTools report will not be generated."
+    QCTOOLSXML_CHOICE="No"
 fi
 
 if [[ -n ${TECHNICIAN} ]] ; then
