@@ -597,10 +597,12 @@ _setup_vrecord_process(){
         RECORD_COMMAND+=("${MIDDLEOPTIONS_PRES[@]}" "${MIDDLEOPTIONS_ALL[@]}")
         if [[ "${RUNTYPE}" = "record" ]] ; then
             RECORD_COMMAND+=(-filter_complex "[0:v:0]${RECORDINGFILTER#,*}${TC_WRITE}${CAPTION_WRITE};${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}")
-            RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
+            RECORD_COMMAND+=(-flags +global_header)
+            RECORD_COMMAND+=(-f tee [f=${FORMAT}]${VRECORD_OUTPUT}\|[f=nut:onfail=abort]pipe:1)
             RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}")
+        else
+            RECORD_COMMAND+=("${PIPE_OUTPUT[@]}")
         fi
-        RECORD_COMMAND+=("${PIPE_OUTPUT[@]}")
     elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
         if [[ "${DVRESCUE_INPUT_CHOICE}" = 'FFmpeg iec61883 Default' ]] ; then
             if [[ "${RUNTYPE}" = "record" ]] ; then
