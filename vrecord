@@ -537,18 +537,6 @@ _setup_vrecord_input(){
 _setup_vrecord_process(){
     _setup_vrecord_input
     if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
-        if [[ "${SIGNAL_INPUT}" = 'true' ]] ; then
-            AUD_PIPE_MAP='1:a'
-        else
-            PIPE_OUTPUT=(-c:v copy)
-            AUD_PIPE_MAP='0:a'
-        fi
-        PIPE_OUTPUT+=(-c:a pcm_s24le)
-        PIPE_OUTPUT+=(-map 0:v -map "${AUD_PIPE_MAP}")
-        PIPE_OUTPUT+=(-f matroska)
-        PIPE_OUTPUT+=(-write_crc32 0)
-        PIPE_OUTPUT+=(-live true)
-        PIPE_OUTPUT+=(-)
         WINDOW_NAME="mode:${RUNTYPE} - video:'${VIDEO_INPUT}' audio:'${AUDIO_INPUT}' - to end recording press q, esc, or close video window"
     elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
         WINDOW_NAME="mode:${RUNTYPE} - DV input:'${DVRESCUE_INPUT_INDEX}' - to end recording press q, esc, or close video window"
@@ -597,10 +585,10 @@ _setup_vrecord_process(){
         RECORD_COMMAND+=("${MIDDLEOPTIONS_PRES[@]}" "${MIDDLEOPTIONS_ALL[@]}")
         if [[ "${RUNTYPE}" = "record" ]] ; then
             RECORD_COMMAND+=(-filter_complex "[0:v:0]${RECORDINGFILTER#,*}${TC_WRITE}${CAPTION_WRITE};${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}")
-            RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
+            RECORD_COMMAND+=(-flags +global_header)
+            RECORD_COMMAND+=(-f tee [f=${FORMAT}]${VRECORD_OUTPUT}\|[f=nut:onfail=abort]pipe:1)
             RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}")
         fi
-        RECORD_COMMAND+=("${PIPE_OUTPUT[@]}")
     elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
         if [[ "${DVRESCUE_INPUT_CHOICE}" = 'FFmpeg iec61883 Default' ]] ; then
             if [[ "${RUNTYPE}" = "record" ]] ; then
