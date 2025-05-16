@@ -539,20 +539,14 @@ _setup_vrecord_process(){
     if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         WINDOW_NAME="mode:${RUNTYPE} - video:'${VIDEO_INPUT}' audio:'${AUDIO_INPUT}' - to end recording press q, esc, or close video window"
         # DEVICE_INPUT_CHOICE=0 is decklink, other DEVICE_INPUT_CHOICE values don't yet use such filtering
-        if [[ "${RUNTYPE}" = "record" ]] ; then
+        if [[ "${RUNTYPE}" = "record" || \
+            "${SIGNAL_INPUT}" = 'true' || \
+            "${PLAYBACKVIEW_CHOICE_PASS}" = "Audio + Video" || \
+            "${MEDIA_PLAYER_CHOICE}" = "mpv" || \
+            "$(basename "${FFPLAY_BIN}")" != "ffplay-dl" ]] ; then
             VRECORD_STEPS="2" # Steps: record | player
         else
-            if [[ "${SIGNAL_INPUT}" = 'true' ]] ; then
-                VRECORD_STEPS="2" # Steps: record | player
-            elif [[ "${PLAYBACKVIEW_CHOICE_PASS}" = "Audio + Video" ]] ; then
-                VRECORD_STEPS="2" # Steps: record | player
-            elif [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
-                VRECORD_STEPS="2" # Steps: record | player
-            elif [[ "$(basename "${FFPLAY_BIN}")" != "ffplay-dl" ]] ; then
-                VRECORD_STEPS="2" # Steps: record | player
-            else
-                VRECORD_STEPS="1" # Steps: player
-            fi
+            VRECORD_STEPS="1" # Steps: player
         fi
 
         # caption handling if ntsc
