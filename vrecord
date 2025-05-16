@@ -537,31 +537,7 @@ _setup_vrecord_input(){
 _setup_vrecord_process(){
     _setup_vrecord_input
     if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
-        if [[ "${SIGNAL_INPUT}" = 'true' ]] ; then
-            AUD_PIPE_MAP='1:a'
-        else
-            PIPE_OUTPUT=(-c:v copy)
-            AUD_PIPE_MAP='0:a'
-        fi
-        PIPE_OUTPUT+=(-c:a pcm_s24le)
-        PIPE_OUTPUT+=(-map 0:v -map "${AUD_PIPE_MAP}")
-        PIPE_OUTPUT+=(-f matroska)
-        PIPE_OUTPUT+=(-write_crc32 0)
-        PIPE_OUTPUT+=(-live true)
-        PIPE_OUTPUT+=(-)
         WINDOW_NAME="mode:${RUNTYPE} - video:'${VIDEO_INPUT}' audio:'${AUDIO_INPUT}' - to end recording press q, esc, or close video window"
-    elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
-        WINDOW_NAME="mode:${RUNTYPE} - DV input:'${DVRESCUE_INPUT_INDEX}' - to end recording press q, esc, or close video window"
-    elif [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
-        PIPE_OUTPUT+=(-c:a pcm_s16le -ar 48k)
-        PIPE_OUTPUT+=(-f wav)
-        PIPE_OUTPUT+=(-)
-        WINDOW_NAME="mode:${RUNTYPE} - input:'${AUDIO_DEV_CHOICE}' - to end recording press q, esc, or close video window"
-    else
-        _report "Input unknown"
-        exit 1
-    fi
-    if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         # DEVICE_INPUT_CHOICE=0 is decklink, other DEVICE_INPUT_CHOICE values don't yet use such filtering
         if [[ "${RUNTYPE}" = "record" ]] ; then
             VRECORD_STEPS="2" # Steps: record | player
@@ -586,11 +562,11 @@ _setup_vrecord_process(){
         fi
 
         RECORD_COMMAND=("${FFMPEG_BIN}")
-        if [[ "${SIGNAL_INPUT}" = 'true' ]] ; then
-            RECORD_COMMAND+=(-nostdin -nostats "${TIME_LIMIT[@]}" "${GRAB_INPUT[@]}")
-        else
-            RECORD_COMMAND+=(-nostdin -nostats "${TIME_LIMIT[@]}" "${TC_INPUT_OPTION[@]}" "${GRAB_INPUT[@]}")
+        RECORD_COMMAND+=(-nostdin -nostats "${TIME_LIMIT[@]}")
+        if [[ "${SIGNAL_INPUT}" != 'true' ]] ; then
+            RECORD_COMMAND+=("${TC_INPUT_OPTION[@]}")
         fi
+        RECORD_COMMAND+=("${GRAB_INPUT[@]}")
         if [[ -n "${VIDEOCODECNAME}" ]] ; then
             MIDDLEOPTIONS_PRES+=(-metadata:s:v:0 encoder="${VIDEOCODECNAME}")
         fi
@@ -601,9 +577,22 @@ _setup_vrecord_process(){
             RECORD_COMMAND+=(-f tee [f=${FORMAT}]${VRECORD_OUTPUT}\|[f=nut:onfail=abort]pipe:1)
             RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}")
         else
+            if [[ "${SIGNAL_INPUT}" = 'true' ]] ; then
+                AUD_PIPE_MAP='1:a'
+            else
+                PIPE_OUTPUT=(-c:v copy)
+                AUD_PIPE_MAP='0:a'
+            fi
+            PIPE_OUTPUT+=(-c:a pcm_s24le)
+            PIPE_OUTPUT+=(-map 0:v -map "${AUD_PIPE_MAP}")
+            PIPE_OUTPUT+=(-f matroska)
+            PIPE_OUTPUT+=(-write_crc32 0)
+            PIPE_OUTPUT+=(-live true)
+            PIPE_OUTPUT+=(-)
             RECORD_COMMAND+=("${PIPE_OUTPUT[@]}")
         fi
     elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
+        WINDOW_NAME="mode:${RUNTYPE} - DV input:'${DVRESCUE_INPUT_INDEX}' - to end recording press q, esc, or close video window"
         if [[ "${DVRESCUE_INPUT_CHOICE}" = 'FFmpeg iec61883 Default' ]] ; then
             if [[ "${RUNTYPE}" = "record" ]] ; then
                 VRECORD_STEPS="2" # Steps: record | player
@@ -631,6 +620,7 @@ _setup_vrecord_process(){
             RECORD_COMMAND+=(--merge -)
         fi
     elif [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
+        WINDOW_NAME="mode:${RUNTYPE} - input:'${AUDIO_DEV_CHOICE}' - to end recording press q, esc, or close video window"
         VRECORD_STEPS="2" # Steps: record | player (record is adjusted if actually recording)
         RECORD_COMMAND=("${FFMPEG_BIN}")
         RECORD_COMMAND+=(-nostdin -nostats "${TIME_LIMIT[@]}" "${GRAB_INPUT[@]}")
@@ -638,9 +628,14 @@ _setup_vrecord_process(){
         if [[ "${RUNTYPE}" = "record" ]] ; then
             RECORD_COMMAND+=(-f "${FORMAT}" -filter_complex "${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" "${VRECORD_OUTPUT}")
         fi
+        PIPE_OUTPUT+=(-c:a pcm_s16le -ar 48k)
+        PIPE_OUTPUT+=(-f wav)
+        PIPE_OUTPUT+=(-)
         RECORD_COMMAND+=(-filter_complex "${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" "${PIPE_OUTPUT[@]}")
     else
         _report_unexpected_error DEVICE_INPUT_CHOICE
+        _report "Input unknown"
+        exit 1
     fi
     # get player command
     if [[ "${MEDIA_PLAYER_CHOICE}" = "mpv" ]] ; then
