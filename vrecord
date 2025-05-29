@@ -567,9 +567,10 @@ _setup_vrecord_process(){
         fi
         RECORD_COMMAND+=("${MIDDLEOPTIONS_PRES[@]}" "${MIDDLEOPTIONS_ALL[@]}")
         if [[ "${RUNTYPE}" = "record" ]] ; then
-            RECORD_COMMAND+=(-filter_complex "[0:v:0]${RECORDINGFILTER#,*}${TC_WRITE}${CAPTION_WRITE};${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}")
+            RECORD_COMMAND+=(-filter_complex "[0:v:0]${RECORDINGFILTER#,*}${TC_WRITE}${CAPTION_WRITE}[vout];${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}")
             RECORD_COMMAND+=(-flags +global_header)
-            RECORD_COMMAND+=(-f tee [f=${FORMAT}]${VRECORD_OUTPUT}\|[f=nut:onfail=abort]pipe:1)
+            RECORD_COMMAND+=(-map "[vout]")
+            RECORD_COMMAND+=(-f tee [f=${FORMAT}:select=v,${AUDIO_TEE_SELECT_MAP}]${VRECORD_OUTPUT}\|[f=nut:onfail=abort:select=v,a\\\\:0,${AUDIO_TEE_SELECT_MAP}]pipe:1)
             RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}")
         else
             if [[ "${SIGNAL_INPUT}" = 'true' ]] ; then
@@ -1832,36 +1833,50 @@ _lookup_choice(){
 
         # audio mappings
         "2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, Channels 3 & 4 -> 2nd Track Stereo)")
-            AUDIOMAP="[0:a:0]pan=stereo| c0=c0 | c1=${PHASE_VALUE_2}c1[stereo1];[0:a:0]pan=stereo| c0=c2 | c1=${PHASE_VALUE_4}c3[stereo2]"
+            AUDIOMAP="[0:a:0]asplit[orig],pan=stereo| c0=c0 | c1=${PHASE_VALUE_2}c1[stereo1];[0:a:0]pan=stereo| c0=c2 | c1=${PHASE_VALUE_4}c3[stereo2]"
             AUDIO_PLAY_MAP="pan=4c|c0=c0|c1=${PHASE_VALUE_2}c1|c2=c2|c3=${PHASE_VALUE_4}c3"
+            AUDIO_CHANNEL_MAP+=(-map "[orig]")
             AUDIO_CHANNEL_MAP+=(-map "[stereo1]")
-            AUDIO_CHANNEL_MAP+=(-map "[stereo2]") ;;
+            AUDIO_CHANNEL_MAP+=(-map "[stereo2]")
+            AUDIO_TEE_SELECT_MAP="a\\\\:1,a\\\\:2" ;;
         "1 Stereo Track (From Channels 1 & 2)")
-            AUDIOMAP="[0:a:0]pan=stereo| c0=c0 | c1=${PHASE_VALUE_2}c1[stereo1]"
+            AUDIOMAP="[0:a:0]asplit[orig],pan=stereo| c0=c0 | c1=${PHASE_VALUE_2}c1[stereo1]"
             AUDIO_PLAY_MAP="pan=stereo|c0=c0|c1=${PHASE_VALUE_2}c1"
-            AUDIO_CHANNEL_MAP+=(-map "[stereo1]") ;;
+            AUDIO_CHANNEL_MAP+=(-map "[orig]")
+            AUDIO_CHANNEL_MAP+=(-map "[stereo1]")
+            AUDIO_TEE_SELECT_MAP="a\\\\:1" ;;
         "1 Stereo Track (From Channels 3 & 4)")
-            AUDIOMAP="[0:a:0]pan=stereo| c0=c2 | c1=${PHASE_VALUE_2}c3[stereo1]"
+            AUDIOMAP="[0:a:0]asplit[orig],pan=stereo| c0=c2 | c1=${PHASE_VALUE_2}c3[stereo1]"
             AUDIO_PLAY_MAP="pan=stereo|c0=c2|c1=${PHASE_VALUE_2}c3"
-            AUDIO_CHANNEL_MAP+=(-map "[stereo1]") ;;
+            AUDIO_CHANNEL_MAP+=(-map "[orig]")
+            AUDIO_CHANNEL_MAP+=(-map "[stereo1]")
+            AUDIO_TEE_SELECT_MAP="a\\\\:1" ;;
         "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono")
-            AUDIOMAP="[0:a:0]pan=mono| c0=c0[mono1];[0:a:0]pan=mono| c0=${PHASE_VALUE_2}c1[mono2]"
+            AUDIOMAP="[0:a:0]asplit[orig],pan=mono| c0=c0[mono1];[0:a:0]pan=mono| c0=${PHASE_VALUE_2}c1[mono2]"
             AUDIO_PLAY_MAP="pan=stereo|c0=c0|c1=${PHASE_VALUE_2}c1"
+            AUDIO_CHANNEL_MAP+=(-map "[orig]")
             AUDIO_CHANNEL_MAP+=(-map "[mono1]")
-            AUDIO_CHANNEL_MAP+=(-map "[mono2]") ;;
+            AUDIO_CHANNEL_MAP+=(-map "[mono2]")
+            AUDIO_TEE_SELECT_MAP="a\\\\:1,a\\\\:2" ;;
         "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono")
-            AUDIOMAP="[0:a:0]pan=mono| c0=${PHASE_VALUE_2}c1[mono1];[0:a:0]pan=mono| c0=c0[mono2]"
+            AUDIOMAP="[0:a:0]asplit[orig],pan=mono| c0=${PHASE_VALUE_2}c1[mono1];[0:a:0]pan=mono| c0=c0[mono2]"
             AUDIO_PLAY_MAP="pan=stereo|c0=${PHASE_VALUE_2}c1|c1=c0"
+            AUDIO_CHANNEL_MAP+=(-map "[orig]")
             AUDIO_CHANNEL_MAP+=(-map "[mono1]")
-            AUDIO_CHANNEL_MAP+=(-map "[mono2]") ;;
+            AUDIO_CHANNEL_MAP+=(-map "[mono2]")
+            AUDIO_TEE_SELECT_MAP="a\\\\:1,a\\\\:2" ;;
         "Channel 1 -> Single Track Mono")
-            AUDIOMAP="[0:a:0]pan=mono| c0=c0[mono1]"
+            AUDIOMAP="[0:a:0]asplit[orig],pan=mono| c0=c0[mono1]"
             AUDIO_PLAY_MAP="pan=mono| c0=c0"
-            AUDIO_CHANNEL_MAP+=(-map "[mono1]") ;;
+            AUDIO_CHANNEL_MAP+=(-map "[orig]")
+            AUDIO_CHANNEL_MAP+=(-map "[mono1]")
+            AUDIO_TEE_SELECT_MAP="a\\\\:1" ;;
         "Channel 2 -> Single Track Mono")
-            AUDIOMAP="[0:a:0]pan=mono| c0=c1[mono1]"
+            AUDIOMAP="[0:a:0]asplit[orig],pan=mono| c0=c1[mono1]"
             AUDIO_PLAY_MAP="pan=mono| c0=c1"
-            AUDIO_CHANNEL_MAP+=(-map "[mono1]") ;;
+            AUDIO_CHANNEL_MAP+=(-map "[orig]")
+            AUDIO_CHANNEL_MAP+=(-map "[mono1]")
+            AUDIO_TEE_SELECT_MAP="a\\\\:1" ;;
         # Audio mode channel options
         "Mono")
             AUDIOMAP="[0:a:0]pan=mono| c0=c0[mono1]"
