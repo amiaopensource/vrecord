@@ -1896,10 +1896,11 @@ _lookup_choice(){
             fi
             RECORDINGFILTER_MP4+=",crop=w=720:h=480:x=0:y=4"
             if [[ "${SIGNAL_INPUT}" = 'true' ]] ; then
-                RECORDINGFILTER+=",setparams=field_mode=${SIG_INTERLACEMENT}"
+                SET_FIELD_MODE="${SIG_INTERLACEMENT}"
             else
-                RECORDINGFILTER+=",setparams=field_mode=${SIGNAL_INT_CHOICE:-auto}"
+                SET_FIELD_MODE="${SIGNAL_INT_CHOICE:-auto}"
             fi
+            RECORDINGFILTER+=",setparams=field_mode=${SET_FIELD_MODE}"
             MIDDLEOPTIONS_ALL+=(-color_primaries smpte170m)
             MIDDLEOPTIONS_ALL+=(-color_trc bt709)
             MIDDLEOPTIONS_ALL+=(-colorspace smpte170m) ;;
@@ -1913,10 +1914,11 @@ _lookup_choice(){
                 MIDDLEOPTIONS_PRES+=(-x264opts "${SIG_INTERLACEMENT}")
             fi
             if [[ "${SIGNAL_INPUT}" = 'true' ]] ; then
-                RECORDINGFILTER+=",setparams=field_mode=${SIG_INTERLACEMENT}"
+                SET_FIELD_MODE="${SIG_INTERLACEMENT}"
             else
-                RECORDINGFILTER+=",setparams=field_mode=${SIGNAL_INT_CHOICE:-auto}"
+                SET_FIELD_MODE="${SIGNAL_INT_CHOICE:-auto}"
             fi
+            RECORDINGFILTER+=",setparams=field_mode=${SET_FIELD_MODE}"
             MIDDLEOPTIONS_ALL+=(-color_primaries bt470bg)
             MIDDLEOPTIONS_ALL+=(-color_trc bt709)
             MIDDLEOPTIONS_ALL+=(-colorspace bt470bg) ;;
@@ -1929,10 +1931,11 @@ _lookup_choice(){
                 MIDDLEOPTIONS+=(-x264opts "${SIG_INTERLACEMENT}")
             fi
             if [[ "${SIGNAL_INPUT}" = 'true' ]] ; then
-                RECORDINGFILTER+=",setparams=field_mode=${SIG_INTERLACEMENT}"
+                SET_FIELD_MODE="${SIG_INTERLACEMENT}"
             else
-                RECORDINGFILTER+=",setparams=field_mode=${SIGNAL_INT_CHOICE:-auto}"
+                SET_FIELD_MODE="${SIGNAL_INT_CHOICE:-auto}"
             fi
+            RECORDINGFILTER+=",setparams=field_mode=${SET_FIELD_MODE}"
             MIDDLEOPTIONS+=(-color_primaries bt709)
             MIDDLEOPTIONS+=(-color_trc bt709)
             MIDDLEOPTIONS+=(-colorspace bt709) ;;
