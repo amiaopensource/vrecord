@@ -567,9 +567,8 @@ _setup_vrecord_process(){
         fi
         RECORD_COMMAND+=("${MIDDLEOPTIONS_PRES[@]}" "${MIDDLEOPTIONS_ALL[@]}")
         if [[ "${RUNTYPE}" = "record" ]] ; then
-            RECORD_COMMAND+=(-filter_complex "[0:v:0]${RECORDINGFILTER#,*}${TC_WRITE}${CAPTION_WRITE}[vout];${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}")
+            RECORD_COMMAND+=(-filter_complex "[0:v:0]${RECORDINGFILTER#,*}${TC_WRITE}${CAPTION_WRITE}[vout];${AUDIOMAP}" -map "[vout]" "${AUDIO_CHANNEL_MAP[@]}")
             RECORD_COMMAND+=(-flags +global_header)
-            RECORD_COMMAND+=(-map "[vout]")
             RECORD_COMMAND+=(-f tee [f=${FORMAT}:select=v,${AUDIO_TEE_SELECT_MAP}]${VRECORD_OUTPUT}\|[f=nut:onfail=abort:select=v,a\\\\:0,${AUDIO_TEE_SELECT_MAP}]pipe:1)
             RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}")
         else
