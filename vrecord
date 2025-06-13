@@ -580,9 +580,7 @@ _setup_vrecord_process(){
             PIPE_OUTPUT+=(-vf "${RECORDINGFILTER#,*}")
             PIPE_OUTPUT+=(-c:a pcm_s24le)
             PIPE_OUTPUT+=(-map 0:v -map "${AUD_PIPE_MAP}")
-            PIPE_OUTPUT+=(-f matroska)
-            PIPE_OUTPUT+=(-write_crc32 0)
-            PIPE_OUTPUT+=(-live true)
+            PIPE_OUTPUT+=(-f nut)
             PIPE_OUTPUT+=(-)
             RECORD_COMMAND+=("${PIPE_OUTPUT[@]}")
         fi
