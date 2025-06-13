@@ -574,9 +574,9 @@ _setup_vrecord_process(){
             if [[ "${SIGNAL_INPUT}" = 'true' ]] ; then
                 AUD_PIPE_MAP='1:a'
             else
-                PIPE_OUTPUT=(-c:v copy)
                 AUD_PIPE_MAP='0:a'
             fi
+            PIPE_OUTPUT=(-c:v rawvideo)
             PIPE_OUTPUT+=(-vf "${RECORDINGFILTER#,*}")
             PIPE_OUTPUT+=(-c:a pcm_s24le)
             PIPE_OUTPUT+=(-map 0:v -map "${AUD_PIPE_MAP}")
