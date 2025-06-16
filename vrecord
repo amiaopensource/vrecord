@@ -572,6 +572,7 @@ _setup_vrecord_process(){
             RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}")
         else
             if [[ "${SIGNAL_INPUT}" = 'true' ]] ; then
+                PIPE_OUTPUT=(-c:v ffv1)
                 AUD_PIPE_MAP='1:a'
             else
                 PIPE_OUTPUT=(-c:v copy)
