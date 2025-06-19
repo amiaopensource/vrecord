@@ -1918,7 +1918,7 @@ _lookup_choice(){
             _add_mediaconch_rule_set "${STANDARD_NTSC_TEST}"
 
             if [[ "${VIDEO_CODEC_CHOICE}" = "h264" ]] ; then
-                RECORDINGFILTER+=",crop=w=720:h=480:x=0:y=4,"
+                RECORDINGFILTER+=",crop=w=720:h=480:x=0:y=4"
                 MIDDLEOPTIONS_PRES+=(-x264opts "${SIG_INTERLACEMENT}")
             fi
             RECORDINGFILTER_MP4+=",crop=w=720:h=480:x=0:y=4"
