@@ -97,6 +97,8 @@ _update_config_file(){
 _validate_form(){
     if [ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" ] && [ "${CONTAINER_CHOICE}" = "MXF" ] ; then
         echo "ERROR: Incompatible video codecs and containers have been selected."
+    elif [ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" ] && [ "${CONTAINER_CHOICE}" = "MP4" ] ; then
+        echo "ERROR: Incompatible video codecs and containers have been selected."
     elif [ "${AUDIO_CODEC_CHOICE}" = "24-bit FLAC" ] && [ "${CONTAINER_CHOICE}" = "QuickTime" ] ; then
         echo "ERROR: Incompatible audio codecs and containers have been selected."
     fi
