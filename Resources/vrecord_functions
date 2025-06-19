@@ -101,6 +101,8 @@ _validate_form(){
         echo "ERROR: Incompatible video codecs and containers have been selected."
     elif [ "${AUDIO_CODEC_CHOICE}" = "24-bit FLAC" ] && [ "${CONTAINER_CHOICE}" = "QuickTime" ] ; then
         echo "ERROR: Incompatible audio codecs and containers have been selected."
+    elif [ "${MP4_CHOICE}" = "true" ] && [ "${CONTAINER_CHOICE}" = "MP4" ] ; then
+        echo "ERROR: You can't use MP4 for both the access copy option and the preservation copy. Too much MP4."
     fi
     if [ -z "${DIR}" ] ; then
         NEW_DEFAULT_DIR="$(pwd)"
