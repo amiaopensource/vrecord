@@ -2650,8 +2650,12 @@ done
 
 _start_mediaconch_policy
 _add_mediaconch_rule_set "${CONTAINER_GENERAL_TEST}"
-_add_mediaconch_rule_set "${CODEC_GENERAL_TEST}"
-_add_mediaconch_rule_set "${AUDIO_CODEC_TEST}"
+if [[ ! "${VIDEO_CODEC_CHOICE}" = "h264" ]] ; then
+    _add_mediaconch_rule_set "${CODEC_GENERAL_TEST}"
+fi
+if [[ ! "${AUDIO_CODEC_CHOICE}" = "AAC" ]] ; then
+    _add_mediaconch_rule_set "${AUDIO_CODEC_TEST}"
+fi
 _review_all_options
 
 # CLI passthrough and audiopassthrough modes
