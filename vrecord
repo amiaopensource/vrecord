@@ -20,7 +20,7 @@ AVFoundation. It is an interactive script and will create 10 or 8-bit video
 files.
 
 Dependencies: cowsay, amiaopensource/amiaos/decklinksdk,
-  amiaopensource/amiaos/ffmpegdecklink, amiaopensource/amiaos/gtkdialog, and
+  amiaopensource/amiaos/gtkdialog, mediaarea/mediaarea/ffmpeg-ma, and
   xmlstarlet
 Optional Dependencies: deckcontrol, gnuplot, mediaconch, mkvtoolnix, mpv, qcli
 
@@ -40,7 +40,7 @@ Usage: ${SCRIPTNAME} [ -e | -r | -p | -a | -x | -n|  -v | -s | -h ] [IDENTIFIER]
   -x  reset the configuration: this will replace the default configuration file
       at '${CONFIG_FILE}' with an empty one.
   -n  reset Vrecord's stored environment variables. These include
-      variables such as the paths to certain dependencies such as ffmpeg-dl.
+      variables such as the paths to certain dependencies such as ffmpeg-ma.
   -v  Run ffmpeg with '-loglevel debug'. Using this option creates a very large
       log file, so avoid using this option with 'Visual + Numerical' or any
       playback option that display the log as part of the view.
@@ -250,7 +250,7 @@ _setup_env_variables(){
 
 _gather_ffmpeg_vars(){
     CAPTURELOGSUFFIX="_vrecord_input.log"
-    TIMECODELOGSUFFIX="_frame_timecodes.txt"
+    TIMECODELOGSUFFIX="_frame_timecodes"
     if [[ -d "/usr/local/opt/ffmpegdecklink" ]] ; then
         BREW_PREFIX="/usr/local/opt/ffmpegdecklink"
     elif [[ -d "/home/linuxbrew/.linuxbrew/opt/ffmpegdecklink" ]] ; then
@@ -355,6 +355,24 @@ _eia608dump2scc(){
         fi
     done < <(grep -o "pts_time:[^ ]*\|lavfi.readeia608.0.cc=[^ ]*"  "${EIA608DUMP_IN}")
     _end_scc
+}
+
+_timecodetxt2timecodexml(){
+    local INPUT_XML="${1}"
+
+    echo '<?xml version="1.0" encoding="UTF-8"?>'
+    echo '<MediaTimecode'
+    echo '    xmlns="https://mediaarea.net/mediatimecode"'
+    echo '    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"'
+    echo '    xsi:schemaLocation="https://mediaarea.net/mediatimecode https://mediaarea.net/xsd/mediatimecode.xsd"'
+    echo '    version="0.0">'
+    echo '  <creatingLibrary version="${VERSION}" url="https://github.com/amiaopensource/vrecord">vrecord</creatingLibrary>'
+    echo "  <media ref=\"${VIDEO_INPUT_CHOICE}\" format=\"${TIMECODE_CHOICE}\">"
+    echo "    <timecode_stream id=/"${TIMECODE_CHOICE}/" format=/"smpte-st331/" frame_rate=/"30000/1001/" frame_count=\"$(grep -c 'timecode=' "${INPUT_XML}")\" fp=\"0\" bgf=\"0\" bg=\"0\">"
+    grep 'timecode=' "${INPUT_XML}" | sed 's/timecode=/    <tc v="/;s/$/\"\/>/'
+    echo '    </timecode_stream>'
+    echo '  </media>'
+    echo '</MediaTimecode>'
 }
 
 _cleanup(){
@@ -2732,7 +2750,8 @@ else
     FULL_OUTPUT_ID="${PREFIX}${ID}"
 fi
 FULL_CAPTURE_LOG="${LOGDIR}/${FULL_OUTPUT_ID}${CAPTURELOGSUFFIX}"
-TIMECODE_LOG="${LOGDIR}/${FULL_OUTPUT_ID}_${TC_TYPE}${TIMECODELOGSUFFIX}"
+TIMECODE_LOG="${LOGDIR}/${FULL_OUTPUT_ID}_${TC_TYPE}${TIMECODELOGSUFFIX}.txt"
+TIMECODE_XML="${LOGDIR}/${FULL_OUTPUT_ID}_${TC_TYPE}${TIMECODELOGSUFFIX}.xml"
 CAPTION_LOG="${LOGDIR}/${FULL_OUTPUT_ID}_frame_eia608data.txt"
 CAPTION_SCC="${LOGDIR}/${FULL_OUTPUT_ID}.scc"
 VRECORD_OUTPUT="${DIR}/${FULL_OUTPUT_ID}.${EXTENSION}"
@@ -2923,6 +2942,8 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
     # timecode document handling
     if [[ -f "${TC_TMP}" ]] ; then
         mv "${TC_TMP}" "${TIMECODE_LOG}"
+        _timecodetxt2timecodexml "${TIMECODE_LOG}" > "${TIMECODE_XML}"
+        ffmpeg-ma -i "${VRECORD_OUTPUT}" -mediatimecode "${TIMECODE_XML}" -strict experimental -map 0 -c copy "${TIMECODE_XML%.*}_TC.mkv"
     fi
     # caption handling
     if [[ -s "${CAPTION_TMP}" ]] ; then
