@@ -250,7 +250,7 @@ _setup_env_variables(){
 
 _gather_ffmpeg_vars(){
     CAPTURELOGSUFFIX="_vrecord_input.log"
-    TIMECODELOGSUFFIX="_frame_timecodes.txt"
+    TIMECODELOGSUFFIX="_frame_timecodes"
     if [[ -d "/usr/local/opt/ffmpeg-ma" ]] ; then
         BREW_PREFIX="/usr/local/opt/ffmpeg-ma"
     elif [[ -d "/home/linuxbrew/.linuxbrew/opt/ffmpeg-ma" ]] ; then
@@ -355,6 +355,24 @@ _eia608dump2scc(){
         fi
     done < <(grep -o "pts_time:[^ ]*\|lavfi.readeia608.0.cc=[^ ]*"  "${EIA608DUMP_IN}")
     _end_scc
+}
+
+_timecodetxt2timecodexml(){
+    local INPUT_XML="${1}"
+
+    echo '<?xml version="1.0" encoding="UTF-8"?>'
+    echo '<MediaTimecode'
+    echo '    xmlns="https://mediaarea.net/mediatimecode"'
+    echo '    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"'
+    echo '    xsi:schemaLocation="https://mediaarea.net/mediatimecode https://mediaarea.net/xsd/mediatimecode.xsd"'
+    echo '    version="0.0">'
+    echo '  <creatingLibrary version="${VERSION}" url="https://github.com/amiaopensource/vrecord">vrecord</creatingLibrary>'
+    echo "  <media ref=\"${VIDEO_INPUT_CHOICE}\" format=\"${TIMECODE_CHOICE}\">"
+    echo "    <timecode_stream id=/"${TIMECODE_CHOICE}/" format=/"smpte-st331/" frame_rate=/"30000/1001/" frame_count=\"$(grep -c 'timecode=' "${INPUT_XML}")\" fp=\"0\" bgf=\"0\" bg=\"0\">"
+    grep 'timecode=' "${INPUT_XML}" | sed 's/timecode=/    <tc v="/;s/$/\"\/>/'
+    echo '    </timecode_stream>'
+    echo '  </media>'
+    echo '</MediaTimecode>'
 }
 
 _cleanup(){
@@ -2719,7 +2737,8 @@ else
     FULL_OUTPUT_ID="${PREFIX}${ID}"
 fi
 FULL_CAPTURE_LOG="${LOGDIR}/${FULL_OUTPUT_ID}${CAPTURELOGSUFFIX}"
-TIMECODE_LOG="${LOGDIR}/${FULL_OUTPUT_ID}_${TC_TYPE}${TIMECODELOGSUFFIX}"
+TIMECODE_LOG="${LOGDIR}/${FULL_OUTPUT_ID}_${TC_TYPE}${TIMECODELOGSUFFIX}.txt"
+TIMECODE_XML="${LOGDIR}/${FULL_OUTPUT_ID}_${TC_TYPE}${TIMECODELOGSUFFIX}.xml"
 CAPTION_LOG="${LOGDIR}/${FULL_OUTPUT_ID}_frame_eia608data.txt"
 CAPTION_SCC="${LOGDIR}/${FULL_OUTPUT_ID}.scc"
 VRECORD_OUTPUT="${DIR}/${FULL_OUTPUT_ID}.${EXTENSION}"
@@ -2907,6 +2926,8 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
     # timecode document handling
     if [[ -f "${TC_TMP}" ]] ; then
         mv "${TC_TMP}" "${TIMECODE_LOG}"
+        _timecodetxt2timecodexml "${TIMECODE_LOG}" > "${TIMECODE_XML}"
+        "${FFMPEG_BIN}" -i "${VRECORD_OUTPUT}" -mediatimecode "${TIMECODE_XML}" -strict experimental -map 0 -c copy "${TIMECODE_XML%.*}_TC.mkv"
     fi
     # caption handling
     if [[ -s "${CAPTION_TMP}" ]] ; then
