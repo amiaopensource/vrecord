@@ -1915,11 +1915,12 @@ _lookup_choice(){
             DECKLINK_FPS="30000/1001"
             SIG_GEN_SIZE="720x486"
             SIG_INTERLACEMENT="bff"
-            _add_mediaconch_rule_set "${STANDARD_NTSC_TEST}"
-
             if [[ "${VIDEO_CODEC_CHOICE}" = "h264" ]] ; then
-                RECORDINGFILTER+=",crop=w=720:h=480:x=0:y=4,"
+                RECORDINGFILTER+=",crop=w=720:h=480:x=0:y=4"
                 MIDDLEOPTIONS_PRES+=(-x264opts "${SIG_INTERLACEMENT}")
+                _add_mediaconch_rule_set "${STANDARD_NTSC_ACCESS_TEST}"
+            else
+                _add_mediaconch_rule_set "${STANDARD_NTSC_TEST}"
             fi
             RECORDINGFILTER_MP4+=",crop=w=720:h=480:x=0:y=4"
             _set_some_params
@@ -2431,6 +2432,18 @@ STANDARD_NTSC_TEST='
     </policy>
 '
 
+# same as above NTSC test but with 480 height
+STANDARD_NTSC_ACCESS_TEST='
+    <policy type="and" name="Is it NTSC?">
+        <rule name="Is the height 480?" value="Height" tracktype="Video" operator="=">480</rule>
+        <rule name="Is the width 720?" value="Width" tracktype="Video" operator="=">720</rule>
+        <rule name="Is the frame rate 29.970?" value="FrameRate" tracktype="Video" operator="=">29.970</rule>
+        <rule name="Is the scan order bottom field first?" value="ScanOrder" tracktype="Video" operator="=">BFF</rule>
+        <rule name="Are the colour primaries BT.601 NTSC?" value="colour_primaries" tracktype="Video" operator="=">BT.601 NTSC</rule>
+        <rule name="Are the matrix coefficients BT.601?" value="matrix_coefficients" tracktype="Video" operator="=">BT.601</rule>
+    </policy>
+'
+
 STANDARD_PAL_TEST='
     <policy type="and" name="Is it PAL?">
         <rule name="Is the height 576?" value="Height" tracktype="Video" operator="=">576</rule>
@@ -2637,8 +2650,12 @@ done
 
 _start_mediaconch_policy
 _add_mediaconch_rule_set "${CONTAINER_GENERAL_TEST}"
-_add_mediaconch_rule_set "${CODEC_GENERAL_TEST}"
-_add_mediaconch_rule_set "${AUDIO_CODEC_TEST}"
+if [[ ! "${VIDEO_CODEC_CHOICE}" = "h264" ]] ; then
+    _add_mediaconch_rule_set "${CODEC_GENERAL_TEST}"
+fi
+if [[ ! "${AUDIO_CODEC_CHOICE}" = "AAC" ]] ; then
+    _add_mediaconch_rule_set "${AUDIO_CODEC_TEST}"
+fi
 _review_all_options
 
 # CLI passthrough and audiopassthrough modes
