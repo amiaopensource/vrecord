@@ -1543,13 +1543,13 @@ _edit_mode(){
         _review_all_options
         _report -dt "Note: some types of timecode are only supported if the video input is set to 'sdi' (currently the video input is set to '${VIDEO_INPUT}')."
         _setup_vrecord_input
+        echo "Timecode Type | Timecode Value"
+        echo "--------------|---------------"
         for timecode_type in "${TIMECODE_OPTIONS[@]}" ; do
             tc_value="$("${FFMPEG_BIN}" -timecode_format "${timecode_type}" "${GRAB_INPUT[@]}" -loglevel info 2>&1 | grep " timecode " | cut -d ":" -f2- | sed 's/ //g')"
-            if [[ -z "${tc_value}" ]] ; then
-                tc_value="none"
-            fi
-            echo "${timecode_type}: ${tc_value}"
+            printf "  %-11s | %-12s \n" "${timecode_type}" "${tc_value:-none}"
         done
+        echo "--------------|---------------"
         RUNTYPE="edit"
     elif [[ "${EXIT}" = "env_reset" ]] ; then
         _remove_env_vars
