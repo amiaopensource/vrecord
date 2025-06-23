@@ -1541,7 +1541,7 @@ _edit_mode(){
     elif [[ "${EXIT}" = "timecode_scan" ]] ; then
         _report -dt "Scanning each supported type of timecode."
         _review_all_options
-        _report -dt "Note: some types of timecode are only supported if the video input is set to 'ffmpeg' and 'sdi' (currently the video input is set to '${DECKLINK_UTILITY_CHOICE}' and '${VIDEO_INPUT}')."
+        _report -dt "Note: some types of timecode are only supported if the video input is set to 'sdi' (currently the video input is set to '${VIDEO_INPUT}')."
         _setup_vrecord_input
         for timecode_type in "${TIMECODE_OPTIONS[@]}" ; do
             tc_value="$("${FFMPEG_BIN}" -timecode_format "${timecode_type}" "${GRAB_INPUT[@]}" 2>&1 | grep " timecode " | cut -d ":" -f2- | sed 's/ //g')"
