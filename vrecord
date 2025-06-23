@@ -2459,20 +2459,24 @@ STANDARD_PAL_TEST='
     </policy>
 '
 
-AUDIO_CODEC_TEST='
-    <policy type="or" name="Is the audio PCM or FLAC or AAC?">
-        <rule name="Is the audio PCM?" value="Format" tracktype="Audio" operator="=">PCM</rule>
-        <rule name="Is the audio FLAC?" value="Format" tracktype="Audio" operator="=">FLAC</rule>
-        <rule name="Is the audio AAC?" value="Format" tracktype="Audio" operator="=">AAC</rule>
-    </policy>
-    <rule name="Is the endianness Little?" value="Format_Settings_Endianness" tracktype="Audio" operator="=">Little</rule>
-    <rule name="Is the signedness Signed?" value="Format_Settings_Sign" tracktype="Audio" operator="=">Signed</rule>
-    <rule name="Is the bitrate mode CBR?" value="BitRate_Mode" tracktype="Audio" operator="=">CBR</rule>
+AUDIO_CODEC_GENERAL_TEST='
     <policy type="or" name="1 or 2 channels of audio?">
         <rule name="1 channel of audio?" value="Channels" tracktype="Audio" operator="=">1</rule>
         <rule name="2 channels of audio?" value="Channels" tracktype="Audio" operator="=">2</rule>
     </policy>
     <rule name="Is the sample rate 48kHz?" value="SamplingRate" tracktype="Audio" operator="=">48000</rule>
+'
+
+AUDIO_CODEC_PCM_TEST='
+    <rule name="Is the audio PCM?" value="Format" tracktype="Audio" operator="=">PCM</rule>
+    <rule name="Is the endianness Little?" value="Format_Settings_Endianness" tracktype="Audio" operator="=">Little</rule>
+    <rule name="Is the signedness Signed?" value="Format_Settings_Sign" tracktype="Audio" operator="=">Signed</rule>
+    <rule name="Is the bitrate mode CBR?" value="BitRate_Mode" tracktype="Audio" operator="=">CBR</rule>
+    <rule name="Is the audio bit depth 24?" value="BitDepth" tracktype="Audio" operator="=">24</rule>
+'
+
+AUDIO_CODEC_FLAC_TEST='
+    <rule name="Is the audio FLAC?" value="Format" tracktype="Audio" operator="=">FLAC</rule>
     <rule name="Is the audio bit depth 24?" value="BitDepth" tracktype="Audio" operator="=">24</rule>
 '
 # define mediaconch test fragment -end
@@ -2653,8 +2657,11 @@ _add_mediaconch_rule_set "${CONTAINER_GENERAL_TEST}"
 if [[ ! "${VIDEO_CODEC_CHOICE}" = "h264" ]] ; then
     _add_mediaconch_rule_set "${CODEC_GENERAL_TEST}"
 fi
-if [[ ! "${AUDIO_CODEC_CHOICE}" = "AAC" ]] ; then
-    _add_mediaconch_rule_set "${AUDIO_CODEC_TEST}"
+_add_mediaconch_rule_set "${AUDIO_CODEC_GENERAL_TEST}"
+if [[ "${AUDIO_CODEC_CHOICE}" = "24-bit PCM" ]] ; then
+    _add_mediaconch_rule_set "${AUDIO_CODEC_PCM_TEST}"
+elif [[ "${AUDIO_CODEC_CHOICE}" = "24-bit FLAC" ]] ; then
+    _add_mediaconch_rule_set "${AUDIO_CODEC_FLAC_TEST}"
 fi
 _review_all_options
 
