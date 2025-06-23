@@ -2494,8 +2494,10 @@ MC_END
 }
 
 _add_mediaconch_rule_set(){
-    RULE_SET="${1}"
-    echo "$RULE_SET" >> "${MEDIACONCH_POLICY_TMP}"
+    if [[ -f "${MEDIACONCH_POLICY_TMP}" ]] ; then
+        RULE_SET="${1}"
+        echo "$RULE_SET" >> "${MEDIACONCH_POLICY_TMP}"
+    fi
 }
 
 # command-line options to set media id and original variables
