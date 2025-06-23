@@ -10,14 +10,14 @@ unset VERSION
 if [[ $(dirname "$(command -v "${0}")") = "/usr/local/bin" ]] ; then
     VERSION=$(TMP=$(brew info vrecord | grep ".*\*$" | grep -Eo "/vrecord/.* \(") ; echo "${TMP:9:(${#TMP}-11)}")
 fi
-BREW_PREFIX=$(brew --prefix ffmpegdecklink 2>/dev/null)
-FFMPEG_DECKLINK=("${BREW_PREFIX}/bin/ffmpeg-dl")
-FFPLAY_DECKLINK=("${BREW_PREFIX}/bin/ffplay-dl")
-DEVICE_NAME=$("${FFMPEG_DECKLINK[@]}" -f decklink -list_devices 1 -i dummy 2>&1 | grep -o "^\[decklink[^\]*][^']*'.*" | cut -d "'" -f2- | sed "s/'$//g")
+BREW_PREFIX=$(brew --prefix ffmpeg-ma 2>/dev/null)
+FFMPEG_MA=("${BREW_PREFIX}/bin/ffmpeg-ma")
+FFPLAY_MA=("${BREW_PREFIX}/bin/ffplay-ma")
+DEVICE_NAME=$("${FFMPEG_MA[@]}" -f decklink -list_devices 1 -i dummy 2>&1 | grep -o "^\[decklink[^\]*][^']*'.*" | cut -d "'" -f2- | sed "s/'$//g")
 
-if [[ "$("${FFMPEG_DECKLINK[@]}" -version 2>&1 | grep "Library not loaded" >/dev/null)" || ! -f "${FFMPEG_DECKLINK}" || ! -f "${FFPLAY_DECKLINK}" ]] ; then
-    echo "Please reinstall 'ffmpegdecklink':"
-    echo "  brew reinstall amiaopensource/amiaos/ffmpegdecklink"
+if [[ "$("${FFMPEG_MA[@]}" -version 2>&1 | grep "Library not loaded" >/dev/null)" || ! -f "${FFMPEG_MA}" || ! -f "${FFPLAY_MA}" ]] ; then
+    echo "Please reinstall 'ffmpeg-ma':"
+    echo "  brew reinstall mediaarea/mediaarea/ffmpeg-ma"
     echo "Exiting."
     exit 1
 fi
@@ -30,7 +30,7 @@ ${SCRIPTNAME} will pipe test files and output from the computer out to your
 monitor, via a BlackMagic capture card. It is useful for testing equipment
 without having to play a test tape.
 
-Dependencies: amiaopensource/amiaos/ffmpegdecklink
+Dependencies: mediaarea/mediaarea/ffmpeg-ma
 
 Usage: ${SCRIPTNAME} [ -n | -p | -a | -l | -e | -f optionaltestfile | -h ]
   -n    pipe NTSC SMPTE bars + sine wave tone through output device
@@ -45,9 +45,9 @@ Usage: ${SCRIPTNAME} [ -n | -p | -a | -l | -e | -f optionaltestfile | -h ]
   
 * If you do not know what formats are compatible with your BlackMagic device,
 try running:
-    [ffmpegdecklink location] -f decklink -list_formats 1 -i [BlackMagic device name]
+    ffmpeg-ma -f decklink -list_formats 1 -i [BlackMagic device name]
 e.g.
-    /usr/local/opt/ffmpegdecklink/bin/ffmpeg-dl -f decklink -list_formats 1 -i 'UltraStudio 3D'
+    ffmpeg-ma -f decklink -list_formats 1 -i 'UltraStudio 3D'
 
 EOF
 }
@@ -99,10 +99,10 @@ shift "$((OPTIND-1))"
 
 # script functions
 _get_decklink_output(){
-    DECKLINK_OUTPUT=$("${FFMPEG_DECKLINK[@]}" -f decklink -list_devices 1 -i dummy 2>&1 | grep -o "^\[decklink[^\]*][^']*'.*" | cut -d "'" -f2- | sed "s/'$//g")
+    DECKLINK_OUTPUT=$("${FFMPEG_MA[@]}" -f decklink -list_devices 1 -i dummy 2>&1 | grep -o "^\[decklink[^\]*][^']*'.*" | cut -d "'" -f2- | sed "s/'$//g")
     if [[ -z "${DECKLINK_OUTPUT}" ]] ; then
-        _report -w "No decklink inputs were found. Running \`${FFMPEG_DECKLINK} -hide_banner -f decklink -list_devices 1 -i dummy\` results in:"
-        DECKLINK_RESULT=$("${FFMPEG_DECKLINK[@]}" -hide_banner -f decklink -list_devices 1 -i dummy)
+        _report -w "No decklink inputs were found. Running \`${FFMPEG_MA} -hide_banner -f decklink -list_devices 1 -i dummy\` results in:"
+        DECKLINK_RESULT=$("${FFMPEG_MA[@]}" -hide_banner -f decklink -list_devices 1 -i dummy)
         echo "${DECKLINK_RESULT}"
         _report -w "Please check connections and drivers and try again."
         exit 1
@@ -470,16 +470,16 @@ fi
 _report -d "Press q or ctrl+c to end playback."
 
 if [[ "${RUNTYPE}" = "ntsc" ]] ; then
-    "${FFMPEG_DECKLINK}" -f lavfi -i "smptebars=s=720x486:r=30000/1001" \
+    "${FFMPEG_MA}" -f lavfi -i "smptebars=s=720x486:r=30000/1001" \
     -f lavfi -i sine -vf setfield=bff "${DECKLINK_OPTS[@]}" "${DECKLINK_OUTPUT}"
 elif [[ "${RUNTYPE}" = "pal" ]] ; then
-    "${FFMPEG_DECKLINK}" -f lavfi -i "smptebars=s=720x576:r=25000/1000" \
+    "${FFMPEG_MA}" -f lavfi -i "smptebars=s=720x576:r=25000/1000" \
     -f lavfi -i sine -vf setfield=tff "${DECKLINK_OPTS[@]}" "${DECKLINK_OUTPUT}"
 elif [[ "${RUNTYPE}" = "audio" ]] ; then
-    "${FFMPEG_DECKLINK}" -f lavfi -i aevalsrc="${AUDIO_MODE_VOPTS}" -f lavfi -i aevalsrc="${AUDIO_MODE_AOPTS}" -map "1:a" -map "0:v" "${DECKLINK_OPTS[@]}" "${DECKLINK_OUTPUT}"
+    "${FFMPEG_MA}" -f lavfi -i aevalsrc="${AUDIO_MODE_VOPTS}" -f lavfi -i aevalsrc="${AUDIO_MODE_AOPTS}" -map "1:a" -map "0:v" "${DECKLINK_OPTS[@]}" "${DECKLINK_OUTPUT}"
 elif [[ "${RUNTYPE}" = "file" ]] ; then
-    "${FFMPEG_DECKLINK}" -i "${TESTFILE}" -f decklink -pix_fmt uyvy422 -c:a pcm_s16le -ar 48000 -ac 2 "${DECKLINK_OUTPUT}"
+    "${FFMPEG_MA}" -i "${TESTFILE}" -f decklink -pix_fmt uyvy422 -c:a pcm_s16le -ar 48000 -ac 2 "${DECKLINK_OUTPUT}"
 elif [[ "${RUNTYPE}" = "local" ]] || [[ "${RUNTYPE}" = "edit" ]] ; then
-    "${FFMPEG_DECKLINK}" "${VIDEO_OPTS[@]}" "${AUDIO_OPTS[@]}" "${MIDDLE_OPTS[@]}" "${DECKLINK_OPTS[@]}" "${DECKLINK_OUTPUT}"
+    "${FFMPEG_MA}" "${VIDEO_OPTS[@]}" "${AUDIO_OPTS[@]}" "${MIDDLE_OPTS[@]}" "${DECKLINK_OPTS[@]}" "${DECKLINK_OUTPUT}"
 fi
 exit 0

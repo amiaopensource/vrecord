@@ -33,7 +33,7 @@ To play your own test file, run:
 ```
 vtest -f [TESTFILE]
 ```
-This test file must be in a format (frame size/frame rate combination) compatible with your BlackMagic device. To see a list of accepted formats, run `[ffmpegdecklink location] -f decklink -list_formats 1 -i [BlackMagic device name]` (for example, `/usr/local/opt/ffmpegdecklink/bin/ffmpeg-dl -f decklink -list_formats 1 -i 'UltraStudio 3D'`)
+This test file must be in a format (frame size/frame rate combination) compatible with your BlackMagic device. To see a list of accepted formats, run `ffmpeg-ma -f decklink -list_formats 1 -i [BlackMagic device name]` (for example, `ffmpeg-ma -f decklink -list_formats 1 -i 'UltraStudio 3D'`)
 
 To see this options in the command line interface, run `vtest -h`.
 

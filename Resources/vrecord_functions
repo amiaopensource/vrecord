@@ -6,8 +6,8 @@ _check_ffmpeg_install(){
     echo "Using ffmpeg at ${FFMPEG_BIN}"
     echo
     if [ ! -f "${FFMPEG_BIN}" ] ; then
-        echo "${FFMPEG_BIN} is not found. Please install ffmpegdecklink via:"
-        echo "    brew install amiaopensource/amiaos/ffmpegdecklink"
+        echo "${FFMPEG_BIN} is not found. Please install ffmpeg-ma via:"
+        echo "    brew install mediaarea/mediaarea/ffmpeg-ma"
         echo "Or install a version of ffmpeg that is compiled with decklink support if you wish to use that input."
         echo
     fi
@@ -24,15 +24,15 @@ _check_ffmpeg_install(){
     echo "FFmpeg configuration: ${FFMPEG_V}"
     echo
     if [ "$(echo "${FFMPEG_V}" | grep "Library not loaded" >/dev/null)" ] ; then
-        echo "Please reinstall 'ffmpegdecklink':"
-        echo "    brew reinstall amiaopensource/amiaos/ffmpegdecklink"
+        echo "Please reinstall 'ffmpeg-ma':"
+        echo "    brew reinstall mediaarea/mediaarea/ffmpeg-ma"
         echo "Or install a version of ffmpeg that is compiled with decklink support if you wish to use that input."
         echo "Exiting."
         exit 1
     fi
     if [ -z "$("${FFMPEG_BIN}" -nostdin -v 0 -sources decklink)" ] ; then
         echo "vrecord is set to use a decklink input but ${FFMPEG_BIN} does not appear to support decklink inputs."
-        echo "Please review installation and troubleshooting information for vrecord or install ffmpegdecklink."
+        echo "Please review installation and troubleshooting information for vrecord or install ffmpeg-ma."
         exit 1
     fi
 }
