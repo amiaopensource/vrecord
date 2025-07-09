@@ -136,6 +136,9 @@ _validate_form(){
     if [ "${VIDEO_CODEC_CHOICE}" = "ProRes" -o "${VIDEO_CODEC_CHOICE}" = "ProRes (HQ)" ] && [ "${VIDEO_BIT_DEPTH_CHOICE}" = "8 bit" ] ; then
         echo "WARNING: ProRes (which is a 10 bit encoding) is selected but the input device is set to use 8 bits."
     fi
+    if [ "${VIDEO_CODEC_CHOICE}" = "h264" ] ; then
+        echo "WARNING: For licensing compatability, vrecord records h264 using libopenh264 which only supports progressive encoding. To preserve interlacement metadata select another encoding."
+    fi
     if [ "${INVERT_PHASE_2}" = "true" ] ; then
         echo "WARNING: Option to invert phase of second audio channel has been selected."
     fi
