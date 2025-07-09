@@ -491,7 +491,7 @@ _setup_vrecord_input(){
     elif [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         _set_ffmpeg_loglevel
         GRAB_INPUT+=(-f decklink)
-        GRAB_INPUT+=(-draw_bars 0)
+        GRAB_INPUT+=(-signal_loss_action none)
         GRAB_INPUT+=(-audio_input "${AUDIO_INPUT}")
         GRAB_INPUT+=(-video_input "${VIDEO_INPUT}")
         GRAB_INPUT+=(-format_code "${STANDARD}")
