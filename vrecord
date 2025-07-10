@@ -790,15 +790,6 @@ OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
                 $(_gtk_vbox_list "MONITOR_AUDIO_CHOICE"  "100" "Monitor Audio?"                   "${MONITOR_AUDIO_OPTIONS[@]}")
                 </hbox>
             </frame>
-            <frame Player MP4Settings>
-                <text>
-                    <label>Set a custom CRF value (constant rate factor) for the h264 encoding used in the option sidecar MP4. If empty, we will default to 21. Must be in a range of 0-51, with 51 being the most lossy.</label>
-                </text>
-                <entry activates_default="true" tooltip-text="Intergers only from 0 to 51 please. Leave blank for the default value of 21.">
-                    <default>"${MP4_CRF_VALUE}"</default>
-                    <variable>MP4_CRF_VALUE</variable>
-                </entry>
-            </frame>
             <frame Player AspectRatioSettings>
                 <vbox>
                     <text width-chars="-1">
@@ -1803,7 +1794,7 @@ _lookup_choice(){
             SUFFIX="_prores" ;;
         "h264")
             VIDEOCODECNAME="H.264"
-            MIDDLEOPTIONS_PRES+=(-c:v libx264 -crf 18 -pix_fmt yuv420p)
+            MIDDLEOPTIONS_PRES+=(-c:v h264 -pix_fmt yuv420p)
             SUFFIX="_h264" ;;
         "HuffYUV")
             VIDEOCODECNAME="HuffYUV"
@@ -1916,7 +1907,6 @@ _lookup_choice(){
             SIG_INTERLACEMENT="bff"
             if [[ "${VIDEO_CODEC_CHOICE}" = "h264" ]] ; then
                 RECORDINGFILTER+=",crop=w=720:h=480:x=0:y=4"
-                MIDDLEOPTIONS_PRES+=(-x264opts "${SIG_INTERLACEMENT}")
                 _add_mediaconch_rule_set "${STANDARD_NTSC_ACCESS_TEST}"
             else
                 _add_mediaconch_rule_set "${STANDARD_NTSC_TEST}"
@@ -1933,9 +1923,6 @@ _lookup_choice(){
             SIG_GEN_SIZE="720x576"
             SIG_INTERLACEMENT="tff"
             _add_mediaconch_rule_set "${STANDARD_PAL_TEST}"
-            if [[ "${VIDEO_CODEC_CHOICE}" = "h264" ]] ; then
-                MIDDLEOPTIONS_PRES+=(-x264opts "${SIG_INTERLACEMENT}")
-            fi
             _set_some_params
             SET_COLOR_PRIMARIES="bt470bg"
             SET_COLOR_TRC="bt709"
@@ -1946,9 +1933,6 @@ _lookup_choice(){
             DECKLINK_FPS="30000/1001"
             SIG_GEN_SIZE="1920X1080"
             SIG_INTERLACEMENT="tff"
-            if [[ "${VIDEO_CODEC_CHOICE}" = "h264" ]] ; then
-                MIDDLEOPTIONS+=(-x264opts "${SIG_INTERLACEMENT}")
-            fi
             _set_some_params
             SET_COLOR_PRIMARIES="bt709"
             SET_COLOR_TRC="bt709"
@@ -2757,13 +2741,10 @@ if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
             AUDIOMAP=$(sed "s/0:a:0/1:a:0/g" <<< "$AUDIOMAP")
     fi
     if [[ "${MP4_CHOICE}" = "true" ]] ; then
-        if [[ -z "${MP4_CRF_VALUE}" ]] ; then
-            MP4_CRF_VALUE="21"
-        fi
         RECORDINGFILTER_MP4+=",bwdif"
         RECORD_COMMAND_MP4+=(-filter_complex "[0:v:0]${RECORDINGFILTER_MP4#,*}[mp4_v_out];${AUDIOMAP}")
         MP4NAME="${DIR}/${FULL_OUTPUT_ID}.mp4"
-        EXTRAOUTPUTS+=("${MIDDLEOPTIONS_ALL[@]}" -movflags write_colr+faststart -crf "${MP4_CRF_VALUE}" "${RECORD_COMMAND_MP4[@]}" -pix_fmt yuv420p -c:v libx264 -c:a aac -map "[mp4_v_out]" "${AUDIO_CHANNEL_MAP[@]}" "${MP4NAME}")
+        EXTRAOUTPUTS+=("${MIDDLEOPTIONS_ALL[@]}" -movflags write_colr+faststart "${RECORD_COMMAND_MP4[@]}" -pix_fmt yuv420p -c:v h264 -c:a aac -map "[mp4_v_out]" "${AUDIO_CHANNEL_MAP[@]}" "${MP4NAME}")
     fi
     if [[ "${FORMAT}" = "matroska" ]] ; then
         _review_option "EMBED_LOGS_CHOICE" "${EMBED_LOGS_OPTIONS[@]}"
