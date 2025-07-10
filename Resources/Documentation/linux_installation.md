@@ -55,7 +55,7 @@ The following instructions aim to minimize use of Homebrew installs for packages
    - `brew tap amiaopensource/amiaos`
 
 ### Install additional vrecord dependencies via Brew
-* `brew install decklinksdk && brew install ffmpegdecklink --with-iec61883 && brew install gtkdialog` _Note:_ Some users on Ubuntu have reported installation problems with `gtkdialog` at step. See [this note](https://github.com/amiaopensource/homebrew-amiaos/blob/master/TROUBLESHOOTING.md#vrecord)  at the AMIA Open Source Homebrew repository for a possible fix.
+* `brew install decklinksdk && brew install ffmpeg-ma --with-iec61883 && brew install gtkdialog` _Note:_ Some users on Ubuntu have reported installation problems with `gtkdialog` at step. See [this note](https://github.com/amiaopensource/homebrew-amiaos/blob/master/TROUBLESHOOTING.md#vrecord)  at the AMIA Open Source Homebrew repository for a possible fix.
 * `brew install vrecord`
 
 ### Fix conflicting SDL2 dependencies

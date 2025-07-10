@@ -20,7 +20,7 @@ AVFoundation. It is an interactive script and will create 10 or 8-bit video
 files.
 
 Dependencies: cowsay, amiaopensource/amiaos/decklinksdk,
-  amiaopensource/amiaos/ffmpegdecklink, amiaopensource/amiaos/gtkdialog, and
+  amiaopensource/amiaos/gtkdialog, mediaarea/mediaarea/ffmpeg-ma, and
   xmlstarlet
 Optional Dependencies: deckcontrol, gnuplot, mediaconch, mkvtoolnix, mpv, qcli
 
@@ -40,7 +40,7 @@ Usage: ${SCRIPTNAME} [ -e | -r | -p | -a | -x | -n|  -v | -s | -h ] [IDENTIFIER]
   -x  reset the configuration: this will replace the default configuration file
       at '${CONFIG_FILE}' with an empty one.
   -n  reset Vrecord's stored environment variables. These include
-      variables such as the paths to certain dependencies such as ffmpeg-dl.
+      variables such as the paths to certain dependencies such as ffmpeg-ma.
   -v  Run ffmpeg with '-loglevel debug'. Using this option creates a very large
       log file, so avoid using this option with 'Visual + Numerical' or any
       playback option that display the log as part of the view.
@@ -251,29 +251,29 @@ _setup_env_variables(){
 _gather_ffmpeg_vars(){
     CAPTURELOGSUFFIX="_vrecord_input.log"
     TIMECODELOGSUFFIX="_frame_timecodes.txt"
-    if [[ -d "/usr/local/opt/ffmpegdecklink" ]] ; then
-        BREW_PREFIX="/usr/local/opt/ffmpegdecklink"
-    elif [[ -d "/home/linuxbrew/.linuxbrew/opt/ffmpegdecklink" ]] ; then
-        BREW_PREFIX="/home/linuxbrew/.linuxbrew/opt/ffmpegdecklink"
+    if [[ -d "/usr/local/opt/ffmpeg-ma" ]] ; then
+        BREW_PREFIX="/usr/local/opt/ffmpeg-ma"
+    elif [[ -d "/home/linuxbrew/.linuxbrew/opt/ffmpeg-ma" ]] ; then
+        BREW_PREFIX="/home/linuxbrew/.linuxbrew/opt/ffmpeg-ma"
     else
-        BREW_PREFIX="$(brew --prefix ffmpegdecklink 2>/dev/null)"
+        BREW_PREFIX="$(brew --prefix ffmpeg-ma 2>/dev/null)"
         if [[ -d "${BREW_PREFIX}.reinstall" ]] ; then
             BREW_PREFIX+=".reinstall"
         fi
     fi
     if [[ -n "${DEPENDENCYDIR}" ]] ; then
-        FFMPEGALT=$(find "${DEPENDENCYDIR}" -iname "ffmpeg-dl" | head -n1)
+        FFMPEGALT=$(find "${DEPENDENCYDIR}" -iname "ffmpeg-ma" | head -n1)
     fi
     if [[ -n "${FFMPEGALT}" ]] ; then
         FFMPEG_BIN="${FFMPEGALT}"
-        FFPLAY_BIN=$(find "${DEPENDENCYDIR}" -iname "ffplay-dl" | head -n1)
-    elif which ffmpeg-dl &> /dev/null ; then
-        FFMPEG_BIN="$(which ffmpeg-dl)"
-        FFPLAY_BIN="$(which ffplay-dl)"
+        FFPLAY_BIN=$(find "${DEPENDENCYDIR}" -iname "ffplay-ma" | head -n1)
+    elif which ffmpeg-ma &> /dev/null ; then
+        FFMPEG_BIN="$(which ffmpeg-ma)"
+        FFPLAY_BIN="$(which ffplay-ma)"
     elif
         [[ -d "${BREW_PREFIX}/bin" ]] ; then
-        FFMPEG_BIN="${BREW_PREFIX}/bin/ffmpeg-dl"
-        FFPLAY_BIN="${BREW_PREFIX}/bin/ffplay-dl"
+        FFMPEG_BIN="${BREW_PREFIX}/bin/ffmpeg-ma"
+        FFPLAY_BIN="${BREW_PREFIX}/bin/ffplay-ma"
     else
         FFMPEG_BIN="$(which ffmpeg)"
         FFPLAY_BIN="$(which ffplay)"
@@ -544,7 +544,7 @@ _setup_vrecord_process(){
             "${SIGNAL_INPUT}" = 'true' || \
             "${PLAYBACKVIEW_CHOICE_PASS}" = "Audio + Video" || \
             "${MEDIA_PLAYER_CHOICE}" = "mpv" || \
-            "$(basename "${FFPLAY_BIN}")" != "ffplay-dl" ]] ; then
+            "$(basename "${FFPLAY_BIN}")" != "ffplay-ma" ]] ; then
             VRECORD_STEPS="2" # Steps: record | player
         else
             VRECORD_STEPS="1" # Steps: player
