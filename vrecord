@@ -1823,46 +1823,60 @@ _lookup_choice(){
         # audio mappings
         "2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, Channels 3 & 4 -> 2nd Track Stereo)")
             AUDIOMAP="[0:a:0]asplit[orig],pan=stereo| c0=c0 | c1=${PHASE_VALUE_2}c1[stereo1];[0:a:0]pan=stereo| c0=c2 | c1=${PHASE_VALUE_4}c3[stereo2]"
-            AUDIO_PLAY_MAP="pan=4c|c0=c0|c1=${PHASE_VALUE_2}c1|c2=c2|c3=${PHASE_VALUE_4}c3"
+            #AUDIO_PLAY_MAP="pan=4c|c0=c0|c1=${PHASE_VALUE_2}c1|c2=c2|c3=${PHASE_VALUE_4}c3"
+            AUDIO_PLAY_MAP="acopy"
+            AUDIO_PLAY_LABELS=",drawtext=fontfile=${DEFAULTFONT}:text='L(1)':fontcolor=white:fontsize=18:x=0:y=0,drawtext=fontfile=${DEFAULTFONT}:text='R(1)':fontcolor=white:fontsize=18:x=0:y=20,drawtext=fontfile=${DEFAULTFONT}:text='L(2)':fontcolor=white:fontsize=18:x=0:y=40,drawtext=fontfile=${DEFAULTFONT}:text='R(2)':fontcolor=white:fontsize=18:x=0:y=60"
             AUDIO_CHANNEL_MAP+=(-map "[orig]")
             AUDIO_CHANNEL_MAP+=(-map "[stereo1]")
             AUDIO_CHANNEL_MAP+=(-map "[stereo2]")
             AUDIO_TEE_SELECT_MAP="a\\\\:1,a\\\\:2" ;;
         "1 Stereo Track (From Channels 1 & 2)")
             AUDIOMAP="[0:a:0]asplit[orig],pan=stereo| c0=c0 | c1=${PHASE_VALUE_2}c1[stereo1]"
-            AUDIO_PLAY_MAP="pan=stereo|c0=c0|c1=${PHASE_VALUE_2}c1"
+            #AUDIO_PLAY_MAP="pan=stereo|c0=c0|c1=${PHASE_VALUE_2}c1"
+            AUDIO_PLAY_MAP="acopy"
+            AUDIO_PLAY_LABELS=",drawtext=fontfile=${DEFAULTFONT}:text='L(1)':fontcolor=white:fontsize=18:x=0:y=0,drawtext=fontfile=${DEFAULTFONT}:text='R(1)':fontcolor=white:fontsize=18:x=0:y=20"
             AUDIO_CHANNEL_MAP+=(-map "[orig]")
             AUDIO_CHANNEL_MAP+=(-map "[stereo1]")
             AUDIO_TEE_SELECT_MAP="a\\\\:1" ;;
         "1 Stereo Track (From Channels 3 & 4)")
             AUDIOMAP="[0:a:0]asplit[orig],pan=stereo| c0=c2 | c1=${PHASE_VALUE_2}c3[stereo1]"
-            AUDIO_PLAY_MAP="pan=stereo|c0=c2|c1=${PHASE_VALUE_2}c3"
+            #AUDIO_PLAY_MAP="pan=stereo|c0=c2|c1=${PHASE_VALUE_2}c3"
+            AUDIO_PLAY_MAP="acopy"
+            AUDIO_PLAY_LABELS=",drawtext=fontfile=${DEFAULTFONT}:text='L(1)':fontcolor=white:fontsize=18:x=0:y=40,drawtext=fontfile=${DEFAULTFONT}:text='R(1)':fontcolor=white:fontsize=18:x=0:y=60"
             AUDIO_CHANNEL_MAP+=(-map "[orig]")
             AUDIO_CHANNEL_MAP+=(-map "[stereo1]")
             AUDIO_TEE_SELECT_MAP="a\\\\:1" ;;
         "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono")
             AUDIOMAP="[0:a:0]asplit[orig],pan=mono| c0=c0[mono1];[0:a:0]pan=mono| c0=${PHASE_VALUE_2}c1[mono2]"
-            AUDIO_PLAY_MAP="pan=stereo|c0=c0|c1=${PHASE_VALUE_2}c1"
+            #AUDIO_PLAY_MAP="pan=stereo|c0=c0|c1=${PHASE_VALUE_2}c1"
+            AUDIO_PLAY_MAP="acopy"
+            AUDIO_PLAY_LABELS=",drawtext=fontfile=${DEFAULTFONT}:text='M(1)':fontcolor=white:fontsize=18:x=0:y=0,drawtext=fontfile=${DEFAULTFONT}:text='M(2)':fontcolor=white:fontsize=18:x=0:y=20"
             AUDIO_CHANNEL_MAP+=(-map "[orig]")
             AUDIO_CHANNEL_MAP+=(-map "[mono1]")
             AUDIO_CHANNEL_MAP+=(-map "[mono2]")
             AUDIO_TEE_SELECT_MAP="a\\\\:1,a\\\\:2" ;;
         "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono")
             AUDIOMAP="[0:a:0]asplit[orig],pan=mono| c0=${PHASE_VALUE_2}c1[mono1];[0:a:0]pan=mono| c0=c0[mono2]"
-            AUDIO_PLAY_MAP="pan=stereo|c0=${PHASE_VALUE_2}c1|c1=c0"
+            #AUDIO_PLAY_MAP="pan=stereo|c0=${PHASE_VALUE_2}c1|c1=c0"
+            AUDIO_PLAY_MAP="acopy"
+            AUDIO_PLAY_LABELS=",drawtext=fontfile=${DEFAULTFONT}:text='M(2)':fontcolor=white:fontsize=18:x=0:y=0,drawtext=fontfile=${DEFAULTFONT}:text='M(1)':fontcolor=white:fontsize=18:x=0:y=20"
             AUDIO_CHANNEL_MAP+=(-map "[orig]")
             AUDIO_CHANNEL_MAP+=(-map "[mono1]")
             AUDIO_CHANNEL_MAP+=(-map "[mono2]")
             AUDIO_TEE_SELECT_MAP="a\\\\:1,a\\\\:2" ;;
         "Channel 1 -> Single Track Mono")
             AUDIOMAP="[0:a:0]asplit[orig],pan=mono| c0=c0[mono1]"
-            AUDIO_PLAY_MAP="pan=mono| c0=c0"
+            #AUDIO_PLAY_MAP="pan=mono| c0=c0"
+            AUDIO_PLAY_MAP="acopy"
+            AUDIO_PLAY_LABELS=",drawtext=fontfile=${DEFAULTFONT}:text='M(1)':fontcolor=white:fontsize=18:x=0:y=0"
             AUDIO_CHANNEL_MAP+=(-map "[orig]")
             AUDIO_CHANNEL_MAP+=(-map "[mono1]")
             AUDIO_TEE_SELECT_MAP="a\\\\:1" ;;
         "Channel 2 -> Single Track Mono")
             AUDIOMAP="[0:a:0]asplit[orig],pan=mono| c0=c1[mono1]"
-            AUDIO_PLAY_MAP="pan=mono| c0=c1"
+            #AUDIO_PLAY_MAP="pan=mono| c0=c1"
+            AUDIO_PLAY_MAP="acopy"
+            AUDIO_PLAY_LABELS=",drawtext=fontfile=${DEFAULTFONT}:text='M(1)':fontcolor=white:fontsize=18:x=0:y=20"
             AUDIO_CHANNEL_MAP+=(-map "[orig]")
             AUDIO_CHANNEL_MAP+=(-map "[mono1]")
             AUDIO_TEE_SELECT_MAP="a\\\\:1" ;;
@@ -2000,7 +2014,7 @@ ${AP_MAP}" ;;
 if [[ "${RUNTYPE}" = "record" ]] ; then
     PLAYBACKFILTER="streams=dv+da[vid][aud],\
     [aud]${AUDIO_PLAY_MAP},asplit=2[aud1][out1];\
-    [aud1]showvolume=t=0:dm=5400:rate=${DECKLINK_FPS}[aud2];\
+    [aud1]showvolume=t=0:dm=5400:rate=${DECKLINK_FPS}${AUDIO_PLAY_LABELS}[aud2];\
     [vid]${PLAYBACK_FILTER_ADJUSTMENT}split=5[a][b][c][d][e];\
     [a]copy${TIMECODE_OVERLAY}[a1];\
     [b]field=top,${WAVEFORM_FILTER}[b1];\
@@ -2040,7 +2054,7 @@ else
     PLAYBACKFILTER="streams=dv+da[vid][aud],[aud]${PAN},asplit=${AUDIO_SPLIT},\
     ${PHASE_MAP},\
     ${CHANNEL_PARAMS},\
-    [c]showvolume=t=0:h=17:w=200:rate=30[c1],\
+    [c]showvolume=t=0:h=17:w=200:rate=30${AUDIO_PLAY_LABELS}[c1],\
     [d]showspectrum=s=${SPECTRUM_SIZE}:fps=10:color=rainbow:saturation=2:legend=1[d1],\
     [vid]split=4[vid1][vid2][vid3][vid4],[vid1]scale=400x400,${SIGNAL_FILTER}[vidscale],\
     [vid2]field=top,${WAVEFORM_FILTER}[TFIELD],\
