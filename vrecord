@@ -1541,6 +1541,7 @@ _edit_mode(){
         done
         echo "--------------|---------------"
         RUNTYPE="edit"
+        unset MIDDLEOPTIONS_ALL MIDDLEOPTIONS_PRES RECORDINGFILTER AUDIO_CHANNEL_MAP
     elif [[ "${EXIT}" = "env_reset" ]] ; then
         _remove_env_vars
         _process_vars_for_gtk
