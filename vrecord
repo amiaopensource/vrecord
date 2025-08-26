@@ -2460,7 +2460,10 @@ AUDIO_CODEC_PCM_TEST='
 
 AUDIO_CODEC_FLAC_TEST='
     <rule name="Is the audio FLAC?" value="Format" tracktype="Audio" operator="=">FLAC</rule>
-    <rule name="Is the audio bit depth 32?" value="BitDepth" tracktype="Audio" operator="=">32</rule>
+    <policy type="or" name="Bit Depth is 32 or 24?">
+        <rule name="Bit Depth is 32?" value="BitDepth" tracktype="Audio" operator="=">32</rule>
+        <rule name="Bit Depth is 24?" value="BitDepth" tracktype="Audio" operator="=">24</rule>
+    </policy>
 '
 # define mediaconch test fragment -end
 
