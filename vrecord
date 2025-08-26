@@ -1541,6 +1541,7 @@ _edit_mode(){
         done
         echo "--------------|---------------"
         RUNTYPE="edit"
+        unset MIDDLEOPTIONS_ALL MIDDLEOPTIONS_PRES RECORDINGFILTER AUDIO_CHANNEL_MAP
     elif [[ "${EXIT}" = "env_reset" ]] ; then
         _remove_env_vars
         _process_vars_for_gtk
@@ -1613,8 +1614,7 @@ _qcgraphimage(){
        -v "tag[@key='lavfi.ssim.V']/@value" -n > "${qctools_CONFIGFILE_V}"
 
     # determine SATURATION scale
-    VBitdepth="$("${ZCAT_COMMAND}" "$1" | perl -nle 'print if not m{<frame|</frame|<tag}' | xmlstarlet sel -t -v "//stream[@codec_type='video']/@pix_fmt" -n
-    )"
+    VBitdepth="$("${ZCAT_COMMAND}" "$1" | perl -nle 'print if not m{<frame |</frame>|<tag}' | xmlstarlet sel -t -v "//stream[@codec_type='video']/@pix_fmt" -n)"
     if [[ "${VBitdepth}" = "yuv422p10le" ]] ; then
         SATpalette="(0'#a0a0a0',80'#bebebe',177.4'#c8c800',322'#a0ff20',354.8'#00ff00',413.8'#006400',433.46'#00ff00',453.13'#a0ff20',472.8'#ffa500',496'#ff0000')"
         SATcbrange="[0:496]"
@@ -2460,7 +2460,10 @@ AUDIO_CODEC_PCM_TEST='
 
 AUDIO_CODEC_FLAC_TEST='
     <rule name="Is the audio FLAC?" value="Format" tracktype="Audio" operator="=">FLAC</rule>
-    <rule name="Is the audio bit depth 24?" value="BitDepth" tracktype="Audio" operator="=">24</rule>
+    <policy type="or" name="Bit Depth is 32 or 24?">
+        <rule name="Bit Depth is 32?" value="BitDepth" tracktype="Audio" operator="=">32</rule>
+        <rule name="Bit Depth is 24?" value="BitDepth" tracktype="Audio" operator="=">24</rule>
+    </policy>
 '
 # define mediaconch test fragment -end
 
