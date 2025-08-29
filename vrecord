@@ -529,6 +529,9 @@ _setup_vrecord_input(){
             GRAB_INPUT+=(-i "${DECKLINK_INPUT_CHOICE}")
             GRAB_INPUT+=(-vn)
         fi
+    elif [[ "${DEVICE_INPUT_CHOICE}" = 3 ]] ; then
+        _report -d -w "No output mode selected. Please run vrecord -e and select a desired output mode"
+        exit 1
     else
         _report "Input unknown"
         exit 1
@@ -781,7 +784,7 @@ PLAYBACK_OPT_GUI="
 OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
 <frame Preferences>
     <hbox>
-        <notebook tab-labels="Player|Aspect Ratio|Closed Captioning">
+        <notebook tab-labels="Player|Aspect Ratio|Closed Captioning|Additional Options">
             <frame Player Settings>
                 <hbox>
                 $(_gtk_vbox_list "WAVEFORM_SCALE_CHOICE" "100" "Select Waveform Scale"            "${WAVEFORM_SCALE_OPTIONS[@]}")
@@ -817,6 +820,18 @@ OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
                         <label>Make an SRT</label>
                         <default>"${CC2SRT}"</default>
                         <variable>CC2SRT</variable>
+                    </checkbox>
+                </vbox>
+            </frame>
+                        <frame Additional Options>
+                <vbox>
+                    <text width-chars="-1">
+                        <label>Select other desired post-processing options</label>
+                    </text>
+                    <checkbox>
+                        <label>Make MD5 of primary file</label>
+                        <default>"${MAKE_MD5}"</default>
+                        <variable>MAKE_MD5</variable>
                     </checkbox>
                 </vbox>
             </frame>
@@ -3040,5 +3055,14 @@ elif [[ "${DEVICE_INPUT_CHOICE}" == "1" ]] ; then
         if [[ -n "${DV_RESCUE_OPTS}" ]] || [[ "${DV_EXTENSION}" != 'dv' ]] ; then
             _dvpackager "${VRECORD_OUTPUT}"
         fi
+    fi
+fi
+
+if [[ "${MAKE_MD5}" = 'true' ]] ; then
+    _report -d "Generating MD5 for primary file"
+    if [[ "${OS_TYPE}" = "macOS" ]] ; then
+        md5sum "${VRECORD_OUTPUT}" > "${VRECORD_OUTPUT}".md5
+    else
+        md5sum "${VRECORD_OUTPUT}" > "${VRECORD_OUTPUT}".md5
     fi
 fi
