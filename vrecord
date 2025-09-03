@@ -781,7 +781,7 @@ PLAYBACK_OPT_GUI="
 OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
 <frame Preferences>
     <hbox>
-        <notebook tab-labels="Player|MP4 Sidecar|Aspect Ratio|Closed Captioning">
+        <notebook tab-labels="Player|Aspect Ratio|Closed Captioning">
             <frame Player Settings>
                 <hbox>
                 $(_gtk_vbox_list "WAVEFORM_SCALE_CHOICE" "100" "Select Waveform Scale"            "${WAVEFORM_SCALE_OPTIONS[@]}")
