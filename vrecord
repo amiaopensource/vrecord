@@ -2008,7 +2008,7 @@ if [[ "${RUNTYPE}" = "record" ]] ; then
     [d]${VECTORSCOPE_FILTER}[d1];\
     [e]scale=512:ih,${SIGNAL_FILTER}[e1];\
     [a1][b1][c1][e1][d1]xstack=inputs=5:layout=0_0|0_h0|0_h0+h1|w0_0|w0_h0[vidstack];\
-    [vidstack][aud2]overlay=10:10[out0]"
+    [vidstack][aud2]overlay=10:10:format=yuv444[out0]"
 else
     VECTORSCOPE_FILTER="\
     format=yuv422p,\
@@ -2046,7 +2046,7 @@ else
     [vid2]field=top,${WAVEFORM_FILTER}[TFIELD],\
     [vid3]field=bottom,${WAVEFORM_FILTER}[BFIELD],\
     [vid4]${VECTORSCOPE_FILTER}[vector],\
-    [vidscale][c1]overlay=10:10[x],\
+    [vidscale][c1]overlay=10:10:format=yuv444[x],\
     ${AP_MAP}"
 fi ;;
         "Visual")
