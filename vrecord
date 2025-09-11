@@ -2546,7 +2546,31 @@ _upgrade_config_file(){
     # update value because the framemd5 choice changed from a yes/no picklist to a boolean as was the case in version 2023-08-07 and earlier
     if [[ -n "$(grep "FRAMEMD5_CHOICE=\"[YN]" "${CONFIG_FILE}")" ]] ; then
         sed 's|FRAMEMD5_CHOICE="No"|FRAMEMD5_CHOICE="false"|g;s|FRAMEMD5_CHOICE="Yes"|FRAMEMD5_CHOICE="true"|g' > "${CONFIG_FILE}tmp" < "${CONFIG_FILE}"
-        mv "${CONFIG_FILE}tmp" "${CONFIG_FILE}"
+        _mv_tmp_file "${CONFIG_FILE}tmp" "${CONFIG_FILE}"
+    fi
+}
+
+_mv_tmp_file(){
+    # this is to move a temp file into its final place without really worrying about preserving owner and group file attributes
+    TMP_FROM="${1}"
+    TMP_TO="${2}"
+    TMP_DIR=$(dirname -- "${TMP_TO}")
+    if [[ -e "${TMP_TO}" ]]; then
+        _report -w "ERROR: _mv_tmp_file, destination ${TMP_TO} already exists"
+        exit 1
+    fi
+    if [[ ! -d "${TMP_DIR}" ]] ; then
+        _report -w "WARNING: logging directory ${TMP_DIR} does not exist"
+    fi
+
+    if [[ ! -w "${TMP_DIR}" ]] ; then
+        _report -w "WARNING: logging directory ${TMP_DIR} is not writable"
+    fi
+    if [[ -f "${TMP_FROM}" ]] ; then
+        cp -p "${TMP_FROM}" "${TMP_TO}" && rm "${TMP_FROM}"
+    else
+        _report -w "ERROR _mv_tmp_file is moving ${TMP_FROM} but it doesn't exist"
+        exit 1
     fi
 }
 
@@ -2899,18 +2923,18 @@ if [[ ! -s "${VRECORD_OUTPUT}" ]] ; then
     fi
 fi
 
-mv "${VRECORD_INPUT_TMP}" "${FULL_CAPTURE_LOG}"
+_mv_tmp_file "${VRECORD_INPUT_TMP}" "${FULL_CAPTURE_LOG}"
 _writeingestlog "datetime_end" "$(_get_iso8601)"
 trap _cleanup SIGHUP SIGINT SIGTERM
 
 if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
     # timecode document handling
     if [[ -f "${TC_TMP}" ]] ; then
-        mv "${TC_TMP}" "${TIMECODE_LOG}"
+        _mv_tmp_file "${TC_TMP}" "${TIMECODE_LOG}"
     fi
     # caption handling
     if [[ -s "${CAPTION_TMP}" ]] ; then
-        mv "${CAPTION_TMP}" "${CAPTION_LOG}"
+        _mv_tmp_file "${CAPTION_TMP}" "${CAPTION_LOG}"
         _eia608dump2scc "${CAPTION_LOG}" "${CAPTION_SCC}"
         if [[ "${CC2VTT}" = 'true' ]] ; then
             "${FFMPEG_BIN}" -nostdin -v 0 -y -i "${CAPTION_SCC}" "${CAPTION_SCC%.*}.vtt"
@@ -3008,7 +3032,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         elif [[ "${STATUS}" = "fail" ]] ; then
             _report -wt "File did not pass vrecord policy check and may not conform to digital preservation standards."
             mediaconch -fx -p "${MEDIACONCH_POLICY_TMP}" "${VRECORD_OUTPUT}" | xmlstarlet fo > "${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml"
-            mv -v -n "${MEDIACONCH_POLICY_TMP}" "${DIR}/${FULL_OUTPUT_ID}_mediaconch_policy.xml"
+            _mv_tmp_file "${MEDIACONCH_POLICY_TMP}" "${DIR}/${FULL_OUTPUT_ID}_mediaconch_policy.xml"
             _writeingestlog "mediaconch_outcome" "failed ${DIR}/${FULL_OUTPUT_ID}_mediaconch_policy.xml"
             _report -wt "See ${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml for a full MediaConch policy report."
             _report -wt "Or review this attempt to summarize the issue:"
