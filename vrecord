@@ -2652,6 +2652,29 @@ _add_mediaconch_rule_set(){
     fi
 }
 
+_add_fadgi_header2vtt(){
+    VTT_FILE="${1}"
+    VTT_TMP="$(_maketemp .fadgi.vtt)"
+    if [[ -n "${TECHNICIAN}" ]] ; then
+        FILE_CREATOR="${TECHNICIAN}"
+    else
+        FILE_CREATOR="ffmpeg"
+    fi
+    cat <<FADGI_VTT_HEADER >> "${VTT_TMP}"
+WEBVTT
+
+Type: caption
+Media Identifier: ${FULL_OUTPUT_ID}
+Originating File: ${FULL_OUTPUT_ID}.${EXTENSION}
+File Creator: ${FILE_CREATOR}
+File Creation Date: $(_get_iso8601)
+Local Usage Element: [VIDEO_INPUT] ${VIDEO_INPUT}; [AUDIO_INPUT] ${AUDIO_INPUT}
+FADGI_VTT_HEADER
+
+tail -n +2 "${VTT_FILE}" >> "${VTT_TMP}"
+mv "${VTT_TMP}" "${VTT_FILE}"
+}
+
 # command-line options to set media id and original variables
 OPTIND=1
 while getopts ":hc:erpaxnvI:O:D:i:sG" opt ; do
@@ -3121,6 +3144,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         _eia608dump2scc "${CAPTION_LOG}" "${CAPTION_SCC}"
         if [[ "${CC2VTT}" = 'true' ]] ; then
             "${FFMPEG_BIN}" -nostdin -v 0 -y -i "${CAPTION_SCC}" "${CAPTION_SCC%.*}.vtt"
+            _add_fadgi_header2vtt "${CAPTION_SCC%.*}.vtt"
         fi
         if [[ "${CC2SRT}" = 'true' ]] ; then
             "${FFMPEG_BIN}" -nostdin -v 0 -y -i "${CAPTION_SCC}" "${CAPTION_SCC%.*}.srt"
