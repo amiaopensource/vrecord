@@ -2490,6 +2490,15 @@ _add_mediaconch_rule_set(){
     fi
 }
 
+_add_fadgi_header2vtt(){
+    VTT_FILE="${1}"
+    VTT_TMP="$(_maketemp .fadgi.vtt)"
+    cat <<FADGI_VTT_HEADER >> "${VTT_TMP}"
+Type: caption
+Media Identifier: 
+FADGI_VTT_HEADER
+}
+
 # command-line options to set media id and original variables
 OPTIND=1
 while getopts ":hc:erpaxnvI:O:D:i:sG" opt ; do
@@ -2914,6 +2923,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         _eia608dump2scc "${CAPTION_LOG}" "${CAPTION_SCC}"
         if [[ "${CC2VTT}" = 'true' ]] ; then
             "${FFMPEG_BIN}" -nostdin -v 0 -y -i "${CAPTION_SCC}" "${CAPTION_SCC%.*}.vtt"
+            _add_fadgi_header2vtt "${CAPTION_SCC%.*}.vtt"
         fi
         if [[ "${CC2SRT}" = 'true' ]] ; then
             "${FFMPEG_BIN}" -nostdin -v 0 -y -i "${CAPTION_SCC}" "${CAPTION_SCC%.*}.srt"
