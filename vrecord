@@ -2127,10 +2127,10 @@ ${PLAYBACK_FILTER_ADJUSTMENT}format=yuv420p10le|yuv422p10le|yuv444p10le|yuv440p1
 [f1]field=top,split=4[t1][t2][t3][t4];\
 [f2]field=bottom,split=4[b1][b2][b3][b4];\
 color=color=darkgray,scale=${CORNER_W}*${CORNER_ZOOM}*2:${CORNER_H}*2,split=4[l1][l2][l3][l4];\
-[l1]drawtext=text='Top ${CORNER_H} Rows of Field 1 - Left ${CORNER_W} pixels and Right ${CORNER_W} pixels':fontcolor=white:fontsize=${CORNER_H}*2:x=(w-text_w)/2:y=(h-text_h)/2[l1t];\
-[l2]drawtext=text='Top ${CORNER_H} Rows of Field 2 - Left ${CORNER_W} pixels and Right ${CORNER_W} pixels':fontcolor=white:fontsize=${CORNER_H}*2:x=(w-text_w)/2:y=(h-text_h)/2[l2t];\
-[l3]drawtext=text='Bottom ${CORNER_H} Rows of Field 1 - Left ${CORNER_W} pixels and Right ${CORNER_W} pixels':fontcolor=white:fontsize=${CORNER_H}*2:x=(w-text_w)/2:y=(h-text_h)/2[l3t];\
-[l4]drawtext=text='Bottom ${CORNER_H} Rows of Field 2 - Left ${CORNER_W} pixels and Right ${CORNER_W} pixels':fontcolor=white:fontsize=${CORNER_H}*2:x=(w-text_w)/2:y=(h-text_h)/2[l4t];\
+[l1]drawtext=fontfile=${DEFAULTFONT}:text='Top ${CORNER_H} Rows of Field 1 - Left ${CORNER_W} pixels and Right ${CORNER_W} pixels':fontcolor=white:fontsize=${CORNER_H}*2:x=(w-text_w)/2:y=(h-text_h)/2[l1t];\
+[l2]drawtext=fontfile=${DEFAULTFONT}:text='Top ${CORNER_H} Rows of Field 2 - Left ${CORNER_W} pixels and Right ${CORNER_W} pixels':fontcolor=white:fontsize=${CORNER_H}*2:x=(w-text_w)/2:y=(h-text_h)/2[l2t];\
+[l3]drawtext=fontfile=${DEFAULTFONT}:text='Bottom ${CORNER_H} Rows of Field 1 - Left ${CORNER_W} pixels and Right ${CORNER_W} pixels':fontcolor=white:fontsize=${CORNER_H}*2:x=(w-text_w)/2:y=(h-text_h)/2[l3t];\
+[l4]drawtext=fontfile=${DEFAULTFONT}:text='Bottom ${CORNER_H} Rows of Field 2 - Left ${CORNER_W} pixels and Right ${CORNER_W} pixels':fontcolor=white:fontsize=${CORNER_H}*2:x=(w-text_w)/2:y=(h-text_h)/2[l4t];\
 [t1]crop=w=${CORNER_W}:h=${CORNER_H}:x=0:y=0[a1t];\
 [t2]crop=w=${CORNER_W}:h=${CORNER_H}:x=iw-${CORNER_H}:y=0[b1t];\
 [t3]crop=w=${CORNER_W}:h=${CORNER_H}:x=0:y=ih-${CORNER_H}[c1t];\
@@ -2149,8 +2149,8 @@ color=color=darkgray,scale=${CORNER_W}*${CORNER_ZOOM}*2:${CORNER_H}*2,split=4[l1
 ${PLAYBACK_FILTER_ADJUSTMENT}format=yuv420p10le|yuv422p10le|yuv444p10le|yuv440p10le,split=4[f1][f2][f3][f4];\
             [f1]readeia608=scan_max=2:spw=0.30,drawtext=fontfile=${DEFAULTFONT}:fontcolor=white:fontsize=36:box=1:boxcolor=black@0.5:x=(w-tw)/2:y=h*3/4-ascent:text=Line %{metadata\\\:lavfi.readeia608.0.line\\\:-} %{metadata\\\:lavfi.readeia608.0.cc\\\:------} - Line %{metadata\\\:lavfi.readeia608.1.line\\\:-} %{metadata\\\:lavfi.readeia608.1.cc\\\:------}[f1b];\
             [f2]crop=iw:1:0:1,scale=iw:2:flags=neighbor,tile=layout=1x120:overlap=119:init_padding=119[caption_scroll];\
-            [f3]format=gray,crop=iw:1:0:1,waveform=i=1:g=green,drawtext=text='Line 1':fontcolor=white:fontsize=18:x=20:y=20[wvf];\
-            [f4]format=gray,crop=iw:1:0:2,waveform=i=1:g=green,drawtext=text='Line 2':fontcolor=white:fontsize=18:x=20:y=20[wvf2];\
+            [f3]format=gray,crop=iw:1:0:1,waveform=i=1:g=green,drawtext=fontfile=${DEFAULTFONT}:text='Line 1':fontcolor=white:fontsize=18:x=20:y=20[wvf];\
+            [f4]format=gray,crop=iw:1:0:2,waveform=i=1:g=green,drawtext=fontfile=${DEFAULTFONT}:text='Line 2':fontcolor=white:fontsize=18:x=20:y=20[wvf2];\
             [caption_scroll][f1b][wvf][wvf2]vstack=4" ;;
         # others
         "Yes"|"Yes, after recording"|"Yes, concurrent with recording"|"No") ;;
