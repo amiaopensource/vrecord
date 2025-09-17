@@ -479,7 +479,6 @@ _setup_vrecord_input(){
     if [[ -n "${ALT_INPUT}" ]] ; then
         _set_ffmpeg_loglevel
         GRAB_INPUT+=(-i "${ALT_INPUT}")
-        GRAB_INPUT+=(-dn)
     elif [[ "${SIGNAL_INPUT}" = 'true' ]] ; then
         TEST_SIGNAL_CHOICE="testsrc=size=${SIG_GEN_SIZE}:r=${DECKLINK_FPS}"
         VIDEO_INPUT="Test signal: ${TEST_SIGNAL_CHOICE}"
@@ -1561,10 +1560,18 @@ _passthrough_mode(){
         echo "RECORD ${RECORD_COMMAND[@]}"
     fi
 
+    if [[ "${PLAYBACKVIEW_CHOICE_PASS}" == "Captions" ]] && [[ "${RUNTYPE}" == "passthrough" ]] ; then
+        "${SCRIPTDIR}/cchex_to_display" "${FFREPORT_TMP}" "${CAP_DISPLAY_TMP}" > /dev/null 2> /dev/null &
+        CC_PID=$!
+        export FFREPORT="file=${FFREPORT_TMP}:level=32"
+    fi
     if [[ "${VRECORD_STEPS}" = "1" ]] ; then
         "${PLAYER_COMMAND[@]}" 2> "${VRECORD_INPUT_TMP}"
     elif [[ "${VRECORD_STEPS}" = "2" ]] ; then
         "${RECORD_COMMAND[@]}" 2> "${VRECORD_INPUT_TMP}" | "${PLAYER_COMMAND[@]}"
+    fi
+    if [[ "${PLAYBACKVIEW_CHOICE_PASS}" == "Captions" ]] && [[ "${RUNTYPE}" == "passthrough" ]] ; then
+        kill "$CC_PID"
     fi
 }
 
@@ -2145,13 +2152,23 @@ color=color=darkgray,scale=${CORNER_W}*${CORNER_ZOOM}*2:${CORNER_H}*2,split=4[l1
 [c1b][d1b]hstack,scale=${CORNER_W}*16*2:${CORNER_H}*16:flags=neighbor,drawgrid=w=iw/${CORNER_W}/2:h=ih/${CORNER_H}:t=1:c=green@0.5[cdb];\
 [l1t][abt][l2t][abb][l3t][cdt][l4t][cdb]vstack=8,setsar=1/1" ;;
         "Captions")
+            if [[ "${RUNTYPE}" = "record" ]] ; then
             PLAYBACKFILTER="\
-${PLAYBACK_FILTER_ADJUSTMENT}format=yuv420p10le|yuv422p10le|yuv444p10le|yuv440p10le,split=4[f1][f2][f3][f4];\
+            ${PLAYBACK_FILTER_ADJUSTMENT}format=yuv420p10le|yuv422p10le|yuv444p10le|yuv440p10le,split=4[f1][f2][f3][f4];\
             [f1]readeia608=scan_max=2:spw=0.30,drawtext=fontfile=${DEFAULTFONT}:fontcolor=white:fontsize=36:box=1:boxcolor=black@0.5:x=(w-tw)/2:y=h*3/4-ascent:text=Line %{metadata\\\:lavfi.readeia608.0.line\\\:-} %{metadata\\\:lavfi.readeia608.0.cc\\\:------} - Line %{metadata\\\:lavfi.readeia608.1.line\\\:-} %{metadata\\\:lavfi.readeia608.1.cc\\\:------}[f1b];\
             [f2]crop=iw:1:0:1,scale=iw:2:flags=neighbor,tile=layout=1x120:overlap=119:init_padding=119[caption_scroll];\
             [f3]format=gray,crop=iw:1:0:1,waveform=i=1:g=green,drawtext=fontfile=${DEFAULTFONT}:text='Line 1':fontcolor=white:fontsize=18:x=20:y=20[wvf];\
             [f4]format=gray,crop=iw:1:0:2,waveform=i=1:g=green,drawtext=fontfile=${DEFAULTFONT}:text='Line 2':fontcolor=white:fontsize=18:x=20:y=20[wvf2];\
-            [caption_scroll][f1b][wvf][wvf2]vstack=4" ;;
+            [caption_scroll][f1b][wvf][wvf2]vstack=4" 
+            else
+                PLAYBACKFILTER="\
+                ${PLAYBACK_FILTER_ADJUSTMENT}format=yuv420p10le|yuv422p10le|yuv444p10le|yuv440p10le,split=4[f1][f2][f3][f4];\
+                [f1]readeia608=scan_max=2:spw=0.30,metadata=mode=print:key=lavfi.readeia608.0.cc,drawtext=fontfile=${DEFAULTFONT}:fontcolor=white:fontsize=36:box=1:boxcolor=black@0.5:x=(w-tw)/2:y=h*3/4-ascent:text=Line %{metadata\\\:lavfi.readeia608.0.line\\\:-} %{metadata\\\:lavfi.readeia608.0.cc\\\:------} - Line %{metadata\\\:lavfi.readeia608.1.line\\\:-} %{metadata\\\:lavfi.readeia608.1.cc\\\:------},drawtext=fontfile=${DEFAULTFONT}:textfile=${CAP_DISPLAY_TMP}:reload=1:fontcolor=white:fontsize=18:x=(w-text_w)/2:y=h-100:shadowcolor=blue:shadowx=1:shadowy=1[f1b];\
+                [f2]crop=iw:1:0:1,scale=iw:2:flags=neighbor,tile=layout=1x120:overlap=119:init_padding=119[caption_scroll];\
+                [f3]format=gray,crop=iw:1:0:1,waveform=i=1:g=green,drawtext=fontfile=${DEFAULTFONT}:text='Line 1':fontcolor=white:fontsize=18:x=20:y=20[wvf];\
+                [f4]format=gray,crop=iw:1:0:2,waveform=i=1:g=green,drawtext=fontfile=${DEFAULTFONT}:text='Line 2':fontcolor=white:fontsize=18:x=20:y=20[wvf2];\
+                [caption_scroll][f1b][wvf][wvf2]vstack=4" 
+            fi ;;
         # others
         "Yes"|"Yes, after recording"|"Yes, concurrent with recording"|"No") ;;
         *) _report -w "Error: ${1} is not a valid option." ; return 1 ;;
@@ -2524,6 +2541,8 @@ elif [[ -n "${1}" ]] && [[ -z "${RUNTYPE}" ]] ; then
 fi
 
 VRECORD_INPUT_TMP="$(_maketemp .vrecord_input.log)"
+FFREPORT_TMP="$(_maketemp .cffreport.txt)"
+CAP_DISPLAY_TMP="$(_maketemp .caption_scroll.txt)"
 
 # manage an include file to pass variables to gtkdialog
 VRECORD_VARS_FILE="/tmp/v_$(echo "${0}" | sed -e "s/[^A-Za-z0-9.]/_/g")_variables.txt"
@@ -2871,6 +2890,12 @@ fi
 if [[ "${VRECORD_STEPS}" = "2" ]] ; then
     _writeingestlog "Record command" "${RECORD_COMMAND[@]}"
     _writeingestlog "Playback command" "${PLAYER_COMMAND[@]}"
+
+    # start background caption process
+    ## disabling cchex_to_display during recording for now. If back here, please kill the CC_PID after use of it is done.
+    ## "${SCRIPTDIR}/cchex_to_display" "${FFREPORT_TMP}" "${CAP_DISPLAY_TMP}" > /dev/null 2> /dev/null &
+    ## CC_PID=$!
+    ## export FFREPORT="file=${FFREPORT_TMP}:level=32"
     "${RECORD_COMMAND[@]}" 2> >(tee "${VRECORD_INPUT_TMP}" 1>&2) | \
     if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] && [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]]; then
         tee >("${PLAYER_COMMAND[@]}") | "${QCLI_COMMAND_PIPE[@]}"
