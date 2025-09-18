@@ -760,7 +760,7 @@ SIDECAR_FILES_GUI="
                 <default>\"${MP4_CHOICE}\"</default>
                 <variable>MP4_CHOICE</variable>
             </checkbox>
-            <checkbox>
+            <checkbox tooltip-text=\"If enabled, vrecord will write an MD5 checksum of each raw video frame to a sidecar file with a .framemd5 extension. More info on this format is available at https://ffmpeg.org/ffmpeg-formats.html#framehash-1.\">
                 <label>FrameMD5s</label>
                 <default>\"${FRAMEMD5_CHOICE}\"</default>
                 <variable>FRAMEMD5_CHOICE</variable>
