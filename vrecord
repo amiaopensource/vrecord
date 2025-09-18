@@ -2048,7 +2048,6 @@ else
         PHASE_MAP="[a]pan=stereo|c0=c0|c1=c1,aformat=dblp,channelsplit,axcorrelate,astats=metadata=1:reset=1,adrawgraph=lavfi.astats.1.DC_offset:max=1.01:min=-1.01:size=400x200:bg=black:fg1=0x99999999,drawbox=x=0:y=100:w=400:c=white:h=1${PRINT_PHASE}${PRINT_CHANNELS_1_2}[phase1],\
         [aa]pan=stereo|c0=c2|c1=c3,aformat=dblp,channelsplit,axcorrelate,astats=metadata=1:reset=1,adrawgraph=lavfi.astats.1.DC_offset:max=1.01:min=-1.01:size=400x200:bg=black:fg1=0x99999999,drawbox=x=0:y=100:w=400:c=white:h=1${PRINT_PHASE}${PRINT_CHANNELS_3_4}[phase2]"
         SPECTRUM_SIZE='755x265'
-        PAN="${AUDIO_PLAY_MAP}"
     else
         PRINT_PHASE=",drawtext=fontfile=${DEFAULTFONT}:box=1:text=Phase\\\: %{metadata\\\:lavfi.astats.1.DC_offset}:x=135:y=380:fontcolor=black"
         PRINT_CHANNELS_1_2=",drawtext=fontfile=${DEFAULTFONT}:text=Ch.1/2:x=10: y=10:fontcolor=white"
@@ -2058,9 +2057,8 @@ else
         PHASE_LOCATION='x=135:y=380'
         PHASE_MAP="[a]aformat=dblp,channelsplit,axcorrelate,astats=metadata=1:reset=1,adrawgraph=lavfi.astats.1.DC_offset:max=1.01:min=-1.01:size=320x400:bg=black:fg1=0x99999999,drawbox=x=0:y=200:w=400:c=white:h=1${PRINT_PHASE}${PRINT_CHANNELS_1_2}[a1]"
         SPECTRUM_SIZE='1155x200'
-        PAN="${AUDIO_PLAY_MAP}"
     fi
-    PLAYBACKFILTER="streams=dv+da[vid][aud],[aud]asplit=2[original_audio][audio_to_map];[audio_to_map]${PAN},asplit=${AUDIO_SPLIT},\
+    PLAYBACKFILTER="streams=dv+da[vid][aud],[aud]asplit=2[original_audio][audio_to_map];[audio_to_map]${AUDIO_PLAY_MAP},asplit=${AUDIO_SPLIT},\
     ${PHASE_MAP},\
     ${CHANNEL_PARAMS},\
     [original_audio]showvolume=t=0:h=17:w=200:rate=30${AUDIO_PLAY_LABELS}[c1],\
