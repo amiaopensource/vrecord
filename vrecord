@@ -1816,6 +1816,7 @@ _lookup_choice(){
         "24-bit FLAC")
             MIDDLEOPTIONS_PRES+=(-c:a flac)
             MIDDLEOPTIONS_PRES+=(-sample_fmt s32)
+            MIDDLEOPTIONS_PRES+=(-bits_per_raw_sample:a 24)
             AUDIO_EXT='flac' ;;
         "AAC")
             MIDDLEOPTIONS_PRES+=(-c:a aac) ;;
