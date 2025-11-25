@@ -383,6 +383,8 @@ _gtk_vbox_list() {
         LIST="<input>_get_dvrescue_input_list</input>"
     elif [[ "${VARIABLE_NAME}" == "AUDIO_DEV_CHOICE" ]] ; then
         LIST="<input>_get_audio_device_list</input>"
+    elif [[ "${VARIABLE_NAME}" == "STANDARD_CHOICE" ]] ; then
+        LIST="<input>_get_format_list</input>"
     else
         LIST="$(_expand_list2items "${OPTION_LIST[@]}")"
     fi
@@ -423,10 +425,7 @@ _gtk_vbox_list() {
                 <default>\"${HD_CHOICE}\"</default>
                 <variable>HD_CHOICE</variable>
                 <action>_update_config_file</action>
-                <action type=\"clear\">STANDARD_CHOICE</action>
                 <action type=\"refresh\">STANDARD_CHOICE</action>
-                <action signal=\"key-release-event\" type=\"refresh\">STANDARD_CHOICE</action>
-                <action type=\"exit\">refresh</action>
             </checkbox>"
         elif [[ "${VARIABLE_NAME}" == "EMBED_LOGS_CHOICE" ]] ; then
             echo "<sensitive>$(if $MKVPROPEDIT_INSTALLED ; then echo true ; else echo false ; fi)</sensitive>"
@@ -2758,6 +2757,7 @@ if [[ ${HD_CHOICE} != "true" ]] ; then
 else
   STANDARD_OPTIONS=("NTSC" "PAL" "23ps - 1080p23.98" "24ps - 1080p24" "Hp25 - 1080p25" "Hp29 - 1080p29.97" "Hp30 - 1080p30" "Hi50 - 1080i50" "Hi59 - 1080i59.94" "Hi60 - 1080i60" "hp50 - 720p50" "hp59 - 720p59.94" "hp60 - 720p60")
 fi
+# STANDARD_OPTIONS list must be synced with Resources/vrecord_functions in _get_format_list
 QCTOOLSXML_OPTIONS=("Yes, concurrent with recording" "Yes, after recording" "No")
 EMBED_LOGS_OPTIONS=("Yes" "No")
 PLAYBACKVIEW_OPTIONS=("Unfiltered" "Visual" "Audio + Video" "Visual + Numerical" "Color Matrix" "Bit Planes" "Frame Positioning" "Captions")
