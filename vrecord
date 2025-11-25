@@ -1941,98 +1941,111 @@ _lookup_choice(){
             DECKLINK_FPS="24000/1001"
             SIG_GEN_SIZE="1920x1080"
             SIG_INTERLACEMENT="prog"
-            MIDDLEOPTIONS+=(-color_primaries bt709)
-            MIDDLEOPTIONS+=(-color_trc bt709)
-            MIDDLEOPTIONS+=(-colorspace bt709) ;;
+            _set_some_params
+            SET_COLOR_PRIMARIES="bt709"
+            SET_COLOR_TRC="bt709"
+            SET_COLORSPACE="bt709"
+            RECORDINGFILTER+=",setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}:field_mode=${SET_FIELD_MODE}" ;;
         "24ps - 1080p24")
             STANDARD="24ps"
             DECKLINK_FPS="24000/1000"
             SIG_GEN_SIZE="1920x1080"
             SIG_INTERLACEMENT="prog"
-            MIDDLEOPTIONS+=(-color_primaries bt709)
-            MIDDLEOPTIONS+=(-color_trc bt709)
-            MIDDLEOPTIONS+=(-colorspace bt709) ;;
+            _set_some_params
+            SET_COLOR_PRIMARIES="bt709"
+            SET_COLOR_TRC="bt709"
+            SET_COLORSPACE="bt709"
+            RECORDINGFILTER+=",setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}:field_mode=${SET_FIELD_MODE}" ;;
         "Hp25 - 1080p25")
             STANDARD="Hp25"
             DECKLINK_FPS="25000/1000"
             SIG_GEN_SIZE="1920x1080"
             SIG_INTERLACEMENT="prog"
-            MIDDLEOPTIONS+=(-color_primaries bt709)
-            MIDDLEOPTIONS+=(-color_trc bt709)
-            MIDDLEOPTIONS+=(-colorspace bt709) ;;
+            _set_some_params
+            SET_COLOR_PRIMARIES="bt709"
+            SET_COLOR_TRC="bt709"
+            SET_COLORSPACE="bt709"
+            RECORDINGFILTER+=",setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}:field_mode=${SET_FIELD_MODE}" ;;
         "Hp29 - 1080p29.97")
             STANDARD="Hp29"
             DECKLINK_FPS="30000/1001"
             SIG_GEN_SIZE="1920x1080"
             SIG_INTERLACEMENT="prog"
-            MIDDLEOPTIONS+=(-color_primaries bt709)
-            MIDDLEOPTIONS+=(-color_trc bt709)
-            MIDDLEOPTIONS+=(-colorspace bt709) ;;
+            _set_some_params
+            SET_COLOR_PRIMARIES="bt709"
+            SET_COLOR_TRC="bt709"
+            SET_COLORSPACE="bt709"
+            RECORDINGFILTER+=",setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}:field_mode=${SET_FIELD_MODE}" ;;
         "Hp30 - 1080p30")
             STANDARD="Hp30"
             DECKLINK_FPS="30000/1000"
             SIG_GEN_SIZE="1920x1080"
             SIG_INTERLACEMENT="prog"
-            MIDDLEOPTIONS+=(-color_primaries bt709)
-            MIDDLEOPTIONS+=(-color_trc bt709)
-            MIDDLEOPTIONS+=(-colorspace bt709) ;;
+            _set_some_params
+            SET_COLOR_PRIMARIES="bt709"
+            SET_COLOR_TRC="bt709"
+            SET_COLORSPACE="bt709"
+            RECORDINGFILTER+=",setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}:field_mode=${SET_FIELD_MODE}" ;;
         "Hi50 - 1080i50")
             STANDARD="Hi50"
             DECKLINK_FPS="25000/1000"
             SIG_GEN_SIZE="1920x1080"
             SIG_INTERLACEMENT="tff"
-            if [[ "${VIDEO_CODEC_CHOICE}" = "h264" ]] ; then
-                MIDDLEOPTIONS+=(-x264opts tff)
-            fi
-            MIDDLEOPTIONS+=(-color_primaries bt709)
-            MIDDLEOPTIONS+=(-color_trc bt709)
-            MIDDLEOPTIONS+=(-colorspace bt709) ;;
+            _set_some_params
+            SET_COLOR_PRIMARIES="bt709"
+            SET_COLOR_TRC="bt709"
+            SET_COLORSPACE="bt709"
+            RECORDINGFILTER+=",setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}:field_mode=${SET_FIELD_MODE}" ;;
         "Hi59 - 1080i59.94")
             STANDARD="Hi59"
             DECKLINK_FPS="30000/1001"
             SIG_GEN_SIZE="1920x1080"
             SIG_INTERLACEMENT="tff"
-            if [[ "${VIDEO_CODEC_CHOICE}" = "h264" ]] ; then
-                MIDDLEOPTIONS+=(-x264opts tff)
-            fi
-            MIDDLEOPTIONS+=(-color_primaries bt709)
-            MIDDLEOPTIONS+=(-color_trc bt709)
-            MIDDLEOPTIONS+=(-colorspace bt709) ;;
+            _set_some_params
+            SET_COLOR_PRIMARIES="bt709"
+            SET_COLOR_TRC="bt709"
+            SET_COLORSPACE="bt709"
+            RECORDINGFILTER+=",setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}:field_mode=${SET_FIELD_MODE}" ;;
         "Hi60 - 1080i60")
             STANDARD="Hi60"
             DECKLINK_FPS="30000/1000"
             SIG_GEN_SIZE="1920x1080"
             SIG_INTERLACEMENT="tff"
-            if [[ "${VIDEO_CODEC_CHOICE}" = "h264" ]] ; then
-                MIDDLEOPTIONS+=(-x264opts tff)
-            fi
-            MIDDLEOPTIONS+=(-color_primaries bt709)
-            MIDDLEOPTIONS+=(-color_trc bt709)
-            MIDDLEOPTIONS+=(-colorspace bt709) ;;
+            _set_some_params
+            SET_COLOR_PRIMARIES="bt709"
+            SET_COLOR_TRC="bt709"
+            SET_COLORSPACE="bt709"
+            RECORDINGFILTER+=",setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}:field_mode=${SET_FIELD_MODE}" ;;
         "hp50 - 720p50")
             STANDARD="hp50"
             DECKLINK_FPS="50000/1000"
             SIG_GEN_SIZE="1280x720"
             SIG_INTERLACEMENT="prog"
-            MIDDLEOPTIONS+=(-color_primaries bt709)
-            MIDDLEOPTIONS+=(-color_trc bt709)
-            MIDDLEOPTIONS+=(-colorspace bt709) ;;
+            _set_some_params
+            SET_COLOR_PRIMARIES="bt709"
+            SET_COLOR_TRC="bt709"
+            SET_COLORSPACE="bt709"
+            RECORDINGFILTER+=",setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}:field_mode=${SET_FIELD_MODE}" ;;
         "hp59 - 720p59.94")
             STANDARD="hp59"
             DECKLINK_FPS="60000/1001"
             SIG_GEN_SIZE="1280x720"
             SIG_INTERLACEMENT="prog"
-            MIDDLEOPTIONS+=(-color_primaries bt709)
-            MIDDLEOPTIONS+=(-color_trc bt709)
-            MIDDLEOPTIONS+=(-colorspace bt709) ;;
+            _set_some_params
+            SET_COLOR_PRIMARIES="bt709"
+            SET_COLOR_TRC="bt709"
+            SET_COLORSPACE="bt709"
+            RECORDINGFILTER+=",setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}:field_mode=${SET_FIELD_MODE}" ;;
         "hp60 - 720p60")
             STANDARD="hp60"
             DECKLINK_FPS="60000/1000"
             SIG_GEN_SIZE="1280x720"
             SIG_INTERLACEMENT="prog"
-            MIDDLEOPTIONS+=(-color_primaries bt709)
-            MIDDLEOPTIONS+=(-color_trc bt709)
-            MIDDLEOPTIONS+=(-colorspace bt709) ;;
+            _set_some_params
+            SET_COLOR_PRIMARIES="bt709"
+            SET_COLOR_TRC="bt709"
+            SET_COLORSPACE="bt709"
+            RECORDINGFILTER+=",setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}:field_mode=${SET_FIELD_MODE}" ;;
         # aspect ratio options
         "4/3")
             if [[ "${STANDARD}" = "ntsc" ]] ; then
