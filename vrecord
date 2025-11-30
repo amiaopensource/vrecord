@@ -425,6 +425,7 @@ _gtk_vbox_list() {
                 <default>\"${HD_CHOICE}\"</default>
                 <variable>HD_CHOICE</variable>
                 <action>_update_config_file</action>
+                <action type=\"clear\">STANDARD_CHOICE</action>
                 <action type=\"refresh\">STANDARD_CHOICE</action>
             </checkbox>"
         elif [[ "${VARIABLE_NAME}" == "EMBED_LOGS_CHOICE" ]] ; then
