@@ -1,0 +1,170 @@
+#!/usr/bin/env bash
+# cc_to_srt_safe.sh
+# Convert EIA-608 hex dump to readable text (simplified version)
+bash --version
+INPUT_FILE="$1"
+OUTPUT_FILE="$2"
+OUTPUT_FILE_TMP="${OUTPUT_FILE}.tmp"
+
+if [[ -z "$INPUT_FILE" || -z "$OUTPUT_FILE" ]]; then
+    echo "Usage: $0 <input_file> <output_file>"
+    exit 1
+fi
+
+declare -A char_map=(
+    ["20"]=" "
+    ["A1"]="!"
+    ["A2"]="\""
+    ["23"]="#"
+    ["A4"]="$"
+    ["25"]="%"
+    ["26"]="&"
+    ["A7"]="'"
+    ["A8"]="("
+    ["29"]=")"
+    ["2A"]="á"
+    ["AB"]="+"
+    ["2C"]=","
+    ["AD"]="-"
+    ["AE"]="."
+    ["2F"]="/"
+    ["B0"]="0"
+    ["31"]="1"
+    ["32"]="2"
+    ["B3"]="3"
+    ["34"]="4"
+    ["B5"]="5"
+    ["B6"]="6"
+    ["37"]="7"
+    ["38"]="8"
+    ["B9"]="9"
+    ["BA"]=":"
+    ["3B"]=";"
+    ["BC"]="<"
+    ["3D"]="="
+    ["3E"]=">"
+    ["BF"]="?"
+    ["40"]="@"
+    ["C1"]="A"
+    ["C2"]="B"
+    ["43"]="C"
+    ["C4"]="D"
+    ["45"]="E"
+    ["46"]="F"
+    ["C7"]="G"
+    ["C8"]="H"
+    ["49"]="I"
+    ["4A"]="J"
+    ["CB"]="K"
+    ["4C"]="L"
+    ["CD"]="M"
+    ["CE"]="N"
+    ["4F"]="O"
+    ["D0"]="P"
+    ["51"]="Q"
+    ["52"]="R"
+    ["D3"]="S"
+    ["54"]="T"
+    ["D5"]="U"
+    ["D6"]="V"
+    ["57"]="W"
+    ["58"]="X"
+    ["D9"]="Y"
+    ["DA"]="Z"
+    ["5B"]="["
+    ["DC"]="é"
+    ["5D"]="]"
+    ["5E"]="í"
+    ["DF"]="ó"
+    ["E0"]="ú"
+    ["61"]="a"
+    ["62"]="b"
+    ["E3"]="c"
+    ["64"]="d"
+    ["E5"]="e"
+    ["E6"]="f"
+    ["67"]="g"
+    ["68"]="h"
+    ["E9"]="i"
+    ["EA"]="j"
+    ["6B"]="k"
+    ["EC"]="l"
+    ["6D"]="m"
+    ["6E"]="n"
+    ["EF"]="o"
+    ["70"]="p"
+    ["F1"]="q"
+    ["F2"]="r"
+    ["73"]="s"
+    ["F4"]="t"
+    ["75"]="u"
+    ["76"]="v"
+    ["F7"]="w"
+    ["F8"]="x"
+    ["79"]="y"
+    ["7A"]="z"
+    ["FB"]="ç"
+    ["7C"]="÷"
+    ["FD"]="Ñ"
+    ["FE"]="ñ"
+    ["7F"]=" "
+)
+
+# --- Fast lookup ---
+lookup() {
+    local key="$1"
+    echo -n "${char_map[$key]}"
+}
+
+unset START_FRAME
+# --- Start buffer to hold last 30 chars ---
+TAIL_SCAN="60"
+CAPTION_LINE_LENGTH="64"
+BUFFER="$(printf "%*s" "${CAPTION_LINE_LENGTH}" "")"
+if [[ ! -f "${OUTPUT_FILE}" ]] ; then
+    echo -n "${BUFFER}" > "${OUTPUT_FILE_TMP}"
+    mv "${OUTPUT_FILE_TMP}" "${OUTPUT_FILE}"
+fi
+while true ; do
+    LAST_METADATA="$(tail -n "${TAIL_SCAN}" "${INPUT_FILE}")"
+    if [[ -z "$START_FRAME" ]] ; then
+        METADATA_TO_PROCESS="${LAST_METADATA}"
+    else
+        METADATA_TO_PROCESS="$(echo "${LAST_METADATA}" | grep -A "${TAIL_SCAN}" "frame:${START_FRAME} ")"
+    fi
+    START_FRAME="$(echo "${LAST_METADATA}" | grep -o 'frame:[0-9]*' | tail -n1 | cut -d: -f2)"
+    NEW_CCS="$(echo "${METADATA_TO_PROCESS}" | grep "lavfi.readeia608.0.cc=" | cut -d "=" -f2)"
+    ((START_FRAME++))
+    while IFS= read -r CC_HEX ; do
+        CC_HEX="${CC_HEX//0x}"
+        if [[ "${CC_HEX}" != "8080" && -n "${CC_HEX}" ]] ; then
+            CC1="$(lookup "${CC_HEX:0:2}")"
+        else
+            unset CC1
+        fi
+        if [[ -n "${CC1}" ]] ; then
+            CC2="$(lookup "${CC_HEX:2:2}")"
+            BUFFER+="${CC1}${CC2}"
+            BUFFER="${BUFFER: -${CAPTION_LINE_LENGTH}}"
+            echo -n "${BUFFER}" > "${OUTPUT_FILE_TMP}"
+            mv "${OUTPUT_FILE_TMP}" "${OUTPUT_FILE}"
+        else
+            BUFFER+=" "
+            if [[ -z "${BUFFER: -${CAPTION_LINE_LENGTH}}" ]] ; then
+                BUFFER="$(printf "%*s" "${CAPTION_LINE_LENGTH}" "")"
+            else
+                BUFFER="${BUFFER: -${CAPTION_LINE_LENGTH}}"
+                if [[ -n "${BUFFER// }" || "${CLEAR}" == "1" ]] ; then
+                    echo -n "${BUFFER}" > "${OUTPUT_FILE_TMP}"
+                    mv "${OUTPUT_FILE_TMP}" "${OUTPUT_FILE}"
+                    CLEAR="0"
+                else
+                    CLEAR="1"
+                fi
+            fi
+        fi
+        echo "BUFFER=(${BUFFER}) CC1=${CC1} CC2=${CC2}"
+        unset CC1 CC2
+    done <<< "${NEW_CCS}"
+    sleep 0.2
+done
