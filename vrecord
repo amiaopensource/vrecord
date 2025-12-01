@@ -383,6 +383,8 @@ _gtk_vbox_list() {
         LIST="<input>_get_dvrescue_input_list</input>"
     elif [[ "${VARIABLE_NAME}" == "AUDIO_DEV_CHOICE" ]] ; then
         LIST="<input>_get_audio_device_list</input>"
+    elif [[ "${VARIABLE_NAME}" == "STANDARD_CHOICE" ]] ; then
+        LIST="<input>_get_format_list</input>"
     else
         LIST="$(_expand_list2items "${OPTION_LIST[@]}")"
     fi
@@ -416,6 +418,16 @@ _gtk_vbox_list() {
                 <action>_update_config_file</action>
                 <action type=\"exit\">timecode_scan</action>
             </button>"
+        elif [[ "${VARIABLE_NAME}" == "STANDARD_CHOICE" ]] ; then
+            echo "
+            <checkbox>
+                <label>Show HD Formats</label>
+                <default>\"${HD_CHOICE}\"</default>
+                <variable>HD_CHOICE</variable>
+                <action>_update_config_file</action>
+                <action type=\"clear\">STANDARD_CHOICE</action>
+                <action type=\"refresh\">STANDARD_CHOICE</action>
+            </checkbox>"
         elif [[ "${VARIABLE_NAME}" == "EMBED_LOGS_CHOICE" ]] ; then
             echo "<sensitive>$(if $MKVPROPEDIT_INSTALLED ; then echo true ; else echo false ; fi)</sensitive>"
         elif [[ "${VARIABLE_NAME}" == "QCTOOLSXML_CHOICE" ]] ; then
@@ -979,10 +991,10 @@ DECKLINK_INPUT_GUI=$(cat << DECKLINK_FORM
             $(_gtk_vbox_list "VIDEO_INPUT_CHOICE"       "80" "Video Input"            "${VIDEO_INPUT_OPTIONS[@]}")
             $(_gtk_vbox_list "AUDIO_INPUT_CHOICE"       "130" "Audio Input"            "${AUDIO_INPUT_OPTIONS[@]}")
             $(_gtk_vbox_list "AUDIO_MAPPING_CHOICE"      "-1" "Audio Channel Mapping"  "${CHANNEL_MAPPING_OPTIONS[@]}" )
-            $(_gtk_vbox_list "STANDARD_CHOICE"           "50" "Standard"               "${STANDARD_OPTIONS[@]}")
-            $(_gtk_vbox_list "VIDEO_BIT_DEPTH_CHOICE"    "60" "Video Bit Depth"        "${VIDEO_BITDEPTH_OPTIONS[@]}")
-            $(_gtk_vbox_list "ASPECT_RATIO_CHOICE"       "60" "Display Aspect Ratio"   "${ASPECT_RATIO_OPTIONS[@]}")
-            $(_gtk_vbox_list "TIMECODE_CHOICE"           "6 0" "Timecode format"        "${TIMECODE_OPTIONS[@]}")
+            $(_gtk_vbox_list "STANDARD_CHOICE"           "110" "Standard"               "${STANDARD_OPTIONS[@]}")
+            $(_gtk_vbox_list "VIDEO_BIT_DEPTH_CHOICE"    "40" "Video Bit Depth"        "${VIDEO_BITDEPTH_OPTIONS[@]}")
+            $(_gtk_vbox_list "ASPECT_RATIO_CHOICE"       "40" "Display Aspect Ratio"   "${ASPECT_RATIO_OPTIONS[@]}")
+            $(_gtk_vbox_list "TIMECODE_CHOICE"           "40" "Timecode format"        "${TIMECODE_OPTIONS[@]}")
         </hbox>
         <frame Output file options>
             <hbox space-expand="true">
@@ -1943,11 +1955,111 @@ _lookup_choice(){
             SET_COLOR_TRC="bt709"
             SET_COLORSPACE="bt470bg"
             RECORDINGFILTER+=",setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}:field_mode=${SET_FIELD_MODE}" ;;
-        "Hi59")
+        "23ps - 1080p23.98")
+            STANDARD="23ps"
+            DECKLINK_FPS="24000/1001"
+            SIG_GEN_SIZE="1920x1080"
+            SIG_INTERLACEMENT="prog"
+            _set_some_params
+            SET_COLOR_PRIMARIES="bt709"
+            SET_COLOR_TRC="bt709"
+            SET_COLORSPACE="bt709"
+            RECORDINGFILTER+=",setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}:field_mode=${SET_FIELD_MODE}" ;;
+        "24ps - 1080p24")
+            STANDARD="24ps"
+            DECKLINK_FPS="24000/1000"
+            SIG_GEN_SIZE="1920x1080"
+            SIG_INTERLACEMENT="prog"
+            _set_some_params
+            SET_COLOR_PRIMARIES="bt709"
+            SET_COLOR_TRC="bt709"
+            SET_COLORSPACE="bt709"
+            RECORDINGFILTER+=",setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}:field_mode=${SET_FIELD_MODE}" ;;
+        "Hp25 - 1080p25")
+            STANDARD="Hp25"
+            DECKLINK_FPS="25000/1000"
+            SIG_GEN_SIZE="1920x1080"
+            SIG_INTERLACEMENT="prog"
+            _set_some_params
+            SET_COLOR_PRIMARIES="bt709"
+            SET_COLOR_TRC="bt709"
+            SET_COLORSPACE="bt709"
+            RECORDINGFILTER+=",setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}:field_mode=${SET_FIELD_MODE}" ;;
+        "Hp29 - 1080p29.97")
+            STANDARD="Hp29"
+            DECKLINK_FPS="30000/1001"
+            SIG_GEN_SIZE="1920x1080"
+            SIG_INTERLACEMENT="prog"
+            _set_some_params
+            SET_COLOR_PRIMARIES="bt709"
+            SET_COLOR_TRC="bt709"
+            SET_COLORSPACE="bt709"
+            RECORDINGFILTER+=",setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}:field_mode=${SET_FIELD_MODE}" ;;
+        "Hp30 - 1080p30")
+            STANDARD="Hp30"
+            DECKLINK_FPS="30000/1000"
+            SIG_GEN_SIZE="1920x1080"
+            SIG_INTERLACEMENT="prog"
+            _set_some_params
+            SET_COLOR_PRIMARIES="bt709"
+            SET_COLOR_TRC="bt709"
+            SET_COLORSPACE="bt709"
+            RECORDINGFILTER+=",setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}:field_mode=${SET_FIELD_MODE}" ;;
+        "Hi50 - 1080i50")
+            STANDARD="Hi50"
+            DECKLINK_FPS="25000/1000"
+            SIG_GEN_SIZE="1920x1080"
+            SIG_INTERLACEMENT="tff"
+            _set_some_params
+            SET_COLOR_PRIMARIES="bt709"
+            SET_COLOR_TRC="bt709"
+            SET_COLORSPACE="bt709"
+            RECORDINGFILTER+=",setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}:field_mode=${SET_FIELD_MODE}" ;;
+        "Hi59 - 1080i59.94")
             STANDARD="Hi59"
             DECKLINK_FPS="30000/1001"
-            SIG_GEN_SIZE="1920X1080"
+            SIG_GEN_SIZE="1920x1080"
             SIG_INTERLACEMENT="tff"
+            _set_some_params
+            SET_COLOR_PRIMARIES="bt709"
+            SET_COLOR_TRC="bt709"
+            SET_COLORSPACE="bt709"
+            RECORDINGFILTER+=",setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}:field_mode=${SET_FIELD_MODE}" ;;
+        "Hi60 - 1080i60")
+            STANDARD="Hi60"
+            DECKLINK_FPS="30000/1000"
+            SIG_GEN_SIZE="1920x1080"
+            SIG_INTERLACEMENT="tff"
+            _set_some_params
+            SET_COLOR_PRIMARIES="bt709"
+            SET_COLOR_TRC="bt709"
+            SET_COLORSPACE="bt709"
+            RECORDINGFILTER+=",setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}:field_mode=${SET_FIELD_MODE}" ;;
+        "hp50 - 720p50")
+            STANDARD="hp50"
+            DECKLINK_FPS="50000/1000"
+            SIG_GEN_SIZE="1280x720"
+            SIG_INTERLACEMENT="prog"
+            _set_some_params
+            SET_COLOR_PRIMARIES="bt709"
+            SET_COLOR_TRC="bt709"
+            SET_COLORSPACE="bt709"
+            RECORDINGFILTER+=",setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}:field_mode=${SET_FIELD_MODE}" ;;
+        "hp59 - 720p59.94")
+            STANDARD="hp59"
+            DECKLINK_FPS="60000/1001"
+            SIG_GEN_SIZE="1280x720"
+            SIG_INTERLACEMENT="prog"
+            _set_some_params
+            SET_COLOR_PRIMARIES="bt709"
+            SET_COLOR_TRC="bt709"
+            SET_COLORSPACE="bt709"
+            RECORDINGFILTER+=",setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}:field_mode=${SET_FIELD_MODE}" ;;
+        "hp60 - 720p60")
+            STANDARD="hp60"
+            DECKLINK_FPS="60000/1000"
+            SIG_GEN_SIZE="1280x720"
+            SIG_INTERLACEMENT="prog"
             _set_some_params
             SET_COLOR_PRIMARIES="bt709"
             SET_COLOR_TRC="bt709"
@@ -1961,7 +2073,19 @@ _lookup_choice(){
             elif [[ "${STANDARD}" = "pal " ]] ; then
                 RECORDINGFILTER+=",setsar=${PAL_43_SAR_CHOICE}"
                 RECORDINGFILTER_MP4+=",setsar=${PAL_43_SAR_CHOICE}"
-            elif [[ "${STANDARD}" = "Hi59" ]] ; then
+            elif [[ "${STANDARD}" = "23ps" ]] ; then
+                RECORDINGFILTER+=",setdar=4/3"
+                RECORDINGFILTER_MP4+=",setdar=4/3"
+            elif [[ "${STANDARD}" = "24ps" ]] ; then
+                RECORDINGFILTER+=",setdar=4/3"
+                RECORDINGFILTER_MP4+=",setdar=4/3"
+            elif [[ "${STANDARD:0:2}" = "Hp" ]] ; then
+                RECORDINGFILTER+=",setdar=4/3"
+                RECORDINGFILTER_MP4+=",setdar=4/3"
+            elif [[ "${STANDARD:0:2}" = "Hi" ]] ; then
+                RECORDINGFILTER+=",setdar=4/3"
+                RECORDINGFILTER_MP4+=",setdar=4/3"
+            elif [[ "${STANDARD:0:2}" = "hp" ]] ; then
                 RECORDINGFILTER+=",setdar=4/3"
                 RECORDINGFILTER_MP4+=",setdar=4/3"
             else
@@ -1974,7 +2098,19 @@ _lookup_choice(){
             elif [[ "${STANDARD}" = "pal " ]] ; then
                 RECORDINGFILTER+=",setsar=${PAL_169_SAR_CHOICE}"
                 RECORDINGFILTER_MP4+=",setsar=${PAL_169_SAR_CHOICE}"
-            elif [[ "${STANDARD}" = "Hi59" ]] ; then
+            elif [[ "${STANDARD}" = "23ps" ]] ; then
+                RECORDINGFILTER+=",setdar=16/9"
+                RECORDINGFILTER_MP4+=",setdar=16/9"
+            elif [[ "${STANDARD}" = "24ps" ]] ; then
+                RECORDINGFILTER+=",setdar=16/9"
+                RECORDINGFILTER_MP4+=",setdar=16/9"
+            elif [[ "${STANDARD:0:2}" = "Hp" ]] ; then
+                RECORDINGFILTER+=",setdar=16/9"
+                RECORDINGFILTER_MP4+=",setdar=16/9"
+            elif [[ "${STANDARD:0:2}" = "Hi" ]] ; then
+                RECORDINGFILTER+=",setdar=16/9"
+                RECORDINGFILTER_MP4+=",setdar=16/9"
+            elif [[ "${STANDARD:0:2}" = "hp" ]] ; then
                 RECORDINGFILTER+=",setdar=16/9"
                 RECORDINGFILTER_MP4+=",setdar=16/9"
             else
@@ -2636,7 +2772,12 @@ PAL_43_SAR_OPTIONS=("12/11" "16/15" "128/117")
 PAL_169_SAR_OPTIONS=("16/11" "64/45" "512/351")
 CHANNEL_MAPPING_OPTIONS=("2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, Channels 3 & 4 -> 2nd Track Stereo)" "1 Stereo Track (From Channels 1 & 2)" "1 Stereo Track (From Channels 3 & 4)" "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono" "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono" "Channel 1 -> Single Track Mono" "Channel 2 -> Single Track Mono")
 TIMECODE_OPTIONS=("none" "rp188vitc" "rp188vitc2" "rp188ltc" "rp188any" "vitc" "vitc2" "serial")
-STANDARD_OPTIONS=("NTSC" "PAL" "Hi59")
+if [[ ${HD_CHOICE} != "true" ]] ; then
+  STANDARD_OPTIONS=("NTSC" "PAL")
+else
+  STANDARD_OPTIONS=("NTSC" "PAL" "23ps - 1080p23.98" "24ps - 1080p24" "Hp25 - 1080p25" "Hp29 - 1080p29.97" "Hp30 - 1080p30" "Hi50 - 1080i50" "Hi59 - 1080i59.94" "Hi60 - 1080i60" "hp50 - 720p50" "hp59 - 720p59.94" "hp60 - 720p60")
+fi
+# STANDARD_OPTIONS list must be synced with Resources/vrecord_functions in _get_format_list
 QCTOOLSXML_OPTIONS=("Yes, concurrent with recording" "Yes, after recording" "No")
 EMBED_LOGS_OPTIONS=("Yes" "No")
 PLAYBACKVIEW_OPTIONS=("Unfiltered" "Visual" "Audio + Video" "Visual + Numerical" "Color Matrix" "Bit Planes" "Frame Positioning" "Captions")

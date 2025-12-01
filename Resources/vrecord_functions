@@ -89,6 +89,7 @@ _update_config_file(){
         echo "DV_RESCUE_OPTION_TC=\"${DV_RESCUE_OPTION_TC}\""
         echo "CC2VTT=\"${CC2VTT}\""
         echo "CC2SRT=\"${CC2SRT}\""
+        echo "HD_CHOICE=\"${HD_CHOICE}\""
     } > "${CONFIG_FILE}"
     . "${CONFIG_FILE}"
 }
@@ -203,6 +204,30 @@ _get_decklink_input_list(){
     # get information on what input device options are available
     #unset DECKLINK_DEVICES
     "${FFMPEG_BIN}" -nostdin -v 0 -sources decklink | awk -F'[][]' '{print $2}' | grep -v "^$"
+}
+
+_get_format_list(){
+    if [ -z ${HD_CHOICE} ] ; then
+        . "${CONFIG_FILE}"
+    fi
+    if [ ${HD_CHOICE} != "true" ] ; then
+      echo "NTSC
+PAL"
+    else
+        echo "NTSC
+PAL
+23ps - 1080p23.98
+24ps - 1080p24
+Hp25 - 1080p25
+Hp29 - 1080p29.97
+Hp30 - 1080p30
+Hi50 - 1080i50
+Hi59 - 1080i59.94
+Hi60 - 1080i60
+hp50 - 720p50
+hp59 - 720p59.94
+hp60 - 720p60"
+    fi
 }
 
 _get_dvrescue_input_list(){
