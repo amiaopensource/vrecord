@@ -65,6 +65,7 @@ _update_config_file(){
         echo "QCTOOLSXML_CHOICE=\"${QCTOOLSXML_CHOICE}\""
         echo "MP4_CHOICE=\"${MP4_CHOICE}\""
         echo "FRAMEMD5_CHOICE=\"${FRAMEMD5_CHOICE}\""
+        echo "TIMECODEVTT_CHOICE=\"${TIMECODEVTT_CHOICE}\""
         echo "EMBED_LOGS_CHOICE=\"${EMBED_LOGS_CHOICE}\""
         echo "PLAYBACKVIEW_CHOICE=\"${PLAYBACKVIEW_CHOICE}\""
         echo "PLAYBACKVIEW_CHOICE_PASS=\"${PLAYBACKVIEW_CHOICE_PASS}\""
@@ -265,6 +266,7 @@ _get_summary(){
             echo "Auxiliary files created in ${LOGDIR}"
             echo "Access MP4: ${MP4_CHOICE}"
             echo "Frame MD5s: ${FRAMEMD5_CHOICE}"
+            echo "Timecode VTT: ${TIMECODEVTT_CHOICE}"
             echo "QCTools XML: ${QCTOOLSXML_CHOICE}"
             echo "Playback: ${PLAYBACKVIEW_CHOICE} view (for recording) and ${PLAYBACKVIEW_CHOICE_PASS} view (for passthrough)"
         elif [ "${DEVICE_INPUT_CHOICE}" = "1" ] ; then
