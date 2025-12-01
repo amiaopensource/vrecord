@@ -2939,7 +2939,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
         MP4NAME="${DIR}/${FULL_OUTPUT_ID}.mp4"
         EXTRAOUTPUTS+=("${MIDDLEOPTIONS_ALL[@]}" -movflags write_colr+faststart "${RECORD_COMMAND_MP4[@]}" -pix_fmt yuv420p -c:v h264 -c:a aac -map "[mp4_v_out]" "${AUDIO_CHANNEL_MAP[@]}" "${MP4NAME}")
     fi
-    if [[ "${FORMAT}" = "matroska" ]] ; then
+    if [[ "${FORMAT}" = "Matroska" ]] ; then
         _review_option "EMBED_LOGS_CHOICE" "${EMBED_LOGS_OPTIONS[@]}"
     fi
 fi
