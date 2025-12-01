@@ -776,6 +776,11 @@ SIDECAR_FILES_GUI="
                 <default>\"${FRAMEMD5_CHOICE}\"</default>
                 <variable>FRAMEMD5_CHOICE</variable>
             </checkbox>
+            <checkbox tooltip-text=\"If enabled, this will make a vtt file alongside any Matroska that captured timecode.\">
+                <label>Timecode VTT</label>
+                <default>\"${TIMECODEVTT_CHOICE}\"</default>
+                <variable>TIMECODEVTT_CHOICE</variable>
+            </checkbox>
         </vbox>
         $(_gtk_vbox_list "QCTOOLSXML_CHOICE" "180"  "QCTools XML?"              "${QCTOOLSXML_OPTIONS[@]}")
     </hbox>
@@ -3247,6 +3252,16 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         _report -d "QCTools analysis is complete."
     fi
 
+    # make a timecode vtt
+    if [[ "$TIMECODEVTT_CHOICE}" = "true" ]] && [[ "${FORMAT}" = "Matroska" ]] && [[ -n "${TIMECODE_CHOICE}" ]] && [[ "${TIMECODE_CHOICE}" != "none" ]] ; then
+        _report -d "Working on the timecode vtt file..."
+        TIMECODEXML_TMP="$(_maketemp .mediatimecode.txt)"
+        TIMECODEXML_VTT="${LOGDIR}/${FULL_OUTPUT_ID}.timecode.vtt"
+        mediainfo --ParseSpeed=1 --Output=TimeCodeXML "${VRECORD_OUTPUT}" > "${TIMECODEXML_TMP}"
+        # need to test if timecode file has any data or not before committing to a vtt
+        timecodexml2webvtt "${TIMECODEXML_TMP}" > "${TIMECODEXML_VTT}"
+        _mv_tmp_file "${TIMECODEXML_TMP}" "${TIMECODEXML_VTT}"
+    fi
     # check for discontinuities in the Frame MD5s; if user chose not to use Frame MD5s, check for frame discontinuties in the FFmpeg file
     if [[ "${FRAMEMD5_CHOICE}" = "true" ]] ; then
         PTS_DISCONTINUITY=$(cat "${FRAMEMD5NAME}" | grep -v "^#" | cut -d, -f3 | sed 's/ //g' | grep -v "^0$" | awk '{if($1!=p+1){if(p+1==$1-1){printf p+1" "}else{printf p+1"-"$1-1" "}}{p=$1}}')
