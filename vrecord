@@ -660,7 +660,7 @@ _setup_vrecord_process(){
         FFPLAY_OPTIONS+=(-stats)
         FFPLAY_OPTIONS+=(-autoexit)
         FFPLAY_OPTIONS+=(-window_title "${WINDOW_NAME}")
-        if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] && [[ "${PLAYBACKVIEW_CHOICE_PASS}" = "Audio + Video" ]] && [[ "${RUNTYPE}" = "passthrough" ]] ; then
+        if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] && [[ "${PLAYBACKVIEW_CHOICE_PASS}" = "Audio + Video" ]] && [[ "${RUNTYPE}" = "passthrough" || "${RUNTYPE}" = 'audiopassthrough' ]] ; then
             FFPLAY_OPTIONS+=(-f lavfi "amovie='pipe\:0':${PLAYBACKFILTER}")
         elif [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] && [[ "${PLAYBACKVIEW_CHOICE}" = "Audio + Video" ]] && [[ "${RUNTYPE}" = "record" ]] ; then
             FFPLAY_OPTIONS+=(-f lavfi "amovie='pipe\:0':${PLAYBACKFILTER}")
