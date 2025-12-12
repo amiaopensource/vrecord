@@ -2841,15 +2841,23 @@ if [[ "${AUDIO_CODEC_CHOICE}" = "24-bit PCM" ]] ; then
 elif [[ "${AUDIO_CODEC_CHOICE}" = "24-bit FLAC" ]] ; then
     _add_mediaconch_rule_set "${AUDIO_CODEC_FLAC_TEST}"
 fi
-_review_all_options
 
 # CLI passthrough and audiopassthrough modes
 if [[ "${RUNTYPE}" = "passthrough" ]] ; then
+    _review_all_options
     _passthrough_mode
     exit 0
 elif [[ "${RUNTYPE}" = "audiopassthrough" ]] ; then
+    if [[ -n "${ALT_INPUT}" ]] ; then
+        if [[ "${ALT_INPUT##*.}" == 'wav' ]] || [[ "${ALT_INPUT##*.}" == 'mp3' ]] || [[ "${ALT_INPUT##*.}" == 'flac' ]] ; then
+            DEVICE_INPUT_CHOICE="2"
+        fi
+    fi
+    _review_all_options
     _audiopassthrough_mode
     exit 0
+else
+    _review_all_options
 fi
 
 while [[ -z "${ID}" ]] ; do
