@@ -1831,6 +1831,7 @@ _lookup_choice(){
         # audio codec
         "24-bit PCM")
             MIDDLEOPTIONS_PRES+=(-c:a pcm_s24le)
+            MIDDLEOPTIONS_PRES+=(-rf64 auto)
             AUDIO_EXT='wav' ;;
         "24-bit FLAC")
             MIDDLEOPTIONS_PRES+=(-c:a flac)
