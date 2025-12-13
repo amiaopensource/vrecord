@@ -634,7 +634,7 @@ _setup_vrecord_process(){
             RECORD_COMMAND+=(-f "${FORMAT}" -filter_complex "${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" "${VRECORD_OUTPUT}")
         fi
         PIPE_OUTPUT+=(-c:a pcm_s16le -ar 48k)
-        PIPE_OUTPUT+=(-f wav)
+        PIPE_OUTPUT+=(-f nut)
         PIPE_OUTPUT+=(-)
         RECORD_COMMAND+=(-filter_complex "${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" "${PIPE_OUTPUT[@]}")
     else
