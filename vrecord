@@ -634,7 +634,7 @@ _setup_vrecord_process(){
             RECORD_COMMAND+=(-f "${FORMAT}" -filter_complex "${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" "${VRECORD_OUTPUT}")
         fi
         PIPE_OUTPUT+=(-c:a pcm_s16le -ar 48k)
-        PIPE_OUTPUT+=(-f wav)
+        PIPE_OUTPUT+=(-f nut)
         PIPE_OUTPUT+=(-)
         RECORD_COMMAND+=(-filter_complex "${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" "${PIPE_OUTPUT[@]}")
     else
@@ -660,7 +660,7 @@ _setup_vrecord_process(){
         FFPLAY_OPTIONS+=(-stats)
         FFPLAY_OPTIONS+=(-autoexit)
         FFPLAY_OPTIONS+=(-window_title "${WINDOW_NAME}")
-        if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] && [[ "${PLAYBACKVIEW_CHOICE_PASS}" = "Audio + Video" ]] && [[ "${RUNTYPE}" = "passthrough" ]] ; then
+        if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] && [[ "${PLAYBACKVIEW_CHOICE_PASS}" = "Audio + Video" ]] && [[ "${RUNTYPE}" = "passthrough" || "${RUNTYPE}" = 'audiopassthrough' ]] ; then
             FFPLAY_OPTIONS+=(-f lavfi "amovie='pipe\:0':${PLAYBACKFILTER}")
         elif [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] && [[ "${PLAYBACKVIEW_CHOICE}" = "Audio + Video" ]] && [[ "${RUNTYPE}" = "record" ]] ; then
             FFPLAY_OPTIONS+=(-f lavfi "amovie='pipe\:0':${PLAYBACKFILTER}")
@@ -1831,6 +1831,7 @@ _lookup_choice(){
         # audio codec
         "24-bit PCM")
             MIDDLEOPTIONS_PRES+=(-c:a pcm_s24le)
+            MIDDLEOPTIONS_PRES+=(-rf64 auto)
             AUDIO_EXT='wav' ;;
         "24-bit FLAC")
             MIDDLEOPTIONS_PRES+=(-c:a flac)
@@ -2453,7 +2454,9 @@ _review_all_options(){
     elif [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
         _review_option -n "DVRESCUE_INPUT_CHOICE" "${DVRESCUE_DEVICES[@]}"
     elif [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
-        _review_option -n "AUDIO_DEV_CHOICE" "${AUDIO_DEVICES[@]}"
+        if [[ -z "${ALT_INPUT}" ]] ; then
+            _review_option -n "AUDIO_DEV_CHOICE" "${AUDIO_DEVICES[@]}"
+        fi
     fi
     if [[ "${CORE_COUNT}" -le 2 && "${RUNTYPE}" = "record" ]] ; then
         _report -w "Since this computer has only ${CORE_COUNT} cores, the playback will display only half of the frames to reduce CPU. This will not impact the recording."
@@ -2841,15 +2844,23 @@ if [[ "${AUDIO_CODEC_CHOICE}" = "24-bit PCM" ]] ; then
 elif [[ "${AUDIO_CODEC_CHOICE}" = "24-bit FLAC" ]] ; then
     _add_mediaconch_rule_set "${AUDIO_CODEC_FLAC_TEST}"
 fi
-_review_all_options
 
 # CLI passthrough and audiopassthrough modes
 if [[ "${RUNTYPE}" = "passthrough" ]] ; then
+    _review_all_options
     _passthrough_mode
     exit 0
 elif [[ "${RUNTYPE}" = "audiopassthrough" ]] ; then
+    if [[ -n "${ALT_INPUT}" ]] ; then
+        if [[ "${ALT_INPUT##*.}" == 'wav' ]] || [[ "${ALT_INPUT##*.}" == 'mp3' ]] || [[ "${ALT_INPUT##*.}" == 'flac' ]] ; then
+            DEVICE_INPUT_CHOICE="2"
+        fi
+    fi
+    _review_all_options
     _audiopassthrough_mode
     exit 0
+else
+    _review_all_options
 fi
 
 while [[ -z "${ID}" ]] ; do
