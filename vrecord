@@ -576,11 +576,22 @@ _setup_vrecord_process(){
         if [[ -n "${VIDEOCODECNAME}" ]] ; then
             MIDDLEOPTIONS_PRES+=(-metadata:s:v:0 encoder="${VIDEOCODECNAME}")
         fi
-        RECORD_COMMAND+=("${MIDDLEOPTIONS_PRES[@]}" "${MIDDLEOPTIONS_ALL[@]}")
         if [[ "${RUNTYPE}" = "record" ]] ; then
-            RECORD_COMMAND+=(-filter_complex "[0:v:0]${RECORDINGFILTER#,*}${TC_WRITE}${CAPTION_WRITE}[vout];${AUDIOMAP}" -map "[vout]" "${AUDIO_CHANNEL_MAP[@]}")
-            RECORD_COMMAND+=(-f tee [f=${FORMAT}:select=v,${AUDIO_TEE_SELECT_MAP}]"${VRECORD_OUTPUT}"\|[f=nut:onfail=abort:select=v,${AUDIO_TEE_SELECT_MAP},a\\\\:0]pipe:1"${EXTRA_TEE_OUTPUTS}")
-            RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}")
+            if [[ -n "${EXTRA_MP4_FILTER}" ]] ; then
+                FILTER_CHAIN_ADDITIONS="${EXTRA_MP4_FILTER}"
+                SELECTED_AUDIO_MAP="${AUDIOMAP_MP4}"
+                echo "HEYYY Y $FILTER_CHAIN_ADDITIONS"
+            else
+                FILTER_CHAIN_ADDITIONS="[vout]"
+                SELECTED_AUDIO_MAP="${AUDIOMAP}"
+                echo "HEYYY N"
+            fi
+            RECORD_COMMAND+=(-filter_complex "[0:v:0]${RECORDINGFILTER#,*}${TC_WRITE}${CAPTION_WRITE}${FILTER_CHAIN_ADDITIONS};${SELECTED_AUDIO_MAP}" -map "[vout]" "${AUDIO_CHANNEL_MAP[@]}")
+            RECORD_COMMAND+=("${MIDDLEOPTIONS_PRES[@]}" "${MIDDLEOPTIONS_ALL[@]}")
+            if [[ -n "${EXTRA_MP4_FILTER}" ]] ; then
+                RECORD_COMMAND+=("${EXTRA_MP4_CODER[@]}")
+            fi
+            RECORD_COMMAND+=(-f tee [f=${FORMAT}:select=v\\\\:0,${AUDIO_TEE_SELECT_MAP}]"${VRECORD_OUTPUT}"\|[f=nut:onfail=abort:select=v\\\\:0,${AUDIO_TEE_SELECT_MAP},a\\\\:0]pipe:1"${EXTRA_TEE_OUTPUTS[@]}")
         else
             if [[ "${SIGNAL_INPUT}" = 'true' ]] ; then
                 PIPE_OUTPUT=(-c:v ffv1)
@@ -1746,6 +1757,8 @@ _set_some_params(){
     fi
 }
 
+# this is the audio codec template for all sidecar mp4s
+AUDIO_CODER_TEMPLATE_MP4=(-map "[stereoXXXMP4]" -c:a:XXX aac)
 # decipher vrecord options as specified by user
 _lookup_choice(){
     case "${2}" in
@@ -1794,38 +1807,38 @@ _lookup_choice(){
             _add_mediaconch_rule_set "${CODEC_UNCOMPRESSED_TEST}"
             if [[ "${PIXEL_FORMAT}" = "yuv422p10" ]] ; then
                 VIDEOCODECNAME="Uncompressed 10-bit 4:2:2"
-                MIDDLEOPTIONS_PRES+=(-c:v v210)
+                MIDDLEOPTIONS_PRES+=(-c:v:0 v210)
             elif [[ "${PIXEL_FORMAT}" = "uyvy422" ]] ; then
                 VIDEOCODECNAME="Uncompressed 8-bit 4:2:2"
-                MIDDLEOPTIONS_PRES+=(-c:v rawvideo -pix_fmt uyvy422 -tag:v 2vuy)
+                MIDDLEOPTIONS_PRES+=(-c:v:0 rawvideo -pix_fmt:v:0 uyvy422 -tag:v:0 2vuy)
             fi ;;
         "FFV1 version 3")
             _add_mediaconch_rule_set "${CODEC_FFV1_TEST}"
             VIDEOCODECNAME="FFV1 version 3"
-            MIDDLEOPTIONS_PRES+=(-c:v ffv1 -level 3 -g 1 -slices "${FFV1_SLICE_CHOICE}" -slicecrc 1)
+            MIDDLEOPTIONS_PRES+=(-c:v:0 ffv1 -level:v:0 3 -g:v:0 1 -slices:v:0 "${FFV1_SLICE_CHOICE}" -slicecrc:v:0 1)
             SUFFIX="_ffv1" ;;
         "JPEG2000")
             VIDEOCODECNAME="JPEG2000"
-            MIDDLEOPTIONS_PRES+=(-c:v libopenjpeg)
+            MIDDLEOPTIONS_PRES+=(-c:v:0 libopenjpeg)
             SUFFIX="_j2k" ;;
         "ProRes")
             VIDEOCODECNAME="Apple ProRes 422"
-            MIDDLEOPTIONS_PRES+=(-c:v prores_ks -flags +ildct -profile:v 2)
+            MIDDLEOPTIONS_PRES+=(-c:v:0 prores_ks -flags +ildct -profile:v:0 2)
             SUFFIX="_prores" ;;
         "ProRes (HQ)")
             VIDEOCODECNAME="Apple ProRes 422 HQ"
-            MIDDLEOPTIONS_PRES+=(-c:v prores_ks -flags +ildct -profile:v 3)
+            MIDDLEOPTIONS_PRES+=(-c:v:0 prores_ks -flags +ildct -profile:v:0 3)
             SUFFIX="_prores" ;;
         "h264")
             VIDEOCODECNAME="H.264"
-            MIDDLEOPTIONS_PRES+=(-c:v h264 -pix_fmt yuv420p)
+            MIDDLEOPTIONS_PRES+=(-c:v:0 h264 -pix_fmt:v:0 yuv420p)
             SUFFIX="_h264" ;;
         "HuffYUV")
             VIDEOCODECNAME="HuffYUV"
             if [[ "${PIXEL_FORMAT}" = "yuv422p10" ]] ; then
-                MIDDLEOPTIONS_PRES+=(-c:v ffvhuff -pix_fmt yuv422p10le -pred median -context 1)
+                MIDDLEOPTIONS_PRES+=(-c:v:0 ffvhuff -pix_fmt:v:0 yuv422p10le -pred:v:0 median -context:v:0 1)
             elif [[ "${PIXEL_FORMAT}" = "uyvy422" ]] ; then
-                MIDDLEOPTIONS_PRES+=(-c:v ffvhuff -pix_fmt yuv422p -pred median -context 1)
+                MIDDLEOPTIONS_PRES+=(-c:v:0 ffvhuff -pix_fmt:v:0 yuv422p -pred:v:0 median -context:v:0 1)
             fi
             SUFFIX="_huff" ;;
 
@@ -1835,25 +1848,30 @@ _lookup_choice(){
 
         # audio codec
         "24-bit PCM")
-            MIDDLEOPTIONS_PRES+=(-c:a pcm_s24le)
+            AUDIO_CODER_TEMPLATE+=(-c:a:XXX pcm_s24le)
             AUDIO_EXT='wav' ;;
         "24-bit FLAC")
-            MIDDLEOPTIONS_PRES+=(-c:a flac)
-            MIDDLEOPTIONS_PRES+=(-sample_fmt s32)
-            MIDDLEOPTIONS_PRES+=(-bits_per_raw_sample:a 24)
+            AUDIO_CODER_TEMPLATE+=(-c:a:XXX flac)
+            AUDIO_CODER_TEMPLATE+=(-sample_fmt:a:XXX s32)
+            AUDIO_CODER_TEMPLATE+=(-bits_per_raw_sample:a:XXX 24)
             AUDIO_EXT='flac' ;;
         "AAC")
-            MIDDLEOPTIONS_PRES+=(-c:a aac) ;;
+            MIDDLEOPTIONS_PRES+=(-c:a:XXX aac) ;;
 
         # audio mappings
         "2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, Channels 3 & 4 -> 2nd Track Stereo)")
             AUDIOMAP="[0:a:0]asplit[orig],pan=stereo| c0=c0 | c1=${PHASE_VALUE_2}c1[stereo1];[0:a:0]pan=stereo| c0=c2 | c1=${PHASE_VALUE_4}c3[stereo2]"
+            AUDIOMAP_MP4="[0:a:0]asplit[orig],pan=stereo| c0=c0 | c1=${PHASE_VALUE_2}c1,asplit=2[stereo1][stereo3MP4];[0:a:0]pan=stereo| c0=c2 | c1=${PHASE_VALUE_4}c3,asplit=2[stereo2][stereo4MP4]"
             AUDIO_PLAY_MAP="pan=4c|c0=c0|c1=${PHASE_VALUE_2}c1|c2=c2|c3=${PHASE_VALUE_4}c3"
             AUDIO_PLAY_LABELS=",drawtext=fontfile=${DEFAULTFONT}:text='L(1)':fontcolor=white:fontsize=18:x=0:y=0,drawtext=fontfile=${DEFAULTFONT}:text='R(1)':fontcolor=white:fontsize=18:x=0:y=20,drawtext=fontfile=${DEFAULTFONT}:text='L(2)':fontcolor=white:fontsize=18:x=0:y=40,drawtext=fontfile=${DEFAULTFONT}:text='R(2)':fontcolor=white:fontsize=18:x=0:y=60"
-            AUDIO_CHANNEL_MAP+=(-map "[orig]")
-            AUDIO_CHANNEL_MAP+=(-map "[stereo1]")
-            AUDIO_CHANNEL_MAP+=(-map "[stereo2]")
-            AUDIO_TEE_SELECT_MAP="a\\\\:1,a\\\\:2" ;;
+            AUDIO_CHANNEL_MAP+=(-map "[orig]" -c:a:0 flac)
+            AUDIO_CODER_TEMPLATE+=(-map "[stereoXXX]")
+            AUDIO_CHANNEL_MAP+=("${AUDIO_CODER_TEMPLATE[@]//XXX/1}")
+            AUDIO_CHANNEL_MAP+=("${AUDIO_CODER_TEMPLATE[@]//XXX/2}")
+            AUDIO_TEE_SELECT_MAP="a\\\\:1,a\\\\:2"
+            AUDIO_CHANNEL_MAP_MP4+=("${AUDIO_CODER_TEMPLATE_MP4[@]//XXX/3}")
+            AUDIO_CHANNEL_MAP_MP4+=("${AUDIO_CODER_TEMPLATE_MP4[@]//XXX/4}")
+            AUDIO_TEE_SELECT_MAP_MP4="a\\\\:3,a\\\\:4" ;;
         "1 Stereo Track (From Channels 1 & 2)")
             AUDIOMAP="[0:a:0]asplit[orig],pan=stereo| c0=c0 | c1=${PHASE_VALUE_2}c1[stereo1]"
             AUDIO_PLAY_MAP="pan=stereo|c0=c0|c1=${PHASE_VALUE_2}c1"
@@ -2445,6 +2463,7 @@ _review_all_options(){
         _review_option "VIDEO_INPUT_CHOICE" "${VIDEO_INPUT_OPTIONS[@]}"
         _review_option "AUDIO_INPUT_CHOICE" "${AUDIO_INPUT_OPTIONS[@]}"
         _review_option "VIDEO_BIT_DEPTH_CHOICE" "${VIDEO_BITDEPTH_OPTIONS[@]}"
+        _review_option "AUDIO_CODEC_CHOICE" "${AUDIO_CODEC_OPTIONS[@]}"
         _review_option "AUDIO_MAPPING_CHOICE" "${CHANNEL_MAPPING_OPTIONS[@]}"
         if [[ -z "${ALT_INPUT}" ]] ; then
             _review_option "TIMECODE_CHOICE" "${TIMECODE_OPTIONS[@]}"
@@ -2889,7 +2908,6 @@ if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
     if [[ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" ]] ; then
         _review_option -n -d "16" "FFV1_SLICE_CHOICE" "${FFV1_SLICE_OPTIONS[@]}"
     fi
-    _review_option "AUDIO_CODEC_CHOICE" "${AUDIO_CODEC_OPTIONS[@]}"
 elif [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
     _review_option "DV_CONTAINER_CHOICE" "${DV_CONTAINER_OPTIONS[@]}"
     FORMAT="rawvideo"
@@ -2933,16 +2951,17 @@ if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
     fi
     if [[ "${FRAMEMD5_CHOICE}" = "true" ]] ; then
         FRAMEMD5NAME="${LOGDIR}/${FULL_OUTPUT_ID}.framemd5"
-        EXTRA_TEE_OUTPUTS+=("|[f=framemd5:select=v]${FRAMEMD5NAME}")
+        EXTRA_TEE_OUTPUTS+="|[f=framemd5:select=v\\\\:0]${FRAMEMD5NAME}"
     fi
     if [[ "${SIGNAL_INPUT}" = 'true' ]] ; then
             AUDIOMAP=$(sed "s/0:a:0/1:a:0/g" <<< "$AUDIOMAP")
     fi
     if [[ "${MP4_CHOICE}" = "true" ]] ; then
         RECORDINGFILTER_MP4+=",bwdif"
-        RECORD_COMMAND_MP4+=(-filter_complex "[0:v:0]${RECORDINGFILTER_MP4#,*}[mp4_v_out];${AUDIOMAP}")
         MP4NAME="${DIR}/${FULL_OUTPUT_ID}.mp4"
-        EXTRAOUTPUTS+=("${MIDDLEOPTIONS_ALL[@]}" -movflags write_colr+faststart "${RECORD_COMMAND_MP4[@]}" -pix_fmt yuv420p -c:v h264 -c:a aac -map "[mp4_v_out]" "${AUDIO_CHANNEL_MAP[@]}" "${MP4NAME}")
+        EXTRA_MP4_FILTER=",split=2[vout][mp4_v];[mp4_v]${RECORDINGFILTER_MP4#,*}[mp4_v_out]"
+        EXTRA_MP4_CODER=(-map "[mp4_v_out]" "${MIDDLEOPTIONS_ALL[@]}" -c:v:1 libopenh264 -pix_fmt:v:1 yuv420p "${AUDIO_CHANNEL_MAP_MP4[@]}")
+        EXTRA_TEE_OUTPUTS+="|[f=mp4:movflags=write_colr+faststart:select=v\\\\:1,${AUDIO_TEE_SELECT_MAP_MP4}]${MP4NAME}"
     fi
     if [[ "${FORMAT}" = "Matroska" ]] ; then
         _review_option "EMBED_LOGS_CHOICE" "${EMBED_LOGS_OPTIONS[@]}"
