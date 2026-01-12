@@ -579,7 +579,7 @@ _setup_vrecord_process(){
         RECORD_COMMAND+=("${MIDDLEOPTIONS_PRES[@]}" "${MIDDLEOPTIONS_ALL[@]}")
         if [[ "${RUNTYPE}" = "record" ]] ; then
             RECORD_COMMAND+=(-filter_complex "[0:v:0]${RECORDINGFILTER#,*}${TC_WRITE}${CAPTION_WRITE}[vout];${AUDIOMAP}" -map "[vout]" "${AUDIO_CHANNEL_MAP[@]}")
-            RECORD_COMMAND+=(-f tee [f=${FORMAT}:select=v,${AUDIO_TEE_SELECT_MAP}]"${VRECORD_OUTPUT}"\|[f=nut:onfail=abort:select=v,${AUDIO_TEE_SELECT_MAP},a\\\\:0]pipe:1)
+            RECORD_COMMAND+=(-f tee [f=${FORMAT}:select=v,${AUDIO_TEE_SELECT_MAP}]"${VRECORD_OUTPUT}"\|[f=nut:onfail=abort:select=v,${AUDIO_TEE_SELECT_MAP},a\\\\:0]pipe:1"${EXTRA_TEE_OUTPUTS}")
             RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}")
         else
             if [[ "${SIGNAL_INPUT}" = 'true' ]] ; then
@@ -2933,7 +2933,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
     fi
     if [[ "${FRAMEMD5_CHOICE}" = "true" ]] ; then
         FRAMEMD5NAME="${LOGDIR}/${FULL_OUTPUT_ID}.framemd5"
-        EXTRAOUTPUTS+=(-an -f framemd5 "${FRAMEMD5NAME}")
+        EXTRA_TEE_OUTPUTS+=("|[f=framemd5:select=v]${FRAMEMD5NAME}")
     fi
     if [[ "${SIGNAL_INPUT}" = 'true' ]] ; then
             AUDIOMAP=$(sed "s/0:a:0/1:a:0/g" <<< "$AUDIOMAP")
