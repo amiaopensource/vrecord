@@ -1918,7 +1918,7 @@ _lookup_choice(){
             S_RATE='-ar 44.1k'
             MIDDLEOPTIONS_PRES+=(${S_RATE}) ;;
         # timecode options
-        "none"|"rp188vitc"|"rp188vitc2"|"rp188ltc"|"rp188any"|"vitc"|"vitc2"|"serial")
+        "none"|"all"|"rp188vitc"|"rp188vitc2"|"rp188ltc"|"rp188any"|"vitc"|"vitc2"|"serial")
             TC_TYPE="${1}"
             TC_INPUT_OPTION=(-timecode_format "${TC_TYPE}")
             MIDDLEOPTIONS_PRES+=(-map_metadata 0:s:v:0)
@@ -2776,7 +2776,7 @@ NTSC_169_SAR_OPTIONS=("40/33" "32/27" "6/5" "5760/4739")
 PAL_43_SAR_OPTIONS=("12/11" "16/15" "128/117")
 PAL_169_SAR_OPTIONS=("16/11" "64/45" "512/351")
 CHANNEL_MAPPING_OPTIONS=("2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, Channels 3 & 4 -> 2nd Track Stereo)" "1 Stereo Track (From Channels 1 & 2)" "1 Stereo Track (From Channels 3 & 4)" "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono" "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono" "Channel 1 -> Single Track Mono" "Channel 2 -> Single Track Mono")
-TIMECODE_OPTIONS=("none" "rp188vitc" "rp188vitc2" "rp188ltc" "rp188any" "vitc" "vitc2" "serial")
+TIMECODE_OPTIONS=("none" "all" "rp188vitc" "rp188vitc2" "rp188ltc" "rp188any" "vitc" "vitc2" "serial")
 if [[ ${HD_CHOICE} != "true" ]] ; then
   STANDARD_OPTIONS=("NTSC" "PAL")
 else
