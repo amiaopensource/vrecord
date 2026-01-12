@@ -3253,14 +3253,13 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
     fi
 
     # make a timecode vtt
-    if [[ "$TIMECODEVTT_CHOICE}" = "true" ]] && [[ "${FORMAT}" = "Matroska" ]] && [[ -n "${TIMECODE_CHOICE}" ]] && [[ "${TIMECODE_CHOICE}" != "none" ]] ; then
+    if [[ "${TIMECODEVTT_CHOICE}" = "true" ]] && [[ "${FORMAT}" = "matroska" ]] && [[ -n "${TIMECODE_CHOICE}" ]] && [[ "${TIMECODE_CHOICE}" != "none" ]] ; then
         _report -d "Working on the timecode vtt file..."
         TIMECODEXML_TMP="$(_maketemp .mediatimecode.txt)"
         TIMECODEXML_VTT="${LOGDIR}/${FULL_OUTPUT_ID}.timecode.vtt"
         mediainfo --ParseSpeed=1 --Output=TimeCodeXML "${VRECORD_OUTPUT}" > "${TIMECODEXML_TMP}"
         # need to test if timecode file has any data or not before committing to a vtt
         timecodexml2webvtt "${TIMECODEXML_TMP}" > "${TIMECODEXML_VTT}"
-        _mv_tmp_file "${TIMECODEXML_TMP}" "${TIMECODEXML_VTT}"
     fi
     # check for discontinuities in the Frame MD5s; if user chose not to use Frame MD5s, check for frame discontinuties in the FFmpeg file
     if [[ "${FRAMEMD5_CHOICE}" = "true" ]] ; then
