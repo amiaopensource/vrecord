@@ -1582,7 +1582,7 @@ _edit_mode(){
         echo "Timecode Type | Timecode Value"
         echo "--------------|---------------"
         for timecode_type in "${TIMECODE_OPTIONS[@]}" ; do
-            tc_value="$("${FFMPEG_BIN}" -timecode_format "${timecode_type}" "${GRAB_INPUT[@]}" -loglevel info 2>&1 | grep " timecode " | cut -d ":" -f2- | sed 's/ //g')"
+            tc_value="$("${FFMPEG_BIN}" -nostdin -timecode_format "${timecode_type}" "${GRAB_INPUT[@]}" -loglevel info 2>&1 | grep " timecode " | cut -d ":" -f2- | sed 's/ //g')"
             printf "  %-11s | %-12s \n" "${timecode_type}" "${tc_value:-none}"
         done
         echo "--------------|---------------"
