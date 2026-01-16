@@ -3181,11 +3181,11 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         _mv_tmp_file "${CAPTION_TMP}" "${CAPTION_LOG}"
         _eia608dump2scc "${CAPTION_LOG}" "${CAPTION_SCC}"
         if [[ "${CC2VTT}" = 'true' ]] ; then
-            "${FFMPEG_BIN}" -nostdin -v 0 -y -i "${CAPTION_SCC}" "${CAPTION_SCC%.*}.vtt"
+            "${FFMPEG_BIN}" -nostdin -v 0 -y -i "${CAPTION_SCC}" -f webvtt - | sed -E 's/\\h//g; s/\{\\an[0-9]\}//g; s/<[^>]+>//g' > "${CAPTION_SCC%.*}.vtt"
             _add_fadgi_header2vtt "${CAPTION_SCC%.*}.vtt"
         fi
         if [[ "${CC2SRT}" = 'true' ]] ; then
-            "${FFMPEG_BIN}" -nostdin -v 0 -y -i "${CAPTION_SCC}" "${CAPTION_SCC%.*}.srt"
+            "${FFMPEG_BIN}" -nostdin -v 0 -y -i "${CAPTION_SCC}" -f srt -c:s srt - | sed -E 's/\\h//g; s/\{\\an[0-9]\}//g; s/<[^>]+>//g' "${CAPTION_SCC%.*}.srt"
         fi
     fi
 
