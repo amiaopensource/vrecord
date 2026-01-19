@@ -1844,6 +1844,7 @@ _lookup_choice(){
         # audio mappings
         "2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, Channels 3 & 4 -> 2nd Track Stereo)")
             AUDIOMAP="[0:a:0]asplit[orig],pan=stereo| c0=c0 | c1=${PHASE_VALUE_2}c1[stereo1];[0:a:0]pan=stereo| c0=c2 | c1=${PHASE_VALUE_4}c3[stereo2]"
+            AUDIOMAP_MP4="[0:a:0]pan=stereo| c0=c0 | c1=${PHASE_VALUE_2}c1[stereo1];[0:a:0]pan=stereo| c0=c2 | c1=${PHASE_VALUE_4}c3[stereo2]"
             AUDIO_PLAY_MAP="pan=4c|c0=c0|c1=${PHASE_VALUE_2}c1|c2=c2|c3=${PHASE_VALUE_4}c3"
             AUDIO_PLAY_LABELS=",drawtext=fontfile=${DEFAULTFONT}:text='L(1)':fontcolor=white:fontsize=18:x=0:y=0,drawtext=fontfile=${DEFAULTFONT}:text='R(1)':fontcolor=white:fontsize=18:x=0:y=20,drawtext=fontfile=${DEFAULTFONT}:text='L(2)':fontcolor=white:fontsize=18:x=0:y=40,drawtext=fontfile=${DEFAULTFONT}:text='R(2)':fontcolor=white:fontsize=18:x=0:y=60"
             AUDIO_CHANNEL_MAP+=(-map "[orig]")
@@ -1852,6 +1853,7 @@ _lookup_choice(){
             AUDIO_TEE_SELECT_MAP="a\\\\:1,a\\\\:2" ;;
         "1 Stereo Track (From Channels 1 & 2)")
             AUDIOMAP="[0:a:0]asplit[orig],pan=stereo| c0=c0 | c1=${PHASE_VALUE_2}c1[stereo1]"
+            AUDIOMAP_MP4="[0:a:0]pan=stereo| c0=c0 | c1=${PHASE_VALUE_2}c1[stereo1]"
             AUDIO_PLAY_MAP="pan=stereo|c0=c0|c1=${PHASE_VALUE_2}c1"
             AUDIO_PLAY_LABELS=",drawtext=fontfile=${DEFAULTFONT}:text='L(1)':fontcolor=white:fontsize=18:x=0:y=0,drawtext=fontfile=${DEFAULTFONT}:text='R(1)':fontcolor=white:fontsize=18:x=0:y=20"
             AUDIO_CHANNEL_MAP+=(-map "[orig]")
@@ -1859,6 +1861,7 @@ _lookup_choice(){
             AUDIO_TEE_SELECT_MAP="a\\\\:1" ;;
         "1 Stereo Track (From Channels 3 & 4)")
             AUDIOMAP="[0:a:0]asplit[orig],pan=stereo| c0=c2 | c1=${PHASE_VALUE_2}c3[stereo1]"
+            AUDIOMAP_MP4="[0:a:0]pan=stereo| c0=c2 | c1=${PHASE_VALUE_2}c3[stereo1]"
             AUDIO_PLAY_MAP="pan=stereo|c0=c2|c1=${PHASE_VALUE_2}c3"
             AUDIO_PLAY_LABELS=",drawtext=fontfile=${DEFAULTFONT}:text='L(1)':fontcolor=white:fontsize=18:x=0:y=40,drawtext=fontfile=${DEFAULTFONT}:text='R(1)':fontcolor=white:fontsize=18:x=0:y=60"
             AUDIO_CHANNEL_MAP+=(-map "[orig]")
@@ -1866,6 +1869,7 @@ _lookup_choice(){
             AUDIO_TEE_SELECT_MAP="a\\\\:1" ;;
         "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono")
             AUDIOMAP="[0:a:0]asplit[orig],pan=mono| c0=c0[mono1];[0:a:0]pan=mono| c0=${PHASE_VALUE_2}c1[mono2]"
+            AUDIOMAP_MP4="[0:a:0]pan=mono| c0=c0[mono1];[0:a:0]pan=mono| c0=${PHASE_VALUE_2}c1[mono2]"
             AUDIO_PLAY_MAP="pan=stereo|c0=c0|c1=${PHASE_VALUE_2}c1"
             AUDIO_PLAY_LABELS=",drawtext=fontfile=${DEFAULTFONT}:text='M(1)':fontcolor=white:fontsize=18:x=0:y=0,drawtext=fontfile=${DEFAULTFONT}:text='M(2)':fontcolor=white:fontsize=18:x=0:y=20"
             AUDIO_CHANNEL_MAP+=(-map "[orig]")
@@ -1874,6 +1878,7 @@ _lookup_choice(){
             AUDIO_TEE_SELECT_MAP="a\\\\:1,a\\\\:2" ;;
         "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono")
             AUDIOMAP="[0:a:0]asplit[orig],pan=mono| c0=${PHASE_VALUE_2}c1[mono1];[0:a:0]pan=mono| c0=c0[mono2]"
+            AUDIOMAP_MP4="[0:a:0]pan=mono| c0=${PHASE_VALUE_2}c1[mono1];[0:a:0]pan=mono| c0=c0[mono2]"
             AUDIO_PLAY_MAP="pan=stereo|c0=${PHASE_VALUE_2}c1|c1=c0"
             AUDIO_PLAY_LABELS=",drawtext=fontfile=${DEFAULTFONT}:text='M(2)':fontcolor=white:fontsize=18:x=0:y=0,drawtext=fontfile=${DEFAULTFONT}:text='M(1)':fontcolor=white:fontsize=18:x=0:y=20"
             AUDIO_CHANNEL_MAP+=(-map "[orig]")
@@ -1882,6 +1887,7 @@ _lookup_choice(){
             AUDIO_TEE_SELECT_MAP="a\\\\:1,a\\\\:2" ;;
         "Channel 1 -> Single Track Mono")
             AUDIOMAP="[0:a:0]asplit[orig],pan=mono| c0=c0[mono1]"
+            AUDIOMAP_MP4="[0:a:0]pan=mono| c0=c0[mono1]"
             AUDIO_PLAY_MAP="pan=mono| c0=c0"
             AUDIO_PLAY_LABELS=",drawtext=fontfile=${DEFAULTFONT}:text='M(1)':fontcolor=white:fontsize=18:x=0:y=0"
             AUDIO_CHANNEL_MAP+=(-map "[orig]")
@@ -1889,6 +1895,7 @@ _lookup_choice(){
             AUDIO_TEE_SELECT_MAP="a\\\\:1" ;;
         "Channel 2 -> Single Track Mono")
             AUDIOMAP="[0:a:0]asplit[orig],pan=mono| c0=c1[mono1]"
+            AUDIOMAP_MP4="[0:a:0]pan=mono| c0=c1[mono1]"
             AUDIO_PLAY_MAP="pan=mono| c0=c1"
             AUDIO_PLAY_LABELS=",drawtext=fontfile=${DEFAULTFONT}:text='M(1)':fontcolor=white:fontsize=18:x=0:y=20"
             AUDIO_CHANNEL_MAP+=(-map "[orig]")
@@ -2946,9 +2953,9 @@ if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
     fi
     if [[ "${MP4_CHOICE}" = "true" ]] ; then
         RECORDINGFILTER_MP4+=",bwdif"
-        RECORD_COMMAND_MP4+=(-filter_complex "[0:v:0]${RECORDINGFILTER_MP4#,*}[mp4_v_out];${AUDIOMAP}")
+        RECORD_COMMAND_MP4+=(-filter_complex "[0:v:0]${RECORDINGFILTER_MP4#,*}[mp4_v_out];${AUDIOMAP_MP4}")
         MP4NAME="${DIR}/${FULL_OUTPUT_ID}.mp4"
-        EXTRAOUTPUTS+=("${MIDDLEOPTIONS_ALL[@]}" -movflags write_colr+faststart "${RECORD_COMMAND_MP4[@]}" -pix_fmt yuv420p -c:v h264 -c:a aac -map "[mp4_v_out]" "${AUDIO_CHANNEL_MAP[@]}" "${MP4NAME}")
+        EXTRAOUTPUTS+=("${MIDDLEOPTIONS_ALL[@]}" -movflags write_colr+faststart "${RECORD_COMMAND_MP4[@]}" -pix_fmt yuv420p -c:v h264 -c:a aac -map "[mp4_v_out]" "${AUDIO_CHANNEL_MAP[@]:2}" "${MP4NAME}")
     fi
     if [[ "${FORMAT}" = "matroska" ]] ; then
         _review_option "EMBED_LOGS_CHOICE" "${EMBED_LOGS_OPTIONS[@]}"
