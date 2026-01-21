@@ -792,7 +792,7 @@ PLAYBACK_OPT_GUI="
 OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
 <frame Preferences>
     <hbox>
-        <notebook tab-labels="Player|Aspect Ratio|Closed Captioning">
+        <notebook tab-labels="Player|Aspect Ratio|Closed Captioning|FADGI WebVTT header">
             <frame Player Settings>
                 <hbox>
                 $(_gtk_vbox_list "WAVEFORM_SCALE_CHOICE" "100" "Select Waveform Scale"            "${WAVEFORM_SCALE_OPTIONS[@]}")
@@ -829,6 +829,31 @@ OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
                         <default>"${CC2SRT}"</default>
                         <variable>CC2SRT</variable>
                     </checkbox>
+                </vbox>
+            </frame>
+            <frame FADGI WebVTT header>
+                <vbox>
+                    <text width-chars="-1">
+                        <label>Vrecord can generate a VTT file for captions and/or timecode data using a FADGI WebVTT v1 header. Included fields are Type, Media Identifier, Originating File, File Creator, File Creation Date, and Local Usage Element. Optional fields and a Media Identifier Type may also be specified.</label>
+                    </text>
+                    <vbox>
+                        <text>
+                            <label>Media Identifier Type</label>
+                        </text>
+                        <entry>
+                            <default>"${MEDIA_ID_TYPE}"</default>
+                            <variable>MEDIA_ID_TYPE</variable>
+                        </entry>
+                    </vbox>
+                    <vbox>
+                        <text tooltip-text="For example: Responsible Party: Vrecord HQ">
+                            <label>Additional FADGI WebVTT header details</label>
+                        </text>
+                        <entry height="120">
+                            <default>"${WEBVTT_EXTRA}"</default>
+                            <variable>WEBVTT_EXTRA</variable>
+                        </entry>
+                    </vbox>
                 </vbox>
             </frame>
         </notebook>
@@ -2659,6 +2684,35 @@ _add_mediaconch_rule_set(){
     fi
 }
 
+_add_fadgi_header2vtt(){
+    VTT_FILE="${1}"
+    VTT_TMP="$(_maketemp .fadgi.vtt)"
+    if [[ -n "${TECHNICIAN}" ]] ; then
+        FILE_CREATOR="${TECHNICIAN}"
+    else
+        FILE_CREATOR="ffmpeg"
+    fi
+    if [[ -n "${MEDIA_ID_TYPE}" ]] ; then
+        ID_LINE="${FULL_OUTPUT_ID}, ${MEDIA_ID_TYPE}"
+    else
+        ID_LINE="${FULL_OUTPUT_ID}"
+    fi
+    cat <<FADGI_VTT_HEADER >> "${VTT_TMP}"
+WEBVTT
+
+Type: caption
+Media Identifier: ${ID_LINE}
+Originating File: ${FULL_OUTPUT_ID}.${EXTENSION}
+File Creator: ${FILE_CREATOR}
+File Creation Date: $(_get_iso8601)
+Local Usage Element: [VIDEO_INPUT] ${VIDEO_INPUT}; [AUDIO_INPUT] ${AUDIO_INPUT}
+${WEBVTT_EXTRA}
+FADGI_VTT_HEADER
+
+tail -n +2 "${VTT_FILE}" >> "${VTT_TMP}"
+mv "${VTT_TMP}" "${VTT_FILE}"
+}
+
 # command-line options to set media id and original variables
 OPTIND=1
 while getopts ":hc:erpaxnvI:O:D:i:sG" opt ; do
@@ -3128,6 +3182,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         _eia608dump2scc "${CAPTION_LOG}" "${CAPTION_SCC}"
         if [[ "${CC2VTT}" = 'true' ]] ; then
             "${FFMPEG_BIN}" -nostdin -v 0 -y -i "${CAPTION_SCC}" "${CAPTION_SCC%.*}.vtt"
+            _add_fadgi_header2vtt "${CAPTION_SCC%.*}.vtt"
         fi
         if [[ "${CC2SRT}" = 'true' ]] ; then
             "${FFMPEG_BIN}" -nostdin -v 0 -y -i "${CAPTION_SCC}" "${CAPTION_SCC%.*}.srt"
