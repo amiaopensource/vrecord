@@ -89,6 +89,7 @@ _update_config_file(){
         echo "DV_RESCUE_OPTION_TC=\"${DV_RESCUE_OPTION_TC}\""
         echo "CC2VTT=\"${CC2VTT}\""
         echo "CC2SRT=\"${CC2SRT}\""
+        echo "CAP2MP4=\"${CAP2MP4}\""
         echo "MEDIA_ID_TYPE=\"${MEDIA_ID_TYPE}\""
         echo "WEBVTT_EXTRA=\"${WEBVTT_EXTRA}\""
         echo "HD_CHOICE=\"${HD_CHOICE}\""
