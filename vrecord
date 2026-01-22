@@ -776,6 +776,11 @@ SIDECAR_FILES_GUI="
                 <default>\"${FRAMEMD5_CHOICE}\"</default>
                 <variable>FRAMEMD5_CHOICE</variable>
             </checkbox>
+            <checkbox tooltip-text=\"If enabled, this will make a vtt file alongside any Matroska that captured timecode.\">
+                <label>Timecode VTT</label>
+                <default>\"${TIMECODEVTT_CHOICE}\"</default>
+                <variable>TIMECODEVTT_CHOICE</variable>
+            </checkbox>
         </vbox>
         $(_gtk_vbox_list "QCTOOLSXML_CHOICE" "180"  "QCTools XML?"              "${QCTOOLSXML_OPTIONS[@]}")
     </hbox>
@@ -1577,7 +1582,7 @@ _edit_mode(){
         echo "Timecode Type | Timecode Value"
         echo "--------------|---------------"
         for timecode_type in "${TIMECODE_OPTIONS[@]}" ; do
-            tc_value="$("${FFMPEG_BIN}" -timecode_format "${timecode_type}" "${GRAB_INPUT[@]}" -loglevel info 2>&1 | grep " timecode " | cut -d ":" -f2- | sed 's/ //g')"
+            tc_value="$("${FFMPEG_BIN}" -nostdin -timecode_format "${timecode_type}" "${GRAB_INPUT[@]}" -loglevel info 2>&1 | grep " timecode " | cut -d ":" -f2- | sed 's/ //g')"
             printf "  %-11s | %-12s \n" "${timecode_type}" "${tc_value:-none}"
         done
         echo "--------------|---------------"
@@ -1951,7 +1956,7 @@ _lookup_choice(){
             S_RATE='-ar 44.1k'
             MIDDLEOPTIONS_PRES+=(${S_RATE}) ;;
         # timecode options
-        "none"|"rp188vitc"|"rp188vitc2"|"rp188ltc"|"rp188any"|"vitc"|"vitc2"|"serial")
+        "none"|"all"|"rp188vitc"|"rp188vitc2"|"rp188ltc"|"rp188any"|"vitc"|"vitc2"|"serial")
             TC_TYPE="${1}"
             TC_INPUT_OPTION=(-timecode_format "${TC_TYPE}")
             MIDDLEOPTIONS_PRES+=(-map_metadata 0:s:v:0)
@@ -2840,7 +2845,7 @@ NTSC_169_SAR_OPTIONS=("40/33" "32/27" "6/5" "5760/4739")
 PAL_43_SAR_OPTIONS=("12/11" "16/15" "128/117")
 PAL_169_SAR_OPTIONS=("16/11" "64/45" "512/351")
 CHANNEL_MAPPING_OPTIONS=("2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, Channels 3 & 4 -> 2nd Track Stereo)" "1 Stereo Track (From Channels 1 & 2)" "1 Stereo Track (From Channels 3 & 4)" "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono" "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono" "Channel 1 -> Single Track Mono" "Channel 2 -> Single Track Mono")
-TIMECODE_OPTIONS=("none" "rp188vitc" "rp188vitc2" "rp188ltc" "rp188any" "vitc" "vitc2" "serial")
+TIMECODE_OPTIONS=("none" "all" "rp188vitc" "rp188vitc2" "rp188ltc" "rp188any" "vitc" "vitc2" "serial")
 if [[ ${HD_CHOICE} != "true" ]] ; then
   STANDARD_OPTIONS=("NTSC" "PAL")
 else
@@ -3247,6 +3252,15 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         _report -d "QCTools analysis is complete."
     fi
 
+    # make a timecode vtt
+    if [[ "${TIMECODEVTT_CHOICE}" = "true" ]] && [[ "${FORMAT}" = "matroska" ]] && [[ -n "${TIMECODE_CHOICE}" ]] && [[ "${TIMECODE_CHOICE}" != "none" ]] ; then
+        _report -d "Working on the timecode vtt file..."
+        TIMECODEXML_TMP="$(_maketemp .mediatimecode.txt)"
+        TIMECODEXML_VTT="${LOGDIR}/${FULL_OUTPUT_ID}.timecode.vtt"
+        mediainfo --ParseSpeed=1 --Output=TimeCodeXML "${VRECORD_OUTPUT}" > "${TIMECODEXML_TMP}"
+        # need to test if timecode file has any data or not before committing to a vtt
+        timecodexml2webvtt "${TIMECODEXML_TMP}" > "${TIMECODEXML_VTT}"
+    fi
     # check for discontinuities in the Frame MD5s; if user chose not to use Frame MD5s, check for frame discontinuties in the FFmpeg file
     if [[ "${FRAMEMD5_CHOICE}" = "true" ]] ; then
         PTS_DISCONTINUITY=$(cat "${FRAMEMD5NAME}" | grep -v "^#" | cut -d, -f3 | sed 's/ //g' | grep -v "^0$" | awk '{if($1!=p+1){if(p+1==$1-1){printf p+1" "}else{printf p+1"-"$1-1" "}}{p=$1}}')
