@@ -175,6 +175,8 @@ _setup_env_variables(){
         if [[ "${PATH_CHECK}" = "/usr/local/bin" ]] ; then
             if [[ -d "/usr/local/opt/vrecord" ]] ; then
                 RESOURCE_PATH="/usr/local/opt/vrecord"
+            elif [[ -d "/usr/local/share/vrecord" ]] ; then
+                RESOURCE_PATH="/usr/local/share/vrecord/Resources"
             else
                 RESOURCE_PATH="$(brew --prefix vrecord)"
             fi
@@ -2757,6 +2759,13 @@ CAP_DISPLAY_TMP="$(_maketemp .caption_scroll.txt)"
 
 # manage an include file to pass variables to gtkdialog
 VRECORD_VARS_FILE="/tmp/v_$(echo "${0}" | sed -e "s/[^A-Za-z0-9.]/_/g")_variables.txt"
+
+# setup extra binary path for packaged version
+if [[ "$(dirname "$(command -v "${0}")")" = "/usr/local/bin" ]] ; then
+    if [[ -d "/usr/local/lib/vrecord/bin" ]] ; then
+        export PATH="/usr/local/lib/vrecord/bin:${PATH}"
+    fi
+fi
 
 _process_vars_for_gtk
 
