@@ -2694,6 +2694,7 @@ _add_mediaconch_rule_set(){
 
 _add_fadgi_header2vtt(){
     VTT_FILE="${1}"
+    VTT_TYPE="${2}"
     VTT_TMP="$(_maketemp .fadgi.vtt)"
     if [[ -n "${TECHNICIAN}" ]] ; then
         FILE_CREATOR="${TECHNICIAN}"
@@ -2708,7 +2709,7 @@ _add_fadgi_header2vtt(){
     cat <<FADGI_VTT_HEADER >> "${VTT_TMP}"
 WEBVTT
 
-Type: caption
+Type: ${VTT_TYPE}
 Media Identifier: ${ID_LINE}
 Originating File: ${FULL_OUTPUT_ID}.${EXTENSION}
 File Creator: ${FILE_CREATOR}
@@ -3190,7 +3191,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         _eia608dump2scc "${CAPTION_LOG}" "${CAPTION_SCC}"
         if [[ "${CC2VTT}" = 'true' ]] ; then
             "${FFMPEG_BIN}" -nostdin -v 0 -y -i "${CAPTION_SCC}" -f webvtt - | sed -E 's/\\h//g; s/\{\\an[0-9]\}//g; s/<[^>]+>//g' > "${CAPTION_SCC%.*}.vtt"
-            _add_fadgi_header2vtt "${CAPTION_SCC%.*}.vtt"
+            _add_fadgi_header2vtt "${CAPTION_SCC%.*}.vtt" "caption"
         fi
         if [[ "${CC2SRT}" = 'true' ]] ; then
             "${FFMPEG_BIN}" -nostdin -v 0 -y -i "${CAPTION_SCC}" -f srt -c:s srt - | sed -E 's/\\h//g; s/\{\\an[0-9]\}//g; s/<[^>]+>//g' "${CAPTION_SCC%.*}.srt"
@@ -3258,6 +3259,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         mediainfo --ParseSpeed=1 --Output=TimeCodeXML "${VRECORD_OUTPUT}" > "${TIMECODEXML_TMP}"
         # need to test if timecode file has any data or not before committing to a vtt
         timecodexml2webvtt "${TIMECODEXML_TMP}" > "${TIMECODEXML_VTT}"
+        _add_fadgi_header2vtt "${TIMECODEXML_VTT}" "timecode"
     fi
     # check for discontinuities in the Frame MD5s; if user chose not to use Frame MD5s, check for frame discontinuties in the FFmpeg file
     if [[ "${FRAMEMD5_CHOICE}" = "true" ]] ; then
