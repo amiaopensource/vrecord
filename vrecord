@@ -411,14 +411,7 @@ _gtk_vbox_list() {
     }
 
     _get_vbox_extras(){
-        if [[ "${VARIABLE_NAME}" == "TIMECODE_CHOICE" ]] ; then
-            echo "
-            <button>
-                <label>Scan timecode types</label>
-                <action>_update_config_file</action>
-                <action type=\"exit\">timecode_scan</action>
-            </button>"
-        elif [[ "${VARIABLE_NAME}" == "STANDARD_CHOICE" ]] ; then
+        if [[ "${VARIABLE_NAME}" == "STANDARD_CHOICE" ]] ; then
             echo "
             <checkbox>
                 <label>Show HD Formats</label>
@@ -1043,7 +1036,7 @@ DECKLINK_INPUT_GUI=$(cat << DECKLINK_FORM
         <hbox>
             ${PLAYBACK_OPT_GUI}
             ${SIDECAR_FILES_GUI}
-            <frame RS422 deck control>
+            <frame RS422 deck control and timecode>
                 <hbox>
                     <vbox>
                         <text>
@@ -1072,6 +1065,11 @@ DECKLINK_INPUT_GUI=$(cat << DECKLINK_FORM
                     </timer>
                 </hbox>
                 <hbox>
+                    <button>
+                        <label>Scan timecode types</label>
+                        <action>_update_config_file</action>
+                        <action type="exit">timecode_scan</action>
+                    </button>
                     <togglebutton>
                         <label>Deck Control</label>
                         <default>false</default>
