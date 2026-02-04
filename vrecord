@@ -392,11 +392,7 @@ _gtk_vbox_list() {
     fi
 
     _get_list_extras(){
-        if [[ "${VARIABLE_NAME}" == "VIDEO_CODEC_CHOICE" ]] ; then
-            echo '<action condition="command_is_true( [ \"$VIDEO_CODEC_CHOICE\" = \"FFV1 version 3\" ] && echo true)">enable:FFV1_SLICE_CHOICE</action>
-                  <action condition="command_is_true( [ \"$VIDEO_CODEC_CHOICE\" != \"FFV1 version 3\" ] && echo true)">disable:FFV1_SLICE_CHOICE</action>
-                  <action type="refresh">VRECORD_OUTPUT_NAME</action>'
-        elif [[ "${VARIABLE_NAME}" == "CONTAINER_CHOICE" ]] ; then
+        if [[ "${VARIABLE_NAME}" == "CONTAINER_CHOICE" ]] ; then
             echo '<action condition="command_is_true( [ \"$CONTAINER_CHOICE\" = \"Matroska\" ] && echo true)">enable:EMBED_LOGS_CHOICE</action>
                   <action condition="command_is_true( [ \"$CONTAINER_CHOICE\" != \"Matroska\" ] && echo true)">disable:EMBED_LOGS_CHOICE</action>
                   <action type="refresh">VRECORD_OUTPUT_NAME</action>'
@@ -1032,7 +1028,6 @@ DECKLINK_INPUT_GUI=$(cat << DECKLINK_FORM
             <hbox space-expand="true">
                 $(_gtk_vbox_list "EMBED_LOGS_CHOICE"        "100" "Embed digitization logs in video file (Matroska ONLY)" "${EMBED_LOGS_OPTIONS[@]}")
                 $(_gtk_vbox_list "CONTAINER_CHOICE"         "100" "Select File Format"            "${CONTAINER_OPTIONS[@]}")
-                $(_gtk_vbox_list "FFV1_SLICE_CHOICE"        "100" "FFV1 Slice Count"              "${FFV1_SLICE_OPTIONS[@]}")
                 $(_gtk_vbox_list "VIDEO_CODEC_CHOICE"       "160" "Select Video Codec"            "${VIDEO_CODEC_OPTIONS[@]}")
                 $(_gtk_vbox_list "AUDIO_CODEC_CHOICE"       "100" "Select Audio Codec"            "${AUDIO_CODEC_OPTIONS[@]}")
             </hbox>
@@ -1829,7 +1824,7 @@ _lookup_choice(){
         "FFV1 version 3")
             _add_mediaconch_rule_set "${CODEC_FFV1_TEST}"
             VIDEOCODECNAME="FFV1 version 3"
-            MIDDLEOPTIONS_PRES+=(-c:v ffv1 -level 3 -g 1 -slices "${FFV1_SLICE_CHOICE}" -slicecrc 1)
+            MIDDLEOPTIONS_PRES+=(-c:v ffv1 -level 3 -g 1 -slicecrc 1)
             SUFFIX="_ffv1" ;;
         "JPEG2000")
             VIDEOCODECNAME="JPEG2000"
@@ -2838,7 +2833,6 @@ AUDIO_INPUT_OPTIONS=("Analog" "SDI Embedded Audio" "Digital Audio (AES/EBU)")
 CONTAINER_OPTIONS=("QuickTime" "Matroska" "AVI" "MXF" "MP4")
 DV_CONTAINER_OPTIONS=("DV" "Matroska" "QuickTime")
 VIDEO_CODEC_OPTIONS=("Uncompressed Video" "FFV1 version 3" "JPEG2000" "ProRes" "ProRes (HQ)" "h264" "HuffYUV")
-FFV1_SLICE_OPTIONS=("4" "6" "9" "12" "16" "24" "30")
 AUDIO_CODEC_OPTIONS=("24-bit PCM" "24-bit FLAC" "AAC")
 AUDIO_CHANNEL_CHOICE_OPTIONS=("Mono" "Stereo")
 AUDIO_MODE_SR_CHOICE_OPTIONS=("96 kHz" "48 kHz" "44.1 kHz")
@@ -2967,9 +2961,6 @@ fi
 if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
     _review_option "CONTAINER_CHOICE" "${CONTAINER_OPTIONS[@]}"
     _review_option "VIDEO_CODEC_CHOICE" "${VIDEO_CODEC_OPTIONS[@]}"
-    if [[ "${VIDEO_CODEC_CHOICE}" = "FFV1 version 3" ]] ; then
-        _review_option -n -d "16" "FFV1_SLICE_CHOICE" "${FFV1_SLICE_OPTIONS[@]}"
-    fi
     _review_option "AUDIO_CODEC_CHOICE" "${AUDIO_CODEC_OPTIONS[@]}"
 elif [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
     _review_option "DV_CONTAINER_CHOICE" "${DV_CONTAINER_OPTIONS[@]}"

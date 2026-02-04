@@ -47,7 +47,6 @@ _update_config_file(){
         echo "AUDIO_INPUT_CHOICE=\"${AUDIO_INPUT_CHOICE}\""
         echo "CONTAINER_CHOICE=\"${CONTAINER_CHOICE}\""
         echo "VIDEO_CODEC_CHOICE=\"${VIDEO_CODEC_CHOICE}\""
-        echo "FFV1_SLICE_CHOICE=\"${FFV1_SLICE_CHOICE}\""
         echo "AUDIO_CODEC_CHOICE=\"${AUDIO_CODEC_CHOICE}\""
         echo "AUDIO_DEV_CHOICE=\"${AUDIO_DEV_CHOICE}\""
         echo "AUDIO_MODE_CODEC_CHOICE=\"${AUDIO_MODE_CODEC_CHOICE}\""
