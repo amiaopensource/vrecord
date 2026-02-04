@@ -413,14 +413,7 @@ _gtk_vbox_list() {
     }
 
     _get_vbox_extras(){
-        if [[ "${VARIABLE_NAME}" == "TIMECODE_CHOICE" ]] ; then
-            echo "
-            <button>
-                <label>Scan timecode types</label>
-                <action>_update_config_file</action>
-                <action type=\"exit\">timecode_scan</action>
-            </button>"
-        elif [[ "${VARIABLE_NAME}" == "STANDARD_CHOICE" ]] ; then
+        if [[ "${VARIABLE_NAME}" == "STANDARD_CHOICE" ]] ; then
             echo "
             <checkbox>
                 <label>Show HD Formats</label>
@@ -504,6 +497,7 @@ _setup_vrecord_input(){
     elif [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         _set_ffmpeg_loglevel
         GRAB_INPUT+=(-f decklink)
+        GRAB_INPUT+=(-timecode_format all)
         GRAB_INPUT+=(-signal_loss_action none)
         GRAB_INPUT+=(-audio_input "${AUDIO_INPUT}")
         GRAB_INPUT+=(-video_input "${VIDEO_INPUT}")
@@ -571,8 +565,12 @@ _setup_vrecord_process(){
 
         RECORD_COMMAND=("${FFMPEG_BIN}")
         RECORD_COMMAND+=(-nostdin -nostats "${TIME_LIMIT[@]}")
-        if [[ "${SIGNAL_INPUT}" != 'true' ]] ; then
-            RECORD_COMMAND+=("${TC_INPUT_OPTION[@]}")
+        if [[ "${SIGNAL_INPUT}" != 'true' ]] && [[ -z "${ALT_INPUT}" ]] ; then
+            MIDDLEOPTIONS_PRES+=(-map_metadata 0:s:v:0)
+            if [[ "${CONTAINER_CHOICE}" != "Matroska" ]] ; then
+                TC_TMP=$(_maketemp .timecode.txt)
+                TC_WRITE=",metadata=mode=print:file=${TC_TMP}"
+            fi
         fi
         RECORD_COMMAND+=("${GRAB_INPUT[@]}")
         if [[ -n "${VIDEOCODECNAME}" ]] ; then
@@ -777,6 +775,11 @@ SIDECAR_FILES_GUI="
                 <label>FrameMD5s</label>
                 <default>\"${FRAMEMD5_CHOICE}\"</default>
                 <variable>FRAMEMD5_CHOICE</variable>
+            </checkbox>
+            <checkbox tooltip-text=\"If enabled, this will make a vtt file alongside any Matroska that captured timecode.\">
+                <label>Timecode VTT</label>
+                <default>\"${TIMECODEVTT_CHOICE}\"</default>
+                <variable>TIMECODEVTT_CHOICE</variable>
             </checkbox>
         </vbox>
         $(_gtk_vbox_list "QCTOOLSXML_CHOICE" "180"  "QCTools XML?"              "${QCTOOLSXML_OPTIONS[@]}")
@@ -1026,7 +1029,6 @@ DECKLINK_INPUT_GUI=$(cat << DECKLINK_FORM
             $(_gtk_vbox_list "STANDARD_CHOICE"           "110" "Standard"               "${STANDARD_OPTIONS[@]}")
             $(_gtk_vbox_list "VIDEO_BIT_DEPTH_CHOICE"    "40" "Video Bit Depth"        "${VIDEO_BITDEPTH_OPTIONS[@]}")
             $(_gtk_vbox_list "ASPECT_RATIO_CHOICE"       "40" "Display Aspect Ratio"   "${ASPECT_RATIO_OPTIONS[@]}")
-            $(_gtk_vbox_list "TIMECODE_CHOICE"           "40" "Timecode format"        "${TIMECODE_OPTIONS[@]}")
         </hbox>
         <frame Output file options>
             <hbox space-expand="true">
@@ -1040,7 +1042,7 @@ DECKLINK_INPUT_GUI=$(cat << DECKLINK_FORM
         <hbox>
             ${PLAYBACK_OPT_GUI}
             ${SIDECAR_FILES_GUI}
-            <frame RS422 deck control>
+            <frame RS422 deck control and timecode>
                 <hbox>
                     <vbox>
                         <text>
@@ -1069,6 +1071,11 @@ DECKLINK_INPUT_GUI=$(cat << DECKLINK_FORM
                     </timer>
                 </hbox>
                 <hbox>
+                    <button>
+                        <label>Scan timecode types</label>
+                        <action>_update_config_file</action>
+                        <action type="exit">timecode_scan</action>
+                    </button>
                     <togglebutton>
                         <label>Deck Control</label>
                         <default>false</default>
@@ -1578,8 +1585,9 @@ _edit_mode(){
         _setup_vrecord_input
         echo "Timecode Type | Timecode Value"
         echo "--------------|---------------"
+        TIMECODE_OPTIONS=("all" "rp188vitc" "rp188vitc2" "rp188ltc" "rp188any" "vitc" "vitc2" "serial")
         for timecode_type in "${TIMECODE_OPTIONS[@]}" ; do
-            tc_value="$("${FFMPEG_BIN}" -timecode_format "${timecode_type}" "${GRAB_INPUT[@]}" -loglevel info 2>&1 | grep " timecode " | cut -d ":" -f2- | sed 's/ //g')"
+            tc_value="$("${FFMPEG_BIN}" -nostdin -timecode_format "${timecode_type}" "${GRAB_INPUT[@]}" -loglevel info 2>&1 | grep " timecode " | cut -d ":" -f2- | sed 's/ //g')"
             printf "  %-11s | %-12s \n" "${timecode_type}" "${tc_value:-none}"
         done
         echo "--------------|---------------"
@@ -1952,20 +1960,6 @@ _lookup_choice(){
         "44.1 kHz")
             S_RATE='-ar 44.1k'
             MIDDLEOPTIONS_PRES+=(${S_RATE}) ;;
-        # timecode options
-        "none"|"rp188vitc"|"rp188vitc2"|"rp188ltc"|"rp188any"|"vitc"|"vitc2"|"serial")
-            TC_TYPE="${1}"
-            TC_INPUT_OPTION=(-timecode_format "${TC_TYPE}")
-            MIDDLEOPTIONS_PRES+=(-map_metadata 0:s:v:0)
-            if [[ "${TC_TYPE}" != "none" ]] ; then
-                if [[ "${RUNTYPE}" = "passthrough" ]] ; then
-                TIMECODE_OVERLAY=",drawtext=fontfile=${DEFAULTFONT}:x=(w-text_w)*0.5:y=(h-text_h)*0.75:fontcolor=white:box=1:boxcolor=gray@0.7:boxborderw=4:fontsize=22:shadowx=1:shadowy=1:text=%{metadata\\\:timecode\\\:no ${TC_TYPE} timecode}"
-                fi
-                TC_TMP=$(_maketemp .timecode.txt)
-                TC_WRITE=",metadata=mode=print:file=${TC_TMP}"
-            fi
-            declare TC_TYPE "${TC_TYPE}"
-            ;;
         # video standard
         "NTSC")
             STANDARD="ntsc"
@@ -2481,9 +2475,6 @@ _review_all_options(){
         _review_option "AUDIO_INPUT_CHOICE" "${AUDIO_INPUT_OPTIONS[@]}"
         _review_option "VIDEO_BIT_DEPTH_CHOICE" "${VIDEO_BITDEPTH_OPTIONS[@]}"
         _review_option "AUDIO_MAPPING_CHOICE" "${CHANNEL_MAPPING_OPTIONS[@]}"
-        if [[ -z "${ALT_INPUT}" ]] ; then
-            _review_option "TIMECODE_CHOICE" "${TIMECODE_OPTIONS[@]}"
-        fi
         _review_option "STANDARD_CHOICE" "${STANDARD_OPTIONS[@]}"
         _review_option -d "4/3" "ASPECT_RATIO_CHOICE" "${ASPECT_RATIO_OPTIONS[@]}"
         _review_option -n -d "10/11" "NTSC_43_SAR_CHOICE"  "${NTSC_43_SAR_OPTIONS[@]}"
@@ -2507,6 +2498,9 @@ _review_all_options(){
     _review_option -n -d "Yes" "MONITOR_AUDIO_CHOICE" "${MONITOR_AUDIO_OPTIONS[@]}"
     _set_scopes
     if [[ "${RUNTYPE}" = "passthrough" ]] && [[ -n "${PLAYBACKVIEW_CHOICE_PASS}" ]] && [[ "${PLAYBACKVIEW_CHOICE_PASS}" != "Unselected" ]] ; then
+        if [[ "${RUNTYPE}" = "passthrough" ]] ; then
+            TIMECODE_OVERLAY=",drawtext=fontfile=${DEFAULTFONT}:x=(w-text_w)*0.5:y=(h-text_h)*0.75:fontcolor=white:box=1:boxcolor=gray@0.7:boxborderw=4:fontsize=22:shadowx=1:shadowy=1:text=%{metadata\\\:timecode}"
+        fi
         _review_option -d "Visual" "PLAYBACKVIEW_CHOICE_PASS" "${PLAYBACKVIEW_PASS_OPTIONS[@]}"
     else
         _review_option -d "Visual" "PLAYBACKVIEW_CHOICE" "${PLAYBACKVIEW_OPTIONS[@]}"
@@ -2693,6 +2687,7 @@ _add_mediaconch_rule_set(){
 
 _add_fadgi_header2vtt(){
     VTT_FILE="${1}"
+    VTT_TYPE="${2}"
     VTT_TMP="$(_maketemp .fadgi.vtt)"
     if [[ -n "${TECHNICIAN}" ]] ; then
         FILE_CREATOR="${TECHNICIAN}"
@@ -2707,7 +2702,7 @@ _add_fadgi_header2vtt(){
     cat <<FADGI_VTT_HEADER >> "${VTT_TMP}"
 WEBVTT
 
-Type: caption
+Type: ${VTT_TYPE}
 Media Identifier: ${ID_LINE}
 Originating File: ${FULL_OUTPUT_ID}.${EXTENSION}
 File Creator: ${FILE_CREATOR}
@@ -2849,7 +2844,6 @@ NTSC_169_SAR_OPTIONS=("40/33" "32/27" "6/5" "5760/4739")
 PAL_43_SAR_OPTIONS=("12/11" "16/15" "128/117")
 PAL_169_SAR_OPTIONS=("16/11" "64/45" "512/351")
 CHANNEL_MAPPING_OPTIONS=("2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, Channels 3 & 4 -> 2nd Track Stereo)" "1 Stereo Track (From Channels 1 & 2)" "1 Stereo Track (From Channels 3 & 4)" "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono" "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono" "Channel 1 -> Single Track Mono" "Channel 2 -> Single Track Mono")
-TIMECODE_OPTIONS=("none" "rp188vitc" "rp188vitc2" "rp188ltc" "rp188any" "vitc" "vitc2" "serial")
 if [[ ${HD_CHOICE} != "true" ]] ; then
   STANDARD_OPTIONS=("NTSC" "PAL")
 else
@@ -2995,7 +2989,7 @@ else
     FULL_OUTPUT_ID="${PREFIX}${ID}"
 fi
 FULL_CAPTURE_LOG="${LOGDIR}/${FULL_OUTPUT_ID}${CAPTURELOGSUFFIX}"
-TIMECODE_LOG="${LOGDIR}/${FULL_OUTPUT_ID}_${TC_TYPE}${TIMECODELOGSUFFIX}"
+TIMECODE_LOG="${LOGDIR}/${FULL_OUTPUT_ID}${TIMECODELOGSUFFIX}"
 CAPTION_LOG="${LOGDIR}/${FULL_OUTPUT_ID}_frame_eia608data.txt"
 CAPTION_SCC="${LOGDIR}/${FULL_OUTPUT_ID}.scc"
 VRECORD_OUTPUT="${DIR}/${FULL_OUTPUT_ID}.${EXTENSION}"
@@ -3196,7 +3190,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         _eia608dump2scc "${CAPTION_LOG}" "${CAPTION_SCC}"
         if [[ "${CC2VTT}" = 'true' ]] ; then
             "${FFMPEG_BIN}" -nostdin -v 0 -y -i "${CAPTION_SCC}" -f webvtt - | sed -E 's/\\h//g; s/\{\\an[0-9]\}//g; s/<[^>]+>//g' > "${CAPTION_SCC%.*}.vtt"
-            _add_fadgi_header2vtt "${CAPTION_SCC%.*}.vtt"
+            _add_fadgi_header2vtt "${CAPTION_SCC%.*}.vtt" "caption"
         fi
         if [[ "${CC2SRT}" = 'true' ]] ; then
             "${FFMPEG_BIN}" -nostdin -v 0 -y -i "${CAPTION_SCC}" -f srt -c:s srt - | sed -E 's/\\h//g; s/\{\\an[0-9]\}//g; s/<[^>]+>//g' "${CAPTION_SCC%.*}.srt"
@@ -3256,6 +3250,16 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         _report -d "QCTools analysis is complete."
     fi
 
+    # make a timecode vtt
+    if [[ "${TIMECODEVTT_CHOICE}" = "true" ]] && [[ "${FORMAT}" = "matroska" ]] ; then
+        _report -d "Working on the timecode vtt file..."
+        TIMECODEXML_TMP="$(_maketemp .mediatimecode.txt)"
+        TIMECODEXML_VTT="${LOGDIR}/${FULL_OUTPUT_ID}.timecode.vtt"
+        mediainfo --ParseSpeed=1 --Output=TimeCodeXML "${VRECORD_OUTPUT}" > "${TIMECODEXML_TMP}"
+        # need to test if timecode file has any data or not before committing to a vtt
+        timecodexml2webvtt "${TIMECODEXML_TMP}" > "${TIMECODEXML_VTT}"
+        _add_fadgi_header2vtt "${TIMECODEXML_VTT}" "timecode"
+    fi
     # check for discontinuities in the Frame MD5s; if user chose not to use Frame MD5s, check for frame discontinuties in the FFmpeg file
     if [[ "${FRAMEMD5_CHOICE}" = "true" ]] ; then
         PTS_DISCONTINUITY=$(cat "${FRAMEMD5NAME}" | grep -v "^#" | cut -d, -f3 | sed 's/ //g' | grep -v "^0$" | awk '{if($1!=p+1){if(p+1==$1-1){printf p+1" "}else{printf p+1"-"$1-1" "}}{p=$1}}')
