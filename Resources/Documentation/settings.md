@@ -30,8 +30,6 @@ NOTE: Setting the video input in Desktop Video Setup to match this option will r
 
 **Select bit depth for video** — Choose the level of bit depth you would like for your video file. Vrecord supports 10 and 8-bit video capture.
 
-**Select FFV1 slice count** - If you select FFV1 as your video codec, you will be prompted to choose between a number of "slice count" options. An error detection/correction mechanism specific to FFV1, slices allow for each frame of video to be split into sub-sections, which will, in turn, each receive their own CRC checksum value. Keep in mind that the higher the slice count, the larger the resulting file.
-
 **Select codec for audio** - Choose how you would like the audio signal to be encoded digitally. You can choose between uncompressed or lossless codecs.
 
 **Select audio channel mapping** — Choose how you want the audio to be captured. Currently vrecord captures audio at 24-bits and can only capture 4 tracks. The options are: 
