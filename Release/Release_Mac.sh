@@ -47,6 +47,8 @@ rm -fr "${release_directory}/libxml2"
 rm -fr "${release_directory}/libxslt"
 rm -fr "${release_directory}/xmlstarlet"
 
+rm -fr "${release_directory}/gtkdialog"
+rm -fr "${release_directory}/timecodexml"
 rm -fr "${release_directory}/deckcontrol"
 
 rm -fr "${release_directory}/gnuplot_ROOT"
@@ -202,6 +204,17 @@ pushd "${release_directory}/"
 popd
 
 #-----------------------------------------------------------------------
+# Build timecodexml
+pushd "${release_directory}/"
+    git clone --depth 1 https://github.com/MediaArea/timecodexml.git
+    pushd timecodexml
+        make
+    popd
+
+    cp -a timecodexml/timecodexml2webvtt vrecord_ROOT/usr/local/lib/vrecord/bin
+popd
+
+#-----------------------------------------------------------------------
 # Bundle vrecord
 pushd "${release_directory}/"
     cp -a ../vtest vrecord_ROOT/usr/local/bin
@@ -263,7 +276,6 @@ pushd "${release_directory}/"
         mv -f "vrecord.unsigned.pkg" "vrecord.pkg"
     fi
 popd
-
 
 #-----------------------------------------------------------------------
 # Package .dmg
