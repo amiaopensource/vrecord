@@ -493,7 +493,6 @@ _setup_vrecord_input(){
     elif [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         _set_ffmpeg_loglevel
         GRAB_INPUT+=(-f decklink)
-        GRAB_INPUT+=(-timecode_format all)
         GRAB_INPUT+=(-signal_loss_action none)
         GRAB_INPUT+=(-audio_input "${AUDIO_INPUT}")
         GRAB_INPUT+=(-video_input "${VIDEO_INPUT}")
@@ -568,6 +567,7 @@ _setup_vrecord_process(){
                 TC_WRITE=",metadata=mode=print:file=${TC_TMP}"
             fi
         fi
+        RECORD_COMMAND+=(-timecode_format all)
         RECORD_COMMAND+=("${GRAB_INPUT[@]}")
         if [[ -n "${VIDEOCODECNAME}" ]] ; then
             MIDDLEOPTIONS_PRES+=(-metadata:s:v:0 encoder="${VIDEOCODECNAME}")
@@ -664,6 +664,7 @@ _setup_vrecord_process(){
             FFPLAY_OPTIONS+=(-f lavfi "amovie='pipe\:0',${PLAYBACKFILTER}")
         else
             if [[ "${VRECORD_STEPS}" = "1" ]] ; then
+                FFPLAY_OPTIONS+=(-timecode_format all)
                 FFPLAY_OPTIONS+=("${GRAB_INPUT[@]}")
             else
                 FFPLAY_OPTIONS+=(-i -)
@@ -1579,10 +1580,11 @@ _edit_mode(){
         _report -dt "Note: some types of timecode are only supported if the video input is set to 'sdi' (currently the video input is set to '${VIDEO_INPUT}')."
         _setup_vrecord_input
         echo "Timecode Type | Timecode Value"
+        
         echo "--------------|---------------"
         TIMECODE_OPTIONS=("all" "rp188vitc" "rp188vitc2" "rp188ltc" "rp188any" "vitc" "vitc2" "serial")
         for timecode_type in "${TIMECODE_OPTIONS[@]}" ; do
-            tc_value="$("${FFMPEG_BIN}" -nostdin -timecode_format "${timecode_type}" "${GRAB_INPUT[@]}" -loglevel info 2>&1 | grep " timecode " | cut -d ":" -f2- | sed 's/ //g')"
+            tc_value="$("${FFMPEG_BIN}" -nostdin -timecode_format "${timecode_type}" "${GRAB_INPUT[@]}" -loglevel info 2>&1 | grep -E "^\s*timecode\s*:" | head -n1 | cut -d ':' -f2- | sed 's| ||g')"
             printf "  %-11s | %-12s \n" "${timecode_type}" "${tc_value:-none}"
         done
         echo "--------------|---------------"
