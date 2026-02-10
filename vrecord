@@ -3,7 +3,7 @@
 # vrecord
 # Open-source software for capturing a video signal and turning it into a digital file.
 
-VERSION="2026-02-06"
+VERSION="2026-02-10"
 SCRIPTNAME="$(basename "${0}")"
 SCRIPTDIR="$(dirname "${0}")"
 CONFIG_FILE="${HOME}/.${SCRIPTNAME}.conf"
