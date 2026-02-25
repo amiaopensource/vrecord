@@ -2699,6 +2699,7 @@ _add_fadgi_header2vtt(){
     cat <<FADGI_VTT_HEADER >> "${VTT_TMP}"
 WEBVTT
 
+NOTE
 Type: ${VTT_TYPE}
 Media Identifier: ${ID_LINE}
 Originating File: ${FULL_OUTPUT_ID}.${EXTENSION}
