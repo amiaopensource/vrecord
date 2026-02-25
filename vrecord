@@ -3244,7 +3244,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
     fi
 
     # make a timecode vtt
-    if [[ "${TIMECODEVTT_CHOICE}" = "true" ]] && [[ "${FORMAT}" = "matroska" ]] ; then
+    if [[ "${TIMECODEVTT_CHOICE}" = "true" ]] && [[ "${FORMAT}" = "matroska" ]] && [[ "${SIGNAL_INPUT}" != 'true' ]] && [[ -z "${ALT_INPUT}" ]] ; then
         _report -d "Working on the timecode vtt file..."
         TIMECODEXML_TMP="$(_maketemp .mediatimecode.txt)"
         TIMECODEXML_VTT="${LOGDIR}/${FULL_OUTPUT_ID}.timecode.vtt"
