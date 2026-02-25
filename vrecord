@@ -566,8 +566,8 @@ _setup_vrecord_process(){
                 TC_TMP=$(_maketemp .timecode.txt)
                 TC_WRITE=",metadata=mode=print:file=${TC_TMP}"
             fi
+            RECORD_COMMAND+=(-timecode_format all)
         fi
-        RECORD_COMMAND+=(-timecode_format all)
         RECORD_COMMAND+=("${GRAB_INPUT[@]}")
         if [[ -n "${VIDEOCODECNAME}" ]] ; then
             MIDDLEOPTIONS_PRES+=(-metadata:s:v:0 encoder="${VIDEOCODECNAME}")
