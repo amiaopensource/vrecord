@@ -3186,7 +3186,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
             _add_fadgi_header2vtt "${CAPTION_SCC%.*}.vtt" "caption"
         fi
         if [[ "${CC2SRT}" = 'true' ]] ; then
-            "${FFMPEG_BIN}" -nostdin -v 0 -y -i "${CAPTION_SCC}" -f srt -c:s srt - | sed -E 's/\\h//g; s/\{\\an[0-9]\}//g; s/<[^>]+>//g' "${CAPTION_SCC%.*}.srt"
+            "${FFMPEG_BIN}" -nostdin -v 0 -y -i "${CAPTION_SCC}" -f srt -c:s srt - | sed -E 's/\\h//g; s/\{\\an[0-9]\}//g; s/<[^>]+>//g' > "${CAPTION_SCC%.*}.srt"
         fi
         if [[ "${CAP2MP4}" = 'true' && "${MP4_CHOICE}" = 'true' ]] ; then
             if [[ -s "${CAPTION_SCC%.*}.vtt" ]] ; then
