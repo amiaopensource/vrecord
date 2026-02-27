@@ -47,7 +47,10 @@ rm -fr "${release_directory}/libxml2"
 rm -fr "${release_directory}/libxslt"
 rm -fr "${release_directory}/xmlstarlet"
 
+rm -fr "${release_directory}/gtkdialog"
+rm -fr "${release_directory}/timecodexml"
 rm -fr "${release_directory}/deckcontrol"
+rm -fr "${release_directory}/decklink-sdk-headers"
 
 rm -fr "${release_directory}/gnuplot_ROOT"
 rm -f "${release_directory}/gnuplot-qt5-universal.pkg"
@@ -194,11 +197,28 @@ popd
 # Build deckcontrol
 pushd "${release_directory}/"
     git clone --depth 1 https://github.com/bavc/deckcontrol.git
+    if [ -z "${BMSDK}" ] ; then
+        if ! (echo "#include <DeckLinkAPI.h>" | clang -E - >/dev/null 2>&1) ; then
+            git clone --depth 1 https://github.com/MediaArea/decklink-sdk-headers.git
+            BMSDK="${release_directory}/decklink-sdk-headers/DeckLinkSDK/Mac/include"
+        fi
+    fi
     pushd deckcontrol
-        make BMDSK="${BMSDK}"
+        make BMSDK="${BMSDK}"
     popd
-    
+
     cp -a deckcontrol/deckcontrol vrecord_ROOT/usr/local/lib/vrecord/bin
+popd
+
+#-----------------------------------------------------------------------
+# Build timecodexml
+pushd "${release_directory}/"
+    git clone --depth 1 https://github.com/MediaArea/timecodexml.git
+    pushd timecodexml
+        make
+    popd
+
+    cp -a timecodexml/timecodexml2webvtt vrecord_ROOT/usr/local/lib/vrecord/bin
 popd
 
 #-----------------------------------------------------------------------
@@ -263,7 +283,6 @@ pushd "${release_directory}/"
         mv -f "vrecord.unsigned.pkg" "vrecord.pkg"
     fi
 popd
-
 
 #-----------------------------------------------------------------------
 # Package .dmg
