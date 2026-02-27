@@ -3190,8 +3190,8 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
             "${FFMPEG_BIN}" -nostdin -v 0 -y -i "${CAPTION_SCC}" -f srt -c:s srt - | sed -E 's/\\h//g; s/\{\\an[0-9]\}//g; s/<[^>]+>//g' > "${CAPTION_SCC%.*}.srt"
         fi
         if [[ "${CAP2MP4}" = 'true' && "${MP4_CHOICE}" = 'true' ]] ; then
-            CAP2EMBED="$(_maketemp .vtt)"
-            "${FFMPEG_BIN}" -nostdin -v 0 -y -i "${CAPTION_SCC}" -f webvtt - | sed -E 's/\\h//g; s/\{\\an[0-9]\}//g; s/<[^>]+>//g' > "${CAP2EMBED}"
+            CAP2EMBED="$(_maketemp .ass)"
+            "${FFMPEG_BIN}" -nostdin -v 0 -y -i "${CAPTION_SCC}" -f ass - | sed -E 's/\\h/ /g;s/(,,(\{[^}]+\})*)\\N+/\1/g' > "${CAP2EMBED}"
             _report -dt "Wrapping the extracted captions into the Access MP4 file..."
             "${FFMPEG_BIN}" -nostdin -v 0 -y -i "${MP4NAME}" -i "${CAP2EMBED}" -map 0:v -map 0:a -map 1:s -c:v copy -c:a copy -c:s mov_text "${MP4NAME}.subs.mp4"
             if [[ $? -eq 0 ]]; then
