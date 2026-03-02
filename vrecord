@@ -566,8 +566,8 @@ _setup_vrecord_process(){
                 TC_TMP=$(_maketemp .timecode.txt)
                 TC_WRITE=",metadata=mode=print:file=${TC_TMP}"
             fi
+            RECORD_COMMAND+=(-timecode_format all)
         fi
-        RECORD_COMMAND+=(-timecode_format all)
         RECORD_COMMAND+=("${GRAB_INPUT[@]}")
         if [[ -n "${VIDEOCODECNAME}" ]] ; then
             MIDDLEOPTIONS_PRES+=(-metadata:s:v:0 encoder="${VIDEOCODECNAME}")
@@ -2699,6 +2699,7 @@ _add_fadgi_header2vtt(){
     cat <<FADGI_VTT_HEADER >> "${VTT_TMP}"
 WEBVTT
 
+NOTE
 Type: ${VTT_TYPE}
 Media Identifier: ${ID_LINE}
 Originating File: ${FULL_OUTPUT_ID}.${EXTENSION}
@@ -3186,17 +3187,11 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
             _add_fadgi_header2vtt "${CAPTION_SCC%.*}.vtt" "caption"
         fi
         if [[ "${CC2SRT}" = 'true' ]] ; then
-            "${FFMPEG_BIN}" -nostdin -v 0 -y -i "${CAPTION_SCC}" -f srt -c:s srt - | sed -E 's/\\h//g; s/\{\\an[0-9]\}//g; s/<[^>]+>//g' "${CAPTION_SCC%.*}.srt"
+            "${FFMPEG_BIN}" -nostdin -v 0 -y -i "${CAPTION_SCC}" -f srt -c:s srt - | sed -E 's/\\h//g; s/\{\\an[0-9]\}//g; s/<[^>]+>//g' > "${CAPTION_SCC%.*}.srt"
         fi
         if [[ "${CAP2MP4}" = 'true' && "${MP4_CHOICE}" = 'true' ]] ; then
-            if [[ -s "${CAPTION_SCC%.*}.vtt" ]] ; then
-                CAP2EMBED="${CAPTION_SCC%.*}.vtt"
-            elif [[ -s "${CAPTION_SCC%.*}.srt" ]] ; then
-                CAP2EMBED="${CAPTION_SCC%.*}.srt"
-            else
-                CAP2EMBED="$(_maketemp .vtt)"
-                "${FFMPEG_BIN}" -nostdin -v 0 -y -i "${CAPTION_SCC}" -f webvtt - | sed -E 's/\\h//g; s/\{\\an[0-9]\}//g; s/<[^>]+>//g' > "${CAP2EMBED}"
-            fi
+            CAP2EMBED="$(_maketemp .ass)"
+            "${FFMPEG_BIN}" -nostdin -v 0 -y -i "${CAPTION_SCC}" -f ass - | sed -E 's/\\h/ /g;s/(,,(\{[^}]+\})*)\\N+/\1/g' > "${CAP2EMBED}"
             _report -dt "Wrapping the extracted captions into the Access MP4 file..."
             "${FFMPEG_BIN}" -nostdin -v 0 -y -i "${MP4NAME}" -i "${CAP2EMBED}" -map 0:v -map 0:a -map 1:s -c:v copy -c:a copy -c:s mov_text "${MP4NAME}.subs.mp4"
             if [[ $? -eq 0 ]]; then
@@ -3244,7 +3239,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
     fi
 
     # make a timecode vtt
-    if [[ "${TIMECODEVTT_CHOICE}" = "true" ]] && [[ "${FORMAT}" = "matroska" ]] ; then
+    if [[ "${TIMECODEVTT_CHOICE}" = "true" ]] && [[ "${FORMAT}" = "matroska" ]] && [[ "${SIGNAL_INPUT}" != 'true' ]] && [[ -z "${ALT_INPUT}" ]] ; then
         _report -d "Working on the timecode vtt file..."
         TIMECODEXML_TMP="$(_maketemp .mediatimecode.txt)"
         TIMECODEXML_VTT="${LOGDIR}/${FULL_OUTPUT_ID}.timecode.vtt"
