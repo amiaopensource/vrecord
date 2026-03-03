@@ -567,6 +567,7 @@ _setup_vrecord_process(){
                 TC_WRITE=",metadata=mode=print:file=${TC_TMP}"
             fi
             RECORD_COMMAND+=(-timecode_format all)
+            RECORD_COMMAND+=(-guess_layout_max 0)
         fi
         RECORD_COMMAND+=("${GRAB_INPUT[@]}")
         if [[ -n "${VIDEOCODECNAME}" ]] ; then
