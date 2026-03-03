@@ -2102,24 +2102,31 @@ _lookup_choice(){
             if [[ "${STANDARD}" = "ntsc" ]] ; then
                 RECORDINGFILTER+=",setsar=${NTSC_43_SAR_CHOICE}"
                 RECORDINGFILTER_MP4+=",setsar=${NTSC_43_SAR_CHOICE}"
+                ACCESS_MP4_LEVEL="3.1"
             elif [[ "${STANDARD}" = "pal " ]] ; then
                 RECORDINGFILTER+=",setsar=${PAL_43_SAR_CHOICE}"
                 RECORDINGFILTER_MP4+=",setsar=${PAL_43_SAR_CHOICE}"
+                ACCESS_MP4_LEVEL="3.1"
             elif [[ "${STANDARD}" = "23ps" ]] ; then
                 RECORDINGFILTER+=",setdar=4/3"
                 RECORDINGFILTER_MP4+=",setdar=4/3"
+                ACCESS_MP4_LEVEL="4.0"
             elif [[ "${STANDARD}" = "24ps" ]] ; then
                 RECORDINGFILTER+=",setdar=4/3"
                 RECORDINGFILTER_MP4+=",setdar=4/3"
+                ACCESS_MP4_LEVEL="4.0"
             elif [[ "${STANDARD:0:2}" = "Hp" ]] ; then
                 RECORDINGFILTER+=",setdar=4/3"
                 RECORDINGFILTER_MP4+=",setdar=4/3"
+                ACCESS_MP4_LEVEL="4.0"
             elif [[ "${STANDARD:0:2}" = "Hi" ]] ; then
                 RECORDINGFILTER+=",setdar=4/3"
                 RECORDINGFILTER_MP4+=",setdar=4/3"
+                ACCESS_MP4_LEVEL="4.0"
             elif [[ "${STANDARD:0:2}" = "hp" ]] ; then
                 RECORDINGFILTER+=",setdar=4/3"
                 RECORDINGFILTER_MP4+=",setdar=4/3"
+                ACCESS_MP4_LEVEL="3.2"
             else
                 _report -w "Error: the standard wasn't set to an expected when it was expected to be."
             fi ;;
@@ -2127,24 +2134,31 @@ _lookup_choice(){
             if [[ "${STANDARD}" = "ntsc" ]] ; then
                 RECORDINGFILTER+=",setsar=${NTSC_169_SAR_CHOICE}"
                 RECORDINGFILTER_MP4+=",setsar=${NTSC_169_SAR_CHOICE}"
+                ACCESS_MP4_LEVEL="3.1"
             elif [[ "${STANDARD}" = "pal " ]] ; then
                 RECORDINGFILTER+=",setsar=${PAL_169_SAR_CHOICE}"
                 RECORDINGFILTER_MP4+=",setsar=${PAL_169_SAR_CHOICE}"
+                ACCESS_MP4_LEVEL="3.1"
             elif [[ "${STANDARD}" = "23ps" ]] ; then
                 RECORDINGFILTER+=",setdar=16/9"
                 RECORDINGFILTER_MP4+=",setdar=16/9"
+                ACCESS_MP4_LEVEL="4.0"
             elif [[ "${STANDARD}" = "24ps" ]] ; then
                 RECORDINGFILTER+=",setdar=16/9"
                 RECORDINGFILTER_MP4+=",setdar=16/9"
+                ACCESS_MP4_LEVEL="4.0"
             elif [[ "${STANDARD:0:2}" = "Hp" ]] ; then
                 RECORDINGFILTER+=",setdar=16/9"
                 RECORDINGFILTER_MP4+=",setdar=16/9"
+                ACCESS_MP4_LEVEL="4.0"
             elif [[ "${STANDARD:0:2}" = "Hi" ]] ; then
                 RECORDINGFILTER+=",setdar=16/9"
                 RECORDINGFILTER_MP4+=",setdar=16/9"
+                ACCESS_MP4_LEVEL="4.0"
             elif [[ "${STANDARD:0:2}" = "hp" ]] ; then
                 RECORDINGFILTER+=",setdar=16/9"
                 RECORDINGFILTER_MP4+=",setdar=16/9"
+                ACCESS_MP4_LEVEL="3.2"
             else
                 _report -w "Error: the standard wasn't set to an expected when it was expected to be."
             fi ;;
@@ -3012,7 +3026,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
         RECORDINGFILTER_MP4+=",bwdif,format=yuv420p"
         RECORD_COMMAND_MP4+=(-filter_complex "[0:v:0]${RECORDINGFILTER_MP4#,*}[mp4_v_out];${AUDIOMAP_MP4}")
         MP4NAME="${DIR}/${FULL_OUTPUT_ID}.mp4"
-        EXTRAOUTPUTS+=("${MIDDLEOPTIONS_ALL[@]}" -movflags write_colr+faststart "${RECORD_COMMAND_MP4[@]}" -c:v h264 -c:a aac -map "[mp4_v_out]" "${AUDIO_CHANNEL_MAP[@]:2}" "${MP4NAME}")
+        EXTRAOUTPUTS+=("${MIDDLEOPTIONS_ALL[@]}" -movflags write_colr+faststart "${RECORD_COMMAND_MP4[@]}" -c:v h264 -profile:v main -level "${ACCESS_MP4_LEVEL}" -c:a aac -map "[mp4_v_out]" "${AUDIO_CHANNEL_MAP[@]:2}" "${MP4NAME}")
     fi
     if [[ "${FORMAT}" = "matroska" ]] ; then
         _review_option "EMBED_LOGS_CHOICE" "${EMBED_LOGS_OPTIONS[@]}"
