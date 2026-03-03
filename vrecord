@@ -2125,8 +2125,8 @@ _lookup_choice(){
             fi ;;
         "16/9")
             if [[ "${STANDARD}" = "ntsc" ]] ; then
-                RECORDINGFILTER+=",setsar=${PAL_43_SAR_CHOICE}"
-                RECORDINGFILTER_MP4+=",setsar=${PAL_43_SAR_CHOICE}"
+                RECORDINGFILTER+=",setsar=${NTSC_169_SAR_CHOICE}"
+                RECORDINGFILTER_MP4+=",setsar=${NTSC_169_SAR_CHOICE}"
             elif [[ "${STANDARD}" = "pal " ]] ; then
                 RECORDINGFILTER+=",setsar=${PAL_169_SAR_CHOICE}"
                 RECORDINGFILTER_MP4+=",setsar=${PAL_169_SAR_CHOICE}"
