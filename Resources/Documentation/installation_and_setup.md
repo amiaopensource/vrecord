@@ -47,16 +47,29 @@ Detailed instructions for installation can be found in the [Linux installation](
 
 ### Setting up vrecord for the First Time
 
-In macOS, open System Preferences and click on the icon for Blackmagic Design. If you do not see this icon in System Preferences you may not have installed the Blackmagic driver. 
+### Setting up vrecord for the First Time
 
-Open up the Blackmagic Design preferences and click on the "Settings" tab. Select your input and output from the dropdown menu depending on what cables you have connected to the capture device. 
+In modern versions of macOS (such as Sequoia and later), hardware drivers require manual activation through System Settings.
 
-Once your capture device is set up you can start vrecord by simply opening up a [Terminal window](https://en.wikipedia.org/wiki/Terminal_%28macOS%29) and typing 
-```
-vrecord 
-```
-The first time you use vrecord you will be asked to make some initial choices about how you want to capture. Any decisions you make will be saved in a configuration file. But don't worry, you will be able to alter these decisions later. 
-Vrecord will ask you for video and audio inputs. These should agree with your settings for the Blackmagic capture device. Vrecord's other settings can be tailored to your liking. See the section on [Options for Video Capture](settings.md#options-for-video-capture) which explains all of the settings in detail.
+1.  **Enable Hardware Extensions:**
+    * Open **System Settings** and navigate to **General** > **Login Items & Extensions**.
+    * Scroll down to the **Extensions** section.
+    * Locate the **Blackmagic Design** entries. You may need to click the **Information (i)** icon to view specific extensions.
+    * Ensure **both** the **Driver Extensions** and **Camera Extensions** are toggled **ON**.
+    * *Note: You may be prompted to restart your computer or enter your administrator password to apply these changes.*
+
+2.  **Configure Blackmagic Settings:**
+    * In **System Settings**, look for the **Blackmagic Desktop Video** icon (usually at the bottom of the sidebar or found via search). If you do not see this icon, the driver may not be installed or enabled correctly.
+    * Open the Blackmagic preferences and click on the **Settings** tab.
+    * Select your input and output from the dropdown menu depending on what cables you have connected to the capture device.
+
+3.  **Launch vrecord:**
+    * Once your capture device is set up, open a [Terminal window](https://en.wikipedia.org/wiki/Terminal_%28macOS%29) and type:
+        ```bash
+        vrecord 
+        ```
+    * The first time you use vrecord, you will be asked to make initial choices about how you want to capture. These decisions are saved in a configuration file, but you can alter them later.
+    * **Note:** Vrecord's video and audio input settings must match the settings you chose in the Blackmagic Desktop Video utility. For a detailed breakdown of these choices, see [Options for Video Capture](settings.md#options-for-video-capture).
 
 ### Basic Usage
 
