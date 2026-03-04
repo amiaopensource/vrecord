@@ -31,6 +31,10 @@ rm -f "${release_directory}/vrecord.pkg"
 
 rm -f "${release_directory}/FFmpeg_Bin_Latest_Mac_Static_x64.zip"
 
+rm -fr "${release_directory}/mediainfo_ROOT"
+rm -f "${release_directory}/MediaInfo.dmg"
+rm -f "${release_directory}/mediainfo.pkg"
+
 rm -fr "${release_directory}/mediaconch_ROOT"
 rm -f "${release_directory}/MediaConch.dmg"
 rm -f "${release_directory}/mediaconch.pkg"
@@ -79,12 +83,26 @@ popd
 
 
 #-----------------------------------------------------------------------
-# Get MediaConch CLI 
+# Get MediaInfo CLI
+pushd "${release_directory}/"
+    mi_version=$(curl -Ls https://mediaarea.net/download/binary/mediainfo | grep -Eo 'href="[0-9.]+/"' | head -n1 | grep -Eo '[0-9.]+')
+    curl -L "https://mediaarea.net/download/binary/mediainfo/${mi_version}/MediaInfo_CLI_${mi_version}_Mac.dmg" -o MediaInfo.dmg
+
+    hdiutil attach -noverify MediaInfo.dmg
+    cp "/Volumes/MediaInfo/mediainfo.pkg" .
+    hdiutil detach "/Volumes/MediaInfo"
+
+    pkgutil --expand-full mediainfo.pkg mediainfo_ROOT
+    cp -a mediainfo_ROOT/Payload/usr/local/bin/mediainfo vrecord_ROOT/usr/local/lib/vrecord/bin
+popd
+
+#-----------------------------------------------------------------------
+# Get MediaConch CLI
 pushd "${release_directory}/"
     mc_version=$(curl -Ls https://mediaarea.net/download/binary/mediaconch | grep -Eo 'href="[0-9.]+/"' | head -n1 | grep -Eo '[0-9.]+')
     curl -L "https://mediaarea.net/download/binary/mediaconch/${mc_version}/MediaConch_CLI_${mc_version}_Mac.dmg" -o MediaConch.dmg
 
-    hdiutil attach -noverify mediaconch.dmg
+    hdiutil attach -noverify MediaConch.dmg
     cp "/Volumes/MediaConch/mediaconch.pkg" .
     hdiutil detach "/Volumes/MediaConch"
 
