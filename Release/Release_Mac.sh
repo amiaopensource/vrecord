@@ -73,12 +73,12 @@ pushd "${release_directory}/"
 popd
 
 #-----------------------------------------------------------------------
-# Get ffmpeg-ma 
+# Get ffmpeg-ma
 pushd "${release_directory}/"
     curl -LO "https://mediaarea.net/download/snapshots/binary/ffmpeg/latest/FFmpeg_Bin_Latest_Mac_Static_x64.zip"
     unzip -d vrecord_ROOT/usr/local/lib/vrecord -x FFmpeg_Bin_Latest_Mac_Static_x64.zip bin/ffmpeg bin/ffplay
     mv vrecord_ROOT/usr/local/lib/vrecord/bin/ffmpeg vrecord_ROOT/usr/local/lib/vrecord/bin/ffmpeg-ma
-    mv vrecord_ROOT/usr/local/lib/vrecord/bin/ffplay vrecord_ROOT/usr/local/lib/vrecord//bin/ffplay-ma 
+    mv vrecord_ROOT/usr/local/lib/vrecord/bin/ffplay vrecord_ROOT/usr/local/lib/vrecord//bin/ffplay-ma
 popd
 
 
@@ -111,7 +111,7 @@ pushd "${release_directory}/"
 popd
 
 #-----------------------------------------------------------------------
-# Get QCTools CLI 
+# Get QCTools CLI
 pushd "${release_directory}/"
     qc_version=$(curl -Ls https://mediaarea.net/download/binary/qcli | grep -Eo 'href="[0-9.]+/"' | head -n1 | grep -Eo '[0-9.]+')
     curl -L "https://mediaarea.net/download/binary/qcli/${qc_version}/qcli_${qc_version}_mac.dmg" -o qcli.dmg
@@ -125,7 +125,7 @@ pushd "${release_directory}/"
 popd
 
 #-----------------------------------------------------------------------
-# Get dvrescue CLI 
+# Get dvrescue CLI
 pushd "${release_directory}/"
     dv_version=$(curl -Ls https://mediaarea.net/download/binary/dvrescue | grep -Eo 'href="[0-9.]+/"' | head -n1 | grep -Eo '[0-9.]+')
     curl -L "https://mediaarea.net/download/binary/dvrescue/${dv_version}/dvrescue_CLI_${dv_version}_Mac.dmg" -o dvrescue.dmg
@@ -139,15 +139,15 @@ pushd "${release_directory}/"
 popd
 
 #-----------------------------------------------------------------------
-# Get gnuplot 
+# Get gnuplot
 pushd "${release_directory}/"
-    curl -L https://csml.northwestern.edu/Download/Gnuplot/gnuplot-6.0.3-qt5-universal.pkg -o gnuplot-qt5-universal.pkg  
+    curl -L https://csml.northwestern.edu/Download/Gnuplot/gnuplot-6.0.3-qt5-universal.pkg -o gnuplot-qt5-universal.pkg
     pkgutil --expand-full gnuplot-qt5-universal.pkg gnuplot_ROOT
     cp -a gnuplot_ROOT/gnuplot-package-*-qt5-universal.pkg/Payload/* vrecord_ROOT/usr/local/lib/vrecord
 popd
 
 #-----------------------------------------------------------------------
-# Get MKVToolNix 
+# Get MKVToolNix
 pushd "${release_directory}/"
     curl -L https://mkvtoolnix.download/macos/MKVToolNix-42.0.0.dmg -o MKVToolNix-42.0.0.dmg
 
@@ -246,7 +246,7 @@ pushd "${release_directory}/"
     cp -a ../vplay vrecord_ROOT/usr/local/bin
     cp -a ../vrecord vrecord_ROOT/usr/local/bin
 
-    cp -a ../vtest.1 vrecord_ROOT/usr/local/share/man/man1    
+    cp -a ../vtest.1 vrecord_ROOT/usr/local/share/man/man1
     cp -a ../vrecord.1 vrecord_ROOT/usr/local/share/man/man1
 
     cp -a ../Resources/audio_mode.gif vrecord_ROOT/usr/local/share/vrecord/Resources
