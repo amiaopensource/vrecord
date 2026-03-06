@@ -13,7 +13,6 @@ fi
 BREW_PREFIX=$(brew --prefix ffmpeg-ma 2>/dev/null)
 FFMPEG_MA=("${BREW_PREFIX}/bin/ffmpeg-ma")
 FFPLAY_MA=("${BREW_PREFIX}/bin/ffplay-ma")
-DEVICE_NAME=$("${FFMPEG_MA[@]}" -f decklink -list_devices 1 -i dummy 2>&1 | grep -o "^\[decklink[^\]*][^']*'.*" | cut -d "'" -f2- | sed "s/'$//g")
 
 if [[ "$("${FFMPEG_MA[@]}" -version 2>&1 | grep "Library not loaded" >/dev/null)" || ! -f "${FFMPEG_MA}" || ! -f "${FFPLAY_MA}" ]] ; then
     echo "Please reinstall 'ffmpeg-ma':"
