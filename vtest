@@ -13,6 +13,7 @@ fi
 BREW_PREFIX=$(brew --prefix ffmpeg-ma 2>/dev/null)
 FFMPEG_MA=("${BREW_PREFIX}/bin/ffmpeg-ma")
 FFPLAY_MA=("${BREW_PREFIX}/bin/ffplay-ma")
+DEVICE_NAME=$("${FFMPEG_MA[@]}" -f decklink -list_devices 1 -i dummy 2>&1 | grep -o "^\[decklink[^\]*][^']*'.*" | cut -d "'" -f2- | sed "s/'$//g")
 
 if [[ "$("${FFMPEG_MA[@]}" -version 2>&1 | grep "Library not loaded" >/dev/null)" || ! -f "${FFMPEG_MA}" || ! -f "${FFPLAY_MA}" ]] ; then
     echo "Please reinstall 'ffmpeg-ma':"
@@ -98,7 +99,7 @@ shift "$((OPTIND-1))"
 
 # script functions
 _get_decklink_output(){
-    DECKLINK_OUTPUT=$("${FFMPEG_MA[@]}" -f decklink -list_devices 1 -i dummy 2>&1 | grep -o "^\[decklink[^\]*][^']*'.*" | cut -d "'" -f2- | sed "s/'$//g")
+    DECKLINK_OUTPUT="${DEVICE_NAME}"
     if [[ -z "${DECKLINK_OUTPUT}" ]] ; then
         _report -w "No decklink inputs were found. Running \`${FFMPEG_MA} -hide_banner -f decklink -list_devices 1 -i dummy\` results in:"
         DECKLINK_RESULT=$("${FFMPEG_MA[@]}" -hide_banner -f decklink -list_devices 1 -i dummy)
