@@ -1172,7 +1172,7 @@ DVRESCUE_INPUT_GUI=$(cat << DVRESCUE_FORM
                             </text>
                             <checkbox>
                                 $(if [[ ${DVPACKAGER_INSTALLED} != "true" ]] ; then echo "<sensitive>false</sensitive>" ; fi)
-                                <label>Create technical subtitle track</label>
+                                <label>Embed captions as subtitles</label>
                                 <default>"${DV_RESCUE_OPTION_TC}"</default>
                                 <variable>DV_RESCUE_OPTION_TC</variable>
                             </checkbox>
