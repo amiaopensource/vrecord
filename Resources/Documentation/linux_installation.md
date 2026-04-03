@@ -53,10 +53,6 @@ The following instructions aim to minimize use of Homebrew installs for packages
 * `brew install decklinksdk && brew install ffmpeg-ma --with-iec61883 && brew install gtkdialog` _Note:_ Some users on Ubuntu have reported installation problems with `gtkdialog` at step. See [this note](https://github.com/amiaopensource/homebrew-amiaos/blob/master/TROUBLESHOOTING.md#vrecord)  at the AMIA Open Source Homebrew repository for a possible fix.
 * `brew install vrecord`
 
-### Fix conflicting SDL2 dependencies
-* `brew uninstall --ignore-dependencies sdl2`
-* `sudo apt install libsdl2-dev`
-* This step may not be required if Brew has been configured lower in $PATH than standard system directories.
 
 # Instructions/Tips for other Linux Distributions
 ## Linux Mint
