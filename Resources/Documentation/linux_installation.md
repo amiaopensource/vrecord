@@ -21,6 +21,7 @@ The following instructions aim to minimize use of Homebrew installs for packages
   - `sudo apt-get install mkvtoolnix`
   - `sudo apt-get install mediaconch`
   - `sudo apt-get install mpv`
+  - `sudo apt-get install bison`
 * Install the following dependencies for enabling DV capture in vrecord's FFmpeg build:
   - `sudo apt-get install libiec61883-dev`
   - `sudo apt-get install libraw1394-dev`
