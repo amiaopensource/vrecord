@@ -12,13 +12,6 @@ The following instructions aim to minimize use of Homebrew installs for packages
 * Download and install the latest version of the [QCTools CLI tool](https://mediaarea.net/QCTools/Download/Ubuntu) from the MediaArea website
 * Optional: If DV wrapping and splitting is desired, download and install [DVRescue](https://mediaarea.net/DVRescue) from the MediaArea website.
 
-### Programs to be installed via PPA
-
-* Install MPV with the following steps:
-  - Add the MPV PPA with: `sudo add-apt-repository ppa:mc3man/mpv-tests`
-  - Update package manager with: `sudo apt-get update`
-  - Install MPV with `sudo apt-get install mpv`
-
 ### Programs to be installed via standard package manager
 
 * Use the following commands to install additional dependencies for full vrecord use:
@@ -27,6 +20,7 @@ The following instructions aim to minimize use of Homebrew installs for packages
   - `sudo apt-get install xmlstarlet`
   - `sudo apt-get install mkvtoolnix`
   - `sudo apt-get install mediaconch`
+  - `sudo apt-get install mpv`
 * Install the following dependencies for enabling DV capture in vrecord's FFmpeg build:
   - `sudo apt-get install libiec61883-dev`
   - `sudo apt-get install libraw1394-dev`
