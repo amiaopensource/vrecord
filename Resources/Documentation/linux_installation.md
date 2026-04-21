@@ -1,53 +1,32 @@
 # Steps for a successful install of Vrecord on Linux
 
 ## About
-There are many possible ways to install the various dependencies of Vrecord on Linux. The main body of this documentation is oriented towards installing on Ubuntu LTS. For Some information about installing on additional distributions see the section at the bottom of this document. 
-
-## via Homebrew
-The following instructions aim to minimize use of Homebrew installs for packages that can otherwise be installed via native Linux methods. When followed in order, these commands should result in a fully functional install of vrecord.
+There are many possible ways to install the various dependencies of Vrecord on Linux. The main body of this documentation is oriented towards installing on Ubuntu LTS. For Some information about installing on additional distributions see the section at the bottom of this document. When followed in order, these commands should result in a fully functional install of vrecord.
 
 ### Programs to be installed manually
 
 * Download and install the latest Linux version of 'Blackmagic Desktop Video' from the [Blackmagic website](https://www.blackmagicdesign.com/support/)
-* Download and install the latest version of the [QCTools CLI tool](https://mediaarea.net/QCTools/Download/Ubuntu) from the MediaArea website
-* Optional: If DV wrapping and splitting is desired, download and install [DVRescue](https://mediaarea.net/DVRescue) from the MediaArea website.
+* Activate the [Media Area repositories](https://mediaarea.net/en/Repos) with their provided instructions for deb based distributions
+   - Download and install the latest version of the [QCTools CLI tool](https://mediaarea.net/QCTools/Download/Ubuntu) from the MediaArea website
+   - Optional: If DV capture is desired, download and install the CLI version of [DVRescue](https://mediaarea.net/DVRescue) from the MediaArea website.
 
 ### Programs to be installed via standard package manager
 
 * Use the following commands to install additional dependencies for full vrecord use:
-  - `sudo apt-get install curl`
-  - `sudo apt-get install gnuplot`
-  - `sudo apt-get install xmlstarlet`
-  - `sudo apt-get install mkvtoolnix`
-  - `sudo apt-get install mediaconch`
-  - `sudo apt-get install mpv`
-  - `sudo apt-get install bison`
-* Install the following dependencies for enabling DV capture in vrecord's FFmpeg build:
-  - `sudo apt-get install libiec61883-dev`
-  - `sudo apt-get install libraw1394-dev`
-  - `sudo apt-get install libavc1394-dev`
-  - `sudo apt-get install libavc1394-tools`
-* If `make` and `gcc` are not already installed, install them with
-  - `sudo apt-get install gcc`
-  - `sudo apt-get install make`
-* Installing a standard version of FFmpeg is highly recommended as a fallback in case of issues with the Homebrew controlled build:
-  - `sudo apt-get install ffmpeg`
+
   
 ### Install Homebrew
-* Use the following commands, (sourced from the [Homebrew docs](https://docs.brew.sh/Homebrew-on-Linux)) to install and configure Homebrew on Linux:
- - Install Homebrew with: `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
- - Add linuxbrew to path with: 
-~~~
- test -d ~/.linuxbrew && eval $(~/.linuxbrew/bin/brew shellenv)
+* Use the Homebrew install script from [brew.sh](https://brew.sh/) to install Homebrew. As of writing, this can be run with:
 
- test -d /home/linuxbrew/.linuxbrew && eval $(/home/linuxbrew/.linuxbrew/bin/brew shellenv)
+`/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
 
- test -r ~/.bash_profile && echo "eval \$($(brew --prefix)/bin/brew shellenv)" >> ~/.bashrc
- ~~~
+__Important:__ After installing Homebrew you must add it to your [PATH](https://en.wikipedia.org/wiki/PATH_(variable)) so that it can be found by your system to install programs such as Vrecord. After downloading Homebrew, the install script should provide some commands that must be run to do this. Run these commands, otherwise Homebrew will not be functional! Alternatively, see the [Homebrew linux documentation](https://docs.brew.sh/Homebrew-on-Linux#install) post-install steps.
 
-  - Alternately some issues (such as the sdl2 conflict) have been avoided by adding Linuxbrew lower down in the path order than the Linuxbrew instructions call for (Such as by editing `/etc/environment` to include `/home/linuxbrew/.linuxbrew/bin` after the other $PATH directories.) Your mileage may vary!
- * Add the AMIA Open Source tap for Homebrew:
-   - `brew tap amiaopensource/amiaos`
+### Tap the necessary repositories in Homebrew for vrecord:
+Run the following commands:
+
+`brew tap amiaopensource/amiaos`
+`brew tap mediaarea/mediaarea`
 
 ### Install additional vrecord dependencies via Brew
 * `brew install decklinksdk && brew install ffmpeg-ma --with-iec61883 && brew install gtkdialog` _Note:_ Some users on Ubuntu have reported installation problems with `gtkdialog` at step. See [this note](https://github.com/amiaopensource/homebrew-amiaos/blob/master/TROUBLESHOOTING.md#vrecord)  at the AMIA Open Source Homebrew repository for a possible fix.
