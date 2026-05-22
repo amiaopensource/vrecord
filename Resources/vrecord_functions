@@ -236,8 +236,9 @@ _get_dvrescue_input_list(){
     # set dvrescue input options
     unset DVRESCUE_DEVICES
     dvrescue -list_devices | grep "\[DV\]"
-    if [ "${OS_TYPE}" = "linux" ] ; then
-        echo "FFmpeg iec61883 Default"
+    "${FFMPEG_BIN}" -loglevel quiet -devices | grep 'iec61883' > /dev/null
+    if [ "$?" = 0 ] ; then
+        echo "iec61883 default device"
     fi
 }
 
