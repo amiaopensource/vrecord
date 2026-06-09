@@ -1835,7 +1835,7 @@ _lookup_choice(){
         "FFV1 version 3")
             _add_mediaconch_rule_set "${CODEC_FFV1_TEST}"
             VIDEOCODECNAME="FFV1 version 3"
-            MIDDLEOPTIONS_PRES+=(-c:v ffv1 -level 3 -g 1 -slicecrc 1)
+            MIDDLEOPTIONS_PRES+=(-c:v ffv1 -level 3 -g 1 -slices "${FFV1_SLICES}" -slicecrc 1)
             SUFFIX="_ffv1" ;;
         "JPEG2000")
             VIDEOCODECNAME="JPEG2000"
@@ -1963,6 +1963,7 @@ _lookup_choice(){
             STANDARD="ntsc"
             DECKLINK_FPS="30000/1001"
             SIG_GEN_SIZE="720x486"
+            FFV1_SLICES=24
             SIG_INTERLACEMENT="bff"
             if [[ "${VIDEO_CODEC_CHOICE}" = "h264" ]] ; then
                 RECORDINGFILTER+=",crop=w=720:h=480:x=0:y=4"
@@ -1980,6 +1981,7 @@ _lookup_choice(){
             STANDARD="pal "
             DECKLINK_FPS="25000/1000"
             SIG_GEN_SIZE="720x576"
+            FFV1_SLICES=24
             SIG_INTERLACEMENT="tff"
             _add_mediaconch_rule_set "${STANDARD_PAL_TEST}"
             _set_some_params
@@ -1991,6 +1993,7 @@ _lookup_choice(){
             STANDARD="23ps"
             DECKLINK_FPS="24000/1001"
             SIG_GEN_SIZE="1920x1080"
+            FFV1_SLICES=128
             SIG_INTERLACEMENT="prog"
             _set_some_params
             SET_COLOR_PRIMARIES="bt709"
@@ -2001,6 +2004,7 @@ _lookup_choice(){
             STANDARD="24ps"
             DECKLINK_FPS="24000/1000"
             SIG_GEN_SIZE="1920x1080"
+            FFV1_SLICES=128
             SIG_INTERLACEMENT="prog"
             _set_some_params
             SET_COLOR_PRIMARIES="bt709"
@@ -2011,6 +2015,7 @@ _lookup_choice(){
             STANDARD="Hp25"
             DECKLINK_FPS="25000/1000"
             SIG_GEN_SIZE="1920x1080"
+            FFV1_SLICES=128
             SIG_INTERLACEMENT="prog"
             _set_some_params
             SET_COLOR_PRIMARIES="bt709"
@@ -2021,6 +2026,7 @@ _lookup_choice(){
             STANDARD="Hp29"
             DECKLINK_FPS="30000/1001"
             SIG_GEN_SIZE="1920x1080"
+            FFV1_SLICES=128
             SIG_INTERLACEMENT="prog"
             _set_some_params
             SET_COLOR_PRIMARIES="bt709"
@@ -2031,6 +2037,7 @@ _lookup_choice(){
             STANDARD="Hp30"
             DECKLINK_FPS="30000/1000"
             SIG_GEN_SIZE="1920x1080"
+            FFV1_SLICES=128
             SIG_INTERLACEMENT="prog"
             _set_some_params
             SET_COLOR_PRIMARIES="bt709"
@@ -2041,6 +2048,7 @@ _lookup_choice(){
             STANDARD="Hi50"
             DECKLINK_FPS="25000/1000"
             SIG_GEN_SIZE="1920x1080"
+            FFV1_SLICES=128
             SIG_INTERLACEMENT="tff"
             _set_some_params
             SET_COLOR_PRIMARIES="bt709"
@@ -2051,6 +2059,7 @@ _lookup_choice(){
             STANDARD="Hi59"
             DECKLINK_FPS="30000/1001"
             SIG_GEN_SIZE="1920x1080"
+            FFV1_SLICES=128
             SIG_INTERLACEMENT="tff"
             _set_some_params
             SET_COLOR_PRIMARIES="bt709"
@@ -2061,6 +2070,7 @@ _lookup_choice(){
             STANDARD="Hi60"
             DECKLINK_FPS="30000/1000"
             SIG_GEN_SIZE="1920x1080"
+            FFV1_SLICES=128
             SIG_INTERLACEMENT="tff"
             _set_some_params
             SET_COLOR_PRIMARIES="bt709"
@@ -2071,6 +2081,7 @@ _lookup_choice(){
             STANDARD="hp50"
             DECKLINK_FPS="50000/1000"
             SIG_GEN_SIZE="1280x720"
+            FFV1_SLICES=64
             SIG_INTERLACEMENT="prog"
             _set_some_params
             SET_COLOR_PRIMARIES="bt709"
@@ -2081,6 +2092,7 @@ _lookup_choice(){
             STANDARD="hp59"
             DECKLINK_FPS="60000/1001"
             SIG_GEN_SIZE="1280x720"
+            FFV1_SLICES=64
             SIG_INTERLACEMENT="prog"
             _set_some_params
             SET_COLOR_PRIMARIES="bt709"
@@ -2091,6 +2103,7 @@ _lookup_choice(){
             STANDARD="hp60"
             DECKLINK_FPS="60000/1000"
             SIG_GEN_SIZE="1280x720"
+            FFV1_SLICES=64
             SIG_INTERLACEMENT="prog"
             _set_some_params
             SET_COLOR_PRIMARIES="bt709"
