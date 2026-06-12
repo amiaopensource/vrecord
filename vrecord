@@ -665,7 +665,9 @@ _setup_vrecord_process(){
             FFPLAY_OPTIONS+=(-f lavfi "amovie='pipe\:0',${PLAYBACKFILTER}")
         else
             if [[ "${VRECORD_STEPS}" = "1" ]] ; then
-                FFPLAY_OPTIONS+=(-timecode_format all)
+                if [[ "${DEVICE_INPUT_CHOICE}" != 1 ]] ; then
+                    FFPLAY_OPTIONS+=(-timecode_format all)
+                fi
                 FFPLAY_OPTIONS+=("${GRAB_INPUT[@]}")
             else
                 FFPLAY_OPTIONS+=(-i -)
