@@ -503,6 +503,7 @@ _setup_vrecord_input(){
         GRAB_INPUT+=(-i "${DECKLINK_INPUT_CHOICE}")
     elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
         if [[ "${DVRESCUE_INPUT_CHOICE}" = 'iec61883 default device' ]] ; then
+            DVRESCUE_INPUT_INDEX="iec61883 default"
             GRAB_INPUT+=(-f iec61883)
             GRAB_INPUT+=(-i auto)
         else
@@ -707,7 +708,7 @@ _get_inputs(){
     while read dvrescue_device ; do
         DVRESCUE_DEVICES+=("${dvrescue_device}")
     done < <(dvrescue -list_devices 2>/dev/null | grep "\[DV\]")
-    if [[ $(ffmpeg-ma -loglevel quiet -devices | grep 'iec61883') ]] ; then
+    if [[ "${IEC61883_INSTALLED}" != 'false' ]] ; then
         DVRESCUE_DEVICES+=( "iec61883 default device" )
     fi
     if [[ "${#DVRESCUE_DEVICES[@]}" = 1 ]] ; then # default to first input if only one
@@ -1181,6 +1182,16 @@ DVRESCUE_INPUT_GUI=$(cat << DVRESCUE_FORM
                         </vbox>
                         $(_gtk_vbox_list "DV_CONTAINER_CHOICE"         "100" "Select File Format"            "${DV_CONTAINER_OPTIONS[@]}")
                     </hbox>
+                </frame>
+                <frame IEC61883 options>
+                    <vbox>
+                        <checkbox>
+                            $(if [[ ${IEC61883_INSTALLED} != "true" ]] ; then echo "<sensitive>false</sensitive>" ; fi)
+                            <label>HDV</label>
+                            <default>"${HDV_CHOICE}"</default>
+                            <variable>HDV_CHOICE</variable>
+                        </checkbox>
+                    </vbox>
                 </frame>
             </vbox>
         </hbox>
@@ -2790,6 +2801,7 @@ MKVPROPEDIT_INSTALLED="$(if command -v mkvpropedit >/dev/null ; then echo true ;
 MPV_INSTALLED="$(if command -v mpv >/dev/null ; then echo true ; else echo false ; fi)"
 QCLI_INSTALLED="$(if command -v qcli >/dev/null ; then echo true ; else echo false ; fi)"
 DVPACKAGER_INSTALLED="$(if command -v dvpackager >/dev/null ; then echo true ; else echo false ; fi)"
+IEC61883_INSTALLED="$(if ffmpeg-ma -loglevel quiet -devices | grep -q 'iec61883' ; then echo true ; else echo false ; fi)"
 
 _upgrade_config_file(){
     # update value because the framemd5 choice changed from a yes/no picklist to a boolean as was the case in version 2023-08-07 and earlier
