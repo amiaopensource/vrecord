@@ -506,6 +506,11 @@ _setup_vrecord_input(){
             DVRESCUE_INPUT_INDEX="iec61883 default"
             GRAB_INPUT+=(-f iec61883)
             GRAB_INPUT+=(-i auto)
+            if [[ "${HDV_CHOICE}" = 'true' ]] ; then
+                GRAB_INPUT+=(-dvtype hdv)
+            else
+                GRAB_INPUT+=(-dvtype dv)
+            fi
         else
             DVRESCUE_INPUT_INDEX="$(echo "${DVRESCUE_INPUT_CHOICE}" | cut -d " " -f1 | sed 's|:$||g')"
             GRAB_INPUT+=("device://${DVRESCUE_INPUT_INDEX}")
@@ -2991,7 +2996,11 @@ if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
 elif [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
     _review_option "DV_CONTAINER_CHOICE" "${DV_CONTAINER_OPTIONS[@]}"
     FORMAT="rawvideo"
-    EXTENSION='dv'
+    if [[ "${HDV_CHOICE}" = 'true' ]] ; then
+        EXTENSION='m2t'
+    else
+        EXTENSION='dv'
+    fi
 elif [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
     _review_option "AUDIO_MODE_CODEC_CHOICE" "${AUDIO_CODEC_OPTIONS[@]}"
     EXTENSION="${AUDIO_EXT}"
