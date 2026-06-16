@@ -608,9 +608,15 @@ _setup_vrecord_process(){
                 VRECORD_STEPS="1" # Steps: player
             fi
             RECORD_COMMAND=("${FFMPEG_BIN}" -nostdin -nostats "${TIME_LIMIT[@]}" "${GRAB_INPUT[@]}")
-            RECORD_COMMAND+=(-map 0:v -c copy)
+            if [[ "${HDV_CHOICE}" != 'true' ]] ; then
+                RECORD_COMMAND+=(-map 0:v)
+            fi
+            RECORD_COMMAND+=(-c copy)
             RECORD_COMMAND+=(-f "${FORMAT}" "${VRECORD_OUTPUT}")
-            RECORD_COMMAND+=(-map 0:v -f rawvideo -c copy -)
+            if [[ "${HDV_CHOICE}" != 'true' ]] ; then
+                RECORD_COMMAND+=(-map 0:v)
+            fi
+            RECORD_COMMAND+=(-f "${FORMAT}" -c copy -)
         else
             VRECORD_STEPS="2" # Steps: record | player
             RECORD_COMMAND=(dvrescue)
@@ -2995,11 +3001,12 @@ if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
     _review_option "AUDIO_CODEC_CHOICE" "${AUDIO_CODEC_OPTIONS[@]}"
 elif [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
     _review_option "DV_CONTAINER_CHOICE" "${DV_CONTAINER_OPTIONS[@]}"
-    FORMAT="rawvideo"
     if [[ "${HDV_CHOICE}" = 'true' ]] ; then
         EXTENSION='m2t'
+        FORMAT="mpegts"
     else
         EXTENSION='dv'
+        FORMAT="rawvideo"
     fi
 elif [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
     _review_option "AUDIO_MODE_CODEC_CHOICE" "${AUDIO_CODEC_OPTIONS[@]}"
