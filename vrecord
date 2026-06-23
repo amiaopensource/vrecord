@@ -575,8 +575,28 @@ _setup_vrecord_process(){
         fi
         RECORD_COMMAND+=("${MIDDLEOPTIONS_PRES[@]}" "${MIDDLEOPTIONS_ALL[@]}")
         if [[ "${RUNTYPE}" = "record" ]] ; then
-            RECORD_COMMAND+=(-filter_complex "[0:v:0]${RECORDINGFILTER#,*}${TC_WRITE}${CAPTION_WRITE}[vout];${AUDIOMAP}" -map "[vout]" "${AUDIO_CHANNEL_MAP[@]}")
-            RECORD_COMMAND+=(-f tee [f=${FORMAT}:select=v,${AUDIO_TEE_SELECT_MAP}]"${VRECORD_OUTPUT}"\|[f=nut:onfail=abort:select=v,${AUDIO_TEE_SELECT_MAP},a\\\\:0]pipe:1)
+            if [[ "${FRAMEMD5_CHOICE}" = "true" ]] ; then
+                FRAMEMD5_IDX=1
+                FRAMEMD5NAME="${LOGDIR}/${FULL_OUTPUT_ID}.framemd5"
+                RECORD_COMMAND_TEE+=(\|[f=framehash:hash=MD5:onfail=abort:select=v\\\\:"${FRAMEMD5_IDX}"]"${FRAMEMD5NAME}")
+                RECORD_COMMAND_SPLIT=",split=2[vout][MD5_VOUT]"
+                RECORD_COMMAND_MAP+=(-map "[vout]" -map "[MD5_VOUT]")
+                EXTRAOPTIONS+=(-c:v:"${FRAMEMD5_IDX}" rawvideo)
+            else
+                RECORD_COMMAND_SPLIT="[vout]"
+                RECORD_COMMAND_MAP+=(-map "[vout]")
+            fi
+            AUDIO_TEE_SELECT_MAP=""
+            RECORD_COMMAND+=(-c:a:0 pcm_s24le)
+            for AUD_IDX in "${AUDIO_CHANNEL_IDX[@]}" ; do
+                AUDIO_TEE_SELECT_MAP+="${AUDIO_TEE_SELECT_MAP:+,}a\\\\:${AUD_IDX}"
+                for OPTION in "${AUDIO_MIDDLEOPTIONS_TEMPLATE[@]}" ; do
+                    RECORD_COMMAND+=("${OPTION//:X/:${AUD_IDX}}")
+                done
+            done
+            RECORD_COMMAND+=(-filter_complex "[0:v:0]${RECORDINGFILTER#,*}${TC_WRITE}${CAPTION_WRITE}${RECORD_COMMAND_SPLIT};${AUDIOMAP}" "${RECORD_COMMAND_MAP[@]}" "${AUDIO_CHANNEL_MAP[@]}" "${EXTRAOPTIONS[@]}")
+            RECORD_COMMAND+=(-f tee [f=${FORMAT}:select=v\\\\:0,${AUDIO_TEE_SELECT_MAP}]"${VRECORD_OUTPUT}"\|[f=nut:onfail=abort:select=v\\\\:0,${AUDIO_TEE_SELECT_MAP},a\\\\:0]pipe:1${RECORD_COMMAND_TEE[@]})
+            
             RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}")
         else
             if [[ "${SIGNAL_INPUT}" = 'true' ]] ; then
@@ -626,7 +646,7 @@ _setup_vrecord_process(){
         VRECORD_STEPS="2" # Steps: record | player (record is adjusted if actually recording)
         RECORD_COMMAND=("${FFMPEG_BIN}")
         RECORD_COMMAND+=(-nostdin -nostats "${TIME_LIMIT[@]}" "${GRAB_INPUT[@]}")
-        RECORD_COMMAND+=("${MIDDLEOPTIONS_PRES[@]}" "${MIDDLEOPTIONS_ALL[@]}")
+        RECORD_COMMAND+=("${MIDDLEOPTIONS_PRES_AUDIO[@]}" "${MIDDLEOPTIONS_ALL[@]}")
         if [[ "${RUNTYPE}" = "record" ]] ; then
             RECORD_COMMAND+=(-f "${FORMAT}" -filter_complex "${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" "${VRECORD_OUTPUT}")
         fi
@@ -1829,38 +1849,38 @@ _lookup_choice(){
             _add_mediaconch_rule_set "${CODEC_UNCOMPRESSED_TEST}"
             if [[ "${PIXEL_FORMAT}" = "yuv422p10" ]] ; then
                 VIDEOCODECNAME="Uncompressed 10-bit 4:2:2"
-                MIDDLEOPTIONS_PRES+=(-c:v v210)
+                MIDDLEOPTIONS_PRES+=(-c:v:0 v210)
             elif [[ "${PIXEL_FORMAT}" = "uyvy422" ]] ; then
                 VIDEOCODECNAME="Uncompressed 8-bit 4:2:2"
-                MIDDLEOPTIONS_PRES+=(-c:v rawvideo -pix_fmt uyvy422 -tag:v 2vuy)
+                MIDDLEOPTIONS_PRES+=(-c:v:0 rawvideo -pix_fmt:v:0 uyvy422 -tag:v:0 2vuy)
             fi ;;
         "FFV1 version 3")
             _add_mediaconch_rule_set "${CODEC_FFV1_TEST}"
             VIDEOCODECNAME="FFV1 version 3"
-            MIDDLEOPTIONS_PRES+=(-c:v ffv1 -level 3 -g 1 -slices "${FFV1_SLICES}" -slicecrc 1)
+            MIDDLEOPTIONS_PRES+=(-c:v:0 ffv1 -level:v:0 3 -g:v:0 1 -slices:v:0 "${FFV1_SLICES}" -slicecrc:v:0 1)
             SUFFIX="_ffv1" ;;
         "JPEG2000")
             VIDEOCODECNAME="JPEG2000"
-            MIDDLEOPTIONS_PRES+=(-c:v libopenjpeg)
+            MIDDLEOPTIONS_PRES+=(-c:v:0 libopenjpeg)
             SUFFIX="_j2k" ;;
         "ProRes")
             VIDEOCODECNAME="Apple ProRes 422"
-            MIDDLEOPTIONS_PRES+=(-c:v prores_ks -flags +ildct -profile:v 2)
+            MIDDLEOPTIONS_PRES+=(-c:v:0 prores_ks -flags:v:0 +ildct -profile:v:0 2)
             SUFFIX="_prores" ;;
         "ProRes (HQ)")
             VIDEOCODECNAME="Apple ProRes 422 HQ"
-            MIDDLEOPTIONS_PRES+=(-c:v prores_ks -flags +ildct -profile:v 3)
+            MIDDLEOPTIONS_PRES+=(-c:v:0 prores_ks -flags:v:0 +ildct -profile:v:0 3)
             SUFFIX="_prores" ;;
         "h264")
             VIDEOCODECNAME="H.264"
-            MIDDLEOPTIONS_PRES+=(-c:v h264 -pix_fmt yuv420p)
+            MIDDLEOPTIONS_PRES+=(-c:v:0 h264 -pix_fmt:v:0 yuv420p)
             SUFFIX="_h264" ;;
         "HuffYUV")
             VIDEOCODECNAME="HuffYUV"
             if [[ "${PIXEL_FORMAT}" = "yuv422p10" ]] ; then
-                MIDDLEOPTIONS_PRES+=(-c:v ffvhuff -pix_fmt yuv422p10le -pred median -context 1)
+                MIDDLEOPTIONS_PRES+=(-c:v:0 ffvhuff -pix_fmt:v:0 yuv422p10le -pred:v:0 median -context:v:0 1)
             elif [[ "${PIXEL_FORMAT}" = "uyvy422" ]] ; then
-                MIDDLEOPTIONS_PRES+=(-c:v ffvhuff -pix_fmt yuv422p -pred median -context 1)
+                MIDDLEOPTIONS_PRES+=(-c:v:0 ffvhuff -pix_fmt:v:0 yuv422p -pred:v:0 median -context:v:0 1)
             fi
             SUFFIX="_huff" ;;
 
@@ -1868,18 +1888,23 @@ _lookup_choice(){
         "10 bit") PIXEL_FORMAT="yuv422p10" ;;
         "8 bit")  PIXEL_FORMAT="uyvy422" ;;
 
+
+
         # audio codec
         "24-bit PCM")
-            MIDDLEOPTIONS_PRES+=(-c:a pcm_s24le)
-            MIDDLEOPTIONS_PRES+=(-rf64 auto)
+            MIDDLEOPTIONS_PRES_AUDIO+=(-c:a pcm_s24le)
+            MIDDLEOPTIONS_PRES_AUDIO+=(-rf64 auto)
+            AUDIO_MIDDLEOPTIONS_TEMPLATE+=(-c:a:X pcm_s24le)
             AUDIO_EXT='wav' ;;
         "24-bit FLAC")
-            MIDDLEOPTIONS_PRES+=(-c:a flac)
-            MIDDLEOPTIONS_PRES+=(-sample_fmt s32)
-            MIDDLEOPTIONS_PRES+=(-bits_per_raw_sample:a 24)
+            MIDDLEOPTIONS_PRES_AUDIO+=(-c:a flac)
+            MIDDLEOPTIONS_PRES_AUDIO+=(-sample_fmt s32)
+            MIDDLEOPTIONS_PRES_AUDIO+=(-bits_per_raw_sample:a 24)
+            AUDIO_MIDDLEOPTIONS_TEMPLATE+=(-c:a:X flac -sample_fmt:a:X s32 -bits_per_raw_sample:a:X 24)
             AUDIO_EXT='flac' ;;
         "AAC")
-            MIDDLEOPTIONS_PRES+=(-c:a aac) ;;
+            MIDDLEOPTIONS_PRES_AUDIO+=(-c:a aac)
+            AUDIO_MIDDLEOPTIONS_TEMPLATE+=(-c:a:X aac) ;;
 
         # audio mappings
         "2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, Channels 3 & 4 -> 2nd Track Stereo)")
@@ -1890,7 +1915,7 @@ _lookup_choice(){
             AUDIO_CHANNEL_MAP+=(-map "[orig]")
             AUDIO_CHANNEL_MAP+=(-map "[stereo1]")
             AUDIO_CHANNEL_MAP+=(-map "[stereo2]")
-            AUDIO_TEE_SELECT_MAP="a\\\\:1,a\\\\:2" ;;
+            AUDIO_CHANNEL_IDX=(1 2) ;;
         "1 Stereo Track (From Channels 1 & 2)")
             AUDIOMAP="[0:a:0]asplit[orig],pan=stereo| c0=c0 | c1=${PHASE_VALUE_2}c1[stereo1]"
             AUDIOMAP_MP4="[0:a:0]pan=stereo| c0=c0 | c1=${PHASE_VALUE_2}c1[stereo1]"
@@ -1898,7 +1923,7 @@ _lookup_choice(){
             AUDIO_PLAY_LABELS=",drawtext=fontfile=${DEFAULTFONT}:text='L(1)':fontcolor=white:fontsize=18:x=0:y=0,drawtext=fontfile=${DEFAULTFONT}:text='R(1)':fontcolor=white:fontsize=18:x=0:y=20"
             AUDIO_CHANNEL_MAP+=(-map "[orig]")
             AUDIO_CHANNEL_MAP+=(-map "[stereo1]")
-            AUDIO_TEE_SELECT_MAP="a\\\\:1" ;;
+            AUDIO_CHANNEL_IDX=(1) ;;
         "1 Stereo Track (From Channels 3 & 4)")
             AUDIOMAP="[0:a:0]asplit[orig],pan=stereo| c0=c2 | c1=${PHASE_VALUE_2}c3[stereo1]"
             AUDIOMAP_MP4="[0:a:0]pan=stereo| c0=c2 | c1=${PHASE_VALUE_2}c3[stereo1]"
@@ -1906,7 +1931,7 @@ _lookup_choice(){
             AUDIO_PLAY_LABELS=",drawtext=fontfile=${DEFAULTFONT}:text='L(1)':fontcolor=white:fontsize=18:x=0:y=40,drawtext=fontfile=${DEFAULTFONT}:text='R(1)':fontcolor=white:fontsize=18:x=0:y=60"
             AUDIO_CHANNEL_MAP+=(-map "[orig]")
             AUDIO_CHANNEL_MAP+=(-map "[stereo1]")
-            AUDIO_TEE_SELECT_MAP="a\\\\:1" ;;
+            AUDIO_CHANNEL_IDX=(1) ;;
         "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono")
             AUDIOMAP="[0:a:0]asplit[orig],pan=mono| c0=c0[mono1];[0:a:0]pan=mono| c0=${PHASE_VALUE_2}c1[mono2]"
             AUDIOMAP_MP4="[0:a:0]pan=mono| c0=c0[mono1];[0:a:0]pan=mono| c0=${PHASE_VALUE_2}c1[mono2]"
@@ -1915,7 +1940,7 @@ _lookup_choice(){
             AUDIO_CHANNEL_MAP+=(-map "[orig]")
             AUDIO_CHANNEL_MAP+=(-map "[mono1]")
             AUDIO_CHANNEL_MAP+=(-map "[mono2]")
-            AUDIO_TEE_SELECT_MAP="a\\\\:1,a\\\\:2" ;;
+            AUDIO_CHANNEL_IDX=(1 2) ;;
         "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono")
             AUDIOMAP="[0:a:0]asplit[orig],pan=mono| c0=${PHASE_VALUE_2}c1[mono1];[0:a:0]pan=mono| c0=c0[mono2]"
             AUDIOMAP_MP4="[0:a:0]pan=mono| c0=${PHASE_VALUE_2}c1[mono1];[0:a:0]pan=mono| c0=c0[mono2]"
@@ -1924,7 +1949,7 @@ _lookup_choice(){
             AUDIO_CHANNEL_MAP+=(-map "[orig]")
             AUDIO_CHANNEL_MAP+=(-map "[mono1]")
             AUDIO_CHANNEL_MAP+=(-map "[mono2]")
-            AUDIO_TEE_SELECT_MAP="a\\\\:1,a\\\\:2" ;;
+            AUDIO_CHANNEL_IDX=(1 2) ;;
         "Channel 1 -> Single Track Mono")
             AUDIOMAP="[0:a:0]asplit[orig],pan=mono| c0=c0[mono1]"
             AUDIOMAP_MP4="[0:a:0]pan=mono| c0=c0[mono1]"
@@ -1932,7 +1957,7 @@ _lookup_choice(){
             AUDIO_PLAY_LABELS=",drawtext=fontfile=${DEFAULTFONT}:text='M(1)':fontcolor=white:fontsize=18:x=0:y=0"
             AUDIO_CHANNEL_MAP+=(-map "[orig]")
             AUDIO_CHANNEL_MAP+=(-map "[mono1]")
-            AUDIO_TEE_SELECT_MAP="a\\\\:1" ;;
+            AUDIO_CHANNEL_IDX=(1) ;;
         "Channel 2 -> Single Track Mono")
             AUDIOMAP="[0:a:0]asplit[orig],pan=mono| c0=c1[mono1]"
             AUDIOMAP_MP4="[0:a:0]pan=mono| c0=c1[mono1]"
@@ -1940,7 +1965,7 @@ _lookup_choice(){
             AUDIO_PLAY_LABELS=",drawtext=fontfile=${DEFAULTFONT}:text='M(1)':fontcolor=white:fontsize=18:x=0:y=20"
             AUDIO_CHANNEL_MAP+=(-map "[orig]")
             AUDIO_CHANNEL_MAP+=(-map "[mono1]")
-            AUDIO_TEE_SELECT_MAP="a\\\\:1" ;;
+            AUDIO_CHANNEL_IDX=(1) ;;
         # Audio mode channel options
         "Mono")
             AUDIOMAP="[0:a:0]pan=mono| c0=c0[mono1]"
@@ -3106,7 +3131,6 @@ if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
     fi
     if [[ "${FRAMEMD5_CHOICE}" = "true" ]] ; then
         FRAMEMD5NAME="${LOGDIR}/${FULL_OUTPUT_ID}.framemd5"
-        EXTRAOUTPUTS+=(-an -f framemd5 "${FRAMEMD5NAME}")
     fi
     if [[ "${SIGNAL_INPUT}" = 'true' ]] ; then
             AUDIOMAP=$(sed "s/0:a:0/1:a:0/g" <<< "$AUDIOMAP")
