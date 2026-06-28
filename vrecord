@@ -2116,30 +2116,67 @@ _lookup_choice(){
                 RECORDINGFILTER+=",setsar=${NTSC_43_SAR_CHOICE}"
                 RECORDINGFILTER_MP4+=",setsar=${NTSC_43_SAR_CHOICE}"
                 ACCESS_MP4_LEVEL="3.1"
+                ACCESS_MP4_BITRATE="3500k"
             elif [[ "${STANDARD}" = "pal " ]] ; then
                 RECORDINGFILTER+=",setsar=${PAL_43_SAR_CHOICE}"
                 RECORDINGFILTER_MP4+=",setsar=${PAL_43_SAR_CHOICE}"
                 ACCESS_MP4_LEVEL="3.1"
+                ACCESS_MP4_BITRATE="3500k"
             elif [[ "${STANDARD}" = "23ps" ]] ; then
                 RECORDINGFILTER+=",setdar=4/3"
                 RECORDINGFILTER_MP4+=",setdar=4/3"
                 ACCESS_MP4_LEVEL="4.0"
+                ACCESS_MP4_BITRATE="8000k"
             elif [[ "${STANDARD}" = "24ps" ]] ; then
                 RECORDINGFILTER+=",setdar=4/3"
                 RECORDINGFILTER_MP4+=",setdar=4/3"
                 ACCESS_MP4_LEVEL="4.0"
-            elif [[ "${STANDARD:0:2}" = "Hp" ]] ; then
+                ACCESS_MP4_BITRATE="8000k"
+            elif [[ "${STANDARD}" = "Hp25" ]] ; then
                 RECORDINGFILTER+=",setdar=4/3"
                 RECORDINGFILTER_MP4+=",setdar=4/3"
                 ACCESS_MP4_LEVEL="4.0"
-            elif [[ "${STANDARD:0:2}" = "Hi" ]] ; then
+                ACCESS_MP4_BITRATE="8000k"
+            elif [[ "${STANDARD}" = "Hp29" ]] ; then
                 RECORDINGFILTER+=",setdar=4/3"
                 RECORDINGFILTER_MP4+=",setdar=4/3"
                 ACCESS_MP4_LEVEL="4.0"
-            elif [[ "${STANDARD:0:2}" = "hp" ]] ; then
+                ACCESS_MP4_BITRATE="8000k"
+            elif [[ "${STANDARD}" = "Hp30" ]] ; then
+                RECORDINGFILTER+=",setdar=4/3"
+                RECORDINGFILTER_MP4+=",setdar=4/3"
+                ACCESS_MP4_LEVEL="4.0"
+                ACCESS_MP4_BITRATE="8000k"
+            elif [[ "${STANDARD}" = "Hi50" ]] ; then
+                RECORDINGFILTER+=",setdar=4/3"
+                RECORDINGFILTER_MP4+=",setdar=4/3"
+                ACCESS_MP4_LEVEL="4.0"
+                ACCESS_MP4_BITRATE="10000k"
+            elif [[ "${STANDARD}" = "Hi59" ]] ; then
+                RECORDINGFILTER+=",setdar=4/3"
+                RECORDINGFILTER_MP4+=",setdar=4/3"
+                ACCESS_MP4_LEVEL="4.2"
+                ACCESS_MP4_BITRATE="12000k"
+            elif [[ "${STANDARD}" = "Hi60" ]] ; then
+                RECORDINGFILTER+=",setdar=4/3"
+                RECORDINGFILTER_MP4+=",setdar=4/3"
+                ACCESS_MP4_LEVEL="4.2"
+                ACCESS_MP4_BITRATE="12000k"
+            elif [[ "${STANDARD}" = "hp50" ]] ; then
                 RECORDINGFILTER+=",setdar=4/3"
                 RECORDINGFILTER_MP4+=",setdar=4/3"
                 ACCESS_MP4_LEVEL="3.2"
+                ACCESS_MP4_BITRATE="5000k"
+            elif [[ "${STANDARD}" = "hp59" ]] ; then
+                RECORDINGFILTER+=",setdar=4/3"
+                RECORDINGFILTER_MP4+=",setdar=4/3"
+                ACCESS_MP4_LEVEL="3.2"
+                ACCESS_MP4_BITRATE="7000k"
+            elif [[ "${STANDARD}" = "hp60" ]] ; then
+                RECORDINGFILTER+=",setdar=4/3"
+                RECORDINGFILTER_MP4+=",setdar=4/3"
+                ACCESS_MP4_LEVEL="3.2"
+                ACCESS_MP4_BITRATE="7000k"
             else
                 _report -w "Error: the standard wasn't set to an expected when it was expected to be."
             fi ;;
@@ -2148,30 +2185,67 @@ _lookup_choice(){
                 RECORDINGFILTER+=",setsar=${NTSC_169_SAR_CHOICE}"
                 RECORDINGFILTER_MP4+=",setsar=${NTSC_169_SAR_CHOICE}"
                 ACCESS_MP4_LEVEL="3.1"
+                ACCESS_MP4_BITRATE="3500k"
             elif [[ "${STANDARD}" = "pal " ]] ; then
                 RECORDINGFILTER+=",setsar=${PAL_169_SAR_CHOICE}"
                 RECORDINGFILTER_MP4+=",setsar=${PAL_169_SAR_CHOICE}"
                 ACCESS_MP4_LEVEL="3.1"
+                ACCESS_MP4_BITRATE="3500k"
             elif [[ "${STANDARD}" = "23ps" ]] ; then
                 RECORDINGFILTER+=",setdar=16/9"
                 RECORDINGFILTER_MP4+=",setdar=16/9"
                 ACCESS_MP4_LEVEL="4.0"
+                ACCESS_MP4_BITRATE="8000k"
             elif [[ "${STANDARD}" = "24ps" ]] ; then
                 RECORDINGFILTER+=",setdar=16/9"
                 RECORDINGFILTER_MP4+=",setdar=16/9"
                 ACCESS_MP4_LEVEL="4.0"
-            elif [[ "${STANDARD:0:2}" = "Hp" ]] ; then
+                ACCESS_MP4_BITRATE="8000k"
+            elif [[ "${STANDARD}" = "Hp25" ]] ; then
                 RECORDINGFILTER+=",setdar=16/9"
                 RECORDINGFILTER_MP4+=",setdar=16/9"
                 ACCESS_MP4_LEVEL="4.0"
-            elif [[ "${STANDARD:0:2}" = "Hi" ]] ; then
+                ACCESS_MP4_BITRATE="8000k"
+            elif [[ "${STANDARD}" = "Hp29" ]] ; then
                 RECORDINGFILTER+=",setdar=16/9"
                 RECORDINGFILTER_MP4+=",setdar=16/9"
                 ACCESS_MP4_LEVEL="4.0"
-            elif [[ "${STANDARD:0:2}" = "hp" ]] ; then
+                ACCESS_MP4_BITRATE="8000k"
+            elif [[ "${STANDARD}" = "Hp30" ]] ; then
+                RECORDINGFILTER+=",setdar=16/9"
+                RECORDINGFILTER_MP4+=",setdar=16/9"
+                ACCESS_MP4_LEVEL="4.0"
+                ACCESS_MP4_BITRATE="8000k"
+            elif [[ "${STANDARD}" = "Hi50" ]] ; then
+                RECORDINGFILTER+=",setdar=16/9"
+                RECORDINGFILTER_MP4+=",setdar=16/9"
+                ACCESS_MP4_LEVEL="4.0"
+                ACCESS_MP4_BITRATE="10000k"
+            elif [[ "${STANDARD}" = "Hi59" ]] ; then
+                RECORDINGFILTER+=",setdar=16/9"
+                RECORDINGFILTER_MP4+=",setdar=16/9"
+                ACCESS_MP4_LEVEL="4.2"
+                ACCESS_MP4_BITRATE="12000k"
+            elif [[ "${STANDARD}" = "Hi60" ]] ; then
+                RECORDINGFILTER+=",setdar=16/9"
+                RECORDINGFILTER_MP4+=",setdar=16/9"
+                ACCESS_MP4_LEVEL="4.2"
+                ACCESS_MP4_BITRATE="12000k"
+            elif [[ "${STANDARD}" = "hp50" ]] ; then
                 RECORDINGFILTER+=",setdar=16/9"
                 RECORDINGFILTER_MP4+=",setdar=16/9"
                 ACCESS_MP4_LEVEL="3.2"
+                ACCESS_MP4_BITRATE="5000k"
+            elif [[ "${STANDARD}" = "hp59" ]] ; then
+                RECORDINGFILTER+=",setdar=16/9"
+                RECORDINGFILTER_MP4+=",setdar=16/9"
+                ACCESS_MP4_LEVEL="3.2"
+                ACCESS_MP4_BITRATE="7000k"
+            elif [[ "${STANDARD}" = "hp60" ]] ; then
+                RECORDINGFILTER+=",setdar=16/9"
+                RECORDINGFILTER_MP4+=",setdar=16/9"
+                ACCESS_MP4_LEVEL="3.2"
+                ACCESS_MP4_BITRATE="7000k"
             else
                 _report -w "Error: the standard wasn't set to an expected when it was expected to be."
             fi ;;
@@ -3039,7 +3113,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
         RECORDINGFILTER_MP4+=",bwdif,format=yuv420p"
         RECORD_COMMAND_MP4+=(-filter_complex "[0:v:0]${RECORDINGFILTER_MP4#,*}[mp4_v_out];${AUDIOMAP_MP4}")
         MP4NAME="${DIR}/${FULL_OUTPUT_ID}.mp4"
-        EXTRAOUTPUTS+=("${MIDDLEOPTIONS_ALL[@]}" -movflags write_colr+faststart "${RECORD_COMMAND_MP4[@]}" -c:v h264 -g 12 -profile:v main -level "${ACCESS_MP4_LEVEL}" -c:a aac -map "[mp4_v_out]" "${AUDIO_CHANNEL_MAP[@]:2}" "${MP4NAME}")
+        EXTRAOUTPUTS+=("${MIDDLEOPTIONS_ALL[@]}" -movflags write_colr+faststart "${RECORD_COMMAND_MP4[@]}" -c:v h264 -g 12 -profile:v main -level "${ACCESS_MP4_LEVEL}" -b:v "${ACCESS_MP4_BITRATE}" -c:a aac -map "[mp4_v_out]" "${AUDIO_CHANNEL_MAP[@]:2}" "${MP4NAME}")
     fi
     if [[ "${FORMAT}" = "matroska" ]] ; then
         _review_option "EMBED_LOGS_CHOICE" "${EMBED_LOGS_OPTIONS[@]}"
