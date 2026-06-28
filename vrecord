@@ -3123,7 +3123,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
         FRAMEMD5NAME="${LOGDIR}/${FULL_OUTPUT_ID}.framemd5"
     fi
     if [[ "${SIGNAL_INPUT}" = 'true' ]] ; then
-            AUDIOMAP=$(sed "s/0:a:0/1:a:0/g" <<< "$AUDIOMAP")
+        AUDIOMAP=$(sed "s/0:a:0/1:a:0/g" <<< "$AUDIOMAP")
     fi
     if [[ "${MP4_CHOICE}" = "true" ]] ; then
         RECORDINGFILTER_MP4+=",bwdif,format=yuv420p"
