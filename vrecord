@@ -1912,59 +1912,49 @@ _lookup_choice(){
             AUDIOMAP_MP4="[0:a:0]pan=stereo| c0=c0 | c1=${PHASE_VALUE_2}c1[stereo1];[0:a:0]pan=stereo| c0=c2 | c1=${PHASE_VALUE_4}c3[stereo2]"
             AUDIO_PLAY_MAP="pan=4c|c0=c0|c1=${PHASE_VALUE_2}c1|c2=c2|c3=${PHASE_VALUE_4}c3"
             AUDIO_PLAY_LABELS=",drawtext=fontfile=${DEFAULTFONT}:text='L(1)':fontcolor=white:fontsize=18:x=0:y=0,drawtext=fontfile=${DEFAULTFONT}:text='R(1)':fontcolor=white:fontsize=18:x=0:y=20,drawtext=fontfile=${DEFAULTFONT}:text='L(2)':fontcolor=white:fontsize=18:x=0:y=40,drawtext=fontfile=${DEFAULTFONT}:text='R(2)':fontcolor=white:fontsize=18:x=0:y=60"
-            AUDIO_CHANNEL_MAP+=(-map "[orig]")
-            AUDIO_CHANNEL_MAP+=(-map "[stereo1]")
-            AUDIO_CHANNEL_MAP+=(-map "[stereo2]")
+            AUDIO_CHANNEL_MAP+=(-map "[orig]" -map "[stereo1]" -map "[stereo2]")
             AUDIO_CHANNEL_IDX=(1 2) ;;
         "1 Stereo Track (From Channels 1 & 2)")
             AUDIOMAP="[0:a:0]asplit[orig],pan=stereo| c0=c0 | c1=${PHASE_VALUE_2}c1[stereo1]"
             AUDIOMAP_MP4="[0:a:0]pan=stereo| c0=c0 | c1=${PHASE_VALUE_2}c1[stereo1]"
             AUDIO_PLAY_MAP="pan=stereo|c0=c0|c1=${PHASE_VALUE_2}c1"
             AUDIO_PLAY_LABELS=",drawtext=fontfile=${DEFAULTFONT}:text='L(1)':fontcolor=white:fontsize=18:x=0:y=0,drawtext=fontfile=${DEFAULTFONT}:text='R(1)':fontcolor=white:fontsize=18:x=0:y=20"
-            AUDIO_CHANNEL_MAP+=(-map "[orig]")
-            AUDIO_CHANNEL_MAP+=(-map "[stereo1]")
+            AUDIO_CHANNEL_MAP+=(-map "[orig]" -map "[stereo1]")
             AUDIO_CHANNEL_IDX=(1) ;;
         "1 Stereo Track (From Channels 3 & 4)")
             AUDIOMAP="[0:a:0]asplit[orig],pan=stereo| c0=c2 | c1=${PHASE_VALUE_2}c3[stereo1]"
             AUDIOMAP_MP4="[0:a:0]pan=stereo| c0=c2 | c1=${PHASE_VALUE_2}c3[stereo1]"
             AUDIO_PLAY_MAP="pan=stereo|c0=c2|c1=${PHASE_VALUE_2}c3"
             AUDIO_PLAY_LABELS=",drawtext=fontfile=${DEFAULTFONT}:text='L(1)':fontcolor=white:fontsize=18:x=0:y=40,drawtext=fontfile=${DEFAULTFONT}:text='R(1)':fontcolor=white:fontsize=18:x=0:y=60"
-            AUDIO_CHANNEL_MAP+=(-map "[orig]")
-            AUDIO_CHANNEL_MAP+=(-map "[stereo1]")
+            AUDIO_CHANNEL_MAP+=(-map "[orig]" -map "[stereo1]")
             AUDIO_CHANNEL_IDX=(1) ;;
         "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono")
             AUDIOMAP="[0:a:0]asplit[orig],pan=mono| c0=c0[mono1];[0:a:0]pan=mono| c0=${PHASE_VALUE_2}c1[mono2]"
             AUDIOMAP_MP4="[0:a:0]pan=mono| c0=c0[mono1];[0:a:0]pan=mono| c0=${PHASE_VALUE_2}c1[mono2]"
             AUDIO_PLAY_MAP="pan=stereo|c0=c0|c1=${PHASE_VALUE_2}c1"
             AUDIO_PLAY_LABELS=",drawtext=fontfile=${DEFAULTFONT}:text='M(1)':fontcolor=white:fontsize=18:x=0:y=0,drawtext=fontfile=${DEFAULTFONT}:text='M(2)':fontcolor=white:fontsize=18:x=0:y=20"
-            AUDIO_CHANNEL_MAP+=(-map "[orig]")
-            AUDIO_CHANNEL_MAP+=(-map "[mono1]")
-            AUDIO_CHANNEL_MAP+=(-map "[mono2]")
+            AUDIO_CHANNEL_MAP+=(-map "[orig]" -map "[mono1]" -map "[mono2]")
             AUDIO_CHANNEL_IDX=(1 2) ;;
         "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono")
             AUDIOMAP="[0:a:0]asplit[orig],pan=mono| c0=${PHASE_VALUE_2}c1[mono1];[0:a:0]pan=mono| c0=c0[mono2]"
             AUDIOMAP_MP4="[0:a:0]pan=mono| c0=${PHASE_VALUE_2}c1[mono1];[0:a:0]pan=mono| c0=c0[mono2]"
             AUDIO_PLAY_MAP="pan=stereo|c0=${PHASE_VALUE_2}c1|c1=c0"
             AUDIO_PLAY_LABELS=",drawtext=fontfile=${DEFAULTFONT}:text='M(2)':fontcolor=white:fontsize=18:x=0:y=0,drawtext=fontfile=${DEFAULTFONT}:text='M(1)':fontcolor=white:fontsize=18:x=0:y=20"
-            AUDIO_CHANNEL_MAP+=(-map "[orig]")
-            AUDIO_CHANNEL_MAP+=(-map "[mono1]")
-            AUDIO_CHANNEL_MAP+=(-map "[mono2]")
+            AUDIO_CHANNEL_MAP+=(-map "[orig]" -map "[mono1]" -map "[mono2]")
             AUDIO_CHANNEL_IDX=(1 2) ;;
         "Channel 1 -> Single Track Mono")
             AUDIOMAP="[0:a:0]asplit[orig],pan=mono| c0=c0[mono1]"
             AUDIOMAP_MP4="[0:a:0]pan=mono| c0=c0[mono1]"
             AUDIO_PLAY_MAP="pan=mono| c0=c0"
             AUDIO_PLAY_LABELS=",drawtext=fontfile=${DEFAULTFONT}:text='M(1)':fontcolor=white:fontsize=18:x=0:y=0"
-            AUDIO_CHANNEL_MAP+=(-map "[orig]")
-            AUDIO_CHANNEL_MAP+=(-map "[mono1]")
+            AUDIO_CHANNEL_MAP+=(-map "[orig]" -map "[mono1]")
             AUDIO_CHANNEL_IDX=(1) ;;
         "Channel 2 -> Single Track Mono")
             AUDIOMAP="[0:a:0]asplit[orig],pan=mono| c0=c1[mono1]"
             AUDIOMAP_MP4="[0:a:0]pan=mono| c0=c1[mono1]"
             AUDIO_PLAY_MAP="pan=mono| c0=c1"
             AUDIO_PLAY_LABELS=",drawtext=fontfile=${DEFAULTFONT}:text='M(1)':fontcolor=white:fontsize=18:x=0:y=20"
-            AUDIO_CHANNEL_MAP+=(-map "[orig]")
-            AUDIO_CHANNEL_MAP+=(-map "[mono1]")
+            AUDIO_CHANNEL_MAP+=(-map "[orig]" -map "[mono1]")
             AUDIO_CHANNEL_IDX=(1) ;;
         # Audio mode channel options
         "Mono")
