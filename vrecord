@@ -502,7 +502,14 @@ _setup_vrecord_input(){
         GRAB_INPUT+=(-raw_format "${PIXEL_FORMAT}")
         GRAB_INPUT+=(-i "${DECKLINK_INPUT_CHOICE}")
     elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
-        if [[ "${DVRESCUE_INPUT_CHOICE}" = 'iec61883 default device' ]] ; then
+        if [[ "${DVGRAB_CHOICE}" = 'true' ]] ; then
+            if [[ "${DVRESCUE_INPUT_CHOICE}" != 'dvgrab default device' ]] ; then
+                DVRESCUE_INPUT_INDEX="$(echo "${DVRESCUE_INPUT_CHOICE}" | cut -d " " -f1 | sed 's|:$||g')"
+                GRAB_INPUT+=(-guid "${DVRESCUE_INPUT_INDEX}")
+            fi
+            GRAB_INPUT+=(-f hdv)
+            GRAB_INPUT+=(-)
+        elif [[ "${DVRESCUE_INPUT_CHOICE}" = 'iec61883 default device' ]] ; then
             DVRESCUE_INPUT_INDEX="iec61883 default"
             GRAB_INPUT+=(-f iec61883)
             GRAB_INPUT+=(-i auto)
@@ -617,6 +624,14 @@ _setup_vrecord_process(){
                 RECORD_COMMAND+=(-map 0:v)
             fi
             RECORD_COMMAND+=(-f "${FORMAT}" -c copy -)
+        elif [[ "${DVGRAB_CHOICE}" = 'true' ]] ; then
+            if [[ "${RUNTYPE}" = "record" ]] ; then
+                VRECORD_STEPS="3" # Steps: record | player | file
+            else
+                VRECORD_STEPS="2" # Steps: record | player
+            fi
+            RECORD_COMMAND+=(dvgrab)
+            RECORD_COMMAND+=("${GRAB_INPUT[@]}")
         else
             VRECORD_STEPS="2" # Steps: record | player
             RECORD_COMMAND=(dvrescue)
@@ -675,6 +690,8 @@ _setup_vrecord_process(){
             FFPLAY_OPTIONS+=(-f lavfi "amovie='pipe\:0':${PLAYBACKFILTER}")
         elif [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
             FFPLAY_OPTIONS+=(-f lavfi "amovie='pipe\:0',${PLAYBACKFILTER}")
+        elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]]  && [[ "${DVRESCUE_INPUT_CHOICE}" = 'dvgrab default device' ]] ; then
+            FFPLAY_OPTIONS+=(-fflags nobuffer -f mpegts -)
         else
             if [[ "${VRECORD_STEPS}" = "1" ]] ; then
                 if [[ "${DEVICE_INPUT_CHOICE}" != 1 ]] ; then
@@ -721,6 +738,9 @@ _get_inputs(){
     done < <(dvrescue -list_devices 2>/dev/null | grep "\[DV\]")
     if [[ "${IEC61883_INSTALLED}" != 'false' ]] ; then
         DVRESCUE_DEVICES+=( "iec61883 default device" )
+    fi
+    if [[ "${DVGRAB_INSTALLED}" != 'false' ]] ; then
+        DVRESCUE_DEVICES+=( "dvgrab default device" )
     fi
     if [[ "${#DVRESCUE_DEVICES[@]}" = 1 ]] ; then # default to first input if only one
         DVRESCUE_INPUT_CHOICE="${DVRESCUE_DEVICES[0]}"
@@ -1201,6 +1221,12 @@ DVRESCUE_INPUT_GUI=$(cat << DVRESCUE_FORM
                             <label>HDV</label>
                             <default>"${HDV_CHOICE}"</default>
                             <variable>HDV_CHOICE</variable>
+                        </checkbox>
+                        <checkbox>
+                            $(if [[ ${DVGRAB_INSTALLED} != "true" ]] ; then echo "<sensitive>false</sensitive>" ; fi)
+                            <label>Use dvgrab</label>
+                            <default>"${DVGRAB_CHOICE}"</default>
+                            <variable>DVGRAB_CHOICE</variable>
                         </checkbox>
                     </vbox>
                 </frame>
@@ -2812,6 +2838,7 @@ MKVPROPEDIT_INSTALLED="$(if command -v mkvpropedit >/dev/null ; then echo true ;
 MPV_INSTALLED="$(if command -v mpv >/dev/null ; then echo true ; else echo false ; fi)"
 QCLI_INSTALLED="$(if command -v qcli >/dev/null ; then echo true ; else echo false ; fi)"
 DVPACKAGER_INSTALLED="$(if command -v dvpackager >/dev/null ; then echo true ; else echo false ; fi)"
+DVGRAB_INSTALLED="$(if command -v dvgrab >/dev/null ; then echo true ; else echo false ; fi)"
 IEC61883_INSTALLED="$(if ffmpeg-ma -loglevel quiet -devices | grep -q 'iec61883' ; then echo true ; else echo false ; fi)"
 
 _upgrade_config_file(){
@@ -3194,6 +3221,8 @@ if [[ "${VRECORD_STEPS}" = "2" ]] ; then
     else
         "${PLAYER_COMMAND[@]}"
     fi
+elif [[ "${VRECORD_STEPS}" = "3" ]] ; then
+    "${RECORD_COMMAND[@]}" | tee -p >("${PLAYER_COMMAND[@]}" ; pkill -INT -P $$ -x dvgrab) > "${VRECORD_OUTPUT}"
 else
     _report_unexpected_error VRECORD_STEPS
 fi
