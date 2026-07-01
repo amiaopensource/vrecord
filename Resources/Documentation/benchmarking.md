@@ -9,10 +9,13 @@ Running `vrecord` with the `-b` flag enables an experimental benchmarking mode b
 - **action**: `decode`, `encode`, or `flush` (stream finalization).
 - **media**: `video` or `audio`.
 - **stream**: the specifier for that stream
-- **label** — a human-readable tag for that stream when available.
-- **n** — total number of calls for that task/stream over the whole recording.
-- **user / sys / real** — *summed* microseconds across all `n` calls: total CPU time in user-space, total CPU time in kernel calls, and total wall-clock time, respectively.
-- **real/user** — ratio of the two summed columns; see below.
+- **label**: a human-readable tag for that stream when available.
+- **n**: total number of calls for that task/stream over the whole recording.
+- **user / sys / real**: *summed* microseconds across all `n` calls: total CPU time in user-space, total CPU time in kernel calls, and total wall-clock time, respectively.
+- **real/user**: ratio of the two summed columns; see below.
+- **sys/user**: summed kernel/syscall time relative to summed CPU time for that stream. High values point to overhead rather than actual encoding work.
+- **%user**: that stream's share of total summed `user` time across every stream in the recording.
+- **avg_us**: mean `real` time per call, in microseconds (`real / n`).
 
 **What to look for:**
 
