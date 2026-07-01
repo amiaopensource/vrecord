@@ -3423,7 +3423,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         grep " bench: " "${FULL_CAPTURE_LOG}" > "${BENCHMARK_DETAILS_NAME}"
         grep -v " bench: " "${FULL_CAPTURE_LOG}" > "${FULL_CAPTURE_LOG}.tmp"
         mv "${FULL_CAPTURE_LOG}.tmp" "${FULL_CAPTURE_LOG}"
-        awk 'BEGIN { printf "%-8s %-6s %-8s %-12s %-5s %-10s %-10s %-10s %-8s\n", "action","media","stream","label","n","user","sys","real","real/user"
+        awk 'BEGIN { printf "%-8s %-6s %-8s %-12s %-5s %-10s %-10s %-10s %-10s %-10s %-8s %-10s\n", "action","media","stream","label","n","user","sys","real","real/user","sys/user","%user","avg_us"
                 CEIL = 10000000 }
         $1 == "#label" { label[$2] = $3; next }
         $2 == "bench:" && $4 == "user" && $6 == "sys" && $8 == "real" {
@@ -3433,14 +3433,18 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
             action = parts[1]; media = parts[2]; stream = $10
             key = action SUBSEP media SUBSEP stream
             u[key]+=$3; s[key]+=$5; r[key]+=$7; n[key]++
+            TOTAL_U += $3
             lbl[key] = (action == "decode") ? "SOURCE" : ((stream in label) ? label[stream] : "-")
         }
         END {
             for (k in u) {
                 split(k, f, SUBSEP)
-                ratio = (u[k] > 0) ? r[k] / u[k] : 0
-                printf "%-8s %-6s %-8s %-12s %-5d %-10d %-10d %-10d %-8.3f\n", \
-                    f[1], f[2], f[3], lbl[k], n[k], u[k], s[k], r[k], ratio
+                ratio    = (u[k] > 0) ? r[k] / u[k] : 0
+                sysratio = (u[k] > 0) ? s[k] / u[k] : 0
+                share    = (TOTAL_U > 0) ? 100 * u[k] / TOTAL_U : 0
+                avgus    = (n[k] > 0) ? r[k] / n[k] : 0
+                printf "%-8s %-6s %-8s %-12s %-5d %-10d %-10d %-10d %-10.3f %-10.3f %-8.2f %-10.1f\n", \
+                    f[1], f[2], f[3], lbl[k], n[k], u[k], s[k], r[k], ratio, sysratio, share, avgus
             }
             if (bad > 0) printf "\n[skipped %d malformed/out-of-range bench line(s)]\n", bad
         }' <(grep -v " bench: utime" "${BENCHMARK_DETAILS_NAME}" | grep -v " bench: maxrss") | sort -k1,1 -k2,2r -k3,3n > "${BENCHMARK_SUMMARY_NAME}"
