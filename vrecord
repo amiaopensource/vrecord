@@ -61,6 +61,8 @@ Advanced options
       Vrecord's environmental variables.
   -c  Provide a recording configuration file, rather than the default one at
       '${CONFIG_FILE}'.
+  -b  Run vrecord in benchmarking mode. If using this, we suggest using a fixed
+      duration capture (such as 1 minute).
 
 See also the man page: man ${SCRIPTNAME}
 EOF
@@ -468,6 +470,9 @@ _setup_vrecord_input(){
         if [[ "$VERBOSE" = "true" ]] ; then
             GRAB_INPUT+=(-loglevel debug)
             _report -wt "When running vrecord in verbose mode, avoid using Visual + Numerical option."
+        elif [[ "${BENCHMARK_CHOICE}" = "true" ]] ; then
+            GRAB_INPUT+=(-loglevel info)
+            _report -wt "Running vrecord's record with benchmark options."
         else
             GRAB_INPUT+=(-loglevel warning)
         fi
@@ -560,6 +565,11 @@ _setup_vrecord_process(){
 
         RECORD_COMMAND=("${FFMPEG_BIN}")
         RECORD_COMMAND+=(-nostdin -nostats "${TIME_LIMIT[@]}")
+        if [[ "${BENCHMARK_CHOICE}" = "true" ]] ; then
+            BENCHMARK_DETAILS_NAME="${LOGDIR}/${FULL_OUTPUT_ID}_ffmpeg_benchmark_details.txt"
+            BENCHMARK_SUMMARY_NAME="${LOGDIR}/${FULL_OUTPUT_ID}_ffmpeg_benchmark_summary.txt"
+            RECORD_COMMAND+=(-benchmark -benchmark_all -loglevel info)
+        fi
         if [[ "${SIGNAL_INPUT}" != 'true' ]] && [[ -z "${ALT_INPUT}" ]] ; then
             MIDDLEOPTIONS_PRES+=(-map_metadata 0:s:v:0)
             if [[ "${CONTAINER_CHOICE}" != "Matroska" ]] ; then
@@ -2844,7 +2854,7 @@ mv "${VTT_TMP}" "${VTT_FILE}"
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":hc:erpaxnvI:O:D:i:sG" opt ; do
+while getopts ":hc:erpaxnvI:O:D:i:sGb" opt ; do
     case "${opt}" in
         h) _usage ; exit 0 ;;
         c) CONFIG_FILE="${OPTARG}" ;;
@@ -2861,6 +2871,7 @@ while getopts ":hc:erpaxnvI:O:D:i:sG" opt ; do
         i) ALT_INPUT="${OPTARG}" ;;
         s) SIGNAL_INPUT="true" ;;
         G) VERBOSE_GTKDIALOG="Y" ;;
+        b) BENCHMARK_CHOICE="true" ;;
         :) _report -w "Option -${OPTARG} requires an argument" ; _usage ; exit 1 ;;
         *) _report -w "Error: bad option -${OPTARG}" ; _usage ; exit 1 ;;
     esac
@@ -3307,6 +3318,28 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
     # timecode document handling
     if [[ -f "${TC_TMP}" ]] ; then
         _mv_tmp_file "${TC_TMP}" "${TIMECODE_LOG}"
+    fi
+    # benchmark handing
+    if [[ "${BENCHMARK_CHOICE}" = "true" ]] ; then
+        _report -dt "Post-processing benchmarking files..."
+        grep "^bench" "${FULL_CAPTURE_LOG}" > "${BENCHMARK_DETAILS_NAME}"
+        grep -v "^bench" "${FULL_CAPTURE_LOG}" > "${FULL_CAPTURE_LOG}.tmp"
+        mv "${FULL_CAPTURE_LOG}.tmp" "${FULL_CAPTURE_LOG}"
+        printf "%-8s %-6s %-8s %-5s %-10s %-10s %-10s %-8s\n" "action" "media" "stream" "n" "user" "sys" "real" "real/user" > "${BENCHMARK_SUMMARY_NAME}"
+        awk '$1 == "bench:" && $3 == "user" && $5 == "sys" && $7 == "real" {
+            split($8, parts, "_")
+            action = parts[1]; media = parts[2]; stream = $9
+            key = action SUBSEP media SUBSEP stream
+            u[key] += $2; s[key] += $4; r[key] += $6; n[key]++
+        }
+        END {
+            for (k in u) {
+                split(k, f, SUBSEP)
+                ratio = (u[k] > 0) ? r[k] / u[k] : 0
+                printf "%-8s %-6s %-8s %-5d %-10d %-10d %-10d %-8.3f\n", \
+                    f[1], f[2], f[3], n[k], u[k], s[k], r[k], ratio
+            }
+        }' "${BENCHMARK_DETAILS_NAME}" | sort -k1,1 -k2,2 -k3,3 >> "${BENCHMARK_SUMMARY_NAME}"
     fi
     # caption handling
     if [[ -s "${CAPTION_TMP}" ]] ; then
