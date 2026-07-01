@@ -472,7 +472,7 @@ _setup_vrecord_input(){
             _report -wt "When running vrecord in verbose mode, avoid using Visual + Numerical option."
         elif [[ "${BENCHMARK_CHOICE}" = "true" ]] ; then
             GRAB_INPUT+=(-loglevel info)
-            _report -wt "Running vrecord's record with benchmark options."
+            _report -dt "Running vrecord's record with benchmark options."
         else
             GRAB_INPUT+=(-loglevel warning)
         fi
