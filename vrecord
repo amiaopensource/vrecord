@@ -568,7 +568,7 @@ _setup_vrecord_process(){
         if [[ "${BENCHMARK_CHOICE}" = "true" ]] ; then
             BENCHMARK_DETAILS_NAME="${LOGDIR}/${FULL_OUTPUT_ID}_ffmpeg_benchmark_details.txt"
             BENCHMARK_SUMMARY_NAME="${LOGDIR}/${FULL_OUTPUT_ID}_ffmpeg_benchmark_summary.txt"
-            RECORD_COMMAND+=(-benchmark -benchmark_all -loglevel info)
+            RECORD_COMMAND+=(-benchmark -benchmark_all)
         fi
         if [[ "${SIGNAL_INPUT}" != 'true' ]] && [[ -z "${ALT_INPUT}" ]] ; then
             MIDDLEOPTIONS_PRES+=(-map_metadata 0:s:v:0)
