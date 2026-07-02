@@ -488,6 +488,7 @@ _setup_vrecord_input(){
         _set_ffmpeg_loglevel
         GRAB_INPUT+=(-i "${ALT_INPUT}")
     elif [[ "${SIGNAL_INPUT}" = 'true' ]] ; then
+        _set_ffmpeg_loglevel
         TEST_SIGNAL_CHOICE="testsrc=size=${SIG_GEN_SIZE}:r=${DECKLINK_FPS}"
         VIDEO_INPUT="Test signal: ${TEST_SIGNAL_CHOICE}"
         AUDIO_INPUT="Test signal: 440Hz"
