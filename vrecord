@@ -3315,7 +3315,7 @@ if [[ "${OS_TYPE}" = "macOS" ]] ; then
 fi
 _writeingestlog "computer_cores" "$CORE_COUNT"
 _writeingestlog "user_name" "$(whoami)"
-_writeingestlog "operating_system_VERSION" "$(uname -v)"
+_writeingestlog "operating_system_version" "$(uname -v)"
 _writeingestlog "vrecord version" "${VERSION}"
 _writeingestlog "datetime_start" "$(_get_iso8601)"
 
