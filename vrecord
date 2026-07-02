@@ -61,6 +61,8 @@ Advanced options
       Vrecord's environmental variables.
   -c  Provide a recording configuration file, rather than the default one at
       '${CONFIG_FILE}'.
+  -b  Run vrecord in benchmarking mode. If using this, we suggest using a fixed
+      duration capture (such as 1 minute).
 
 See also the man page: man ${SCRIPTNAME}
 EOF
@@ -468,6 +470,9 @@ _setup_vrecord_input(){
         if [[ "$VERBOSE" = "true" ]] ; then
             GRAB_INPUT+=(-loglevel debug)
             _report -wt "When running vrecord in verbose mode, avoid using Visual + Numerical option."
+        elif [[ "${BENCHMARK_CHOICE}" = "true" ]] ; then
+            GRAB_INPUT+=(-loglevel info -loglevel +time)
+            _report -dt "Running vrecord's record with benchmark options."
         else
             GRAB_INPUT+=(-loglevel warning)
         fi
@@ -560,6 +565,11 @@ _setup_vrecord_process(){
 
         RECORD_COMMAND=("${FFMPEG_BIN}")
         RECORD_COMMAND+=(-nostdin -nostats "${TIME_LIMIT[@]}")
+        if [[ "${BENCHMARK_CHOICE}" = "true" ]] ; then
+            BENCHMARK_DETAILS_NAME="${LOGDIR}/${FULL_OUTPUT_ID}_ffmpeg_benchmark_details.txt"
+            BENCHMARK_SUMMARY_NAME="${LOGDIR}/${FULL_OUTPUT_ID}_ffmpeg_benchmark_summary.txt"
+            RECORD_COMMAND+=(-benchmark -benchmark_all)
+        fi
         if [[ "${SIGNAL_INPUT}" != 'true' ]] && [[ -z "${ALT_INPUT}" ]] ; then
             MIDDLEOPTIONS_PRES+=(-map_metadata 0:s:v:0)
             if [[ "${CONTAINER_CHOICE}" != "Matroska" ]] ; then
@@ -1762,6 +1772,128 @@ _qcgraphimage(){
     " | gnuplot
 }
 
+_bench_plot() {
+    local BENCHFILE="${1}"
+    local BENCHMARK_GRAPH_NAME="${LOGDIR}/${FULL_OUTPUT_ID}_benchmark_graphs.jpeg"
+    local TMPDIR_BENCH
+    TMPDIR_BENCH=$(mktemp -d "${LOGDIR}/vrecord_bench.XXXXXX")
+    if [[ $? -ne 0 ]] || [[ -z "${TMPDIR_BENCH}" ]] || [[ ! -d "${TMPDIR_BENCH}" ]] ; then
+        _report -w "Could not create temp directory for benchmark plotting"
+        return 1
+    fi
+    local MANIFEST="${TMPDIR_BENCH}/keys.txt"
+    local STATSFILE="${TMPDIR_BENCH}/stats.txt"
+    local CEIL=10000000
+    local WARN_THRESHOLD=1.0
+
+    awk -v TMPDIR_BENCH="${TMPDIR_BENCH}" -v MANIFEST="${MANIFEST}" -v STATSFILE="${STATSFILE}" -v CEIL="${CEIL}" '
+    $1 == "#label" { LABEL[$2] = $3; next }
+    $2 == "bench:" && $4 == "user" && $6 == "sys" && $8 == "real" {
+        split($1, T, ":")
+        TSEC = T[1]*3600 + T[2]*60 + T[3]
+        if (T0 == "") T0 = TSEC
+        if (TSEC < T0) TSEC += 86400
+        ELAPSED = TSEC - T0
+        if (ELAPSED > GMAX) GMAX = ELAPSED
+
+        split($9, PARTS, "_")
+        ACTION = PARTS[1]; MEDIA = PARTS[2]; STREAM = $10
+        if (ACTION == "flush") { next }
+        if ($3 !~ /^[0-9]+$/ || $5 !~ /^[0-9]+$/ || $7 !~ /^[0-9]+$/ ||
+            $3+0 > CEIL || $5+0 > CEIL || $7+0 > CEIL) { next }
+        KEY = ACTION "_" MEDIA "_" STREAM
+        gsub(/[:.]/, "-", KEY)
+        if (!(KEY in SEEN)) {
+            SEEN[KEY] = 1
+            ORDER[++KORDER] = KEY
+            LBL[KEY] = (ACTION == "decode") ? "SOURCE" : ((STREAM in LABEL) ? LABEL[STREAM] : KEY)
+            ACT[KEY] = ACTION; MED[KEY] = MEDIA; STR[KEY] = STREAM
+        }
+        RATIO  = ($3 > 0) ? $7 / $3 : 0
+        SYSRAT = ($3 > 0) ? $5 / $3 : 0
+        printf "%.6f %.4f %.4f %d %d %d\n", ELAPSED, RATIO, SYSRAT, $3, $5, $7 >> (TMPDIR_BENCH "/" KEY ".dat")
+    }
+    END {
+        for (I = 1; I <= KORDER; I++)
+            printf "%s\t%s\t%s\t%s\t%s\n", ORDER[I], LBL[ORDER[I]], ACT[ORDER[I]], MED[ORDER[I]], STR[ORDER[I]] > MANIFEST
+        printf "%.6f\n", GMAX > STATSFILE
+    }' "${BENCHFILE}"
+
+    if [[ ! -s "${MANIFEST}" ]] ; then
+        _report -w "No benchmark data found to plot"
+        rm -rf "${TMPDIR_BENCH}"
+        return 1
+    fi
+
+    local GMAX
+    read -r GMAX < "${STATSFILE}"
+    [[ -z "${GMAX}" ]] && GMAX=1
+
+    local COLORLIST=("#1f77b4" "#ff7f0e" "#2ca02c" "#d62728" "#9467bd" "#8c564b" "#e377c2" "#7f7f7f" "#bcbd22" "#17becf")
+    local NKEYS=$(wc -l < "${MANIFEST}")
+    local ROWHEIGHT=140
+    local IMGHEIGHT=$(( (NKEYS + 1) * ROWHEIGHT ))
+    [[ "${IMGHEIGHT}" -lt 1080 ]] && IMGHEIGHT=1080
+
+    local PLOTCMDS="set xrange [0:${GMAX}]
+    "
+    local ENCPLOTPARTS=""
+    local COLORIDX=0
+    local INDEX=0
+    while IFS=$'\t' read -r KEY LABEL ACTION MEDIA STREAM ; do
+        ((INDEX++))
+        PLOTCMDS+="set ylabel '${LABEL}' font 'times,9' noenhanced offset 1,0
+        "
+        if [[ "${INDEX}" -eq "${NKEYS}" ]] ; then
+            PLOTCMDS+="set xlabel 'Elapsed time (s)'
+            "
+        else
+            PLOTCMDS+="set format x ''
+            unset xlabel
+            "
+        fi
+        PLOTCMDS+="plot '${TMPDIR_BENCH}/${KEY}.dat' using 1:3 with lines lc rgb '#c0c0c0' lw 1 notitle, \\
+             '${TMPDIR_BENCH}/${KEY}.dat' using 1:2 with lines lc rgb '#006400' lw 1.5 notitle, \\
+             '${TMPDIR_BENCH}/${KEY}.dat' using (\$2>=${WARN_THRESHOLD}?\$1:1/0):2 with points pt 7 ps 0.7 lc rgb '#ff0000' notitle
+        "
+        if [[ "${ACTION}" = "encode" ]] ; then
+            local COLOR="${COLORLIST[$(( COLORIDX % ${#COLORLIST[@]} ))]}"
+            ((COLORIDX++))
+            local SPECLABEL="${MEDIA:0:1}${STREAM}"
+            [[ -n "${ENCPLOTPARTS}" ]] && ENCPLOTPARTS+=", \\
+"
+            ENCPLOTPARTS+="'${TMPDIR_BENCH}/${KEY}.dat' using 1:(\$4+\$6) smooth cumulative with lines lc rgb '${COLOR}' lw 1.5 title '${SPECLABEL}' noenhanced"
+        fi
+    done < "${MANIFEST}"
+
+    PLOTCMDS+="set format x '%g'
+    set xlabel 'Elapsed time (s)'
+    set ylabel 'Cumulative CPU time (us)' font 'times,9' noenhanced offset 1,0
+    set key outside right top font 'times,8'
+    plot ${ENCPLOTPARTS}
+    unset key
+    "
+
+    echo "set terminal jpeg size 1920, ${IMGHEIGHT}
+    set output '${BENCHMARK_GRAPH_NAME}'
+    set term jpeg font 'times,12'
+    set multiplot layout $(( NKEYS + 1 )), 1 title '${ID} Benchmark Graphs -- green=real/user, gray=sys/user, red dot >= ${WARN_THRESHOLD}' font 'times,11' margins screen .10,.97, .03,.95 spacing screen 0, char 1.2
+    set style line 11 lc rgb '#808080' lt 1
+    set border 15 back ls 11
+    set xtics border out nomirror font 'times,9'
+    set ytics border out nomirror font 'times,9'
+    set grid y
+    set grid x
+    unset key
+    ${PLOTCMDS}
+    unset multiplot
+    " | gnuplot 2>"${TMPDIR_BENCH}/gnuplot_warnings.log"
+
+    if [[ -d "${TMPDIR_BENCH}" ]] ; then
+        rm -rf "${TMPDIR_BENCH}"
+    fi
+}
+
 _dvpackager(){
     _report -d "Please wait: running dvpackager on file."
     local TARGET="${1}"
@@ -2819,7 +2951,7 @@ mv "${VTT_TMP}" "${VTT_FILE}"
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":hc:erpaxnvI:O:D:i:sG" opt ; do
+while getopts ":hc:erpaxnvI:O:D:i:sGb" opt ; do
     case "${opt}" in
         h) _usage ; exit 0 ;;
         c) CONFIG_FILE="${OPTARG}" ;;
@@ -2836,6 +2968,7 @@ while getopts ":hc:erpaxnvI:O:D:i:sG" opt ; do
         i) ALT_INPUT="${OPTARG}" ;;
         s) SIGNAL_INPUT="true" ;;
         G) VERBOSE_GTKDIALOG="Y" ;;
+        b) BENCHMARK_CHOICE="true" ;;
         :) _report -w "Option -${OPTARG} requires an argument" ; _usage ; exit 1 ;;
         *) _report -w "Error: bad option -${OPTARG}" ; _usage ; exit 1 ;;
     esac
@@ -3128,7 +3261,7 @@ if [[ -n "${DURATION}" ]] ; then
     DURATION_TEXT="Tape duration set to: ${DURATION} minutes."
 fi
 
-if [[ "${DURATION}" -gt 200 ]] ; then
+if awk -v d="${DURATION}" 'BEGIN{exit !(d > 200)}' ; then
     _report -w "WARNING: Recording duration set to greater than 200 minutes. QCTools report will not be generated."
     QCTOOLSXML_CHOICE="No"
 fi
@@ -3283,6 +3416,39 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
     # timecode document handling
     if [[ -f "${TC_TMP}" ]] ; then
         _mv_tmp_file "${TC_TMP}" "${TIMECODE_LOG}"
+    fi
+    # benchmark handing
+    if [[ "${BENCHMARK_CHOICE}" = "true" ]] ; then
+        _report -dt "Post-processing benchmarking files..."
+        grep " bench: " "${FULL_CAPTURE_LOG}" > "${BENCHMARK_DETAILS_NAME}"
+        grep -v " bench: " "${FULL_CAPTURE_LOG}" > "${FULL_CAPTURE_LOG}.tmp"
+        mv "${FULL_CAPTURE_LOG}.tmp" "${FULL_CAPTURE_LOG}"
+        awk 'BEGIN { printf "%-8s %-6s %-8s %-12s %-5s %-10s %-10s %-10s %-10s %-10s %-8s %-10s\n", "action","media","stream","label","n","user","sys","real","real/user","sys/user","%user","avg_us"
+                CEIL = 10000000 }
+        $1 == "#label" { label[$2] = $3; next }
+        $2 == "bench:" && $4 == "user" && $6 == "sys" && $8 == "real" {
+            if ($3 !~ /^[0-9]+$/ || $5 !~ /^[0-9]+$/ || $7 !~ /^[0-9]+$/ ||
+                $3+0 > CEIL || $5+0 > CEIL || $7+0 > CEIL) { bad++; next }
+            split($9, parts, "_")
+            action = parts[1]; media = parts[2]; stream = $10
+            key = action SUBSEP media SUBSEP stream
+            u[key]+=$3; s[key]+=$5; r[key]+=$7; n[key]++
+            TOTAL_U += $3
+            lbl[key] = (action == "decode") ? "SOURCE" : ((stream in label) ? label[stream] : "-")
+        }
+        END {
+            for (k in u) {
+                split(k, f, SUBSEP)
+                ratio    = (u[k] > 0) ? r[k] / u[k] : 0
+                sysratio = (u[k] > 0) ? s[k] / u[k] : 0
+                share    = (TOTAL_U > 0) ? 100 * u[k] / TOTAL_U : 0
+                avgus    = (n[k] > 0) ? r[k] / n[k] : 0
+                printf "%-8s %-6s %-8s %-12s %-5d %-10d %-10d %-10d %-10.3f %-10.3f %-8.2f %-10.1f\n", \
+                    f[1], f[2], f[3], lbl[k], n[k], u[k], s[k], r[k], ratio, sysratio, share, avgus
+            }
+            if (bad > 0) printf "\n[skipped %d malformed/out-of-range bench line(s)]\n", bad
+        }' <(grep -v " bench: utime" "${BENCHMARK_DETAILS_NAME}" | grep -v " bench: maxrss") | sort -k1,1 -k2,2r -k3,3n > "${BENCHMARK_SUMMARY_NAME}"
+        _bench_plot "${BENCHMARK_DETAILS_NAME}"
     fi
     # caption handling
     if [[ -s "${CAPTION_TMP}" ]] ; then

@@ -25,6 +25,7 @@ This documentation is up to date as of vrecord version 2020-02-10.
 1. [DV Capture](Resources/Documentation/dv_info.md)
 1. [Audio Capture](Resources/Documentation/audio_info.md)
 1. [Analog Digitization Tips](Resources/Documentation/analog_digitization.md)
+1. [Benchmarking](Resources/Documentation/benchmarking.md)
 1. [Help and Troubleshooting](Resources/Documentation/troubleshooting.md)
    1. [Testing Your Equipment](Resources/Documentation/troubleshooting.md#testing-your-equipment)
    1. [Known Issues](Resources/Documentation/troubleshooting.md#known-issues)
