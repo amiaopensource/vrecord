@@ -381,8 +381,8 @@ _gtk_vbox_list() {
     SELECTION="$(_get_index_of_value "${!VARIABLE_NAME}" "${OPTION_LIST[@]}")"
     if [[ "${VARIABLE_NAME}" == "DECKLINK_INPUT_CHOICE" ]] ; then
         LIST="<input>_get_decklink_input_list</input>"
-    elif [[ "${VARIABLE_NAME}" == "DVRESCUE_INPUT_CHOICE" ]] ; then
-        LIST="<input>_get_dvrescue_input_list</input>"
+    elif [[ "${VARIABLE_NAME}" == "LINUX_DV_CHOICE" ]] ; then
+        LIST="<input>_get_linux_dv_tool_list</input>"
     elif [[ "${VARIABLE_NAME}" == "AUDIO_DEV_CHOICE" ]] ; then
         LIST="<input>_get_audio_device_list</input>"
     elif [[ "${VARIABLE_NAME}" == "STANDARD_CHOICE" ]] ; then
@@ -396,6 +396,9 @@ _gtk_vbox_list() {
             echo '<action condition="command_is_true( [ \"$CONTAINER_CHOICE\" = \"Matroska\" ] && echo true)">enable:EMBED_LOGS_CHOICE</action>
                   <action condition="command_is_true( [ \"$CONTAINER_CHOICE\" != \"Matroska\" ] && echo true)">disable:EMBED_LOGS_CHOICE</action>
                   <action type="refresh">VRECORD_OUTPUT_NAME</action>'
+        elif [[ "${VARIABLE_NAME}" == "LINUX_DV_CHOICE" ]] ; then
+            echo '<action condition="command_is_true( [ \"$LINUX_DV_CHOICE\" = \"dvgrab\" ] || [ \"$LINUX_DV_CHOICE\" = \"FFmpeg\" ] && echo true)">enable:HDV_CHOICE</action>
+                  <action condition="command_is_true( [ \"$LINUX_DV_CHOICE\" = \"dvrescue\" ] && echo true)">disable:HDV_CHOICE</action>'
         elif  [[ "${VARIABLE_NAME}" == "AUDIO_MODE_CODEC_CHOICE" ]] ; then
             echo '<action type="refresh">VRECORD_OUTPUT_NAME</action>'
         elif [[ "${VARIABLE_NAME}" == "AUDIO_DEV_CHOICE" ]] ; then
@@ -502,14 +505,18 @@ _setup_vrecord_input(){
         GRAB_INPUT+=(-raw_format "${PIXEL_FORMAT}")
         GRAB_INPUT+=(-i "${DECKLINK_INPUT_CHOICE}")
     elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
-        if [[ "${DVGRAB_CHOICE}" = 'true' ]] ; then
-            if [[ "${DVRESCUE_INPUT_CHOICE}" != 'dvgrab default device' ]] ; then
+        if [[ "${LINUX_DV_CHOICE}" = 'dvgrab' ]] ; then
+            if [[ "${DVRESCUE_INPUT_CHOICE}" != 'Default Device' ]] ; then
                 DVRESCUE_INPUT_INDEX="$(echo "${DVRESCUE_INPUT_CHOICE}" | cut -d " " -f1 | sed 's|:$||g')"
                 GRAB_INPUT+=(-guid "${DVRESCUE_INPUT_INDEX}")
             fi
-            GRAB_INPUT+=(-f hdv)
+            if [[ "${HDV_CHOICE}" = 'true' ]] ; then
+                GRAB_INPUT+=(-f hdv)
+            else
+                GRAB_INPUT+=(-f dv)
+            fi
             GRAB_INPUT+=(-)
-        elif [[ "${DVRESCUE_INPUT_CHOICE}" = 'iec61883 default device' ]] ; then
+        elif [[ "${LINUX_DV_CHOICE}" = 'FFmpeg' ]] ; then
             DVRESCUE_INPUT_INDEX="iec61883 default"
             GRAB_INPUT+=(-f iec61883)
             GRAB_INPUT+=(-i auto)
@@ -608,7 +615,7 @@ _setup_vrecord_process(){
         fi
     elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]] ; then
         WINDOW_NAME="mode:${RUNTYPE} - DV input:'${DVRESCUE_INPUT_INDEX}' - to end recording press q, esc, or close video window"
-        if [[ "${DVRESCUE_INPUT_CHOICE}" = 'iec61883 default device' ]] ; then
+        if [[ "${LINUX_DV_CHOICE}" = 'FFmpeg' ]] ; then
             if [[ "${RUNTYPE}" = "record" ]] ; then
                 VRECORD_STEPS="2" # Steps: record | player
             else
@@ -624,7 +631,7 @@ _setup_vrecord_process(){
                 RECORD_COMMAND+=(-map 0:v)
             fi
             RECORD_COMMAND+=(-f "${FORMAT}" -c copy -)
-        elif [[ "${DVGRAB_CHOICE}" = 'true' ]] ; then
+        elif [[ "${LINUX_DV_CHOICE}" = 'dvgrab' ]] ; then
             if [[ "${RUNTYPE}" = "record" ]] ; then
                 VRECORD_STEPS="3" # Steps: record | player | file
             else
@@ -690,7 +697,7 @@ _setup_vrecord_process(){
             FFPLAY_OPTIONS+=(-f lavfi "amovie='pipe\:0':${PLAYBACKFILTER}")
         elif [[ "${DEVICE_INPUT_CHOICE}" = 2 ]] ; then
             FFPLAY_OPTIONS+=(-f lavfi "amovie='pipe\:0',${PLAYBACKFILTER}")
-        elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]]  && [[ "${DVRESCUE_INPUT_CHOICE}" = 'dvgrab default device' ]] ; then
+        elif [[ "${DEVICE_INPUT_CHOICE}" = 1 ]]  && ( [[ "${LINUX_DV_CHOICE}" = 'dvgrab' ]] || [[ "${LINUX_DV_CHOICE}" = 'FFmpeg' ]] ) ; then
             FFPLAY_OPTIONS+=(-fflags nobuffer -f mpegts -)
         else
             if [[ "${VRECORD_STEPS}" = "1" ]] ; then
@@ -736,14 +743,11 @@ _get_inputs(){
     while read dvrescue_device ; do
         DVRESCUE_DEVICES+=("${dvrescue_device}")
     done < <(dvrescue -list_devices 2>/dev/null | grep "\[DV\]")
-    if [[ "${IEC61883_INSTALLED}" != 'false' ]] ; then
-        DVRESCUE_DEVICES+=( "iec61883 default device" )
-    fi
-    if [[ "${DVGRAB_INSTALLED}" != 'false' ]] ; then
-        DVRESCUE_DEVICES+=( "dvgrab default device" )
-    fi
     if [[ "${#DVRESCUE_DEVICES[@]}" = 1 ]] ; then # default to first input if only one
         DVRESCUE_INPUT_CHOICE="${DVRESCUE_DEVICES[0]}"
+    fi
+    if [[ "${DVGRAB_INSTALLED}" = 'true' ]] || [[ "${IEC61883_INSTALLED}" = 'true' ]]; then
+        DVRESCUE_DEVICES+=('Default Device')
     fi
 }
 
@@ -1167,6 +1171,23 @@ if [[ "${OS_TYPE}" = "linux" ]] ; then
         STATUS_CMD='dvrescue "device://${DVRESCUE_INPUT_INDEX}" -status 2>&1'
 fi
 
+
+if [[ ${OS_TYPE} = "linux" ]] ; then
+    LINUX_DV_OPTION_BOX="<frame Linux DV options>
+                <vbox>
+                    $(_gtk_vbox_list "LINUX_DV_CHOICE"         "400" "Select DV Capture Tool"           "${LINUX_DV_TOOLS[@]}")
+                    <checkbox>
+                        $(if [[ ${LINUX_DV_CHOICE} = "dvrescue" ]] ; then echo "<sensitive>false</sensitive>" ; fi)
+                        <label>HDV</label>
+                        <default>"${HDV_CHOICE}"</default>
+                        <variable>HDV_CHOICE</variable>
+                    </checkbox>
+                </vbox>
+            </frame>"
+else
+    LINUX_DV_OPTION_BOX=''
+fi
+
 DVRESCUE_INPUT_GUI=$(cat << DVRESCUE_FORM
 <frame DVRescue input options>
     <vbox>
@@ -1214,22 +1235,7 @@ DVRESCUE_INPUT_GUI=$(cat << DVRESCUE_FORM
                         $(_gtk_vbox_list "DV_CONTAINER_CHOICE"         "100" "Select File Format"            "${DV_CONTAINER_OPTIONS[@]}")
                     </hbox>
                 </frame>
-                <frame IEC61883 options>
-                    <vbox>
-                        <checkbox>
-                            $(if [[ ${IEC61883_INSTALLED} != "true" ]] ; then echo "<sensitive>false</sensitive>" ; fi)
-                            <label>HDV</label>
-                            <default>"${HDV_CHOICE}"</default>
-                            <variable>HDV_CHOICE</variable>
-                        </checkbox>
-                        <checkbox>
-                            $(if [[ ${DVGRAB_INSTALLED} != "true" ]] ; then echo "<sensitive>false</sensitive>" ; fi)
-                            <label>Use dvgrab</label>
-                            <default>"${DVGRAB_CHOICE}"</default>
-                            <variable>DVGRAB_CHOICE</variable>
-                        </checkbox>
-                    </vbox>
-                </frame>
+                $LINUX_DV_OPTION_BOX
             </vbox>
         </hbox>
     </vbox>
@@ -2838,6 +2844,7 @@ MKVPROPEDIT_INSTALLED="$(if command -v mkvpropedit >/dev/null ; then echo true ;
 MPV_INSTALLED="$(if command -v mpv >/dev/null ; then echo true ; else echo false ; fi)"
 QCLI_INSTALLED="$(if command -v qcli >/dev/null ; then echo true ; else echo false ; fi)"
 DVPACKAGER_INSTALLED="$(if command -v dvpackager >/dev/null ; then echo true ; else echo false ; fi)"
+DVRESCUE_INSTALLED="$(if command -v dvrescue >/dev/null ; then echo true ; else echo false ; fi)"
 DVGRAB_INSTALLED="$(if command -v dvgrab >/dev/null ; then echo true ; else echo false ; fi)"
 IEC61883_INSTALLED="$(if ffmpeg-ma -loglevel quiet -devices | grep -q 'iec61883' ; then echo true ; else echo false ; fi)"
 
@@ -2885,6 +2892,16 @@ fi
 _get_inputs
 
 if [[ "${OS_TYPE}" = "linux" ]] ; then
+    if [ $(which dvrescue) ] ; then
+        LINUX_DV_TOOLS+=(dvrescue)
+    fi
+    if [ $(which dvgrab) ] ; then
+        LINUX_DV_TOOLS+=(dvgrab)
+    fi
+    "${FFMPEG_BIN}" -loglevel quiet -devices | grep 'iec61883' > /dev/null
+    if [ "$?" = 0 ] ; then
+        LINUX_DV_TOOLS+=(FFmpeg)
+    fi
     while read audio_device ; do
         AUDIO_DEVICES+=("${audio_device}")
     done < <(arecord -l | grep card | cut -d ':' -f1-2 | awk '{$1=$1;print}')

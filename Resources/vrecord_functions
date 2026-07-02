@@ -87,7 +87,7 @@ _update_config_file(){
         echo "DV_RESCUE_OPTION_T=\"${DV_RESCUE_OPTION_T}\""
         echo "DV_RESCUE_OPTION_TC=\"${DV_RESCUE_OPTION_TC}\""
         echo "HDV_CHOICE=\"${HDV_CHOICE}\""
-        echo "DVGRAB_CHOICE=\"${DVGRAB_CHOICE}\""
+        echo "LINUX_DV_CHOICE=\"${LINUX_DV_CHOICE}\""
         echo "CC2VTT=\"${CC2VTT}\""
         echo "CC2SRT=\"${CC2SRT}\""
         echo "CAP2MP4=\"${CAP2MP4}\""
@@ -238,12 +238,20 @@ _get_dvrescue_input_list(){
     # set dvrescue input options
     unset DVRESCUE_DEVICES
     dvrescue -list_devices | grep "\[DV\]"
-    "${FFMPEG_BIN}" -loglevel quiet -devices | grep 'iec61883' > /dev/null
-    if [ "$?" = 0 ] ; then
-        echo "iec61883 default device"
+    echo "Default Device"
+}
+
+_get_linux_dv_tool_list(){
+    # set Linux DV tool options
+    if [ $(which dvrescue) ] ; then
+        echo "dvrescue"
     fi
     if [ $(which dvgrab) ] ; then
-        echo "dvgrab default device"
+        echo "dvgrab"
+    fi
+    "${FFMPEG_BIN}" -loglevel quiet -devices | grep 'iec61883' > /dev/null
+    if [ "$?" = 0 ] ; then
+        echo "FFmpeg"
     fi
 }
 
