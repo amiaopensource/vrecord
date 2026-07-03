@@ -628,7 +628,6 @@ _setup_vrecord_process(){
             AUDIO_TEE_SELECT_MAP=""
             EXTRAOPTIONS+=(-c:a:0 pcm_s24le)
             AUDIO_STREAM_N=$(( 1 + ${#AUDIO_CHANNEL_IDX[@]} ))
-            MP4_A_INDICES=()
             MP4_A_TEE_SELECT=""
             for AUD_IDX in "${AUDIO_CHANNEL_IDX[@]}" ; do
                 AUDIO_TEE_SELECT_MAP+="${AUDIO_TEE_SELECT_MAP:+,}a\\\\:${AUD_IDX}"
@@ -639,7 +638,6 @@ _setup_vrecord_process(){
             done
             if [[ "${MP4_CHOICE}" = "true" ]] ; then
                 for (( MAP_N=0; MAP_N<${#AUDIO_MP4_MAP[@]}/2; MAP_N++ )) ; do
-                    MP4_A_INDICES+=("${AUDIO_STREAM_N}")
                     MP4_A_TEE_SELECT+=",a\\\\:${AUDIO_STREAM_N}"
                     EXTRAOPTIONS+=(-c:a:"${AUDIO_STREAM_N}" aac)
                     (( AUDIO_STREAM_N++ ))
