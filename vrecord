@@ -2181,11 +2181,9 @@ _lookup_choice(){
                 _add_mediaconch_rule_set "${STANDARD_NTSC_TEST}"
             fi
             RECORDINGFILTER_MP4+=",crop=w=720:h=480:x=0:y=4"
-            _set_some_params
             SET_COLOR_PRIMARIES="smpte170m"
             SET_COLOR_TRC="bt709"
-            SET_COLORSPACE="smpte170m"
-            RECORDINGFILTER+=",setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}:field_mode=${SET_FIELD_MODE}" ;;
+            SET_COLORSPACE="smpte170m" ;;
         "PAL")
             STANDARD="pal "
             DECKLINK_FPS="25000/1000"
@@ -2193,132 +2191,108 @@ _lookup_choice(){
             FFV1_SLICES=24
             SIG_INTERLACEMENT="tff"
             _add_mediaconch_rule_set "${STANDARD_PAL_TEST}"
-            _set_some_params
             SET_COLOR_PRIMARIES="bt470bg"
             SET_COLOR_TRC="bt709"
-            SET_COLORSPACE="bt470bg"
-            RECORDINGFILTER+=",setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}:field_mode=${SET_FIELD_MODE}" ;;
+            SET_COLORSPACE="bt470bg" ;;
         "23ps - 1080p23.98")
             STANDARD="23ps"
             DECKLINK_FPS="24000/1001"
             SIG_GEN_SIZE="1920x1080"
             FFV1_SLICES=128
             SIG_INTERLACEMENT="prog"
-            _set_some_params
             SET_COLOR_PRIMARIES="bt709"
             SET_COLOR_TRC="bt709"
-            SET_COLORSPACE="bt709"
-            RECORDINGFILTER+=",setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}:field_mode=${SET_FIELD_MODE}" ;;
+            SET_COLORSPACE="bt709" ;;
         "24ps - 1080p24")
             STANDARD="24ps"
             DECKLINK_FPS="24000/1000"
             SIG_GEN_SIZE="1920x1080"
             FFV1_SLICES=128
             SIG_INTERLACEMENT="prog"
-            _set_some_params
             SET_COLOR_PRIMARIES="bt709"
             SET_COLOR_TRC="bt709"
-            SET_COLORSPACE="bt709"
-            RECORDINGFILTER+=",setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}:field_mode=${SET_FIELD_MODE}" ;;
+            SET_COLORSPACE="bt709" ;;
         "Hp25 - 1080p25")
             STANDARD="Hp25"
             DECKLINK_FPS="25000/1000"
             SIG_GEN_SIZE="1920x1080"
             FFV1_SLICES=128
             SIG_INTERLACEMENT="prog"
-            _set_some_params
             SET_COLOR_PRIMARIES="bt709"
             SET_COLOR_TRC="bt709"
-            SET_COLORSPACE="bt709"
-            RECORDINGFILTER+=",setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}:field_mode=${SET_FIELD_MODE}" ;;
+            SET_COLORSPACE="bt709" ;;
         "Hp29 - 1080p29.97")
             STANDARD="Hp29"
             DECKLINK_FPS="30000/1001"
             SIG_GEN_SIZE="1920x1080"
             FFV1_SLICES=128
             SIG_INTERLACEMENT="prog"
-            _set_some_params
             SET_COLOR_PRIMARIES="bt709"
             SET_COLOR_TRC="bt709"
-            SET_COLORSPACE="bt709"
-            RECORDINGFILTER+=",setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}:field_mode=${SET_FIELD_MODE}" ;;
+            SET_COLORSPACE="bt709" ;;
         "Hp30 - 1080p30")
             STANDARD="Hp30"
             DECKLINK_FPS="30000/1000"
             SIG_GEN_SIZE="1920x1080"
             FFV1_SLICES=128
             SIG_INTERLACEMENT="prog"
-            _set_some_params
             SET_COLOR_PRIMARIES="bt709"
             SET_COLOR_TRC="bt709"
-            SET_COLORSPACE="bt709"
-            RECORDINGFILTER+=",setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}:field_mode=${SET_FIELD_MODE}" ;;
+            SET_COLORSPACE="bt709" ;;
         "Hi50 - 1080i50")
             STANDARD="Hi50"
             DECKLINK_FPS="25000/1000"
             SIG_GEN_SIZE="1920x1080"
             FFV1_SLICES=128
             SIG_INTERLACEMENT="tff"
-            _set_some_params
             SET_COLOR_PRIMARIES="bt709"
             SET_COLOR_TRC="bt709"
-            SET_COLORSPACE="bt709"
-            RECORDINGFILTER+=",setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}:field_mode=${SET_FIELD_MODE}" ;;
+            SET_COLORSPACE="bt709" ;;
         "Hi59 - 1080i59.94")
             STANDARD="Hi59"
             DECKLINK_FPS="30000/1001"
             SIG_GEN_SIZE="1920x1080"
             FFV1_SLICES=128
             SIG_INTERLACEMENT="tff"
-            _set_some_params
             SET_COLOR_PRIMARIES="bt709"
             SET_COLOR_TRC="bt709"
-            SET_COLORSPACE="bt709"
-            RECORDINGFILTER+=",setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}:field_mode=${SET_FIELD_MODE}" ;;
+            SET_COLORSPACE="bt709" ;;
         "Hi60 - 1080i60")
             STANDARD="Hi60"
             DECKLINK_FPS="30000/1000"
             SIG_GEN_SIZE="1920x1080"
             FFV1_SLICES=128
             SIG_INTERLACEMENT="tff"
-            _set_some_params
             SET_COLOR_PRIMARIES="bt709"
             SET_COLOR_TRC="bt709"
-            SET_COLORSPACE="bt709"
-            RECORDINGFILTER+=",setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}:field_mode=${SET_FIELD_MODE}" ;;
+            SET_COLORSPACE="bt709" ;;
         "hp50 - 720p50")
             STANDARD="hp50"
             DECKLINK_FPS="50000/1000"
             SIG_GEN_SIZE="1280x720"
             FFV1_SLICES=64
             SIG_INTERLACEMENT="prog"
-            _set_some_params
             SET_COLOR_PRIMARIES="bt709"
             SET_COLOR_TRC="bt709"
-            SET_COLORSPACE="bt709"
-            RECORDINGFILTER+=",setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}:field_mode=${SET_FIELD_MODE}" ;;
+            SET_COLORSPACE="bt709" ;;
         "hp59 - 720p59.94")
             STANDARD="hp59"
             DECKLINK_FPS="60000/1001"
             SIG_GEN_SIZE="1280x720"
             FFV1_SLICES=64
             SIG_INTERLACEMENT="prog"
-            _set_some_params
             SET_COLOR_PRIMARIES="bt709"
             SET_COLOR_TRC="bt709"
-            SET_COLORSPACE="bt709"
-            RECORDINGFILTER+=",setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}:field_mode=${SET_FIELD_MODE}" ;;
+            SET_COLORSPACE="bt709" ;;
         "hp60 - 720p60")
             STANDARD="hp60"
             DECKLINK_FPS="60000/1000"
             SIG_GEN_SIZE="1280x720"
             FFV1_SLICES=64
             SIG_INTERLACEMENT="prog"
-            _set_some_params
             SET_COLOR_PRIMARIES="bt709"
             SET_COLOR_TRC="bt709"
-            SET_COLORSPACE="bt709"
-            RECORDINGFILTER+=",setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}:field_mode=${SET_FIELD_MODE}" ;;
+            SET_COLORSPACE="bt709" ;;
         # aspect ratio options
         "4/3")
             if [[ "${STANDARD}" = "ntsc" ]] ; then
@@ -2784,6 +2758,8 @@ _review_all_options(){
         _review_option "VIDEO_BIT_DEPTH_CHOICE" "${VIDEO_BITDEPTH_OPTIONS[@]}"
         _review_option "AUDIO_MAPPING_CHOICE" "${CHANNEL_MAPPING_OPTIONS[@]}"
         _review_option "STANDARD_CHOICE" "${STANDARD_OPTIONS[@]}"
+        _set_some_params
+        RECORDINGFILTER+=",setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}:field_mode=${SET_FIELD_MODE}"
         _review_option -d "4/3" "ASPECT_RATIO_CHOICE" "${ASPECT_RATIO_OPTIONS[@]}"
         _review_option -n -d "10/11" "NTSC_43_SAR_CHOICE"  "${NTSC_43_SAR_OPTIONS[@]}"
         _review_option -n -d "40/33" "NTSC_169_SAR_CHOICE" "${NTSC_169_SAR_OPTIONS[@]}"
