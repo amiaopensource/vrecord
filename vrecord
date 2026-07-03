@@ -611,7 +611,7 @@ _setup_vrecord_process(){
                 RECORD_COMMAND_MP4_FILTER=";[MP4_V]${RECORDINGFILTER_MP4#,},bwdif=send_frame,format=yuv420p[${MP4_V_PADNAME}]"
                 SPLIT_MAPS+=(-map "[${MP4_V_PADNAME}]")
                 (( VIDEO_STREAM_IDX++ ))
-                EXTRAOPTIONS+=(-c:v:"${MP4_V_IDX}" h264 -g:v:"${MP4_V_IDX}" 12 -profile:v:"${MP4_V_IDX}" main -level:v:"${MP4_V_IDX}" "${ACCESS_MP4_LEVEL}" -b:v:"${MP4_V_IDX}" "${ACCESS_MP4_BITRATE}")
+                EXTRAOPTIONS+=(-c:v:"${MP4_V_IDX}" h264 -pix_fmt:v:"${MP4_V_IDX}" yuv420p -g:v:"${MP4_V_IDX}" 12 -profile:v:"${MP4_V_IDX}" main -level:v:"${MP4_V_IDX}" "${ACCESS_MP4_LEVEL}" -b:v:"${MP4_V_IDX}" "${ACCESS_MP4_BITRATE}")
             fi
 
             # construct end of video filterchain
