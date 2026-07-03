@@ -586,29 +586,78 @@ _setup_vrecord_process(){
         fi
         RECORD_COMMAND+=("${MIDDLEOPTIONS_PRES[@]}" "${MIDDLEOPTIONS_ALL[@]}")
         if [[ "${RUNTYPE}" = "record" ]] ; then
+
+            # construct the video stream processing
+            MAIN_V_PADNAME="MAIN_V"
+            SPLIT_PADS=()
+            SPLIT_MAPS=(-map "[${MAIN_V_PADNAME}]")
+            VIDEO_STREAM_IDX=1
             if [[ "${FRAMEMD5_CHOICE}" = "true" ]] ; then
-                FRAMEMD5_IDX=1
+                FRAMEMD5_V_IDX="${VIDEO_STREAM_IDX}"
                 FRAMEMD5NAME="${LOGDIR}/${FULL_OUTPUT_ID}.framemd5"
-                RECORD_COMMAND_TEE+=(\|[f=framehash:hash=MD5:onfail=abort:select=v\\\\:"${FRAMEMD5_IDX}"]"${FRAMEMD5NAME}")
-                RECORD_COMMAND_SPLIT=",split=2[vout][MD5_VOUT]"
-                RECORD_COMMAND_MAP+=(-map "[vout]" -map "[MD5_VOUT]")
-                EXTRAOPTIONS+=(-c:v:"${FRAMEMD5_IDX}" rawvideo)
-            else
-                RECORD_COMMAND_SPLIT="[vout]"
-                RECORD_COMMAND_MAP+=(-map "[vout]")
+                FRAMEMD5_PADNAME="MD5_V"
+                SPLIT_PADS+=("${FRAMEMD5_PADNAME}")
+                SPLIT_MAPS+=(-map "[${FRAMEMD5_PADNAME}]")
+                (( VIDEO_STREAM_IDX++ ))
+                EXTRAOPTIONS+=(-c:v:"${FRAMEMD5_V_IDX}" rawvideo)
             fi
+            RECORD_COMMAND_MP4_FILTER=""
+            if [[ "${MP4_CHOICE}" = "true" ]] ; then
+                MP4_V_IDX="${VIDEO_STREAM_IDX}"
+                MP4NAME="${DIR}/${FULL_OUTPUT_ID}.mp4"
+                MP4_V_PADNAME="MP4_V"
+                SPLIT_PADS+=("${MP4_V_PADNAME}")
+                RECORD_COMMAND_MP4_FILTER=";[MP4_V]${RECORDINGFILTER_MP4#,},bwdif=send_frame,format=yuv420p[${MP4_V_PADNAME}]"
+                SPLIT_MAPS+=(-map "[${MP4_V_PADNAME}]")
+                (( VIDEO_STREAM_IDX++ ))
+                EXTRAOPTIONS+=(-c:v:"${MP4_V_IDX}" h264 -g:v:"${MP4_V_IDX}" 12 -profile:v:"${MP4_V_IDX}" main -level:v:"${MP4_V_IDX}" "${ACCESS_MP4_LEVEL}" -b:v:"${MP4_V_IDX}" "${ACCESS_MP4_BITRATE}")
+            fi
+
+            # construct end of video filterchain
+            SPLIT_COUNT=$(( 1 + ${#SPLIT_PADS[@]} ))
+            if [[ "${SPLIT_COUNT}" -gt 1 ]] ; then
+                RECORD_COMMAND_SPLIT=",split=${SPLIT_COUNT}[${MAIN_V_PADNAME}]"
+                for OUTPUT_PAD_NAME in "${SPLIT_PADS[@]}" ; do
+                    RECORD_COMMAND_SPLIT+="[${OUTPUT_PAD_NAME}]"
+                done
+            else
+                RECORD_COMMAND_SPLIT="[${MAIN_V_PADNAME}]"
+            fi
+
+            # construct the audio stream processing
             AUDIO_TEE_SELECT_MAP=""
-            RECORD_COMMAND+=(-c:a:0 pcm_s24le)
+            EXTRAOPTIONS+=(-c:a:0 pcm_s24le)
+            AUDIO_STREAM_N=$(( 1 + ${#AUDIO_CHANNEL_IDX[@]} ))
+            MP4_A_INDICES=()
+            MP4_A_TEE_SELECT=""
             for AUD_IDX in "${AUDIO_CHANNEL_IDX[@]}" ; do
                 AUDIO_TEE_SELECT_MAP+="${AUDIO_TEE_SELECT_MAP:+,}a\\\\:${AUD_IDX}"
+                # fill out audio template per stream
                 for OPTION in "${AUDIO_MIDDLEOPTIONS_TEMPLATE[@]}" ; do
                     RECORD_COMMAND+=("${OPTION//:X/:${AUD_IDX}}")
                 done
             done
-            RECORD_COMMAND+=(-filter_complex "[0:v:0]${RECORDINGFILTER#,*}${TC_WRITE}${CAPTION_WRITE}${RECORD_COMMAND_SPLIT};${AUDIOMAP}" "${RECORD_COMMAND_MAP[@]}" "${AUDIO_CHANNEL_MAP[@]}" "${EXTRAOPTIONS[@]}")
-            RECORD_COMMAND+=(-f tee [f=${FORMAT}:select=v\\\\:0,${AUDIO_TEE_SELECT_MAP}]"${VRECORD_OUTPUT}"\|[f=nut:onfail=abort:select=v\\\\:0,${AUDIO_TEE_SELECT_MAP},a\\\\:0]pipe:1${RECORD_COMMAND_TEE[@]})
-            
-            RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}")
+            if [[ "${MP4_CHOICE}" = "true" ]] ; then
+                for (( MAP_N=0; MAP_N<${#AUDIO_MP4_MAP[@]}/2; MAP_N++ )) ; do
+                    MP4_A_INDICES+=("${AUDIO_STREAM_N}")
+                    MP4_A_TEE_SELECT+=",a\\\\:${AUDIO_STREAM_N}"
+                    EXTRAOPTIONS+=(-c:a:"${AUDIO_STREAM_N}" aac)
+                    (( AUDIO_STREAM_N++ ))
+                done
+            fi
+
+            RECORD_COMMAND+=(-filter_complex "[0:v:0]${RECORDINGFILTER#,*}${TC_WRITE}${CAPTION_WRITE}${RECORD_COMMAND_SPLIT};${AUDIOMAP}${RECORD_COMMAND_MP4_FILTER}" "${SPLIT_MAPS[@]}" "${AUDIO_CHANNEL_MAP[@]}" $([[ "${MP4_CHOICE}" = "true" ]] && echo "${AUDIO_MP4_MAP[@]}") "${EXTRAOPTIONS[@]}")
+
+            # Build tee string
+            RECORD_COMMAND_TEE_STR="[f=${FORMAT}:select=v\\\\:0,${AUDIO_TEE_SELECT_MAP}]${VRECORD_OUTPUT}"
+            RECORD_COMMAND_TEE_STR+="|[f=nut:onfail=abort:select=v\\\\:0,${AUDIO_TEE_SELECT_MAP},a\\\\:0]pipe:1"
+            if [[ "${FRAMEMD5_CHOICE}" = "true" ]] ; then
+                RECORD_COMMAND_TEE_STR+="|[f=framemd5:hash=MD5:select=v\\\\:${FRAMEMD5_V_IDX}]${FRAMEMD5NAME}"
+            fi
+            if [[ "${MP4_CHOICE}" = "true" ]] ; then
+                RECORD_COMMAND_TEE_STR+="|[f=mp4:onfail=ignore:movflags=write_colr+faststart:select=v\\\\:${MP4_V_IDX}${MP4_A_TEE_SELECT}]${MP4NAME}"
+            fi
+            RECORD_COMMAND+=(-f tee "${RECORD_COMMAND_TEE_STR}")
         else
             if [[ "${SIGNAL_INPUT}" = 'true' ]] ; then
                 PIPE_OUTPUT=(-c:v ffv1)
@@ -721,6 +770,10 @@ _setup_vrecord_process(){
         echo "PLAY ${PLAYER_COMMAND[@]}"
         echo "RECORD ${RECORD_COMMAND[@]}"
         echo "QCLI ${QCLI_COMMAND_PIPE[@]}"
+        echo "SPLIT_PADS ${SPLIT_PADS[@]}"
+        echo "SPLIT_MAPS ${SPLIT_MAPS[@]}"
+        echo "RECORD_COMMAND_SPLIT ${RECORD_COMMAND_SPLIT[@]}"
+        echo "EXTRAOPTIONS ${EXTRAOPTIONS[@]}"
     fi
 }
 
@@ -2022,8 +2075,6 @@ _lookup_choice(){
         "10 bit") PIXEL_FORMAT="yuv422p10" ;;
         "8 bit")  PIXEL_FORMAT="uyvy422" ;;
 
-
-
         # audio codec
         "24-bit PCM")
             _add_mediaconch_rule_set "${AUDIO_CODEC_PCM_TEST}"
@@ -2044,63 +2095,70 @@ _lookup_choice(){
 
         # audio mappings
         "2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, Channels 3 & 4 -> 2nd Track Stereo)")
-            AUDIOMAP="[0:a:0]asplit[orig],pan=stereo| c0=c0 | c1=${PHASE_VALUE_2}c1[stereo1];[0:a:0]pan=stereo| c0=c2 | c1=${PHASE_VALUE_4}c3[stereo2]"
-            AUDIOMAP_MP4="[0:a:0]pan=stereo| c0=c0 | c1=${PHASE_VALUE_2}c1[stereo1];[0:a:0]pan=stereo| c0=c2 | c1=${PHASE_VALUE_4}c3[stereo2]"
+            ASPLIT_N=$([[ "${MP4_CHOICE}" = "true" ]] && echo 2 || echo 1)
+            AUDIOMAP="[0:a:0]asplit=2[ORIG_A][ORIG_A2];[ORIG_A2]pan=stereo|c0=c0|c1=${PHASE_VALUE_2}c1,asplit=${ASPLIT_N}[MAIN_STEREO_A1]$([[ "${MP4_CHOICE}" = "true" ]] && echo "[MP4_A1]");[0:a:0]pan=stereo|c0=c2|c1=${PHASE_VALUE_4}c3,asplit=${ASPLIT_N}[MAIN_STEREO_A2]$([[ "${MP4_CHOICE}" = "true" ]] && echo "[MP4_A2]")"
             AUDIO_PLAY_MAP="pan=4c|c0=c0|c1=${PHASE_VALUE_2}c1|c2=c2|c3=${PHASE_VALUE_4}c3"
             AUDIO_PLAY_LABELS=",drawtext=fontfile=${DEFAULTFONT}:text='L(1)':fontcolor=white:fontsize=18:x=0:y=0,drawtext=fontfile=${DEFAULTFONT}:text='R(1)':fontcolor=white:fontsize=18:x=0:y=20,drawtext=fontfile=${DEFAULTFONT}:text='L(2)':fontcolor=white:fontsize=18:x=0:y=40,drawtext=fontfile=${DEFAULTFONT}:text='R(2)':fontcolor=white:fontsize=18:x=0:y=60"
-            AUDIO_CHANNEL_MAP+=(-map "[orig]" -map "[stereo1]" -map "[stereo2]")
+            AUDIO_CHANNEL_MAP+=(-map "[ORIG_A]" -map "[MAIN_STEREO_A1]" -map "[MAIN_STEREO_A2]")
+            [[ "${MP4_CHOICE}" = "true" ]] && AUDIO_MP4_MAP+=(-map "[MP4_A1]" -map "[MP4_A2]")
             AUDIO_CHANNEL_IDX=(1 2) ;;
         "1 Stereo Track (From Channels 1 & 2)")
-            AUDIOMAP="[0:a:0]asplit[orig],pan=stereo| c0=c0 | c1=${PHASE_VALUE_2}c1[stereo1]"
-            AUDIOMAP_MP4="[0:a:0]pan=stereo| c0=c0 | c1=${PHASE_VALUE_2}c1[stereo1]"
+            ASPLIT_N=$([[ "${MP4_CHOICE}" = "true" ]] && echo 2 || echo 1)
+            AUDIOMAP="[0:a:0]asplit=2[ORIG_A][ORIG_A2];[ORIG_A2]pan=stereo|c0=c0|c1=${PHASE_VALUE_2}c1,asplit=${ASPLIT_N}[MAIN_STEREO_A1]$([[ "${MP4_CHOICE}" = "true" ]] && echo "[MP4_A1]")"
             AUDIO_PLAY_MAP="pan=stereo|c0=c0|c1=${PHASE_VALUE_2}c1"
             AUDIO_PLAY_LABELS=",drawtext=fontfile=${DEFAULTFONT}:text='L(1)':fontcolor=white:fontsize=18:x=0:y=0,drawtext=fontfile=${DEFAULTFONT}:text='R(1)':fontcolor=white:fontsize=18:x=0:y=20"
-            AUDIO_CHANNEL_MAP+=(-map "[orig]" -map "[stereo1]")
+            AUDIO_CHANNEL_MAP+=(-map "[ORIG_A]" -map "[MAIN_STEREO_A1]")
+            [[ "${MP4_CHOICE}" = "true" ]] && AUDIO_MP4_MAP+=(-map "[MP4_A1]")
             AUDIO_CHANNEL_IDX=(1) ;;
         "1 Stereo Track (From Channels 3 & 4)")
-            AUDIOMAP="[0:a:0]asplit[orig],pan=stereo| c0=c2 | c1=${PHASE_VALUE_2}c3[stereo1]"
-            AUDIOMAP_MP4="[0:a:0]pan=stereo| c0=c2 | c1=${PHASE_VALUE_2}c3[stereo1]"
+            ASPLIT_N=$([[ "${MP4_CHOICE}" = "true" ]] && echo 2 || echo 1)
+            AUDIOMAP="[0:a:0]asplit=2[ORIG_A][ORIG_A2];[ORIG_A2]pan=stereo|c0=c2|c1=${PHASE_VALUE_2}c3,asplit=${ASPLIT_N}[MAIN_STEREO_A1]$([[ "${MP4_CHOICE}" = "true" ]] && echo "[MP4_A1]")"
             AUDIO_PLAY_MAP="pan=stereo|c0=c2|c1=${PHASE_VALUE_2}c3"
             AUDIO_PLAY_LABELS=",drawtext=fontfile=${DEFAULTFONT}:text='L(1)':fontcolor=white:fontsize=18:x=0:y=40,drawtext=fontfile=${DEFAULTFONT}:text='R(1)':fontcolor=white:fontsize=18:x=0:y=60"
-            AUDIO_CHANNEL_MAP+=(-map "[orig]" -map "[stereo1]")
+            AUDIO_CHANNEL_MAP+=(-map "[ORIG_A]" -map "[MAIN_STEREO_A1]")
+            [[ "${MP4_CHOICE}" = "true" ]] && AUDIO_MP4_MAP+=(-map "[MP4_A1]")
             AUDIO_CHANNEL_IDX=(1) ;;
         "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono")
-            AUDIOMAP="[0:a:0]asplit[orig],pan=mono| c0=c0[mono1];[0:a:0]pan=mono| c0=${PHASE_VALUE_2}c1[mono2]"
-            AUDIOMAP_MP4="[0:a:0]pan=mono| c0=c0[mono1];[0:a:0]pan=mono| c0=${PHASE_VALUE_2}c1[mono2]"
+            ASPLIT_N=$([[ "${MP4_CHOICE}" = "true" ]] && echo 2 || echo 1)
+            AUDIOMAP="[0:a:0]asplit=2[ORIG_A][ORIG_A2];[ORIG_A2]pan=mono|c0=c0,asplit=${ASPLIT_N}[MAIN_MONO_A1]$([[ "${MP4_CHOICE}" = "true" ]] && echo "[MP4_A1]");[0:a:0]pan=mono| c0=${PHASE_VALUE_2}c1,asplit=${ASPLIT_N}[MAIN_MONO_A2]$([[ "${MP4_CHOICE}" = "true" ]] && echo "[MP4_A2]")"
             AUDIO_PLAY_MAP="pan=stereo|c0=c0|c1=${PHASE_VALUE_2}c1"
             AUDIO_PLAY_LABELS=",drawtext=fontfile=${DEFAULTFONT}:text='M(1)':fontcolor=white:fontsize=18:x=0:y=0,drawtext=fontfile=${DEFAULTFONT}:text='M(2)':fontcolor=white:fontsize=18:x=0:y=20"
-            AUDIO_CHANNEL_MAP+=(-map "[orig]" -map "[mono1]" -map "[mono2]")
+            AUDIO_CHANNEL_MAP+=(-map "[ORIG_A]" -map "[MAIN_MONO_A1]" -map "[MAIN_MONO_A2]")
+            [[ "${MP4_CHOICE}" = "true" ]] && AUDIO_MP4_MAP+=(-map "[MP4_A1]" -map "[MP4_A2]")
             AUDIO_CHANNEL_IDX=(1 2) ;;
         "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono")
-            AUDIOMAP="[0:a:0]asplit[orig],pan=mono| c0=${PHASE_VALUE_2}c1[mono1];[0:a:0]pan=mono| c0=c0[mono2]"
-            AUDIOMAP_MP4="[0:a:0]pan=mono| c0=${PHASE_VALUE_2}c1[mono1];[0:a:0]pan=mono| c0=c0[mono2]"
+            ASPLIT_N=$([[ "${MP4_CHOICE}" = "true" ]] && echo 2 || echo 1)
+            AUDIOMAP="[0:a:0]asplit=2[ORIG_A][ORIG_A2];[ORIG_A2]pan=mono|c0=${PHASE_VALUE_2}c1,asplit=${ASPLIT_N}[MAIN_MONO_A1]$([[ "${MP4_CHOICE}" = "true" ]] && echo "[MP4_A1]");[0:a:0]pan=mono| c0=c0,asplit=${ASPLIT_N}[MAIN_MONO_A2]$([[ "${MP4_CHOICE}" = "true" ]] && echo "[MP4_A2]")"
             AUDIO_PLAY_MAP="pan=stereo|c0=${PHASE_VALUE_2}c1|c1=c0"
             AUDIO_PLAY_LABELS=",drawtext=fontfile=${DEFAULTFONT}:text='M(2)':fontcolor=white:fontsize=18:x=0:y=0,drawtext=fontfile=${DEFAULTFONT}:text='M(1)':fontcolor=white:fontsize=18:x=0:y=20"
-            AUDIO_CHANNEL_MAP+=(-map "[orig]" -map "[mono1]" -map "[mono2]")
+            AUDIO_CHANNEL_MAP+=(-map "[ORIG_A]" -map "[MAIN_MONO_A1]" -map "[MAIN_MONO_A2]")
+            [[ "${MP4_CHOICE}" = "true" ]] && AUDIO_MP4_MAP+=(-map "[MP4_A1]" -map "[MP4_A2]")
             AUDIO_CHANNEL_IDX=(1 2) ;;
         "Channel 1 -> Single Track Mono")
-            AUDIOMAP="[0:a:0]asplit[orig],pan=mono| c0=c0[mono1]"
-            AUDIOMAP_MP4="[0:a:0]pan=mono| c0=c0[mono1]"
+            ASPLIT_N=$([[ "${MP4_CHOICE}" = "true" ]] && echo 2 || echo 1)
+            AUDIOMAP="[0:a:0]asplit=2[ORIG_A][ORIG_A2];[ORIG_A2]pan=mono|c0=c0,asplit=${ASPLIT_N}[MAIN_MONO_A1]$([[ "${MP4_CHOICE}" = "true" ]] && echo "[MP4_A1]")"
             AUDIO_PLAY_MAP="pan=mono| c0=c0"
             AUDIO_PLAY_LABELS=",drawtext=fontfile=${DEFAULTFONT}:text='M(1)':fontcolor=white:fontsize=18:x=0:y=0"
-            AUDIO_CHANNEL_MAP+=(-map "[orig]" -map "[mono1]")
+            AUDIO_CHANNEL_MAP+=(-map "[ORIG_A]" -map "[MAIN_MONO_A1]")
+            [[ "${MP4_CHOICE}" = "true" ]] && AUDIO_MP4_MAP+=(-map "[MP4_A1]")
             AUDIO_CHANNEL_IDX=(1) ;;
         "Channel 2 -> Single Track Mono")
-            AUDIOMAP="[0:a:0]asplit[orig],pan=mono| c0=c1[mono1]"
-            AUDIOMAP_MP4="[0:a:0]pan=mono| c0=c1[mono1]"
+            ASPLIT_N=$([[ "${MP4_CHOICE}" = "true" ]] && echo 2 || echo 1)
+            AUDIOMAP="[0:a:0]asplit=2[ORIG_A][ORIG_A2];[ORIG_A2]pan=mono|c0=c1,asplit=${ASPLIT_N}[MAIN_MONO_A1]$([[ "${MP4_CHOICE}" = "true" ]] && echo "[MP4_A1]")"
             AUDIO_PLAY_MAP="pan=mono| c0=c1"
             AUDIO_PLAY_LABELS=",drawtext=fontfile=${DEFAULTFONT}:text='M(1)':fontcolor=white:fontsize=18:x=0:y=20"
-            AUDIO_CHANNEL_MAP+=(-map "[orig]" -map "[mono1]")
+            AUDIO_CHANNEL_MAP+=(-map "[ORIG_A]" -map "[MAIN_MONO_A1]")
+            [[ "${MP4_CHOICE}" = "true" ]] && AUDIO_MP4_MAP+=(-map "[MP4_A1]")
             AUDIO_CHANNEL_IDX=(1) ;;
         # Audio mode channel options
         "Mono")
-            AUDIOMAP="[0:a:0]pan=mono| c0=c0[mono1]"
+            AUDIOMAP="[0:a:0]pan=mono| c0=c0[MAIN_MONO_A1]"
             PASSTHROUGH_MAP="pan=mono|c0=c0"
-            AUDIO_CHANNEL_MAP+=(-map "[mono1]") ;;
+            AUDIO_CHANNEL_MAP+=(-map "[MAIN_MONO_A1]") ;;
         "Stereo")
-            AUDIOMAP="[0:a:0]pan=stereo| c0=c0 | c1=${PHASE_VALUE_2}c1[stereo1]"
+            AUDIOMAP="[0:a:0]pan=stereo| c0=c0 | c1=${PHASE_VALUE_2}c1[MAIN_STEREO_A1]"
             PASSTHROUGH_MAP="pan=stereo|c0=c0|c1=${PHASE_VALUE_2}c1"
-            AUDIO_CHANNEL_MAP+=(-map "[stereo1]") ;;
+            AUDIO_CHANNEL_MAP+=(-map "[MAIN_STEREO_A1]") ;;
         # Audio mode sample rate options
         "96 kHz")
             S_RATE='-ar 96k'
@@ -3357,17 +3415,8 @@ if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
         _report -w "Such as \`brew install qcli\`."
         exit 1
     fi
-    if [[ "${FRAMEMD5_CHOICE}" = "true" ]] ; then
-        FRAMEMD5NAME="${LOGDIR}/${FULL_OUTPUT_ID}.framemd5"
-    fi
     if [[ "${SIGNAL_INPUT}" = 'true' ]] ; then
         AUDIOMAP=$(sed "s/0:a:0/1:a:0/g" <<< "$AUDIOMAP")
-    fi
-    if [[ "${MP4_CHOICE}" = "true" ]] ; then
-        RECORDINGFILTER_MP4+=",bwdif=send_frame,format=yuv420p"
-        RECORD_COMMAND_MP4+=(-filter_complex "[0:v:0]${RECORDINGFILTER_MP4#,*}[mp4_v_out];${AUDIOMAP_MP4}")
-        MP4NAME="${DIR}/${FULL_OUTPUT_ID}.mp4"
-        EXTRAOUTPUTS+=("${MIDDLEOPTIONS_ALL[@]}" -movflags write_colr+faststart "${RECORD_COMMAND_MP4[@]}" -c:v h264 -g 12 -profile:v main -level "${ACCESS_MP4_LEVEL}" -b:v "${ACCESS_MP4_BITRATE}" -c:a aac -map "[mp4_v_out]" "${AUDIO_CHANNEL_MAP[@]:2}" "${MP4NAME}")
     fi
     if [[ "${FORMAT}" = "matroska" ]] ; then
         _review_option "EMBED_LOGS_CHOICE" "${EMBED_LOGS_OPTIONS[@]}"
