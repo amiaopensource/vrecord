@@ -496,11 +496,7 @@ _setup_vrecord_input(){
         GRAB_INPUT+=("${TIME_LIMIT[@]}")
         GRAB_INPUT+=(-f lavfi -i sine=440:r=48000)
         GRAB_INPUT+=(-pix_fmt yuv422p10le)
-        echo "AAA ${AUDIOMAP[@]}"
-        if [[ "${SIGNAL_INPUT}" = 'true' ]] ; then
-            AUDIOMAP=$(sed "s/0:a:0/1:a:0/g" <<< "$AUDIOMAP")
-        fi
-        echo "BBB ${AUDIOMAP[@]}"
+        AUDIOMAP=$(sed "s/0:a:0/1:a:0/g" <<< "$AUDIOMAP")
     elif [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         _set_ffmpeg_loglevel
         GRAB_INPUT+=(-f decklink)
