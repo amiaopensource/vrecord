@@ -2870,6 +2870,7 @@ CONTAINER_MATROSKA_TEST='
 CODEC_GENERAL_TEST='
     <rule name="Is the frame rate mode constant?" value="FrameRate_Mode" tracktype="Video" operator="=">CFR</rule>
     <rule name="Is the color space YUV?" value="ColorSpace" tracktype="Video" operator="=">YUV</rule>
+    <rule name="Is the chroma subsampling 4:2:2?" value="ChromaSubsampling" tracktype="Video" operator="=">4:2:2</rule>
     <policy type="or" name="Is the video bit depth 8 or 10?">
         <rule name="Is the video 2yuv?" value="CodecID" tracktype="Video" operator="=">2vuy</rule>
         <!--MediaInfo library does not currently store explicit video BitDepth value for 2yuv-->
