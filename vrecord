@@ -715,6 +715,13 @@ _setup_vrecord_process(){
         fi
         PLAYER_COMMAND=("${FFPLAY_BIN}" "${FFPLAY_OPTIONS[@]}")
     fi
+    if [[ "${VERBOSE_GTKDIALOG}" = "Y" ]] ; then
+        echo "RUNTYPE ${RUNTYPE}"
+        echo "STEPS ${VRECORD_STEPS}"
+        echo "PLAY ${PLAYER_COMMAND[@]}"
+        echo "RECORD ${RECORD_COMMAND[@]}"
+        echo "QCLI ${QCLI_COMMAND_PIPE[@]}"
+    fi
 }
 
 _get_inputs(){
@@ -1636,12 +1643,6 @@ _edit_mode(){
 # passthrough and audiopassthrough modes
 _passthrough_mode(){
     _setup_vrecord_process
-    if [[ "${VERBOSE_GTKDIALOG}" = "Y" ]] ; then
-        echo "RUNTYPE ${RUNTYPE}"
-        echo "STEPS ${VRECORD_STEPS}"
-        echo "PLAY ${PLAYER_COMMAND[@]}"
-        echo "RECORD ${RECORD_COMMAND[@]}"
-    fi
 
     if [[ "${PLAYBACKVIEW_CHOICE_PASS}" == "Captions" ]] && [[ "${RUNTYPE}" == "passthrough" ]] ; then
         "${SCRIPTDIR}/cchex_to_display" "${FFREPORT_TMP}" "${CAP_DISPLAY_TMP}" > /dev/null 2> /dev/null &
@@ -3483,12 +3484,6 @@ _report -d "Close the playback window to stop recording."
 
 # vrecord process!
 _setup_vrecord_process
-if [[ "${VERBOSE_GTKDIALOG}" = "Y" ]] ; then
-    echo "STEPS ${VRECORD_STEPS}"
-    echo "PLAY ${PLAYER_COMMAND[@]}"
-    echo "RECORD ${RECORD_COMMAND[@]}"
-    echo "QCLI ${QCLI_COMMAND_PIPE[@]}"
-fi
 if [[ "${VRECORD_STEPS}" = "2" ]] ; then
     _writeingestlog "Record command" "${RECORD_COMMAND[@]}"
     _writeingestlog "Playback command" "${PLAYER_COMMAND[@]}"
