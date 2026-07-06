@@ -1,4 +1,4 @@
-.TH vtest 1 "https://github.com/amiaopensource/vrecord" "2020-02-10" "AMIA Open Source"
+.TH vtest 1 "https://github.com/amiaopensource/vrecord" "2026-07-01" "AMIA Open Source"
 .\" Turn off justification for nroff.
 .if n .ad l
 .\" Turn off hyphenation.
@@ -31,5 +31,12 @@ play a test \fIfile\fR through output device (must be in format compatible with 
 .TP
 .B -h
 display basic usage information
+.SH NOTES
+.TP 4
+If you do not know what formats are compatible with your BlackMagic device, try running:
+ffmpeg-ma -f decklink -list_formats 1 -i [BlackMagic device name]
+.TP
+for example:
+ffmpeg-ma -f decklink -list_formats 1 -i 'UltraStudio 3D'
 .SH LICENSE
 \fBvtest\fR is licensed under a Creative Commons Attribution 4.0 International License.
