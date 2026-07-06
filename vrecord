@@ -212,7 +212,7 @@ _setup_env_variables(){
         COMPUTER_PROCESSOR_COUNT="$(_parse_report "Number of Processors" "${HARDWARE_REPORT}")"
         COMPUTER_MEMORY="$(_parse_report "Memory" "${HARDWARE_REPORT}")"
         COMPUTER_SERIAL="$(_parse_report "Serial Number (system)" "${HARDWARE_REPORT}")"
-        CORE_COUNT="$(_parse_report "Total Number of Cores" "${HARDWARE_REPORT}" | awk '{print $1}')"
+        CORE_COUNT="$(_parse_report "Total Number of Cores" "${HARDWARE_REPORT}")"
         OPEN_COMMAND="open"
         ZCAT_COMMAND="gzcat"
         DECKLINK_DRIVER_PLIST="/Library/Extensions/DeckLink_Driver.kext/Contents/Info.plist"
@@ -3315,7 +3315,7 @@ if [[ "${OS_TYPE}" = "macOS" ]] ; then
 fi
 _writeingestlog "computer_cores" "$CORE_COUNT"
 _writeingestlog "user_name" "$(whoami)"
-_writeingestlog "operating_system_VERSION" "$(uname -v)"
+_writeingestlog "operating_system_version" "$(uname -v)"
 _writeingestlog "vrecord version" "${VERSION}"
 _writeingestlog "datetime_start" "$(_get_iso8601)"
 
@@ -3424,6 +3424,8 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         grep " bench: " "${FULL_CAPTURE_LOG}" > "${BENCHMARK_DETAILS_NAME}"
         grep -v " bench: " "${FULL_CAPTURE_LOG}" > "${FULL_CAPTURE_LOG}.tmp"
         mv "${FULL_CAPTURE_LOG}.tmp" "${FULL_CAPTURE_LOG}"
+        echo "# vrecord benchmarking summary data" > "${BENCHMARK_SUMMARY_NAME}"
+        echo "# capture_log_file: ${INGESTLOG}, cores=${CORE_COUNT}" >> "${BENCHMARK_SUMMARY_NAME}"
         awk 'BEGIN { printf "%-8s %-6s %-8s %-12s %-5s %-10s %-10s %-10s %-10s %-10s %-8s %-10s\n", "action","media","stream","label","n","user","sys","real","real/user","sys/user","%user","avg_us"
                 CEIL = 10000000 }
         $1 == "#label" { label[$2] = $3; next }
@@ -3448,7 +3450,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
                     f[1], f[2], f[3], lbl[k], n[k], u[k], s[k], r[k], ratio, sysratio, share, avgus
             }
             if (bad > 0) printf "\n[skipped %d malformed/out-of-range bench line(s)]\n", bad
-        }' <(grep -v " bench: utime" "${BENCHMARK_DETAILS_NAME}" | grep -v " bench: maxrss") | sort -k1,1 -k2,2r -k3,3n > "${BENCHMARK_SUMMARY_NAME}"
+        }' <(grep -v " bench: utime" "${BENCHMARK_DETAILS_NAME}" | grep -v " bench: maxrss") | sort -k1,1 -k2,2r -k3,3n >> "${BENCHMARK_SUMMARY_NAME}"
         _bench_plot "${BENCHMARK_DETAILS_NAME}"
     fi
     # caption handling
