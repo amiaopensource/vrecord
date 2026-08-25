@@ -60,7 +60,6 @@ _update_config_file(){
         echo "PAL_169_SAR_CHOICE=\"${PAL_169_SAR_CHOICE}\""
         echo "AUDIO_MAPPING_CHOICE=\"${AUDIO_MAPPING_CHOICE}\""
         echo "STANDARD_CHOICE=\"${STANDARD_CHOICE}\""
-        echo "QCTOOLSXML_CHOICE=\"${QCTOOLSXML_CHOICE}\""
         echo "MP4_CHOICE=\"${MP4_CHOICE}\""
         echo "FRAMEMD5_CHOICE=\"${FRAMEMD5_CHOICE}\""
         echo "TIMECODEVTT_CHOICE=\"${TIMECODEVTT_CHOICE}\""
@@ -269,7 +268,6 @@ _get_summary(){
             echo "Frame MD5s: ${FRAMEMD5_CHOICE}"
             echo "Timecode VTT: ${TIMECODEVTT_CHOICE}"
             echo "Vrecord QCTools: ${QCTOOLSXML_V2_CHOICE}"
-            echo "QCTools XML: ${QCTOOLSXML_CHOICE}"
             echo "Playback: ${PLAYBACKVIEW_CHOICE} view (for recording) and ${PLAYBACKVIEW_CHOICE_PASS} view (for passthrough)"
         elif [ "${DEVICE_INPUT_CHOICE}" = "1" ] ; then
             echo "Device Input: DV"

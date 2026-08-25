@@ -22,7 +22,7 @@ files.
 Dependencies: cowsay, amiaopensource/amiaos/decklinksdk,
   amiaopensource/amiaos/gtkdialog, mediaarea/mediaarea/ffmpeg-ma, and
   xmlstarlet
-Optional Dependencies: deckcontrol, gnuplot, mediaconch, mkvtoolnix, mpv, qcli
+Optional Dependencies: deckcontrol, gnuplot, mediaconch, mkvtoolnix, mpv
 
 Usage: ${SCRIPTNAME} [ -e | -r | -p | -a | -x | -n|  -v | -s | -h ] [IDENTIFIER]
 
@@ -539,8 +539,6 @@ _gtk_vbox_list() {
             </checkbox>"
         elif [[ "${VARIABLE_NAME}" == "EMBED_LOGS_CHOICE" ]] ; then
             echo "<sensitive>$(if $MKVPROPEDIT_INSTALLED ; then echo true ; else echo false ; fi)</sensitive>"
-        elif [[ "${VARIABLE_NAME}" == "QCTOOLSXML_CHOICE" ]] ; then
-            echo "<sensitive>$(if $QCLI_INSTALLED ; then echo true ; else echo false ; fi)</sensitive>"
         elif [[ "${VARIABLE_NAME}" == "DV_CONTAINER_CHOICE" ]] ; then
             echo "<sensitive>$(if $DVPACKAGER_INSTALLED ; then echo true ; else echo false ; fi)</sensitive>"
         elif [[ "${VARIABLE_NAME}" == "DECKLINK_INPUT_CHOICE" ]] ; then
@@ -803,8 +801,8 @@ _setup_vrecord_process(){
                 RECORD_COMMAND_TEE_STR+="|[f=mp4:onfail=ignore:movflags=write_colr+faststart:select=v\\\\:${MP4_V_IDX}${MP4_A_TEE_SELECT}]${MP4NAME}"
             fi
             if [[ "${QCTOOLSXML_V2_CHOICE}" = "true" ]] ; then
-                QCTOOLS_THUMB_MKV="$(_maketemp .qc_thumb.mkv)"
-                RECORD_COMMAND_TEE_STR+="|[f=matroska:onfail=ignore:select=v\\\\:${QC_THUMB_V_IDX}]${QCTOOLS_THUMB_MKV}"
+                QCTOOLS_THUMB_MKV_TMP="$(_maketemp .qc_thumb.mkv)"
+                RECORD_COMMAND_TEE_STR+="|[f=matroska:onfail=ignore:select=v\\\\:${QC_THUMB_V_IDX}]${QCTOOLS_THUMB_MKV_TMP}"
             fi
             RECORD_COMMAND+=(-f tee "${RECORD_COMMAND_TEE_STR}")
         else
@@ -917,7 +915,6 @@ _setup_vrecord_process(){
         echo "STEPS ${VRECORD_STEPS}"
         echo "PLAY ${PLAYER_COMMAND[@]}"
         echo "RECORD ${RECORD_COMMAND[@]}"
-        echo "QCLI ${QCLI_COMMAND_PIPE[@]}"
         echo "SPLIT_PADS ${SPLIT_PADS[@]}"
         echo "SPLIT_MAPS ${SPLIT_MAPS[@]}"
         echo "RECORD_COMMAND_SPLIT ${RECORD_COMMAND_SPLIT[@]}"
@@ -1026,7 +1023,6 @@ SIDECAR_FILES_GUI="
                 <variable>QCTOOLSXML_V2_CHOICE</variable>
             </checkbox>
         </vbox>
-        $(_gtk_vbox_list "QCTOOLSXML_CHOICE" "180"  "QCTools XML?"              "${QCTOOLSXML_OPTIONS[@]}")
     </hbox>
 </frame>"
 
@@ -1170,14 +1166,6 @@ OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
                 </text>
                 <pixmap stock-icon-size="1" tooltip-text="If mpv is installed, vrecord can offer additional playback view options.">
                     <input file stock="$(if $MPV_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)"></input>
-                </pixmap>
-            </hbox>
-            <hbox>
-                <text>
-                    <label>qcli: </label>
-                </text>
-                <pixmap stock-icon-size="1" tooltip-text="If qcli is installed, vrecord can offer options to create QCTools reports during or after capture.">
-                    <input file stock="$(if $QCLI_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)"></input>
                 </pixmap>
             </hbox>
             <hbox>
@@ -1892,26 +1880,21 @@ _writeingestlog(){
 _qcgraphimage(){
     # get audio data
     qctools_CONFIGFILE_A="$(_maketemp .astats_A.csv)"
-    "${ZCAT_COMMAND}" "$1" | perl -nle 'print if not m{lavfi.(?!astats.Overall.Min_level|astats.Overall.Max_level|astats.Overall.Peak_level|aphasemeter.phase)}' | xmlstarlet select -t -m "//ffprobe:ffprobe/frames/frame[@media_type='audio']" \
+    "${ZCAT_COMMAND}" "$1" | perl -nle 'print if not m{lavfi.(?!astats.Overall.Min_level|astats.Overall.Max_level|astats.Overall.Peak_level)}' | xmlstarlet select -t -m "//ffprobe:ffprobe/frames/frame[@media_type='audio']" \
        -v "@pkt_pts_time" -o " " \
        -v "tag[@key='lavfi.astats.Overall.Max_level']/@value" -o " " \
        -v "tag[@key='lavfi.astats.Overall.Min_level']/@value" -o " " \
-       -v "tag[@key='lavfi.astats.Overall.Peak_level']/@value" -o " " \
-       -v "tag[@key='lavfi.aphasemeter.phase']/@value" -n > "${qctools_CONFIGFILE_A}"
+       -v "tag[@key='lavfi.astats.Overall.Peak_level']/@value" -n > "${qctools_CONFIGFILE_A}"
     # get video data
     qctools_CONFIGFILE_V="$(_maketemp .signalstats.V.csv)"
-    "${ZCAT_COMMAND}" "$1" | perl -nle 'print if not m{lavfi.(?!signalstats.BRNG|signalstats.TOUT|signalstats.SATMAX|signalstats.SATAVG|ssim.Y|ssim.U|ssim.V)}' | xmlstarlet select -t -m "//ffprobe:ffprobe/frames/frame[@media_type='video']" \
+    "${ZCAT_COMMAND}" "$1" | perl -nle 'print if not m{lavfi.(?!signalstats.BRNG|signalstats.TOUT|signalstats.SATMAX|signalstats.SATAVG)}' | xmlstarlet select -t -m "//ffprobe:ffprobe/frames/frame[@media_type='video']" \
        -v "@pkt_pts_time" -o " " \
        -v "tag[@key='lavfi.signalstats.TOUT']/@value" -o " " \
        -v "tag[@key='lavfi.signalstats.BRNG']/@value" -o " " \
        -v "tag[@key='lavfi.signalstats.SATMAX']/@value" -o " " \
-       -v "tag[@key='lavfi.signalstats.SATAVG']/@value" -o " " \
-       -v "tag[@key='lavfi.ssim.Y']/@value" -o " " \
-       -v "tag[@key='lavfi.ssim.U']/@value" -o " " \
-       -v "tag[@key='lavfi.ssim.V']/@value" -n > "${qctools_CONFIGFILE_V}"
-
+       -v "tag[@key='lavfi.signalstats.SATAVG']/@value" -n > "${qctools_CONFIGFILE_V}"
     # determine SATURATION scale
-    VBitdepth="$("${ZCAT_COMMAND}" "$1" | perl -nle 'print if not m{<frame |</frame>|<tag}' | xmlstarlet sel -t -v "//stream[@codec_type='video']/@pix_fmt" -n)"
+    VBitdepth="$("${ZCAT_COMMAND}" "$1" | perl -nle 'print if not m{<frame |</frame>|<tag|</tag}' | xmlstarlet sel -t -v "//stream[@codec_type='video']/@pix_fmt" -n)"
     if [[ "${VBitdepth}" = "yuv422p10le" ]] ; then
         SATpalette="(0'#a0a0a0',80'#bebebe',177.4'#c8c800',322'#a0ff20',354.8'#00ff00',413.8'#006400',433.46'#00ff00',453.13'#a0ff20',472.8'#ffa500',496'#ff0000')"
         SATcbrange="[0:496]"
@@ -1921,11 +1904,10 @@ _qcgraphimage(){
         SATcbrange="[0:124]"
         SATyrange="[0:183]"
     fi
-
     echo "set terminal jpeg size 1920, 1080
     set output '${LOGDIR}/${FULL_OUTPUT_ID}_QC_output_graphs.jpeg'
     set term jpeg font 'times,12'
-    set multiplot layout 7, 1 title '${ID} QC Data Graphs (ver.2)' margins screen .05,.93, .05, .93 spacing screen 0, char .7
+    set multiplot layout 5, 1 title '${ID} QC Data Graphs (ver.3)' margins screen .05,.93, .05, .93 spacing screen 0, char .7
     set style line 11 lc rgb '#808080' lt 1
     set border 15 back ls 11
     set format x '%tH:%tM:%.1tS' time
@@ -1956,14 +1938,6 @@ _qcgraphimage(){
     plot '' using 1:4:4 with lines ls 15 title 'Peak Level (dB)'
     unset yrange
     unset cbrange
-    set palette model RGB defined (-0.8'#ff0000',-0.6'#ffa500',-0.4'#a0ff20',0'#00ff00',1'#006400') maxcolors 128
-    set cbrange [-0.8:1]
-    set yrange [-1:1]
-    set style line 25 linecolor palette lw 4
-    set label 1 'Audio Phase' at graph .5,.9 front
-    plot '' using 1:5:5 with lines ls 25 title 'Audio Phase'
-    unset yrange
-    unset cbrange
     set palette model RGB defined (0'#006400',0.01'#00ff00',0.02'#fffb20',.04'#ffa500',0.05'#ff0000') maxcolors 128
     set cbrange [0:.05]
     set yrange [0:.1]
@@ -1987,16 +1961,11 @@ _qcgraphimage(){
     unset label
     set key at graph 1.06,.5 center vertical Left noopaque noreverse font 'times,9'
     set label 1 'Saturation Level' at graph .5,.9 center front
-    plot '' using 1:4:4 with boxes palette title 'SatMax', '' using 1:5 with lines ls 5 title 'SatAvg'
-    unset yrange
-    unset cbrange
     unset xtics
     unset key
-    set key at graph 1.06,.5 right vertical Right noopaque noreverse
     set x2tics border mirror in scale 1.5,.7 format ''
     set xtics border out nomirror format '%tH:%tM:%.1tS' time
-    set label 1 'Structural SImilarity Metric' at graph .5,.1 center front
-    plot '' using 1:6 with lines ls 5 title 'SSIM-Y', '' using 1:7 with lines ls 2 title 'SSIM-U', '' using 1:8 with lines ls 6 title 'SSIM-V'
+    plot '' using 1:4:4 with boxes palette title 'SatMax', '' using 1:5 with lines ls 5 title 'SatAvg'
     " | gnuplot
 }
 
@@ -3315,7 +3284,6 @@ GNUPLOT_INSTALLED="$(if command -v gnuplot >/dev/null ; then echo true ; else ec
 MEDIACONCH_INSTALLED="$(if command -v mediaconch >/dev/null ; then echo true ; else echo false ; fi)"
 MKVPROPEDIT_INSTALLED="$(if command -v mkvpropedit >/dev/null ; then echo true ; else echo false ; fi)"
 MPV_INSTALLED="$(if command -v mpv >/dev/null ; then echo true ; else echo false ; fi)"
-QCLI_INSTALLED="$(if command -v qcli >/dev/null ; then echo true ; else echo false ; fi)"
 DVPACKAGER_INSTALLED="$(if command -v dvpackager >/dev/null ; then echo true ; else echo false ; fi)"
 
 _upgrade_config_file(){
@@ -3396,7 +3364,6 @@ else
   STANDARD_OPTIONS=("NTSC" "PAL" "23ps - 1080p23.98" "24ps - 1080p24" "Hp25 - 1080p25" "Hp29 - 1080p29.97" "Hp30 - 1080p30" "Hi50 - 1080i50" "Hi59 - 1080i59.94" "Hi60 - 1080i60" "hp50 - 720p50" "hp59 - 720p59.94" "hp60 - 720p60")
 fi
 # STANDARD_OPTIONS list must be synced with Resources/vrecord_functions in _get_format_list
-QCTOOLSXML_OPTIONS=("Yes, concurrent with recording" "Yes, after recording" "No")
 EMBED_LOGS_OPTIONS=("Yes" "No")
 PLAYBACKVIEW_OPTIONS=("Unfiltered" "Visual" "Audio + Video" "Visual + Numerical" "Color Matrix" "Bit Planes" "Frame Positioning" "Captions")
 PLAYBACKVIEW_PASS_OPTIONS=("Unfiltered" "Visual" "Audio + Video" "Visual + Numerical" "Color Matrix" "Bit Planes" "Frame Positioning" "Captions")
@@ -3503,12 +3470,6 @@ if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
     _review_option "CONTAINER_CHOICE" "${CONTAINER_OPTIONS[@]}"
     _review_option "VIDEO_CODEC_CHOICE" "${VIDEO_CODEC_OPTIONS[@]}"
     _review_option "AUDIO_CODEC_CHOICE" "${AUDIO_CODEC_OPTIONS[@]}"
-    _review_option "QCTOOLSXML_CHOICE" "${QCTOOLSXML_OPTIONS[@]}"
-    if [[ "${QCTOOLSXML_CHOICE}" != "No" && ! "$(command -v qcli)" ]] ; then
-        _report -w "Please install qcli to use the qctools reporting option."
-        _report -w "Such as \`brew install qcli\`."
-        exit 1
-    fi
     if [[ "${FORMAT}" = "matroska" ]] ; then
         _review_option "EMBED_LOGS_CHOICE" "${EMBED_LOGS_OPTIONS[@]}"
     fi
@@ -3552,17 +3513,12 @@ if [[ -n "${DURATION}" ]] ; then
     DURATION_TEXT="Tape duration set to: ${DURATION} minutes."
 fi
 
-if awk -v d="${DURATION}" 'BEGIN{exit !(d > 200)}' ; then
-    _report -w "WARNING: Recording duration set to greater than 200 minutes. QCTools report will not be generated."
-    QCTOOLSXML_CHOICE="No"
-fi
-
 if [[ -n ${TECHNICIAN} ]] ; then
     TECHNICIAN_TEXT="Technician=${TECHNICIAN}."
 fi
 
 if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
-    _report -d "Summary: ${VIDEOCODECNAME}/${FORMAT} ${PIXEL_FORMAT} file from ${STANDARD} ${VIDEO_INPUT} ${AUDIO_INPUT}. ${TECHNICIAN_TEXT} Frame MD5s=${FRAMEMD5_CHOICE}, QCTools XML=${QCTOOLSXML_CHOICE}. Inputs recorded to ${VRECORD_OUTPUT} and Auxiliary Files created in ${LOGDIR}. ${DURATION_TEXT}"
+    _report -d "Summary: ${VIDEOCODECNAME}/${FORMAT} ${PIXEL_FORMAT} file from ${STANDARD} ${VIDEO_INPUT} ${AUDIO_INPUT}. ${TECHNICIAN_TEXT} Frame MD5s=${FRAMEMD5_CHOICE} Inputs recorded to ${VRECORD_OUTPUT} and Auxiliary Files created in ${LOGDIR}. ${DURATION_TEXT}"
 elif [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
     _report -d "Summary: Copying video from ${DVRESCUE_INPUT_CHOICE}. ${TECHNICIAN_TEXT} Inputs recorded to ${VRECORD_OUTPUT} and Auxiliary Files created in ${LOGDIR}. ${DURATION_TEXT}"
 elif [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
@@ -3588,10 +3544,6 @@ read
 
 # create log of vrecord decisions
 INGESTLOG="${LOGDIR}/${FULL_OUTPUT_ID}_capture_options.log"
-QCTOOLS_REPORT="${LOGDIR}/${FULL_OUTPUT_ID}.${EXTENSION}.qctools.mkv"
-QCXML="$(_maketemp)"
-QCLI_COMMAND_PIPE=(qcli -audio 1 -f signalstats+aphasemeter+astats+ssim -i - -o "${QCTOOLS_REPORT}")
-QCLI_COMMAND_FILE=(qcli -audio 1 -f signalstats+aphasemeter+astats+ssim -i "${VRECORD_OUTPUT}" -o "${QCTOOLS_REPORT}")
 touch "${INGESTLOG}"
 _writeingestlog "computer_name" "$(uname -n)"
 _writeingestlog "computer_model_name" "${COMPUTER_MODEL_NAME}"
@@ -3665,12 +3617,7 @@ if [[ "${VRECORD_STEPS}" = "2" ]] ; then
     ## "${SCRIPTDIR}/cchex_to_display" "${FFREPORT_TMP}" "${CAP_DISPLAY_TMP}" > /dev/null 2> /dev/null &
     ## CC_PID=$!
     ## export FFREPORT="file=${FFREPORT_TMP}:level=32"
-    "${RECORD_COMMAND[@]}" 2> >(tee "${VRECORD_INPUT_TMP}" 1>&2) | \
-    if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] && [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]]; then
-        tee >("${PLAYER_COMMAND[@]}") | "${QCLI_COMMAND_PIPE[@]}"
-    else
-        "${PLAYER_COMMAND[@]}"
-    fi
+    "${RECORD_COMMAND[@]}" 2> >(tee "${VRECORD_INPUT_TMP}" 1>&2) | "${PLAYER_COMMAND[@]}"
 else
     _report_unexpected_error VRECORD_STEPS
 fi
@@ -3765,16 +3712,32 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         fi
     fi
 
-    # qc tools process
-    if [[ "${QCTOOLSXML_CHOICE}" = "Yes, after recording" ]] ; then
-        "${QCLI_COMMAND_FILE[@]}"
-    fi
-    if [[ "${QCTOOLSXML_CHOICE}" != "No" ]] ; then
-        _report -d "Vrecord is analyzing your video file. Please be patient."
-        if [[ -s "${QCTOOLS_REPORT}" ]] ; then
-            if [[ ! -s "${QCXML}" ]] ; then
-                "${FFMPEG_BIN}" -nostdin -v 0 -y -dump_attachment:t "${QCXML}" -i "${QCTOOLS_REPORT}"
-            fi
+    # qctools process
+    if [[ "${QCTOOLSXML_V2_CHOICE}" = "true" ]] ; then
+        _report -d "Post-processing vrecord-native QCTools report (v2)..."
+        QC_WIDTH="${SIG_GEN_SIZE%x*}"
+        QC_HEIGHT="${SIG_GEN_SIZE#*x}"
+        if [[ "${PIXEL_FORMAT}" = "yuv422p10" ]] ; then
+            QC_PIXFMT="yuv422p10le"
+        else
+            QC_PIXFMT="${PIXEL_FORMAT}"
+        fi
+        QCTOOLS_REPORT="${LOGDIR}/${FULL_OUTPUT_ID}.${EXTENSION}.qctools.mkv"
+        QCXML="$(_maketemp .qctools.xml.gz)"
+        QC_DUMP_ARGS=("${QC_VIDEO_DUMP}" video 0)
+        for I in "${!QC_AUDIO_DUMPS[@]}" ; do
+            QC_DUMP_ARGS+=("${QC_AUDIO_DUMPS[$I]}" audio "$(( I + 1 ))")
+        done
+        _qc_dump_to_xml "${QCXML}" "${QC_WIDTH}" "${QC_HEIGHT}" "${QC_PIXFMT}" "${LOGDIR}/${FULL_OUTPUT_ID}.${EXTENSION}" "${QC_DUMP_ARGS[@]}"
+        if [[ -s "${QCTOOLS_THUMB_MKV_TMP}" ]] && [[ -s "${QCXML}" ]] && command -v mkvpropedit &> /dev/null ; then
+            QCTOOLS_REPORT="${LOGDIR}/${FULL_OUTPUT_ID}.${EXTENSION}.qctools.mkv"
+            mkvpropedit "${QCTOOLS_THUMB_MKV_TMP}" --edit info --set "title=QCTools Report for ${FULL_OUTPUT_ID}.${EXTENSION}" --attachment-name "${FULL_OUTPUT_ID}.${EXTENSION}.qctools.xml.gz" --attachment-mime-type application/x-gzip --add-attachment "${QCXML}"
+            _mv_tmp_file "${QCTOOLS_THUMB_MKV_TMP}" "${QCTOOLS_REPORT}"
+        else
+            _report -w "QCTools v2 report generation failed: missing thumbnail mkv, xml.gz, or mkvpropedit"
+        fi
+        _report -d "Vrecord is analyzing your video file from the QCTools data. Please be patient."
+        if [[ -s "${QCXML}" ]] ; then
             if [[ "${PIXEL_FORMAT}" = "yuv422p10" ]] ; then
                 SAT_OUTLIERS=$("${ZCAT_COMMAND}" "${QCXML}" | perl -nle 'print if not m{lavfi.(?!signalstats.SATMAX)}' | xmlstarlet sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>496])" -n)
             elif [[ "${PIXEL_FORMAT}" = "uyvy422" ]] ; then
@@ -3784,12 +3747,12 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
             BRNG_OUTLIERS=$("${ZCAT_COMMAND}" "${QCXML}" | perl -nle 'print if not m{lavfi.(?!signalstats.BRNG)}' | xmlstarlet sel -t -v "count(//tag[@key='lavfi.signalstats.BRNG'][@value>=0.03])" -n)
             AUDIO_PEAK=$("${ZCAT_COMMAND}" "${QCXML}" | grep lavfi.astats.Overall.Peak_level | cut -d '"' -f 4 | sort -n | tail -n 1)
             _writeingestlog "Peak Volume is (dB)" "${AUDIO_PEAK}"
-            if "$GNUPLOT_INSTALLED" && "$QCLI_INSTALLED" ; then
+            if "${GNUPLOT_INSTALLED}" ; then
                 _report -d "Vrecord is generating graphs from the QCTools data. One moment please."
                 _qcgraphimage "${QCXML}"
             fi
         else
-            _report -w "qctools XML ${QCTOOLS_REPORT} is empty or does not exist!"
+            _report -w "qctools XML ${QCXML} is empty or does not exist!"
         fi
         if [[ "${SAT_OUTLIERS}" -gt "${SAT_OUTLIER_THRSHLD}" ]] ; then
             cowsay "$(_report -w "WARNING: Your video file contains ${SAT_OUTLIERS} frames with illegal saturation values. Your deck may require cleaning.")"
@@ -3801,30 +3764,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
             cowsay "$(_report -w "WARNING: Your video file contains ${BRNG_OUTLIERS} frames with pixels out of broadcast range.")"
         fi
         _report -d "QCTools analysis is complete."
-    fi
-    if [[ "${QCTOOLSXML_V2_CHOICE}" = "true" ]] ; then
-        _report -d "Post-processing vrecord-native QCTools report (v2)..."
-        QC_WIDTH="${SIG_GEN_SIZE%x*}"
-        QC_HEIGHT="${SIG_GEN_SIZE#*x}"
-        if [[ "${PIXEL_FORMAT}" = "yuv422p10" ]] ; then
-            QC_PIXFMT="yuv422p10le"
-        else
-            QC_PIXFMT="${PIXEL_FORMAT}"
-        fi
-        QCTOOLS_XML_GZ="$(_maketemp .qctools.xml.gz)"
-        QC_DUMP_ARGS=("${QC_VIDEO_DUMP}" video 0)
-        for I in "${!QC_AUDIO_DUMPS[@]}" ; do
-            QC_DUMP_ARGS+=("${QC_AUDIO_DUMPS[$I]}" audio "$(( I + 1 ))")
-        done
-        _qc_dump_to_xml "${QCTOOLS_XML_GZ}" "${QC_WIDTH}" "${QC_HEIGHT}" "${QC_PIXFMT}" "${LOGDIR}/${FULL_OUTPUT_ID}.${EXTENSION}" "${QC_DUMP_ARGS[@]}"
-        if [[ -s "${QCTOOLS_THUMB_MKV}" ]] && [[ -s "${QCTOOLS_XML_GZ}" ]] && \
-           command -v mkvpropedit &> /dev/null ; then
-            mkvpropedit "${QCTOOLS_THUMB_MKV}" --edit info --set "title=QCTools Report for ${FULL_OUTPUT_ID}.${EXTENSION}" --attachment-name "${FULL_OUTPUT_ID}.${EXTENSION}.qctools.xml.gz" --attachment-mime-type application/x-gzip --add-attachment "${QCTOOLS_XML_GZ}"
-            _mv_tmp_file "${QCTOOLS_THUMB_MKV}" "${LOGDIR}/${FULL_OUTPUT_ID}.${EXTENSION}.qctools-v2.mkv"
-            _mv_tmp_file "${QCTOOLS_XML_GZ}"    "${LOGDIR}/${FULL_OUTPUT_ID}.${EXTENSION}.qctools_v2.xml.gz"
-        else
-            _report -w "QCTools v2 report generation failed: missing thumbnail mkv, xml.gz, or mkvpropedit"
-        fi
+        rm -f "${QC_VIDEO_DUMP}" "${QC_AUDIO_DUMPS[@]}" 2>/dev/null
     fi
 
     # make a timecode vtt
@@ -3918,7 +3858,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
             _report -d "Vrecord is attaching logs to your Matroska file:"
             mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "Capture options selected by user during vrecord process" --add-attachment "${INGESTLOG}"
             mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "Full FFmpeg output from vrecord capture process" --add-attachment "${FULL_CAPTURE_LOG}"
-            if [[ "${QCTOOLSXML_CHOICE}" = "Yes" ]] ; then
+            if [[ "${QCTOOLSXML_V2_CHOICE}" = "true" ]] ; then
                 mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "QCTools report from vrecord capture process (zipped XML)" --add-attachment "${QCXML}"
                 mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "QCTools report from vrecord capture process (Matroska report)" --add-attachment "${QCTOOLS_REPORT}"
             fi

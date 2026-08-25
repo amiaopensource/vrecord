@@ -39,10 +39,6 @@ rm -fr "${release_directory}/mediaconch_ROOT"
 rm -f "${release_directory}/MediaConch.dmg"
 rm -f "${release_directory}/mediaconch.pkg"
 
-rm -fr "${release_directory}/qcli_ROOT"
-rm -f "${release_directory}/qcli.dmg"
-rm -f "${release_directory}/qcli.pkg"
-
 rm -fr "${release_directory}/dvrescue_ROOT"
 rm -f "${release_directory}/dvrescue.dmg"
 rm -f "${release_directory}/dvrescue.pkg"
@@ -108,20 +104,6 @@ pushd "${release_directory}/"
 
     pkgutil --expand-full mediaconch.pkg mediaconch_ROOT
     cp -a mediaconch_ROOT/Payload/usr/local/bin/mediaconch vrecord_ROOT/usr/local/lib/vrecord/bin
-popd
-
-#-----------------------------------------------------------------------
-# Get QCTools CLI
-pushd "${release_directory}/"
-    qc_version=$(curl -Ls https://mediaarea.net/download/binary/qcli | grep -Eo 'href="[0-9.]+/"' | head -n1 | grep -Eo '[0-9.]+')
-    curl -L "https://mediaarea.net/download/binary/qcli/${qc_version}/qcli_${qc_version}_mac.dmg" -o qcli.dmg
-
-    hdiutil attach -noverify qcli.dmg
-    cp "/Volumes/qcli/qcli.pkg" .
-    hdiutil detach "/Volumes/qcli"
-
-    pkgutil --expand-full qcli.pkg qcli_ROOT
-    cp -a qcli_ROOT/Payload/usr/local/bin/qcli vrecord_ROOT/usr/local/lib/vrecord/bin
 popd
 
 #-----------------------------------------------------------------------
