@@ -3564,7 +3564,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
     fi
 
     # policy checks with mediaconch
-    if "$MEDIACONCH_INSTALLED" ; then
+    if "${MEDIACONCH_INSTALLED}" ; then
         _report -d "Checking file conformance against a mediaconch policy..."
         STATUS=$(mediaconch -fx -p "${MEDIACONCH_POLICY_TMP}" "${VRECORD_OUTPUT}" | xmlstarlet sel -N mc="https://mediaarea.net/mediaconch" -t -v mc:MediaConch/mc:media/mc:policy/@outcome -n)
         if [[ "${STATUS}" = "pass" ]] ; then
