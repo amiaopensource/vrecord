@@ -3348,7 +3348,7 @@ _mv_tmp_file(){
         _report -w "WARNING: logging directory ${TMP_DIR} is not writable"
     fi
     if [[ -f "${TMP_FROM}" ]] ; then
-        cp -p "${TMP_FROM}" "${TMP_TO}" && rm "${TMP_FROM}"
+        cp "${TMP_FROM}" "${TMP_TO}" && rm "${TMP_FROM}"
     else
         _report -w "ERROR _mv_tmp_file is moving ${TMP_FROM} but it doesn't exist"
         exit 1
