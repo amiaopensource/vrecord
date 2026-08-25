@@ -2808,7 +2808,6 @@ CONTAINER_MATROSKA_TEST='
 '
 
 CODEC_GENERAL_TEST='
-    <rule name="Is the video format YUV?" value="ColorSpace" tracktype="Video" operator="=">YUV</rule>
     <rule name="Is the frame rate mode constant?" value="FrameRate_Mode" tracktype="Video" operator="=">CFR</rule>
     <rule name="Is the color space YUV?" value="ColorSpace" tracktype="Video" operator="=">YUV</rule>
     <policy type="or" name="Is the video bit depth 8 or 10?">
