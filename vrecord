@@ -3253,7 +3253,7 @@ ${WEBVTT_EXTRA}
 FADGI_VTT_HEADER
 
 tail -n +2 "${VTT_FILE}" >> "${VTT_TMP}"
-_mv_tmp_file "${VTT_TMP}" "${VTT_FILE}"
+_mv_tmp_file -f "${VTT_TMP}" "${VTT_FILE}"
 }
 
 # command-line options to set media id and original variables
@@ -3328,10 +3328,15 @@ _upgrade_config_file(){
 
 _mv_tmp_file(){
     # this is to move a temp file into its final place without really worrying about preserving owner and group file attributes
+    local FORCE="false"
+    if [[ "${1}" = "-f" ]] ; then
+        FORCE="true"
+        shift
+    fi
     TMP_FROM="${1}"
     TMP_TO="${2}"
     TMP_DIR=$(dirname -- "${TMP_TO}")
-    if [[ -e "${TMP_TO}" ]]; then
+    if [[ -e "${TMP_TO}" ]] && [[ "${FORCE}" != "true" ]] ; then
         _report -w "ERROR: _mv_tmp_file, destination ${TMP_TO} already exists"
         exit 1
     fi
