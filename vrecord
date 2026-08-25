@@ -3349,7 +3349,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
             AUDIOMAP=$(sed "s/0:a:0/1:a:0/g" <<< "$AUDIOMAP")
     fi
     if [[ "${MP4_CHOICE}" = "true" ]] ; then
-        RECORDINGFILTER_MP4+=",bwdif,format=yuv420p"
+        RECORDINGFILTER_MP4+=",bwdif=send_frame,format=yuv420p"
         RECORD_COMMAND_MP4+=(-filter_complex "[0:v:0]${RECORDINGFILTER_MP4#,*}[mp4_v_out];${AUDIOMAP_MP4}")
         MP4NAME="${DIR}/${FULL_OUTPUT_ID}.mp4"
         EXTRAOUTPUTS+=("${MIDDLEOPTIONS_ALL[@]}" -movflags write_colr+faststart "${RECORD_COMMAND_MP4[@]}" -c:v h264 -g 12 -profile:v main -level "${ACCESS_MP4_LEVEL}" -b:v "${ACCESS_MP4_BITRATE}" -c:a aac -map "[mp4_v_out]" "${AUDIO_CHANNEL_MAP[@]:2}" "${MP4NAME}")
