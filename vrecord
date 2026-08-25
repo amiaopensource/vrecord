@@ -3604,6 +3604,9 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
 
     # check file truncation
     _check_file_truncation "${VRECORD_OUTPUT}" "preservation"
+    if [[ "${MP4_CHOICE}" = "true" ]] && [[ -f "${MP4NAME}" ]] ; then
+        _check_file_truncation "${MP4NAME}" "access_mp4"
+    fi
 
     # embed logs in Matroska files
     if "$MKVPROPEDIT_INSTALLED" ; then
