@@ -2919,6 +2919,18 @@ _add_mediaconch_rule_set(){
     fi
 }
 
+_check_file_truncation() {
+    TEST_FILE="${1}"
+    TEST_LABEL="${2}"
+    if [[ -f "${TEST_FILE}" ]] ; then
+        IS_TRUNCATED=$(mediainfo --Output=XML "${TEST_FILE}" | xmlstarlet sel -t -v "//*[local-name()='IsTruncated']" -n 2>/dev/null || echo "")
+        if [[ "${IS_TRUNCATED}" = "Yes" ]] ; then
+            cowsay "$(_report -w "WARNING: MediaInfo reports that the ${TEST_LABEL} file (${TEST_FILE}) may be truncated or incomplete.")"
+        fi
+        _writeingestlog "${TEST_LABEL}_truncated" "${IS_TRUNCATED}"
+    fi
+}
+
 _add_fadgi_header2vtt(){
     VTT_FILE="${1}"
     VTT_TYPE="${2}"
@@ -3589,6 +3601,9 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
             _writeingestlog "mediaconch_outcome" "error ${STATUS}"
         fi
     fi
+
+    # check file truncation
+    _check_file_truncation "${VRECORD_OUTPUT}" "preservation"
 
     # embed logs in Matroska files
     if "$MKVPROPEDIT_INSTALLED" ; then
