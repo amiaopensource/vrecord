@@ -2896,6 +2896,52 @@ AUDIO_CODEC_FLAC_TEST='
         <rule name="Bit Depth is 24?" value="BitDepth" tracktype="Audio" operator="=">24</rule>
     </policy>
 '
+
+CONTAINER_MP4_TEST='
+    <rule name="Is the file extension mp4?" value="FileExtension" tracktype="General" operator="=">mp4</rule>
+    <rule name="Is the format MPEG-4?" value="Format" tracktype="General" operator="=">MPEG-4</rule>
+    <rule name="Is the format profile Base Media?" value="Format_Profile" tracktype="General" operator="=">Base Media</rule>
+'
+
+CODEC_H264_TEST='
+    <rule name="Is the video format H.264?" value="Format" tracktype="Video" operator="=">AVC</rule>
+    <rule name="Is the pixel format yuv420p?" value="ChromaSubsampling" tracktype="Video" operator="=">4:2:0</rule>
+    <rule name="Is the scan type progressive?" value="ScanType" tracktype="Video" operator="=">Progressive</rule>
+    <rule name="Is the frame rate mode constant?" value="FrameRate_Mode" tracktype="Video" operator="=">CFR</rule>
+'
+
+STANDARD_NTSC_ACCESS_DEINTERLACED_TEST='
+    <policy type="and" name="Is it NTSC?">
+        <rule name="Is the height 480?" value="Height" tracktype="Video" operator="=">480</rule>
+        <rule name="Is the width 720?" value="Width" tracktype="Video" operator="=">720</rule>
+        <rule name="Is the frame rate 29.970?" value="FrameRate" tracktype="Video" operator="=">29.970</rule>
+        <rule name="Is the scan type progressive?" value="ScanType" tracktype="Video" operator="=">Progressive</rule>
+        <rule name="Are the colour primaries BT.601 NTSC?" value="colour_primaries" tracktype="Video" operator="=">BT.601 NTSC</rule>
+        <rule name="Are the matrix coefficients BT.601?" value="matrix_coefficients" tracktype="Video" operator="=">BT.601</rule>
+    </policy>
+'
+
+STANDARD_PAL_ACCESS_DEINTERLACED_TEST='
+    <policy type="and" name="Is it PAL?">
+        <rule name="Is the height 576?" value="Height" tracktype="Video" operator="=">576</rule>
+        <rule name="Is the width 720?" value="Width" tracktype="Video" operator="=">720</rule>
+        <rule name="Is the frame rate 25.000?" value="FrameRate" tracktype="Video" operator="=">25.000</rule>
+        <rule name="Is the scan type progressive?" value="ScanType" tracktype="Video" operator="=">Progressive</rule>
+        <rule name="Are the colour primaries BT.601 PAL?" value="colour_primaries" tracktype="Video" operator="=">BT.601 PAL</rule>
+        <rule name="Are the matrix coefficients BT.601?" value="matrix_coefficients" tracktype="Video" operator="=">BT.601</rule>
+    </policy>
+'
+
+AUDIO_CODEC_AAC_TEST='
+    <rule name="Is the audio AAC?" value="Format" tracktype="Audio" operator="=">AAC</rule>
+    <policy type="or" name="1 or 2 channels of audio?">
+        <rule name="1 channel of audio?" value="Channels" tracktype="Audio" operator="=">1</rule>
+        <rule name="2 channels of audio?" value="Channels" tracktype="Audio" operator="=">2</rule>
+    </policy>
+    <rule name="Is the sample rate 48kHz?" value="SamplingRate" tracktype="Audio" operator="=">48000</rule>
+'
+
+
 # define mediaconch test fragment -end
 
 _start_mediaconch_policy(){
@@ -2919,6 +2965,53 @@ _add_mediaconch_rule_set(){
     if [[ -f "${MEDIACONCH_POLICY_TMP}" ]] ; then
         RULE_SET="${1}"
         echo "$RULE_SET" >> "${MEDIACONCH_POLICY_TMP}"
+    fi
+}
+
+_check_access_mp4_mediaconch() {
+    if [[ "${MP4_CHOICE}" = "true" ]] && [[ -f "${MP4NAME}" ]] && "${MEDIACONCH_INSTALLED}" ; then
+        _report -d "Checking access MP4 conformance against a mediaconch policy..."
+        MP4_POLICY_TMP="$(_maketemp .mediaconch_mp4.xml)"
+        cat <<MC_MP4_START > "${MP4_POLICY_TMP}"
+<?xml version="1.0"?>
+<policy type="and" name="Check validity of a vrecord Access MP4 output">
+    <description>This policy tests the access MP4 file made using vrecord and checks its validity against vrecord's access specifications</description>
+MC_MP4_START
+        echo "${CONTAINER_GENERAL_TEST}" >> "${MP4_POLICY_TMP}"
+        echo "${CONTAINER_MP4_TEST}" >> "${MP4_POLICY_TMP}"
+        echo "${CODEC_H264_TEST}" >> "${MP4_POLICY_TMP}"
+        if [[ "${STANDARD}" = "ntsc" ]] ; then
+            echo "${STANDARD_NTSC_ACCESS_DEINTERLACED_TEST}" >> "${MP4_POLICY_TMP}"
+        elif [[ "${STANDARD}" = "pal" ]] ; then
+            echo "${STANDARD_PAL_ACCESS_DEINTERLACED_TEST}" >> "${MP4_POLICY_TMP}"
+        fi
+        echo "${AUDIO_CODEC_AAC_TEST}" >> "${MP4_POLICY_TMP}"
+        cat <<MC_MP4_END >> "${MP4_POLICY_TMP}"
+</policy>
+<!-- ;) -->
+MC_MP4_END
+        MP4_REPORT_TMP="$(_maketemp _mediaconch_mp4report.xml)"
+        MP4_REPORT="${DIR}/${FULL_OUTPUT_ID}_mp4_mediaconch_report.xml"
+        MP4_POLICY="${DIR}/${FULL_OUTPUT_ID}_mp4_mediaconch_policy.xml"
+        mediaconch -fx -p "${MP4_POLICY_TMP}" "${MP4NAME}" | xmlstarlet fo > "${MP4_REPORT_TMP}"
+        MP4_STATUS="$(xmlstarlet sel -N mc="https://mediaarea.net/mediaconch" -t -v mc:MediaConch/mc:media/mc:policy/@outcome -n "${MP4_REPORT_TMP}")"
+        if [[ "${MP4_STATUS}" = "pass" ]] ; then
+            _report -dt "Access MP4 passed policy check."
+            _writeingestlog "mediaconch_mp4_outcome" "passed"
+        elif [[ "${MP4_STATUS}" = "fail" ]] ; then
+            _report -wt "The access MP4 file did not pass vrecord policy check."
+            _mv_tmp_file "${MP4_REPORT_TMP}" "${MP4_REPORT}"
+            _mv_tmp_file "${MP4_POLICY_TMP}" "${MP4_POLICY}"
+            _writeingestlog "mediaconch_mp4_outcome" "failed ${MP4_POLICY}"
+            _report -wt "See ${MP4_REPORT} for a full MediaConch policy report."
+            _report -wt "Or review this attempt to summarize the issue:"
+            xmlstarlet edit -N "mc=https://mediaarea.net/mediaconch" -d "//*[@outcome='pass']" "${MP4_REPORT}" | xmlstarlet fo
+        else
+            _report -wt "Mediaconch ended in an unexpected way for the access MP4 (status: ${MP4_STATUS})."
+            _report -wt "${MP4_REPORT_TMP}:"
+            cat "${MP4_REPORT_TMP}"
+            _writeingestlog "mediaconch_mp4_outcome" "error ${MP4_STATUS}"
+        fi
     fi
 }
 
@@ -3573,11 +3666,11 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         _writeingestlog "Decklink input buffer overrun" "Yes"
     fi
 
-    # policy checks with mediaconch
+    # mediaconch policy check on the preservation output
     if "${MEDIACONCH_INSTALLED}" ; then
         _report -d "Checking file conformance against a mediaconch policy..."
-        MEDIACONCH_REPORT="${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml"
-        MEDIACONCH_REPORT_TMP="$(_maketemp _mediaconchreport.xml)"
+        MEDIACONCH_REPORT="${DIR}/${FULL_OUTPUT_ID}_mediaconch_report.xml"
+        MEDIACONCH_REPORT_TMP="$(_maketemp _mediaconch_report.xml)"
         MEDIACONCH_POLICY="${DIR}/${FULL_OUTPUT_ID}_mediaconch_policy.xml"
         mediaconch -fx -p "${MEDIACONCH_POLICY_TMP}" "${VRECORD_OUTPUT}" | xmlstarlet fo > "${MEDIACONCH_REPORT_TMP}"
         STATUS="$(xmlstarlet sel -N mc="https://mediaarea.net/mediaconch" -t -v mc:MediaConch/mc:media/mc:policy/@outcome -n "${MEDIACONCH_REPORT_TMP}")"
@@ -3599,6 +3692,8 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
             _writeingestlog "mediaconch_outcome" "error ${STATUS}"
         fi
     fi
+    # mediaconch policy check on the access MP4
+    _check_access_mp4_mediaconch
 
     # check file truncation
     _check_file_truncation "${VRECORD_OUTPUT}" "preservation"
