@@ -2904,6 +2904,7 @@ cat <<MC_START > "${MEDIACONCH_POLICY_TMP}"
 <?xml version="1.0"?>
 <policy type="and" name="Check validity of a vrecord output">
     <description>This policy tests FFV1 Matroska and Quicktime files made using vrecord and checks their validity</description>
+    <description>This policy tests video files made using vrecord and checks their validity against vrecord's specifications</description>
 MC_START
 }
 
