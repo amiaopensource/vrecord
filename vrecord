@@ -3253,7 +3253,7 @@ ${WEBVTT_EXTRA}
 FADGI_VTT_HEADER
 
 tail -n +2 "${VTT_FILE}" >> "${VTT_TMP}"
-mv "${VTT_TMP}" "${VTT_FILE}"
+_mv_tmp_file "${VTT_TMP}" "${VTT_FILE}"
 }
 
 # command-line options to set media id and original variables
@@ -3702,7 +3702,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         _report -dt "Post-processing benchmarking files..."
         grep " bench: " "${FULL_CAPTURE_LOG}" > "${BENCHMARK_DETAILS_NAME}"
         grep -v " bench: " "${FULL_CAPTURE_LOG}" > "${FULL_CAPTURE_LOG}.tmp"
-        mv "${FULL_CAPTURE_LOG}.tmp" "${FULL_CAPTURE_LOG}"
+        _mv_tmp_file "${FULL_CAPTURE_LOG}.tmp" "${FULL_CAPTURE_LOG}"
         echo "# vrecord benchmarking summary data" > "${BENCHMARK_SUMMARY_NAME}"
         echo "# capture_log_file: ${INGESTLOG}, cores=${CORE_COUNT}" >> "${BENCHMARK_SUMMARY_NAME}"
         awk -v labels="${OUTPUT_LABELS}" 'BEGIN { printf "%-8s %-6s %-8s %-16s %-5s %-10s %-10s %-10s %-10s %-10s %-8s %-10s\n", "action","media","stream","label","n","user","sys","real","real/user","sys/user","%user","avg_us"
@@ -3755,7 +3755,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
             _report -dt "Wrapping the extracted captions into the Access MP4 file..."
             "${FFMPEG_BIN}" -nostdin -v 0 -y -i "${MP4NAME}" -i "${CAP2EMBED}" -map 0:v -map 0:a -map 1:s -c:v copy -c:a copy -c:s mov_text "${MP4NAME}.subs.mp4"
             if [[ $? -eq 0 ]]; then
-                mv -v "${MP4NAME}.subs.mp4" "${MP4NAME}"
+                _mv_tmp_file "${MP4NAME}.subs.mp4" "${MP4NAME}"
             fi
         fi
     fi
@@ -3815,8 +3815,8 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         if [[ -s "${QCTOOLS_THUMB_MKV}" ]] && [[ -s "${QCTOOLS_XML_GZ}" ]] && \
            command -v mkvpropedit &> /dev/null ; then
             mkvpropedit "${QCTOOLS_THUMB_MKV}" --edit info --set "title=QCTools Report for ${FULL_OUTPUT_ID}.${EXTENSION}" --attachment-name "${FULL_OUTPUT_ID}.${EXTENSION}.qctools.xml.gz" --attachment-mime-type application/x-gzip --add-attachment "${QCTOOLS_XML_GZ}"
-            mv "${QCTOOLS_THUMB_MKV}" "${LOGDIR}/${FULL_OUTPUT_ID}.${EXTENSION}.qctools-v2.mkv"
-            mv "${QCTOOLS_XML_GZ}"    "${LOGDIR}/${FULL_OUTPUT_ID}.${EXTENSION}.qctools_v2.xml.gz"
+            _mv_tmp_file "${QCTOOLS_THUMB_MKV}" "${LOGDIR}/${FULL_OUTPUT_ID}.${EXTENSION}.qctools-v2.mkv"
+            _mv_tmp_file "${QCTOOLS_XML_GZ}"    "${LOGDIR}/${FULL_OUTPUT_ID}.${EXTENSION}.qctools_v2.xml.gz"
         else
             _report -w "QCTools v2 report generation failed: missing thumbnail mkv, xml.gz, or mkvpropedit"
         fi
