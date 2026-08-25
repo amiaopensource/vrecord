@@ -152,7 +152,7 @@ _process_vars_for_gtk(){
         fi
     fi
 
-    if [[ -z "${FFMPEG_BIN}" ]] || [[ -z "${FFPROBE_BIN}" ]] ; then
+    if [[ -z "${FFMPEG_BIN}" ]] || [[ -z "${FFPROBE_BIN}" ]] || [[ -z "${H264_ENCODER}" ]] ; then
         _gather_ffmpeg_vars
         _include_var CAPTURELOGSUFFIX TIMECODELOGSUFFIX BREW_PREFIX FFMPEG_BIN FFPLAY_BIN FFPROBE_BIN
     fi
@@ -285,6 +285,17 @@ _gather_ffmpeg_vars(){
         FFMPEG_BIN="$(which ffmpeg)"
         FFPLAY_BIN="$(which ffplay)"
         FFPROBE_BIN="$(which ffprobe)"
+    fi
+
+    if [[ -z "${H264_ENCODER}" ]] ; then
+        ENCODER_LIST="$("${FFMPEG_BIN}" -hide_banner -encoders 2>/dev/null)"
+        if [[ "${OS_TYPE}" = "macOS" ]] && grep -q "h264_videotoolbox" <<< "${ENCODER_LIST}" ; then
+            H264_ENCODER="h264_videotoolbox"
+        elif grep -q "libopenh264" <<< "${ENCODER_LIST}" ; then
+            H264_ENCODER="libopenh264"
+        else
+            H264_ENCODER="h264"
+        fi
     fi
 }
 
@@ -725,7 +736,12 @@ _setup_vrecord_process(){
                 RECORD_COMMAND_MP4_FILTER=";[MP4_V]${RECORDINGFILTER_MP4#,},bwdif=send_frame,setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}[${MP4_V_PADNAME}]"
                 SPLIT_MAPS+=(-map "[${MP4_V_PADNAME}]")
                 (( VIDEO_STREAM_IDX++ ))
-                EXTRAOPTIONS+=(-c:v:"${MP4_V_IDX}" h264 -pix_fmt:v:"${MP4_V_IDX}" yuv420p -g:v:"${MP4_V_IDX}" 12 -profile:v:"${MP4_V_IDX}" main -level:v:"${MP4_V_IDX}" "${ACCESS_MP4_LEVEL}" -b:v:"${MP4_V_IDX}" "${ACCESS_MP4_BITRATE}")
+                case "${H264_ENCODER}" in
+                    h264_videotoolbox)
+                        EXTRAOPTIONS+=(-c:v:"${MP4_V_IDX}" "${H264_ENCODER}" -pix_fmt:v:"${MP4_V_IDX}" yuv420p -g:v:"${MP4_V_IDX}" 12 -profile:v:"${MP4_V_IDX}" main -allow_sw:v:"${MP4_V_IDX}" 1 -realtime:v:"${MP4_V_IDX}" 1 -b:v:"${MP4_V_IDX}" "${ACCESS_MP4_BITRATE}") ;;
+                    libopenh264|h264)
+                        EXTRAOPTIONS+=(-c:v:"${MP4_V_IDX}" "${H264_ENCODER}" -pix_fmt:v:"${MP4_V_IDX}" yuv420p -g:v:"${MP4_V_IDX}" 12 -profile:v:"${MP4_V_IDX}" main -level:v:"${MP4_V_IDX}" "${ACCESS_MP4_LEVEL}" -b:v:"${MP4_V_IDX}" "${ACCESS_MP4_BITRATE}") ;;
+                esac
             fi
             RECORD_COMMAND_QC_FILTER=""
             if [[ "${QCTOOLSXML_V2_CHOICE}" = "true" ]] ; then
@@ -2182,7 +2198,7 @@ _lookup_choice(){
             SUFFIX="_prores" ;;
         "h264")
             VIDEOCODECNAME="H.264"
-            MIDDLEOPTIONS_PRES+=(-c:v:0 h264 -pix_fmt:v:0 yuv420p)
+            MIDDLEOPTIONS_PRES+=(-c:v:0 "${H264_ENCODER}" -pix_fmt:v:0 yuv420p)
             SUFFIX="_h264" ;;
         "HuffYUV")
             VIDEOCODECNAME="HuffYUV"
@@ -3559,6 +3575,7 @@ _writeingestlog "computer_cores" "$CORE_COUNT"
 _writeingestlog "user_name" "$(whoami)"
 _writeingestlog "operating_system_version" "$(uname -v)"
 _writeingestlog "vrecord version" "${VERSION}"
+_writeingestlog "H264 encoder" "${H264_ENCODER}"
 _writeingestlog "datetime_start" "$(_get_iso8601)"
 
 if [[ -d "${DIR}" ]] ; then
