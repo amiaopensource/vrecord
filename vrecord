@@ -3221,7 +3221,7 @@ _check_file_truncation() {
         if [[ "${IS_TRUNCATED}" = "Yes" ]] ; then
             cowsay "$(_report -w "WARNING: MediaInfo reports that the ${TEST_LABEL} file (${TEST_FILE}) may be truncated or incomplete.")"
         fi
-        _writeingestlog "${TEST_LABEL}_truncated" "${IS_TRUNCATED}"
+        _writeingestlog "${TEST_LABEL}_truncated" "${IS_TRUNCATED:-No}"
     fi
 }
 
