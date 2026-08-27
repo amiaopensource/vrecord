@@ -22,7 +22,7 @@ files.
 Dependencies: cowsay, amiaopensource/amiaos/decklinksdk,
   amiaopensource/amiaos/gtkdialog, mediaarea/mediaarea/ffmpeg-ma, and
   xmlstarlet
-Optional Dependencies: deckcontrol, gnuplot, mediaconch, mkvtoolnix, mpv, qcli
+Optional Dependencies: deckcontrol, gnuplot, mediaconch, mkvtoolnix, mpv
 
 Usage: ${SCRIPTNAME} [ -e | -r | -p | -a | -x | -n|  -v | -s | -h ] [IDENTIFIER]
 
@@ -152,9 +152,9 @@ _process_vars_for_gtk(){
         fi
     fi
 
-    if [[ -z "${FFMPEG_BIN}" ]] ; then
+    if [[ -z "${FFMPEG_BIN}" ]] || [[ -z "${FFPROBE_BIN}" ]] || [[ -z "${H264_ENCODER}" ]] ; then
         _gather_ffmpeg_vars
-        _include_var CAPTURELOGSUFFIX TIMECODELOGSUFFIX BREW_PREFIX FFMPEG_BIN FFPLAY_BIN
+        _include_var CAPTURELOGSUFFIX TIMECODELOGSUFFIX BREW_PREFIX FFMPEG_BIN FFPLAY_BIN FFPROBE_BIN
     fi
 }
 
@@ -164,7 +164,7 @@ _remove_env_vars(){
     unset VRECORD_VARS_FILE
     unset OS_TYPE RESOURCE_PATH DEFAULTFONT CORE_COUNT OPEN_COMMAND ZCAT_COMMAND COMPUTER_MODEL_NAME DIR_SELECTION_DIALOG
     unset COMPUTER_MODEL_ID COMPUTER_PROCESSOR_NAME COMPUTER_PROCESSOR_SPEED COMPUTER_PROCESSOR_COUNT COMPUTER_MEMORY COMPUTER_SERIAL
-    unset CAPTURELOGSUFFIX TIMECODELOGSUFFIX BREW_PREFIX FFMPEG_BIN FFPLAY_BIN GTKDIALOGBIN
+    unset CAPTURELOGSUFFIX TIMECODELOGSUFFIX BREW_PREFIX FFMPEG_BIN FFPLAY_BIN FFPROBE_BIN GTKDIALOGBIN
     VRECORD_VARS_FILE="/tmp/v_$(echo "${0}" | sed -e "s/[^A-Za-z0-9.]/_/g")_variables.txt"
 }
 
@@ -271,16 +271,31 @@ _gather_ffmpeg_vars(){
     if [[ -n "${FFMPEGALT}" ]] ; then
         FFMPEG_BIN="${FFMPEGALT}"
         FFPLAY_BIN=$(find "${DEPENDENCYDIR}" -iname "ffplay-ma" | head -n1)
+        FFPROBE_BIN=$(find "${DEPENDENCYDIR}" -iname "ffprobe-ma" | head -n1)
     elif which ffmpeg-ma &> /dev/null ; then
         FFMPEG_BIN="$(which ffmpeg-ma)"
         FFPLAY_BIN="$(which ffplay-ma)"
+        FFPROBE_BIN="$(which ffprobe-ma)"
     elif
         [[ -d "${BREW_PREFIX}/bin" ]] ; then
         FFMPEG_BIN="${BREW_PREFIX}/bin/ffmpeg-ma"
         FFPLAY_BIN="${BREW_PREFIX}/bin/ffplay-ma"
+        FFPROBE_BIN="${BREW_PREFIX}/bin/ffprobe-ma"
     else
         FFMPEG_BIN="$(which ffmpeg)"
         FFPLAY_BIN="$(which ffplay)"
+        FFPROBE_BIN="$(which ffprobe)"
+    fi
+
+    if [[ -z "${H264_ENCODER}" ]] ; then
+        ENCODER_LIST="$("${FFMPEG_BIN}" -hide_banner -encoders 2>/dev/null)"
+        if [[ "${OS_TYPE}" = "macOS" ]] && grep -q "h264_videotoolbox" <<< "${ENCODER_LIST}" ; then
+            H264_ENCODER="h264_videotoolbox"
+        elif grep -q "libopenh264" <<< "${ENCODER_LIST}" ; then
+            H264_ENCODER="libopenh264"
+        else
+            H264_ENCODER="h264"
+        fi
     fi
 }
 
@@ -361,6 +376,118 @@ _eia608dump2scc(){
     _end_scc
 }
 
+_qc_frame_to_records(){
+    local DUMP="${1}"    MEDIA_TYPE="${2}" STREAM_INDEX="${3}"
+    local WIDTH="${4:-}" HEIGHT="${5:-}"   PIX_FMT="${6:-}"
+    awk -v MEDIA_TYPE="${MEDIA_TYPE}" -v STREAM_INDEX="${STREAM_INDEX}" -v WIDTH="${WIDTH}" -v HEIGHT="${HEIGHT}" -v PIX_FMT="${PIX_FMT}" '
+        BEGIN { NL = sprintf("%c", 1) }   # placeholder newline; replaced with \n after sort/cut
+        function XMLESC(S) {
+            gsub(/&/,  "\\&amp;",  S)
+            gsub(/</,  "\\&lt;",   S)
+            gsub(/>/,  "\\&gt;",   S)
+            gsub(/"/,  "\\&quot;", S)
+            return S
+        }
+        function FLUSH(NEXT_PTS_TIME,    DUR, PTT, ATTRS, LINE, I) {
+            if (B_PTS_TIME == "") return
+            if (NEXT_PTS_TIME == "") DUR = LAST_DUR
+            else                     DUR = NEXT_PTS_TIME - B_PTS_TIME
+            LAST_DUR = DUR
+            PTT = sprintf("%.7f", B_PTS_TIME + 0)
+            ATTRS = "media_type=\"" MEDIA_TYPE "\" stream_index=\"" STREAM_INDEX "\"" \
+                    " key_frame=\"1\" pkt_pts=\"" B_PTS "\" pkt_pts_time=\"" PTT "\"" \
+                    " pkt_duration_time=\"" sprintf("%.7f", DUR + 0) "\""
+            if (MEDIA_TYPE == "video")
+                ATTRS = ATTRS " width=\"" WIDTH "\" height=\"" HEIGHT "\" pix_fmt=\"" PIX_FMT "\" pict_type=\"I\""
+            LINE = "    <frame " ATTRS
+            if (B_NTAGS == 0) {
+                LINE = LINE "/>"
+            } else {
+                LINE = LINE ">" NL
+                for (I = 1; I <= B_NTAGS; I++)
+                    LINE = LINE "        <tag key=\"" XMLESC(B_TAGKEY[I]) "\" value=\"" XMLESC(B_TAGVAL[I]) "\"/>" NL
+                LINE = LINE "    </frame>"
+            }
+            printf "%s\t%s\n", B_PTS_TIME, LINE
+        }
+        /^frame:/ {
+            FLUSH(PTS_TIME)
+            B_PTS = PTS; B_PTS_TIME = PTS_TIME; B_NTAGS = NTAGS
+            for (I = 1; I <= NTAGS; I++) { B_TAGKEY[I] = TAGKEY[I]; B_TAGVAL[I] = TAGVAL[I] }
+
+            split($1, F1, ":"); FRAME    = F1[2]
+            split($2, F2, ":"); PTS      = F2[2]
+            split($3, F3, ":"); PTS_TIME = F3[2]
+            NTAGS = 0
+            next
+        }
+        /^lavfi\.(signalstats|astats)\./ {
+            split($0, KV, "=")
+            VAL = KV[2]
+            if (VAL != "nan" && VAL != "-nan")
+                VAL = sprintf("%.6f", VAL + 0)
+            NTAGS++
+            TAGKEY[NTAGS] = KV[1]
+            TAGVAL[NTAGS] = VAL
+            next
+        }
+        END {
+            FLUSH(PTS_TIME)
+            B_PTS = PTS; B_PTS_TIME = PTS_TIME; B_NTAGS = NTAGS
+            for (I = 1; I <= NTAGS; I++) { B_TAGKEY[I] = TAGKEY[I]; B_TAGVAL[I] = TAGVAL[I] }
+            FLUSH("")
+        }' "${DUMP}"
+}
+
+_qc_dump_to_xml() {
+    local OUT_GZ="${1}" WIDTH="${2}" HEIGHT="${3}" PIX_FMT="${4}" SOURCE_FILE="${5:-}"
+    shift 5 # remaining args are triplets of DUMP, MEDIA_TYPE, and STREAM_INDEX
+
+    local HEADER_XML=""
+    if [[ -n "${SOURCE_FILE}" ]] && [[ -s "${SOURCE_FILE}" ]] ; then
+        HEADER_XML="$("${FFPROBE_BIN}" -v quiet -print_format xml -show_program_version -show_library_versions -show_format -show_streams "${SOURCE_FILE}" | xmlstarlet sel -t -c "/ffprobe/program_version" -c "/ffprobe/library_versions" -c "/ffprobe/streams" -c "/ffprobe/format" 2>/dev/null)"
+    fi
+
+    local SORTED_PARTS=() FOUND_ANY="false"
+    while [[ $# -gt 0 ]] ; do
+        local DUMP="${1}" MEDIA_TYPE="${2}" STREAM_INDEX="${3}"
+        shift 3
+        if [[ -s "${DUMP}" ]] ; then
+            FOUND_ANY="true"
+            local PART
+            PART=$(_maketemp ".qc_part_${MEDIA_TYPE}${STREAM_INDEX}.txt") || return 1
+            _qc_frame_to_records "${DUMP}" "${MEDIA_TYPE}" "${STREAM_INDEX}" "${WIDTH}" "${HEIGHT}" "${PIX_FMT}" \
+                | sort -t$'\t' -k1,1n -s > "${PART}"
+            SORTED_PARTS+=("${PART}")
+        fi
+    done
+    if [[ "${FOUND_ANY}" = "false" ]] ; then
+        _report -w "No qctools metadata dumps found to convert"
+        rm -f "${SORTED_PARTS[@]}"
+        return 1
+    fi
+
+    local TMP
+    TMP=$(_maketemp .qc_merge.txt) || return 1
+    # merge N pre-sorted streams in one linear pass, instead of a full sort
+    # over the concatenation of all frames from all streams
+    sort -t$'\t' -k1,1n -m -s "${SORTED_PARTS[@]}" > "${TMP}"
+
+    {
+        echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+        echo "<!-- Created by vrecord ${VERSION} -->"
+        echo "<ffprobe:ffprobe xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\""
+        echo "xmlns:ffprobe=\"http://www.ffmpeg.org/schema/ffprobe\""
+        echo "xsi:schemaLocation=\"http://www.ffmpeg.org/schema/ffprobe ffprobe.xsd\">"
+        [[ -n "${HEADER_XML}" ]] && echo "${HEADER_XML}"
+        echo '<frames>'
+        cut -f2- "${TMP}" | tr '\001' '\n'
+        echo '</frames>'
+        echo '</ffprobe:ffprobe>'
+    } | gzip > "${OUT_GZ}"
+    rm -f "${TMP}" "${SORTED_PARTS[@]}"
+}
+
 _cleanup(){
     _report -wt "Vrecord is being stopped at $(_get_iso8601), noting this in the capture log."
     _writeingestlog "exit status" "vrecord was forced to quit early at $(_get_iso8601). Some processing may be incomplete."
@@ -423,8 +550,6 @@ _gtk_vbox_list() {
             </checkbox>"
         elif [[ "${VARIABLE_NAME}" == "EMBED_LOGS_CHOICE" ]] ; then
             echo "<sensitive>$(if $MKVPROPEDIT_INSTALLED ; then echo true ; else echo false ; fi)</sensitive>"
-        elif [[ "${VARIABLE_NAME}" == "QCTOOLSXML_CHOICE" ]] ; then
-            echo "<sensitive>$(if $QCLI_INSTALLED ; then echo true ; else echo false ; fi)</sensitive>"
         elif [[ "${VARIABLE_NAME}" == "DV_CONTAINER_CHOICE" ]] ; then
             echo "<sensitive>$(if $DVPACKAGER_INSTALLED ; then echo true ; else echo false ; fi)</sensitive>"
         elif [[ "${VARIABLE_NAME}" == "DECKLINK_INPUT_CHOICE" ]] ; then
@@ -496,6 +621,7 @@ _setup_vrecord_input(){
         GRAB_INPUT+=("${TIME_LIMIT[@]}")
         GRAB_INPUT+=(-f lavfi -i sine=440:r=48000)
         GRAB_INPUT+=(-pix_fmt yuv422p10le)
+        AUDIOMAP=$(sed "s/0:a:0/1:a:0/g" <<< "$AUDIOMAP")
     elif [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         _set_ffmpeg_loglevel
         GRAB_INPUT+=(-f decklink)
@@ -586,12 +712,117 @@ _setup_vrecord_process(){
         fi
         RECORD_COMMAND+=("${MIDDLEOPTIONS_PRES[@]}" "${MIDDLEOPTIONS_ALL[@]}")
         if [[ "${RUNTYPE}" = "record" ]] ; then
-            RECORD_COMMAND+=(-filter_complex "[0:v:0]${RECORDINGFILTER#,*}${TC_WRITE}${CAPTION_WRITE}[vout];${AUDIOMAP}" -map "[vout]" "${AUDIO_CHANNEL_MAP[@]}")
-            RECORD_COMMAND+=(-f tee [f=${FORMAT}:select=v,${AUDIO_TEE_SELECT_MAP}]"${VRECORD_OUTPUT}"\|[f=nut:onfail=abort:select=v,${AUDIO_TEE_SELECT_MAP},a\\\\:0]pipe:1)
-            RECORD_COMMAND+=("${EXTRAOUTPUTS[@]}")
+
+            # construct the video stream processing
+            MAIN_V_PADNAME="MAIN_V"
+            SPLIT_PADS=()
+            SPLIT_MAPS=(-map "[${MAIN_V_PADNAME}]")
+            VIDEO_STREAM_IDX=1
+            if [[ "${FRAMEMD5_CHOICE}" = "true" ]] ; then
+                FRAMEMD5_V_IDX="${VIDEO_STREAM_IDX}"
+                FRAMEMD5NAME="${LOGDIR}/${FULL_OUTPUT_ID}.framemd5"
+                FRAMEMD5_PADNAME="MD5_V"
+                SPLIT_PADS+=("${FRAMEMD5_PADNAME}")
+                SPLIT_MAPS+=(-map "[${FRAMEMD5_PADNAME}]")
+                (( VIDEO_STREAM_IDX++ ))
+                EXTRAOPTIONS+=(-c:v:"${FRAMEMD5_V_IDX}" rawvideo)
+            fi
+            RECORD_COMMAND_MP4_FILTER=""
+            if [[ "${MP4_CHOICE}" = "true" ]] ; then
+                MP4_V_IDX="${VIDEO_STREAM_IDX}"
+                MP4NAME="${DIR}/${FULL_OUTPUT_ID}.mp4"
+                MP4_V_PADNAME="MP4_V"
+                SPLIT_PADS+=("${MP4_V_PADNAME}")
+                RECORD_COMMAND_MP4_FILTER=";[MP4_V]${RECORDINGFILTER_MP4#,},bwdif=send_frame,setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}[${MP4_V_PADNAME}]"
+                SPLIT_MAPS+=(-map "[${MP4_V_PADNAME}]")
+                (( VIDEO_STREAM_IDX++ ))
+                case "${H264_ENCODER}" in
+                    h264_videotoolbox)
+                        EXTRAOPTIONS+=(-c:v:"${MP4_V_IDX}" "${H264_ENCODER}" -pix_fmt:v:"${MP4_V_IDX}" yuv420p -g:v:"${MP4_V_IDX}" 12 -profile:v:"${MP4_V_IDX}" main -allow_sw:v:"${MP4_V_IDX}" 1 -realtime:v:"${MP4_V_IDX}" 1 -b:v:"${MP4_V_IDX}" "${ACCESS_MP4_BITRATE}") ;;
+                    libopenh264|h264)
+                        EXTRAOPTIONS+=(-c:v:"${MP4_V_IDX}" "${H264_ENCODER}" -pix_fmt:v:"${MP4_V_IDX}" yuv420p -g:v:"${MP4_V_IDX}" 12 -profile:v:"${MP4_V_IDX}" main -level:v:"${MP4_V_IDX}" "${ACCESS_MP4_LEVEL}" -b:v:"${MP4_V_IDX}" "${ACCESS_MP4_BITRATE}") ;;
+                esac
+            fi
+            RECORD_COMMAND_QC_FILTER=""
+            if [[ "${QCTOOLSXML_V2_CHOICE}" = "true" ]] ; then
+                QC_SRC_V_PADNAME="QC_SRC_V"
+                QC_THUMB_PADNAME="QC_THUMB_V"
+                SPLIT_PADS+=("${QC_SRC_V_PADNAME}")
+                QC_THUMB_V_IDX="${VIDEO_STREAM_IDX}"
+                SPLIT_MAPS+=(-map "[${QC_THUMB_PADNAME}]")
+                (( VIDEO_STREAM_IDX++ ))
+                EXTRAOPTIONS+=(-c:v:"${QC_THUMB_V_IDX}" mjpeg -pix_fmt:v:"${QC_THUMB_V_IDX}" yuvj420p -qmin:v:"${QC_THUMB_V_IDX}" 8 -qmax:v:"${QC_THUMB_V_IDX}" 12 -metadata:s:v:"${QC_THUMB_V_IDX}" title="Frame Thumbnails")
+                QC_VIDEO_DUMP="$(_maketemp .qc_video.txt)"
+                RECORD_COMMAND_QC_FILTER=";[${QC_SRC_V_PADNAME}]split=2[${QC_THUMB_PADNAME}_pre][QC_STATS_V]"
+                RECORD_COMMAND_QC_FILTER+=";[${QC_THUMB_PADNAME}_pre]scale=72:72[${QC_THUMB_PADNAME}]"
+                RECORD_COMMAND_QC_FILTER+=";[QC_STATS_V]signalstats=stat=tout+vrep+brng,metadata=mode=print:file=${QC_VIDEO_DUMP},nullsink"
+                QC_AUDIO_DUMPS=()
+                for IDX in "${AUDIO_CHANNEL_IDX[@]}" ; do
+                    QC_AUDIO_DUMP="$(_maketemp ".qc_audio${IDX}.txt")"
+                    QC_AUDIO_DUMPS+=("${QC_AUDIO_DUMP}")
+                    RECORD_COMMAND_QC_FILTER+=";[QC_A${IDX}]aformat=sample_fmts=flt|fltp,astats=metadata=1:reset=1:length=0.4,ametadata=mode=print:file=${QC_AUDIO_DUMP},anullsink"
+                done
+            fi
+
+            # construct end of video filterchain
+            SPLIT_COUNT=$(( 1 + ${#SPLIT_PADS[@]} ))
+            if [[ "${SPLIT_COUNT}" -gt 1 ]] ; then
+                RECORD_COMMAND_SPLIT=",split=${SPLIT_COUNT}[${MAIN_V_PADNAME}]"
+                for OUTPUT_PAD_NAME in "${SPLIT_PADS[@]}" ; do
+                    RECORD_COMMAND_SPLIT+="[${OUTPUT_PAD_NAME}]"
+                done
+            else
+                RECORD_COMMAND_SPLIT="[${MAIN_V_PADNAME}]"
+            fi
+
+            # map of the output mapping to the names, used in the benchmark summary
+            OUTPUT_LABELS=""
+            MAP_IDX="0"
+            for PAD in "${SPLIT_MAPS[@]}" "${AUDIO_CHANNEL_MAP[@]}" "${AUDIO_MP4_MAP[@]}" ; do
+                if [[ "${PAD:0:1}" == "[" ]] ; then
+                    OUTPUT_LABELS+="${OUTPUT_LABELS:+,}0.${MAP_IDX}=${PAD//[\[\]]/}"
+                    ((MAP_IDX++))
+                fi
+            done
+
+            # construct the audio stream processing
+            AUDIO_TEE_SELECT_MAP=""
+            EXTRAOPTIONS+=(-c:a:0 pcm_s24le)
+            AUDIO_STREAM_N=$(( 1 + ${#AUDIO_CHANNEL_IDX[@]} ))
+            MP4_A_TEE_SELECT=""
+            for AUD_IDX in "${AUDIO_CHANNEL_IDX[@]}" ; do
+                AUDIO_TEE_SELECT_MAP+="${AUDIO_TEE_SELECT_MAP:+,}a\\\\:${AUD_IDX}"
+                # fill out audio template per stream
+                for OPTION in "${AUDIO_MIDDLEOPTIONS_TEMPLATE[@]}" ; do
+                    RECORD_COMMAND+=("${OPTION//:X/:${AUD_IDX}}")
+                done
+            done
+            if [[ "${MP4_CHOICE}" = "true" ]] ; then
+                for (( MAP_N=0; MAP_N<${#AUDIO_MP4_MAP[@]}/2; MAP_N++ )) ; do
+                    MP4_A_TEE_SELECT+=",a\\\\:${AUDIO_STREAM_N}"
+                    EXTRAOPTIONS+=(-c:a:"${AUDIO_STREAM_N}" aac)
+                    (( AUDIO_STREAM_N++ ))
+                done
+            fi
+
+            RECORD_COMMAND+=(-filter_complex "[0:v:0]${RECORDINGFILTER#,*}${TC_WRITE}${CAPTION_WRITE}${RECORD_COMMAND_SPLIT};${AUDIOMAP}${RECORD_COMMAND_MP4_FILTER}${RECORD_COMMAND_QC_FILTER}" "${SPLIT_MAPS[@]}" "${AUDIO_CHANNEL_MAP[@]}" $([[ "${MP4_CHOICE}" = "true" ]] && echo "${AUDIO_MP4_MAP[@]}") "${EXTRAOPTIONS[@]}")
+
+            # Build tee string
+            RECORD_COMMAND_TEE_STR="[f=${FORMAT}:select=v\\\\:0,${AUDIO_TEE_SELECT_MAP}]${VRECORD_OUTPUT}"
+            RECORD_COMMAND_TEE_STR+="|[f=nut:onfail=abort:select=v\\\\:0,${AUDIO_TEE_SELECT_MAP},a\\\\:0]pipe:1"
+            if [[ "${FRAMEMD5_CHOICE}" = "true" ]] ; then
+                RECORD_COMMAND_TEE_STR+="|[f=framemd5:hash=MD5:select=v\\\\:${FRAMEMD5_V_IDX}]${FRAMEMD5NAME}"
+            fi
+            if [[ "${MP4_CHOICE}" = "true" ]] ; then
+                RECORD_COMMAND_TEE_STR+="|[f=mp4:onfail=ignore:movflags=write_colr+faststart:select=v\\\\:${MP4_V_IDX}${MP4_A_TEE_SELECT}]${MP4NAME}"
+            fi
+            if [[ "${QCTOOLSXML_V2_CHOICE}" = "true" ]] ; then
+                QCTOOLS_THUMB_MKV_TMP="$(_maketemp .qc_thumb.mkv)"
+                RECORD_COMMAND_TEE_STR+="|[f=matroska:onfail=ignore:select=v\\\\:${QC_THUMB_V_IDX}]${QCTOOLS_THUMB_MKV_TMP}"
+            fi
+            RECORD_COMMAND+=(-f tee "${RECORD_COMMAND_TEE_STR}")
         else
             if [[ "${SIGNAL_INPUT}" = 'true' ]] ; then
-                PIPE_OUTPUT=(-c:v ffv1)
                 AUD_PIPE_MAP='1:a'
             else
                 AUD_PIPE_MAP='0:a'
@@ -637,7 +868,7 @@ _setup_vrecord_process(){
         VRECORD_STEPS="2" # Steps: record | player (record is adjusted if actually recording)
         RECORD_COMMAND=("${FFMPEG_BIN}")
         RECORD_COMMAND+=(-nostdin -nostats "${TIME_LIMIT[@]}" "${GRAB_INPUT[@]}")
-        RECORD_COMMAND+=("${MIDDLEOPTIONS_PRES[@]}" "${MIDDLEOPTIONS_ALL[@]}")
+        RECORD_COMMAND+=("${MIDDLEOPTIONS_PRES_AUDIO[@]}" "${MIDDLEOPTIONS_ALL[@]}")
         if [[ "${RUNTYPE}" = "record" ]] ; then
             RECORD_COMMAND+=(-f "${FORMAT}" -filter_complex "${AUDIOMAP}" "${AUDIO_CHANNEL_MAP[@]}" "${VRECORD_OUTPUT}")
         fi
@@ -694,6 +925,16 @@ _setup_vrecord_process(){
             FFPLAY_OPTIONS+=(-an)
         fi
         PLAYER_COMMAND=("${FFPLAY_BIN}" "${FFPLAY_OPTIONS[@]}")
+    fi
+    if [[ "${VERBOSE_GTKDIALOG}" = "Y" ]] ; then
+        echo "RUNTYPE ${RUNTYPE}"
+        echo "STEPS ${VRECORD_STEPS}"
+        echo "PLAY ${PLAYER_COMMAND[@]}"
+        echo "RECORD ${RECORD_COMMAND[@]}"
+        echo "SPLIT_PADS ${SPLIT_PADS[@]}"
+        echo "SPLIT_MAPS ${SPLIT_MAPS[@]}"
+        echo "RECORD_COMMAND_SPLIT ${RECORD_COMMAND_SPLIT[@]}"
+        echo "EXTRAOPTIONS ${EXTRAOPTIONS[@]}"
     fi
 }
 
@@ -792,8 +1033,12 @@ SIDECAR_FILES_GUI="
                 <default>\"${TIMECODEVTT_CHOICE}\"</default>
                 <variable>TIMECODEVTT_CHOICE</variable>
             </checkbox>
+            <checkbox tooltip-text=\"If enabled, this will make a QCTools report (.qctools.mkv) file for the preservation output.\">
+                <label>Vrecord QCTools Report</label>
+                <default>\"${QCTOOLSXML_V2_CHOICE}\"</default>
+                <variable>QCTOOLSXML_V2_CHOICE</variable>
+            </checkbox>
         </vbox>
-        $(_gtk_vbox_list "QCTOOLSXML_CHOICE" "180"  "QCTools XML?"              "${QCTOOLSXML_OPTIONS[@]}")
     </hbox>
 </frame>"
 
@@ -937,14 +1182,6 @@ OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
                 </text>
                 <pixmap stock-icon-size="1" tooltip-text="If mpv is installed, vrecord can offer additional playback view options.">
                     <input file stock="$(if $MPV_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)"></input>
-                </pixmap>
-            </hbox>
-            <hbox>
-                <text>
-                    <label>qcli: </label>
-                </text>
-                <pixmap stock-icon-size="1" tooltip-text="If qcli is installed, vrecord can offer options to create QCTools reports during or after capture.">
-                    <input file stock="$(if $QCLI_INSTALLED ; then echo gtk-yes ; else echo gtk-no ; fi)"></input>
                 </pixmap>
             </hbox>
             <hbox>
@@ -1616,12 +1853,6 @@ _edit_mode(){
 # passthrough and audiopassthrough modes
 _passthrough_mode(){
     _setup_vrecord_process
-    if [[ "${VERBOSE_GTKDIALOG}" = "Y" ]] ; then
-        echo "RUNTYPE ${RUNTYPE}"
-        echo "STEPS ${VRECORD_STEPS}"
-        echo "PLAY ${PLAYER_COMMAND[@]}"
-        echo "RECORD ${RECORD_COMMAND[@]}"
-    fi
 
     if [[ "${PLAYBACKVIEW_CHOICE_PASS}" == "Captions" ]] && [[ "${RUNTYPE}" == "passthrough" ]] ; then
         "${SCRIPTDIR}/cchex_to_display" "${FFREPORT_TMP}" "${CAP_DISPLAY_TMP}" > /dev/null 2> /dev/null &
@@ -1665,26 +1896,21 @@ _writeingestlog(){
 _qcgraphimage(){
     # get audio data
     qctools_CONFIGFILE_A="$(_maketemp .astats_A.csv)"
-    "${ZCAT_COMMAND}" "$1" | perl -nle 'print if not m{lavfi.(?!astats.Overall.Min_level|astats.Overall.Max_level|astats.Overall.Peak_level|aphasemeter.phase)}' | xmlstarlet select -t -m "//ffprobe:ffprobe/frames/frame[@media_type='audio']" \
+    "${ZCAT_COMMAND}" "$1" | perl -nle 'print if not m{lavfi.(?!astats.Overall.Min_level|astats.Overall.Max_level|astats.Overall.Peak_level)}' | xmlstarlet select -t -m "//ffprobe:ffprobe/frames/frame[@media_type='audio']" \
        -v "@pkt_pts_time" -o " " \
        -v "tag[@key='lavfi.astats.Overall.Max_level']/@value" -o " " \
        -v "tag[@key='lavfi.astats.Overall.Min_level']/@value" -o " " \
-       -v "tag[@key='lavfi.astats.Overall.Peak_level']/@value" -o " " \
-       -v "tag[@key='lavfi.aphasemeter.phase']/@value" -n > "${qctools_CONFIGFILE_A}"
+       -v "tag[@key='lavfi.astats.Overall.Peak_level']/@value" -n > "${qctools_CONFIGFILE_A}"
     # get video data
     qctools_CONFIGFILE_V="$(_maketemp .signalstats.V.csv)"
-    "${ZCAT_COMMAND}" "$1" | perl -nle 'print if not m{lavfi.(?!signalstats.BRNG|signalstats.TOUT|signalstats.SATMAX|signalstats.SATAVG|ssim.Y|ssim.U|ssim.V)}' | xmlstarlet select -t -m "//ffprobe:ffprobe/frames/frame[@media_type='video']" \
+    "${ZCAT_COMMAND}" "$1" | perl -nle 'print if not m{lavfi.(?!signalstats.BRNG|signalstats.TOUT|signalstats.SATMAX|signalstats.SATAVG)}' | xmlstarlet select -t -m "//ffprobe:ffprobe/frames/frame[@media_type='video']" \
        -v "@pkt_pts_time" -o " " \
        -v "tag[@key='lavfi.signalstats.TOUT']/@value" -o " " \
        -v "tag[@key='lavfi.signalstats.BRNG']/@value" -o " " \
        -v "tag[@key='lavfi.signalstats.SATMAX']/@value" -o " " \
-       -v "tag[@key='lavfi.signalstats.SATAVG']/@value" -o " " \
-       -v "tag[@key='lavfi.ssim.Y']/@value" -o " " \
-       -v "tag[@key='lavfi.ssim.U']/@value" -o " " \
-       -v "tag[@key='lavfi.ssim.V']/@value" -n > "${qctools_CONFIGFILE_V}"
-
+       -v "tag[@key='lavfi.signalstats.SATAVG']/@value" -n > "${qctools_CONFIGFILE_V}"
     # determine SATURATION scale
-    VBitdepth="$("${ZCAT_COMMAND}" "$1" | perl -nle 'print if not m{<frame |</frame>|<tag}' | xmlstarlet sel -t -v "//stream[@codec_type='video']/@pix_fmt" -n)"
+    VBitdepth="$("${ZCAT_COMMAND}" "$1" | perl -nle 'print if not m{<frame |</frame>|<tag|</tag}' | xmlstarlet sel -t -v "//stream[@codec_type='video']/@pix_fmt" -n)"
     if [[ "${VBitdepth}" = "yuv422p10le" ]] ; then
         SATpalette="(0'#a0a0a0',80'#bebebe',177.4'#c8c800',322'#a0ff20',354.8'#00ff00',413.8'#006400',433.46'#00ff00',453.13'#a0ff20',472.8'#ffa500',496'#ff0000')"
         SATcbrange="[0:496]"
@@ -1694,11 +1920,10 @@ _qcgraphimage(){
         SATcbrange="[0:124]"
         SATyrange="[0:183]"
     fi
-
     echo "set terminal jpeg size 1920, 1080
     set output '${LOGDIR}/${FULL_OUTPUT_ID}_QC_output_graphs.jpeg'
     set term jpeg font 'times,12'
-    set multiplot layout 7, 1 title '${ID} QC Data Graphs (ver.2)' margins screen .05,.93, .05, .93 spacing screen 0, char .7
+    set multiplot layout 5, 1 title '${ID} QC Data Graphs (ver.3)' margins screen .05,.93, .05, .93 spacing screen 0, char .7
     set style line 11 lc rgb '#808080' lt 1
     set border 15 back ls 11
     set format x '%tH:%tM:%.1tS' time
@@ -1729,14 +1954,6 @@ _qcgraphimage(){
     plot '' using 1:4:4 with lines ls 15 title 'Peak Level (dB)'
     unset yrange
     unset cbrange
-    set palette model RGB defined (-0.8'#ff0000',-0.6'#ffa500',-0.4'#a0ff20',0'#00ff00',1'#006400') maxcolors 128
-    set cbrange [-0.8:1]
-    set yrange [-1:1]
-    set style line 25 linecolor palette lw 4
-    set label 1 'Audio Phase' at graph .5,.9 front
-    plot '' using 1:5:5 with lines ls 25 title 'Audio Phase'
-    unset yrange
-    unset cbrange
     set palette model RGB defined (0'#006400',0.01'#00ff00',0.02'#fffb20',.04'#ffa500',0.05'#ff0000') maxcolors 128
     set cbrange [0:.05]
     set yrange [0:.1]
@@ -1760,16 +1977,11 @@ _qcgraphimage(){
     unset label
     set key at graph 1.06,.5 center vertical Left noopaque noreverse font 'times,9'
     set label 1 'Saturation Level' at graph .5,.9 center front
-    plot '' using 1:4:4 with boxes palette title 'SatMax', '' using 1:5 with lines ls 5 title 'SatAvg'
-    unset yrange
-    unset cbrange
     unset xtics
     unset key
-    set key at graph 1.06,.5 right vertical Right noopaque noreverse
     set x2tics border mirror in scale 1.5,.7 format ''
     set xtics border out nomirror format '%tH:%tM:%.1tS' time
-    set label 1 'Structural SImilarity Metric' at graph .5,.1 center front
-    plot '' using 1:6 with lines ls 5 title 'SSIM-Y', '' using 1:7 with lines ls 2 title 'SSIM-U', '' using 1:8 with lines ls 6 title 'SSIM-V'
+    plot '' using 1:4:4 with boxes palette title 'SatMax', '' using 1:5 with lines ls 5 title 'SatAvg'
     " | gnuplot
 }
 
@@ -1962,38 +2174,38 @@ _lookup_choice(){
             _add_mediaconch_rule_set "${CODEC_UNCOMPRESSED_TEST}"
             if [[ "${PIXEL_FORMAT}" = "yuv422p10" ]] ; then
                 VIDEOCODECNAME="Uncompressed 10-bit 4:2:2"
-                MIDDLEOPTIONS_PRES+=(-c:v v210)
+                MIDDLEOPTIONS_PRES+=(-c:v:0 v210)
             elif [[ "${PIXEL_FORMAT}" = "uyvy422" ]] ; then
                 VIDEOCODECNAME="Uncompressed 8-bit 4:2:2"
-                MIDDLEOPTIONS_PRES+=(-c:v rawvideo -pix_fmt uyvy422 -tag:v 2vuy)
+                MIDDLEOPTIONS_PRES+=(-c:v:0 rawvideo -pix_fmt:v:0 uyvy422 -tag:v:0 2vuy)
             fi ;;
         "FFV1 version 3")
             _add_mediaconch_rule_set "${CODEC_FFV1_TEST}"
             VIDEOCODECNAME="FFV1 version 3"
-            MIDDLEOPTIONS_PRES+=(-c:v ffv1 -level 3 -g 1 -slices "${FFV1_SLICES}" -slicecrc 1)
+            MIDDLEOPTIONS_PRES+=(-c:v:0 ffv1 -level:v:0 3 -g:v:0 1 -slices:v:0 "${FFV1_SLICES}" -slicecrc:v:0 1)
             SUFFIX="_ffv1" ;;
         "JPEG2000")
             VIDEOCODECNAME="JPEG2000"
-            MIDDLEOPTIONS_PRES+=(-c:v libopenjpeg)
+            MIDDLEOPTIONS_PRES+=(-c:v:0 libopenjpeg)
             SUFFIX="_j2k" ;;
         "ProRes")
             VIDEOCODECNAME="Apple ProRes 422"
-            MIDDLEOPTIONS_PRES+=(-c:v prores_ks -flags +ildct -profile:v 2)
+            MIDDLEOPTIONS_PRES+=(-c:v:0 prores_ks -flags:v:0 +ildct -profile:v:0 2)
             SUFFIX="_prores" ;;
         "ProRes (HQ)")
             VIDEOCODECNAME="Apple ProRes 422 HQ"
-            MIDDLEOPTIONS_PRES+=(-c:v prores_ks -flags +ildct -profile:v 3)
+            MIDDLEOPTIONS_PRES+=(-c:v:0 prores_ks -flags:v:0 +ildct -profile:v:0 3)
             SUFFIX="_prores" ;;
         "h264")
             VIDEOCODECNAME="H.264"
-            MIDDLEOPTIONS_PRES+=(-c:v h264 -pix_fmt yuv420p)
+            MIDDLEOPTIONS_PRES+=(-c:v:0 "${H264_ENCODER}" -pix_fmt:v:0 yuv420p)
             SUFFIX="_h264" ;;
         "HuffYUV")
             VIDEOCODECNAME="HuffYUV"
             if [[ "${PIXEL_FORMAT}" = "yuv422p10" ]] ; then
-                MIDDLEOPTIONS_PRES+=(-c:v ffvhuff -pix_fmt yuv422p10le -pred median -context 1)
+                MIDDLEOPTIONS_PRES+=(-c:v:0 ffvhuff -pix_fmt:v:0 yuv422p10le -pred:v:0 median -context:v:0 1)
             elif [[ "${PIXEL_FORMAT}" = "uyvy422" ]] ; then
-                MIDDLEOPTIONS_PRES+=(-c:v ffvhuff -pix_fmt yuv422p -pred median -context 1)
+                MIDDLEOPTIONS_PRES+=(-c:v:0 ffvhuff -pix_fmt:v:0 yuv422p -pred:v:0 median -context:v:0 1)
             fi
             SUFFIX="_huff" ;;
 
@@ -2003,86 +2215,81 @@ _lookup_choice(){
 
         # audio codec
         "24-bit PCM")
-            MIDDLEOPTIONS_PRES+=(-c:a pcm_s24le)
-            MIDDLEOPTIONS_PRES+=(-rf64 auto)
+            _add_mediaconch_rule_set "${AUDIO_CODEC_PCM_TEST}"
+            MIDDLEOPTIONS_PRES_AUDIO+=(-c:a pcm_s24le)
+            MIDDLEOPTIONS_PRES_AUDIO+=(-rf64 auto)
+            AUDIO_MIDDLEOPTIONS_TEMPLATE+=(-c:a:X pcm_s24le)
             AUDIO_EXT='wav' ;;
         "24-bit FLAC")
-            MIDDLEOPTIONS_PRES+=(-c:a flac)
-            MIDDLEOPTIONS_PRES+=(-sample_fmt s32)
-            MIDDLEOPTIONS_PRES+=(-bits_per_raw_sample:a 24)
+            _add_mediaconch_rule_set "${AUDIO_CODEC_FLAC_TEST}"
+            MIDDLEOPTIONS_PRES_AUDIO+=(-c:a flac)
+            MIDDLEOPTIONS_PRES_AUDIO+=(-sample_fmt s32)
+            MIDDLEOPTIONS_PRES_AUDIO+=(-bits_per_raw_sample:a 24)
+            AUDIO_MIDDLEOPTIONS_TEMPLATE+=(-c:a:X flac -sample_fmt:a:X s32 -bits_per_raw_sample:a:X 24)
             AUDIO_EXT='flac' ;;
         "AAC")
-            MIDDLEOPTIONS_PRES+=(-c:a aac) ;;
+            MIDDLEOPTIONS_PRES_AUDIO+=(-c:a aac)
+            AUDIO_MIDDLEOPTIONS_TEMPLATE+=(-c:a:X aac) ;;
 
         # audio mappings
         "2 Stereo Tracks (Channels 1 & 2 -> 1st Track Stereo, Channels 3 & 4 -> 2nd Track Stereo)")
-            AUDIOMAP="[0:a:0]asplit[orig],pan=stereo| c0=c0 | c1=${PHASE_VALUE_2}c1[stereo1];[0:a:0]pan=stereo| c0=c2 | c1=${PHASE_VALUE_4}c3[stereo2]"
-            AUDIOMAP_MP4="[0:a:0]pan=stereo| c0=c0 | c1=${PHASE_VALUE_2}c1[stereo1];[0:a:0]pan=stereo| c0=c2 | c1=${PHASE_VALUE_4}c3[stereo2]"
+            AUDIOMAP="[0:a:0]asplit=2[ORIG_A][ORIG_A2];[ORIG_A2]pan=stereo|c0=c0|c1=${PHASE_VALUE_2}c1,asplit=${ASPLIT_N}[MAIN_STEREO_A1]$([[ "${MP4_CHOICE}" = "true" ]] && echo "[MP4_A1]")$([[ "${QCTOOLSXML_V2_CHOICE}" = "true" ]] && echo "[QC_A1]");[0:a:0]pan=stereo|c0=c2|c1=${PHASE_VALUE_4}c3,asplit=${ASPLIT_N}[MAIN_STEREO_A2]$([[ "${MP4_CHOICE}" = "true" ]] && echo "[MP4_A2]")$([[ "${QCTOOLSXML_V2_CHOICE}" = "true" ]] && echo "[QC_A2]")"
             AUDIO_PLAY_MAP="pan=4c|c0=c0|c1=${PHASE_VALUE_2}c1|c2=c2|c3=${PHASE_VALUE_4}c3"
             AUDIO_PLAY_LABELS=",drawtext=fontfile=${DEFAULTFONT}:text='L(1)':fontcolor=white:fontsize=18:x=0:y=0,drawtext=fontfile=${DEFAULTFONT}:text='R(1)':fontcolor=white:fontsize=18:x=0:y=20,drawtext=fontfile=${DEFAULTFONT}:text='L(2)':fontcolor=white:fontsize=18:x=0:y=40,drawtext=fontfile=${DEFAULTFONT}:text='R(2)':fontcolor=white:fontsize=18:x=0:y=60"
-            AUDIO_CHANNEL_MAP+=(-map "[orig]")
-            AUDIO_CHANNEL_MAP+=(-map "[stereo1]")
-            AUDIO_CHANNEL_MAP+=(-map "[stereo2]")
-            AUDIO_TEE_SELECT_MAP="a\\\\:1,a\\\\:2" ;;
+            AUDIO_CHANNEL_MAP+=(-map "[ORIG_A]" -map "[MAIN_STEREO_A1]" -map "[MAIN_STEREO_A2]")
+            [[ "${MP4_CHOICE}" = "true" ]] && AUDIO_MP4_MAP+=(-map "[MP4_A1]" -map "[MP4_A2]")
+            AUDIO_CHANNEL_IDX=(1 2) ;;
         "1 Stereo Track (From Channels 1 & 2)")
-            AUDIOMAP="[0:a:0]asplit[orig],pan=stereo| c0=c0 | c1=${PHASE_VALUE_2}c1[stereo1]"
-            AUDIOMAP_MP4="[0:a:0]pan=stereo| c0=c0 | c1=${PHASE_VALUE_2}c1[stereo1]"
+            AUDIOMAP="[0:a:0]asplit=2[ORIG_A][ORIG_A2];[ORIG_A2]pan=stereo|c0=c0|c1=${PHASE_VALUE_2}c1,asplit=${ASPLIT_N}[MAIN_STEREO_A1]$([[ "${MP4_CHOICE}" = "true" ]] && echo "[MP4_A1]")$([[ "${QCTOOLSXML_V2_CHOICE}" = "true" ]] && echo "[QC_A1]")"
             AUDIO_PLAY_MAP="pan=stereo|c0=c0|c1=${PHASE_VALUE_2}c1"
             AUDIO_PLAY_LABELS=",drawtext=fontfile=${DEFAULTFONT}:text='L(1)':fontcolor=white:fontsize=18:x=0:y=0,drawtext=fontfile=${DEFAULTFONT}:text='R(1)':fontcolor=white:fontsize=18:x=0:y=20"
-            AUDIO_CHANNEL_MAP+=(-map "[orig]")
-            AUDIO_CHANNEL_MAP+=(-map "[stereo1]")
-            AUDIO_TEE_SELECT_MAP="a\\\\:1" ;;
+            AUDIO_CHANNEL_MAP+=(-map "[ORIG_A]" -map "[MAIN_STEREO_A1]")
+            [[ "${MP4_CHOICE}" = "true" ]] && AUDIO_MP4_MAP+=(-map "[MP4_A1]")
+            AUDIO_CHANNEL_IDX=(1) ;;
         "1 Stereo Track (From Channels 3 & 4)")
-            AUDIOMAP="[0:a:0]asplit[orig],pan=stereo| c0=c2 | c1=${PHASE_VALUE_2}c3[stereo1]"
-            AUDIOMAP_MP4="[0:a:0]pan=stereo| c0=c2 | c1=${PHASE_VALUE_2}c3[stereo1]"
+            AUDIOMAP="[0:a:0]asplit=2[ORIG_A][ORIG_A2];[ORIG_A2]pan=stereo|c0=c2|c1=${PHASE_VALUE_2}c3,asplit=${ASPLIT_N}[MAIN_STEREO_A1]$([[ "${MP4_CHOICE}" = "true" ]] && echo "[MP4_A1]")$([[ "${QCTOOLSXML_V2_CHOICE}" = "true" ]] && echo "[QC_A1]")"
             AUDIO_PLAY_MAP="pan=stereo|c0=c2|c1=${PHASE_VALUE_2}c3"
             AUDIO_PLAY_LABELS=",drawtext=fontfile=${DEFAULTFONT}:text='L(1)':fontcolor=white:fontsize=18:x=0:y=40,drawtext=fontfile=${DEFAULTFONT}:text='R(1)':fontcolor=white:fontsize=18:x=0:y=60"
-            AUDIO_CHANNEL_MAP+=(-map "[orig]")
-            AUDIO_CHANNEL_MAP+=(-map "[stereo1]")
-            AUDIO_TEE_SELECT_MAP="a\\\\:1" ;;
+            AUDIO_CHANNEL_MAP+=(-map "[ORIG_A]" -map "[MAIN_STEREO_A1]")
+            [[ "${MP4_CHOICE}" = "true" ]] && AUDIO_MP4_MAP+=(-map "[MP4_A1]")
+            AUDIO_CHANNEL_IDX=(1) ;;
         "Channel 1 -> 1st Track Mono, Channel 2 -> 2nd Track Mono")
-            AUDIOMAP="[0:a:0]asplit[orig],pan=mono| c0=c0[mono1];[0:a:0]pan=mono| c0=${PHASE_VALUE_2}c1[mono2]"
-            AUDIOMAP_MP4="[0:a:0]pan=mono| c0=c0[mono1];[0:a:0]pan=mono| c0=${PHASE_VALUE_2}c1[mono2]"
+            AUDIOMAP="[0:a:0]asplit=2[ORIG_A][ORIG_A2];[ORIG_A2]pan=mono|c0=c0,asplit=${ASPLIT_N}[MAIN_MONO_A1]$([[ "${MP4_CHOICE}" = "true" ]] && echo "[MP4_A1]")$([[ "${QCTOOLSXML_V2_CHOICE}" = "true" ]] && echo "[QC_A1]");[0:a:0]pan=mono| c0=${PHASE_VALUE_2}c1,asplit=${ASPLIT_N}[MAIN_MONO_A2]$([[ "${MP4_CHOICE}" = "true" ]] && echo "[MP4_A2]")$([[ "${QCTOOLSXML_V2_CHOICE}" = "true" ]] && echo "[QC_A2]")"
             AUDIO_PLAY_MAP="pan=stereo|c0=c0|c1=${PHASE_VALUE_2}c1"
             AUDIO_PLAY_LABELS=",drawtext=fontfile=${DEFAULTFONT}:text='M(1)':fontcolor=white:fontsize=18:x=0:y=0,drawtext=fontfile=${DEFAULTFONT}:text='M(2)':fontcolor=white:fontsize=18:x=0:y=20"
-            AUDIO_CHANNEL_MAP+=(-map "[orig]")
-            AUDIO_CHANNEL_MAP+=(-map "[mono1]")
-            AUDIO_CHANNEL_MAP+=(-map "[mono2]")
-            AUDIO_TEE_SELECT_MAP="a\\\\:1,a\\\\:2" ;;
+            AUDIO_CHANNEL_MAP+=(-map "[ORIG_A]" -map "[MAIN_MONO_A1]" -map "[MAIN_MONO_A2]")
+            [[ "${MP4_CHOICE}" = "true" ]] && AUDIO_MP4_MAP+=(-map "[MP4_A1]" -map "[MP4_A2]")
+            AUDIO_CHANNEL_IDX=(1 2) ;;
         "Channel 2 -> 1st Track Mono, Channel 1 -> 2nd Track Mono")
-            AUDIOMAP="[0:a:0]asplit[orig],pan=mono| c0=${PHASE_VALUE_2}c1[mono1];[0:a:0]pan=mono| c0=c0[mono2]"
-            AUDIOMAP_MP4="[0:a:0]pan=mono| c0=${PHASE_VALUE_2}c1[mono1];[0:a:0]pan=mono| c0=c0[mono2]"
+            AUDIOMAP="[0:a:0]asplit=2[ORIG_A][ORIG_A2];[ORIG_A2]pan=mono|c0=${PHASE_VALUE_2}c1,asplit=${ASPLIT_N}[MAIN_MONO_A1]$([[ "${MP4_CHOICE}" = "true" ]] && echo "[MP4_A1]")$([[ "${QCTOOLSXML_V2_CHOICE}" = "true" ]] && echo "[QC_A1]");[0:a:0]pan=mono| c0=c0,asplit=${ASPLIT_N}[MAIN_MONO_A2]$([[ "${MP4_CHOICE}" = "true" ]] && echo "[MP4_A2]")$([[ "${QCTOOLSXML_V2_CHOICE}" = "true" ]] && echo "[QC_A2]")"
             AUDIO_PLAY_MAP="pan=stereo|c0=${PHASE_VALUE_2}c1|c1=c0"
             AUDIO_PLAY_LABELS=",drawtext=fontfile=${DEFAULTFONT}:text='M(2)':fontcolor=white:fontsize=18:x=0:y=0,drawtext=fontfile=${DEFAULTFONT}:text='M(1)':fontcolor=white:fontsize=18:x=0:y=20"
-            AUDIO_CHANNEL_MAP+=(-map "[orig]")
-            AUDIO_CHANNEL_MAP+=(-map "[mono1]")
-            AUDIO_CHANNEL_MAP+=(-map "[mono2]")
-            AUDIO_TEE_SELECT_MAP="a\\\\:1,a\\\\:2" ;;
+            AUDIO_CHANNEL_MAP+=(-map "[ORIG_A]" -map "[MAIN_MONO_A1]" -map "[MAIN_MONO_A2]")
+            [[ "${MP4_CHOICE}" = "true" ]] && AUDIO_MP4_MAP+=(-map "[MP4_A1]" -map "[MP4_A2]")
+            AUDIO_CHANNEL_IDX=(1 2) ;;
         "Channel 1 -> Single Track Mono")
-            AUDIOMAP="[0:a:0]asplit[orig],pan=mono| c0=c0[mono1]"
-            AUDIOMAP_MP4="[0:a:0]pan=mono| c0=c0[mono1]"
+            AUDIOMAP="[0:a:0]asplit=2[ORIG_A][ORIG_A2];[ORIG_A2]pan=mono|c0=c0,asplit=${ASPLIT_N}[MAIN_MONO_A1]$([[ "${MP4_CHOICE}" = "true" ]] && echo "[MP4_A1]")$([[ "${QCTOOLSXML_V2_CHOICE}" = "true" ]] && echo "[QC_A1]")"
             AUDIO_PLAY_MAP="pan=mono| c0=c0"
             AUDIO_PLAY_LABELS=",drawtext=fontfile=${DEFAULTFONT}:text='M(1)':fontcolor=white:fontsize=18:x=0:y=0"
-            AUDIO_CHANNEL_MAP+=(-map "[orig]")
-            AUDIO_CHANNEL_MAP+=(-map "[mono1]")
-            AUDIO_TEE_SELECT_MAP="a\\\\:1" ;;
+            AUDIO_CHANNEL_MAP+=(-map "[ORIG_A]" -map "[MAIN_MONO_A1]")
+            [[ "${MP4_CHOICE}" = "true" ]] && AUDIO_MP4_MAP+=(-map "[MP4_A1]")
+            AUDIO_CHANNEL_IDX=(1) ;;
         "Channel 2 -> Single Track Mono")
-            AUDIOMAP="[0:a:0]asplit[orig],pan=mono| c0=c1[mono1]"
-            AUDIOMAP_MP4="[0:a:0]pan=mono| c0=c1[mono1]"
+            AUDIOMAP="[0:a:0]asplit=2[ORIG_A][ORIG_A2];[ORIG_A2]pan=mono|c0=c1,asplit=${ASPLIT_N}[MAIN_MONO_A1]$([[ "${MP4_CHOICE}" = "true" ]] && echo "[MP4_A1]")$([[ "${QCTOOLSXML_V2_CHOICE}" = "true" ]] && echo "[QC_A1]")"
             AUDIO_PLAY_MAP="pan=mono| c0=c1"
             AUDIO_PLAY_LABELS=",drawtext=fontfile=${DEFAULTFONT}:text='M(1)':fontcolor=white:fontsize=18:x=0:y=20"
-            AUDIO_CHANNEL_MAP+=(-map "[orig]")
-            AUDIO_CHANNEL_MAP+=(-map "[mono1]")
-            AUDIO_TEE_SELECT_MAP="a\\\\:1" ;;
+            AUDIO_CHANNEL_MAP+=(-map "[ORIG_A]" -map "[MAIN_MONO_A1]")
+            [[ "${MP4_CHOICE}" = "true" ]] && AUDIO_MP4_MAP+=(-map "[MP4_A1]")
+            AUDIO_CHANNEL_IDX=(1) ;;
         # Audio mode channel options
         "Mono")
-            AUDIOMAP="[0:a:0]pan=mono| c0=c0[mono1]"
+            AUDIOMAP="[0:a:0]pan=mono| c0=c0[MAIN_MONO_A1]"
             PASSTHROUGH_MAP="pan=mono|c0=c0"
-            AUDIO_CHANNEL_MAP+=(-map "[mono1]") ;;
+            AUDIO_CHANNEL_MAP+=(-map "[MAIN_MONO_A1]") ;;
         "Stereo")
-            AUDIOMAP="[0:a:0]pan=stereo| c0=c0 | c1=${PHASE_VALUE_2}c1[stereo1]"
+            AUDIOMAP="[0:a:0]pan=stereo| c0=c0 | c1=${PHASE_VALUE_2}c1[MAIN_STEREO_A1]"
             PASSTHROUGH_MAP="pan=stereo|c0=c0|c1=${PHASE_VALUE_2}c1"
-            AUDIO_CHANNEL_MAP+=(-map "[stereo1]") ;;
+            AUDIO_CHANNEL_MAP+=(-map "[MAIN_STEREO_A1]") ;;
         # Audio mode sample rate options
         "96 kHz")
             S_RATE='-ar 96k'
@@ -2107,11 +2314,9 @@ _lookup_choice(){
                 _add_mediaconch_rule_set "${STANDARD_NTSC_TEST}"
             fi
             RECORDINGFILTER_MP4+=",crop=w=720:h=480:x=0:y=4"
-            _set_some_params
             SET_COLOR_PRIMARIES="smpte170m"
             SET_COLOR_TRC="bt709"
-            SET_COLORSPACE="smpte170m"
-            RECORDINGFILTER+=",setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}:field_mode=${SET_FIELD_MODE}" ;;
+            SET_COLORSPACE="smpte170m" ;;
         "PAL")
             STANDARD="pal "
             DECKLINK_FPS="25000/1000"
@@ -2119,132 +2324,108 @@ _lookup_choice(){
             FFV1_SLICES=24
             SIG_INTERLACEMENT="tff"
             _add_mediaconch_rule_set "${STANDARD_PAL_TEST}"
-            _set_some_params
             SET_COLOR_PRIMARIES="bt470bg"
             SET_COLOR_TRC="bt709"
-            SET_COLORSPACE="bt470bg"
-            RECORDINGFILTER+=",setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}:field_mode=${SET_FIELD_MODE}" ;;
+            SET_COLORSPACE="bt470bg" ;;
         "23ps - 1080p23.98")
             STANDARD="23ps"
             DECKLINK_FPS="24000/1001"
             SIG_GEN_SIZE="1920x1080"
             FFV1_SLICES=128
             SIG_INTERLACEMENT="prog"
-            _set_some_params
             SET_COLOR_PRIMARIES="bt709"
             SET_COLOR_TRC="bt709"
-            SET_COLORSPACE="bt709"
-            RECORDINGFILTER+=",setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}:field_mode=${SET_FIELD_MODE}" ;;
+            SET_COLORSPACE="bt709" ;;
         "24ps - 1080p24")
             STANDARD="24ps"
             DECKLINK_FPS="24000/1000"
             SIG_GEN_SIZE="1920x1080"
             FFV1_SLICES=128
             SIG_INTERLACEMENT="prog"
-            _set_some_params
             SET_COLOR_PRIMARIES="bt709"
             SET_COLOR_TRC="bt709"
-            SET_COLORSPACE="bt709"
-            RECORDINGFILTER+=",setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}:field_mode=${SET_FIELD_MODE}" ;;
+            SET_COLORSPACE="bt709" ;;
         "Hp25 - 1080p25")
             STANDARD="Hp25"
             DECKLINK_FPS="25000/1000"
             SIG_GEN_SIZE="1920x1080"
             FFV1_SLICES=128
             SIG_INTERLACEMENT="prog"
-            _set_some_params
             SET_COLOR_PRIMARIES="bt709"
             SET_COLOR_TRC="bt709"
-            SET_COLORSPACE="bt709"
-            RECORDINGFILTER+=",setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}:field_mode=${SET_FIELD_MODE}" ;;
+            SET_COLORSPACE="bt709" ;;
         "Hp29 - 1080p29.97")
             STANDARD="Hp29"
             DECKLINK_FPS="30000/1001"
             SIG_GEN_SIZE="1920x1080"
             FFV1_SLICES=128
             SIG_INTERLACEMENT="prog"
-            _set_some_params
             SET_COLOR_PRIMARIES="bt709"
             SET_COLOR_TRC="bt709"
-            SET_COLORSPACE="bt709"
-            RECORDINGFILTER+=",setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}:field_mode=${SET_FIELD_MODE}" ;;
+            SET_COLORSPACE="bt709" ;;
         "Hp30 - 1080p30")
             STANDARD="Hp30"
             DECKLINK_FPS="30000/1000"
             SIG_GEN_SIZE="1920x1080"
             FFV1_SLICES=128
             SIG_INTERLACEMENT="prog"
-            _set_some_params
             SET_COLOR_PRIMARIES="bt709"
             SET_COLOR_TRC="bt709"
-            SET_COLORSPACE="bt709"
-            RECORDINGFILTER+=",setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}:field_mode=${SET_FIELD_MODE}" ;;
+            SET_COLORSPACE="bt709" ;;
         "Hi50 - 1080i50")
             STANDARD="Hi50"
             DECKLINK_FPS="25000/1000"
             SIG_GEN_SIZE="1920x1080"
             FFV1_SLICES=128
             SIG_INTERLACEMENT="tff"
-            _set_some_params
             SET_COLOR_PRIMARIES="bt709"
             SET_COLOR_TRC="bt709"
-            SET_COLORSPACE="bt709"
-            RECORDINGFILTER+=",setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}:field_mode=${SET_FIELD_MODE}" ;;
+            SET_COLORSPACE="bt709" ;;
         "Hi59 - 1080i59.94")
             STANDARD="Hi59"
             DECKLINK_FPS="30000/1001"
             SIG_GEN_SIZE="1920x1080"
             FFV1_SLICES=128
             SIG_INTERLACEMENT="tff"
-            _set_some_params
             SET_COLOR_PRIMARIES="bt709"
             SET_COLOR_TRC="bt709"
-            SET_COLORSPACE="bt709"
-            RECORDINGFILTER+=",setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}:field_mode=${SET_FIELD_MODE}" ;;
+            SET_COLORSPACE="bt709" ;;
         "Hi60 - 1080i60")
             STANDARD="Hi60"
             DECKLINK_FPS="30000/1000"
             SIG_GEN_SIZE="1920x1080"
             FFV1_SLICES=128
             SIG_INTERLACEMENT="tff"
-            _set_some_params
             SET_COLOR_PRIMARIES="bt709"
             SET_COLOR_TRC="bt709"
-            SET_COLORSPACE="bt709"
-            RECORDINGFILTER+=",setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}:field_mode=${SET_FIELD_MODE}" ;;
+            SET_COLORSPACE="bt709" ;;
         "hp50 - 720p50")
             STANDARD="hp50"
             DECKLINK_FPS="50000/1000"
             SIG_GEN_SIZE="1280x720"
             FFV1_SLICES=64
             SIG_INTERLACEMENT="prog"
-            _set_some_params
             SET_COLOR_PRIMARIES="bt709"
             SET_COLOR_TRC="bt709"
-            SET_COLORSPACE="bt709"
-            RECORDINGFILTER+=",setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}:field_mode=${SET_FIELD_MODE}" ;;
+            SET_COLORSPACE="bt709" ;;
         "hp59 - 720p59.94")
             STANDARD="hp59"
             DECKLINK_FPS="60000/1001"
             SIG_GEN_SIZE="1280x720"
             FFV1_SLICES=64
             SIG_INTERLACEMENT="prog"
-            _set_some_params
             SET_COLOR_PRIMARIES="bt709"
             SET_COLOR_TRC="bt709"
-            SET_COLORSPACE="bt709"
-            RECORDINGFILTER+=",setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}:field_mode=${SET_FIELD_MODE}" ;;
+            SET_COLORSPACE="bt709" ;;
         "hp60 - 720p60")
             STANDARD="hp60"
             DECKLINK_FPS="60000/1000"
             SIG_GEN_SIZE="1280x720"
             FFV1_SLICES=64
             SIG_INTERLACEMENT="prog"
-            _set_some_params
             SET_COLOR_PRIMARIES="bt709"
             SET_COLOR_TRC="bt709"
-            SET_COLORSPACE="bt709"
-            RECORDINGFILTER+=",setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}:field_mode=${SET_FIELD_MODE}" ;;
+            SET_COLORSPACE="bt709" ;;
         # aspect ratio options
         "4/3")
             if [[ "${STANDARD}" = "ntsc" ]] ; then
@@ -2708,8 +2889,11 @@ _review_all_options(){
         _review_option "VIDEO_INPUT_CHOICE" "${VIDEO_INPUT_OPTIONS[@]}"
         _review_option "AUDIO_INPUT_CHOICE" "${AUDIO_INPUT_OPTIONS[@]}"
         _review_option "VIDEO_BIT_DEPTH_CHOICE" "${VIDEO_BITDEPTH_OPTIONS[@]}"
+        ASPLIT_N=$((1 + ($([[ "${MP4_CHOICE}" = "true" ]] && echo 1 || echo 0)) + ($([[ "${QCTOOLSXML_V2_CHOICE}" = "true" ]] && echo 1 || echo 0))))
         _review_option "AUDIO_MAPPING_CHOICE" "${CHANNEL_MAPPING_OPTIONS[@]}"
         _review_option "STANDARD_CHOICE" "${STANDARD_OPTIONS[@]}"
+        _set_some_params
+        RECORDINGFILTER+=",setparams=range=${SET_RANGE}:color_primaries=${SET_COLOR_PRIMARIES}:color_trc=${SET_COLOR_TRC}:colorspace=${SET_COLORSPACE}:field_mode=${SET_FIELD_MODE}"
         _review_option -d "4/3" "ASPECT_RATIO_CHOICE" "${ASPECT_RATIO_OPTIONS[@]}"
         _review_option -n -d "10/11" "NTSC_43_SAR_CHOICE"  "${NTSC_43_SAR_OPTIONS[@]}"
         _review_option -n -d "40/33" "NTSC_169_SAR_CHOICE" "${NTSC_169_SAR_OPTIONS[@]}"
@@ -2808,9 +2992,9 @@ CONTAINER_MATROSKA_TEST='
 '
 
 CODEC_GENERAL_TEST='
-    <rule name="Is the video format YUV?" value="ColorSpace" tracktype="Video" operator="=">YUV</rule>
     <rule name="Is the frame rate mode constant?" value="FrameRate_Mode" tracktype="Video" operator="=">CFR</rule>
     <rule name="Is the color space YUV?" value="ColorSpace" tracktype="Video" operator="=">YUV</rule>
+    <rule name="Is the chroma subsampling 4:2:2?" value="ChromaSubsampling" tracktype="Video" operator="=">4:2:2</rule>
     <policy type="or" name="Is the video bit depth 8 or 10?">
         <rule name="Is the video 2yuv?" value="CodecID" tracktype="Video" operator="=">2vuy</rule>
         <!--MediaInfo library does not currently store explicit video BitDepth value for 2yuv-->
@@ -2895,6 +3079,52 @@ AUDIO_CODEC_FLAC_TEST='
         <rule name="Bit Depth is 24?" value="BitDepth" tracktype="Audio" operator="=">24</rule>
     </policy>
 '
+
+CONTAINER_MP4_TEST='
+    <rule name="Is the file extension mp4?" value="FileExtension" tracktype="General" operator="=">mp4</rule>
+    <rule name="Is the format MPEG-4?" value="Format" tracktype="General" operator="=">MPEG-4</rule>
+    <rule name="Is the format profile Base Media?" value="Format_Profile" tracktype="General" operator="=">Base Media</rule>
+'
+
+CODEC_H264_TEST='
+    <rule name="Is the video format H.264?" value="Format" tracktype="Video" operator="=">AVC</rule>
+    <rule name="Is the pixel format yuv420p?" value="ChromaSubsampling" tracktype="Video" operator="=">4:2:0</rule>
+    <rule name="Is the scan type progressive?" value="ScanType" tracktype="Video" operator="=">Progressive</rule>
+    <rule name="Is the frame rate mode constant?" value="FrameRate_Mode" tracktype="Video" operator="=">CFR</rule>
+'
+
+STANDARD_NTSC_ACCESS_DEINTERLACED_TEST='
+    <policy type="and" name="Is it NTSC?">
+        <rule name="Is the height 480?" value="Height" tracktype="Video" operator="=">480</rule>
+        <rule name="Is the width 720?" value="Width" tracktype="Video" operator="=">720</rule>
+        <rule name="Is the frame rate 29.970?" value="FrameRate" tracktype="Video" operator="=">29.970</rule>
+        <rule name="Is the scan type progressive?" value="ScanType" tracktype="Video" operator="=">Progressive</rule>
+        <rule name="Are the colour primaries BT.601 NTSC?" value="colour_primaries" tracktype="Video" operator="=">BT.601 NTSC</rule>
+        <rule name="Are the matrix coefficients BT.601?" value="matrix_coefficients" tracktype="Video" operator="=">BT.601</rule>
+    </policy>
+'
+
+STANDARD_PAL_ACCESS_DEINTERLACED_TEST='
+    <policy type="and" name="Is it PAL?">
+        <rule name="Is the height 576?" value="Height" tracktype="Video" operator="=">576</rule>
+        <rule name="Is the width 720?" value="Width" tracktype="Video" operator="=">720</rule>
+        <rule name="Is the frame rate 25.000?" value="FrameRate" tracktype="Video" operator="=">25.000</rule>
+        <rule name="Is the scan type progressive?" value="ScanType" tracktype="Video" operator="=">Progressive</rule>
+        <rule name="Are the colour primaries BT.601 PAL?" value="colour_primaries" tracktype="Video" operator="=">BT.601 PAL</rule>
+        <rule name="Are the matrix coefficients BT.601?" value="matrix_coefficients" tracktype="Video" operator="=">BT.601</rule>
+    </policy>
+'
+
+AUDIO_CODEC_AAC_TEST='
+    <rule name="Is the audio AAC?" value="Format" tracktype="Audio" operator="=">AAC</rule>
+    <policy type="or" name="1 or 2 channels of audio?">
+        <rule name="1 channel of audio?" value="Channels" tracktype="Audio" operator="=">1</rule>
+        <rule name="2 channels of audio?" value="Channels" tracktype="Audio" operator="=">2</rule>
+    </policy>
+    <rule name="Is the sample rate 48kHz?" value="SamplingRate" tracktype="Audio" operator="=">48000</rule>
+'
+
+
 # define mediaconch test fragment -end
 
 _start_mediaconch_policy(){
@@ -2903,6 +3133,7 @@ cat <<MC_START > "${MEDIACONCH_POLICY_TMP}"
 <?xml version="1.0"?>
 <policy type="and" name="Check validity of a vrecord output">
     <description>This policy tests FFV1 Matroska and Quicktime files made using vrecord and checks their validity</description>
+    <description>This policy tests video files made using vrecord and checks their validity against vrecord's specifications</description>
 MC_START
 }
 
@@ -2917,6 +3148,65 @@ _add_mediaconch_rule_set(){
     if [[ -f "${MEDIACONCH_POLICY_TMP}" ]] ; then
         RULE_SET="${1}"
         echo "$RULE_SET" >> "${MEDIACONCH_POLICY_TMP}"
+    fi
+}
+
+_check_access_mp4_mediaconch() {
+    if [[ "${MP4_CHOICE}" = "true" ]] && [[ -f "${MP4NAME}" ]] && "${MEDIACONCH_INSTALLED}" ; then
+        _report -d "Checking access MP4 conformance against a mediaconch policy..."
+        MP4_POLICY_TMP="$(_maketemp .mediaconch_mp4.xml)"
+        cat <<MC_MP4_START > "${MP4_POLICY_TMP}"
+<?xml version="1.0"?>
+<policy type="and" name="Check validity of a vrecord Access MP4 output">
+    <description>This policy tests the access MP4 file made using vrecord and checks its validity against vrecord's access specifications</description>
+MC_MP4_START
+        echo "${CONTAINER_GENERAL_TEST}" >> "${MP4_POLICY_TMP}"
+        echo "${CONTAINER_MP4_TEST}" >> "${MP4_POLICY_TMP}"
+        echo "${CODEC_H264_TEST}" >> "${MP4_POLICY_TMP}"
+        if [[ "${STANDARD}" = "ntsc" ]] ; then
+            echo "${STANDARD_NTSC_ACCESS_DEINTERLACED_TEST}" >> "${MP4_POLICY_TMP}"
+        elif [[ "${STANDARD}" = "pal" ]] ; then
+            echo "${STANDARD_PAL_ACCESS_DEINTERLACED_TEST}" >> "${MP4_POLICY_TMP}"
+        fi
+        echo "${AUDIO_CODEC_AAC_TEST}" >> "${MP4_POLICY_TMP}"
+        cat <<MC_MP4_END >> "${MP4_POLICY_TMP}"
+</policy>
+<!-- ;) -->
+MC_MP4_END
+        MP4_REPORT_TMP="$(_maketemp _mediaconch_mp4report.xml)"
+        MP4_REPORT="${DIR}/${FULL_OUTPUT_ID}_mp4_mediaconch_report.xml"
+        MP4_POLICY="${DIR}/${FULL_OUTPUT_ID}_mp4_mediaconch_policy.xml"
+        mediaconch -fx -p "${MP4_POLICY_TMP}" "${MP4NAME}" | xmlstarlet fo > "${MP4_REPORT_TMP}"
+        MP4_STATUS="$(xmlstarlet sel -N mc="https://mediaarea.net/mediaconch" -t -v mc:MediaConch/mc:media/mc:policy/@outcome -n "${MP4_REPORT_TMP}")"
+        if [[ "${MP4_STATUS}" = "pass" ]] ; then
+            _report -dt "Access MP4 passed policy check."
+            _writeingestlog "mediaconch_mp4_outcome" "passed"
+        elif [[ "${MP4_STATUS}" = "fail" ]] ; then
+            _report -wt "The access MP4 file did not pass vrecord policy check."
+            _mv_tmp_file "${MP4_REPORT_TMP}" "${MP4_REPORT}"
+            _mv_tmp_file "${MP4_POLICY_TMP}" "${MP4_POLICY}"
+            _writeingestlog "mediaconch_mp4_outcome" "failed ${MP4_POLICY}"
+            _report -wt "See ${MP4_REPORT} for a full MediaConch policy report."
+            _report -wt "Or review this attempt to summarize the issue:"
+            xmlstarlet edit -N "mc=https://mediaarea.net/mediaconch" -d "//*[@outcome='pass']" "${MP4_REPORT}" | xmlstarlet fo
+        else
+            _report -wt "Mediaconch ended in an unexpected way for the access MP4 (status: ${MP4_STATUS})."
+            _report -wt "${MP4_REPORT_TMP}:"
+            cat "${MP4_REPORT_TMP}"
+            _writeingestlog "mediaconch_mp4_outcome" "error ${MP4_STATUS}"
+        fi
+    fi
+}
+
+_check_file_truncation() {
+    TEST_FILE="${1}"
+    TEST_LABEL="${2}"
+    if [[ -f "${TEST_FILE}" ]] ; then
+        IS_TRUNCATED=$(mediainfo --Output=XML "${TEST_FILE}" | xmlstarlet sel -t -v "//*[local-name()='IsTruncated']" -n 2>/dev/null || echo "")
+        if [[ "${IS_TRUNCATED}" = "Yes" ]] ; then
+            cowsay "$(_report -w "WARNING: MediaInfo reports that the ${TEST_LABEL} file (${TEST_FILE}) may be truncated or incomplete.")"
+        fi
+        _writeingestlog "${TEST_LABEL}_truncated" "${IS_TRUNCATED:-No}"
     fi
 }
 
@@ -2948,7 +3238,7 @@ ${WEBVTT_EXTRA}
 FADGI_VTT_HEADER
 
 tail -n +2 "${VTT_FILE}" >> "${VTT_TMP}"
-mv "${VTT_TMP}" "${VTT_FILE}"
+_mv_tmp_file -f "${VTT_TMP}" "${VTT_FILE}"
 }
 
 # command-line options to set media id and original variables
@@ -3010,7 +3300,6 @@ GNUPLOT_INSTALLED="$(if command -v gnuplot >/dev/null ; then echo true ; else ec
 MEDIACONCH_INSTALLED="$(if command -v mediaconch >/dev/null ; then echo true ; else echo false ; fi)"
 MKVPROPEDIT_INSTALLED="$(if command -v mkvpropedit >/dev/null ; then echo true ; else echo false ; fi)"
 MPV_INSTALLED="$(if command -v mpv >/dev/null ; then echo true ; else echo false ; fi)"
-QCLI_INSTALLED="$(if command -v qcli >/dev/null ; then echo true ; else echo false ; fi)"
 DVPACKAGER_INSTALLED="$(if command -v dvpackager >/dev/null ; then echo true ; else echo false ; fi)"
 
 _upgrade_config_file(){
@@ -3023,10 +3312,15 @@ _upgrade_config_file(){
 
 _mv_tmp_file(){
     # this is to move a temp file into its final place without really worrying about preserving owner and group file attributes
+    local FORCE="false"
+    if [[ "${1}" = "-f" ]] ; then
+        FORCE="true"
+        shift
+    fi
     TMP_FROM="${1}"
     TMP_TO="${2}"
     TMP_DIR=$(dirname -- "${TMP_TO}")
-    if [[ -e "${TMP_TO}" ]]; then
+    if [[ -e "${TMP_TO}" ]] && [[ "${FORCE}" != "true" ]] ; then
         _report -w "ERROR: _mv_tmp_file, destination ${TMP_TO} already exists"
         exit 1
     fi
@@ -3038,7 +3332,7 @@ _mv_tmp_file(){
         _report -w "WARNING: logging directory ${TMP_DIR} is not writable"
     fi
     if [[ -f "${TMP_FROM}" ]] ; then
-        cp -p "${TMP_FROM}" "${TMP_TO}" && rm "${TMP_FROM}"
+        cp "${TMP_FROM}" "${TMP_TO}" && rm "${TMP_FROM}"
     else
         _report -w "ERROR _mv_tmp_file is moving ${TMP_FROM} but it doesn't exist"
         exit 1
@@ -3086,7 +3380,6 @@ else
   STANDARD_OPTIONS=("NTSC" "PAL" "23ps - 1080p23.98" "24ps - 1080p24" "Hp25 - 1080p25" "Hp29 - 1080p29.97" "Hp30 - 1080p30" "Hi50 - 1080i50" "Hi59 - 1080i59.94" "Hi60 - 1080i60" "hp50 - 720p50" "hp59 - 720p59.94" "hp60 - 720p60")
 fi
 # STANDARD_OPTIONS list must be synced with Resources/vrecord_functions in _get_format_list
-QCTOOLSXML_OPTIONS=("Yes, concurrent with recording" "Yes, after recording" "No")
 EMBED_LOGS_OPTIONS=("Yes" "No")
 PLAYBACKVIEW_OPTIONS=("Unfiltered" "Visual" "Audio + Video" "Visual + Numerical" "Color Matrix" "Bit Planes" "Frame Positioning" "Captions")
 PLAYBACKVIEW_PASS_OPTIONS=("Unfiltered" "Visual" "Audio + Video" "Visual + Numerical" "Color Matrix" "Bit Planes" "Frame Positioning" "Captions")
@@ -3144,11 +3437,6 @@ if [[ ! "${VIDEO_CODEC_CHOICE}" = "h264" ]] ; then
     _add_mediaconch_rule_set "${CODEC_GENERAL_TEST}"
 fi
 _add_mediaconch_rule_set "${AUDIO_CODEC_GENERAL_TEST}"
-if [[ "${AUDIO_CODEC_CHOICE}" = "24-bit PCM" ]] ; then
-    _add_mediaconch_rule_set "${AUDIO_CODEC_PCM_TEST}"
-elif [[ "${AUDIO_CODEC_CHOICE}" = "24-bit FLAC" ]] ; then
-    _add_mediaconch_rule_set "${AUDIO_CODEC_FLAC_TEST}"
-fi
 
 # CLI passthrough and audiopassthrough modes
 if [[ "${RUNTYPE}" = "passthrough" ]] ; then
@@ -3198,6 +3486,9 @@ if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
     _review_option "CONTAINER_CHOICE" "${CONTAINER_OPTIONS[@]}"
     _review_option "VIDEO_CODEC_CHOICE" "${VIDEO_CODEC_OPTIONS[@]}"
     _review_option "AUDIO_CODEC_CHOICE" "${AUDIO_CODEC_OPTIONS[@]}"
+    if [[ "${FORMAT}" = "matroska" ]] ; then
+        _review_option "EMBED_LOGS_CHOICE" "${EMBED_LOGS_OPTIONS[@]}"
+    fi
 elif [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
     _review_option "DV_CONTAINER_CHOICE" "${DV_CONTAINER_OPTIONS[@]}"
     FORMAT="rawvideo"
@@ -3232,40 +3523,10 @@ if [[ -f "${VRECORD_OUTPUT}" ]] ; then
     exit
 fi
 
-if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
-    _review_option "QCTOOLSXML_CHOICE" "${QCTOOLSXML_OPTIONS[@]}"
-    if [[ "${QCTOOLSXML_CHOICE}" != "No" && ! "$(command -v qcli)" ]] ; then
-        _report -w "Please install qcli to use the qctools reporting option."
-        _report -w "Such as \`brew install qcli\`."
-        exit 1
-    fi
-    if [[ "${FRAMEMD5_CHOICE}" = "true" ]] ; then
-        FRAMEMD5NAME="${LOGDIR}/${FULL_OUTPUT_ID}.framemd5"
-        EXTRAOUTPUTS+=(-an -f framemd5 "${FRAMEMD5NAME}")
-    fi
-    if [[ "${SIGNAL_INPUT}" = 'true' ]] ; then
-            AUDIOMAP=$(sed "s/0:a:0/1:a:0/g" <<< "$AUDIOMAP")
-    fi
-    if [[ "${MP4_CHOICE}" = "true" ]] ; then
-        RECORDINGFILTER_MP4+=",bwdif,format=yuv420p"
-        RECORD_COMMAND_MP4+=(-filter_complex "[0:v:0]${RECORDINGFILTER_MP4#,*}[mp4_v_out];${AUDIOMAP_MP4}")
-        MP4NAME="${DIR}/${FULL_OUTPUT_ID}.mp4"
-        EXTRAOUTPUTS+=("${MIDDLEOPTIONS_ALL[@]}" -movflags write_colr+faststart "${RECORD_COMMAND_MP4[@]}" -c:v h264 -g 12 -profile:v main -level "${ACCESS_MP4_LEVEL}" -b:v "${ACCESS_MP4_BITRATE}" -c:a aac -map "[mp4_v_out]" "${AUDIO_CHANNEL_MAP[@]:2}" "${MP4NAME}")
-    fi
-    if [[ "${FORMAT}" = "matroska" ]] ; then
-        _review_option "EMBED_LOGS_CHOICE" "${EMBED_LOGS_OPTIONS[@]}"
-    fi
-fi
-
 if [[ -n "${DURATION}" ]] ; then
     DUR_SECONDS=$(bc <<< "${DURATION} * 60" | sed "s/^\./0./")
     TIME_LIMIT=(-t "${DUR_SECONDS}")
     DURATION_TEXT="Tape duration set to: ${DURATION} minutes."
-fi
-
-if awk -v d="${DURATION}" 'BEGIN{exit !(d > 200)}' ; then
-    _report -w "WARNING: Recording duration set to greater than 200 minutes. QCTools report will not be generated."
-    QCTOOLSXML_CHOICE="No"
 fi
 
 if [[ -n ${TECHNICIAN} ]] ; then
@@ -3273,7 +3534,7 @@ if [[ -n ${TECHNICIAN} ]] ; then
 fi
 
 if [[ "${DEVICE_INPUT_CHOICE}" = "0" ]] ; then
-    _report -d "Summary: ${VIDEOCODECNAME}/${FORMAT} ${PIXEL_FORMAT} file from ${STANDARD} ${VIDEO_INPUT} ${AUDIO_INPUT}. ${TECHNICIAN_TEXT} Frame MD5s=${FRAMEMD5_CHOICE}, QCTools XML=${QCTOOLSXML_CHOICE}. Inputs recorded to ${VRECORD_OUTPUT} and Auxiliary Files created in ${LOGDIR}. ${DURATION_TEXT}"
+    _report -d "Summary: ${VIDEOCODECNAME}/${FORMAT} ${PIXEL_FORMAT} file from ${STANDARD} ${VIDEO_INPUT} ${AUDIO_INPUT}. ${TECHNICIAN_TEXT} Frame MD5s=${FRAMEMD5_CHOICE} Inputs recorded to ${VRECORD_OUTPUT} and Auxiliary Files created in ${LOGDIR}. ${DURATION_TEXT}"
 elif [[ "${DEVICE_INPUT_CHOICE}" = "1" ]] ; then
     _report -d "Summary: Copying video from ${DVRESCUE_INPUT_CHOICE}. ${TECHNICIAN_TEXT} Inputs recorded to ${VRECORD_OUTPUT} and Auxiliary Files created in ${LOGDIR}. ${DURATION_TEXT}"
 elif [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
@@ -3299,10 +3560,6 @@ read
 
 # create log of vrecord decisions
 INGESTLOG="${LOGDIR}/${FULL_OUTPUT_ID}_capture_options.log"
-QCTOOLS_REPORT="${LOGDIR}/${FULL_OUTPUT_ID}.${EXTENSION}.qctools.mkv"
-QCXML="$(_maketemp)"
-QCLI_COMMAND_PIPE=(qcli -audio 1 -f signalstats+aphasemeter+astats+ssim -i - -o "${QCTOOLS_REPORT}")
-QCLI_COMMAND_FILE=(qcli -audio 1 -f signalstats+aphasemeter+astats+ssim -i "${VRECORD_OUTPUT}" -o "${QCTOOLS_REPORT}")
 touch "${INGESTLOG}"
 _writeingestlog "computer_name" "$(uname -n)"
 _writeingestlog "computer_model_name" "${COMPUTER_MODEL_NAME}"
@@ -3318,6 +3575,7 @@ _writeingestlog "computer_cores" "$CORE_COUNT"
 _writeingestlog "user_name" "$(whoami)"
 _writeingestlog "operating_system_version" "$(uname -v)"
 _writeingestlog "vrecord version" "${VERSION}"
+_writeingestlog "H264 encoder" "${H264_ENCODER}"
 _writeingestlog "datetime_start" "$(_get_iso8601)"
 
 if [[ -d "${DIR}" ]] ; then
@@ -3367,12 +3625,6 @@ _report -d "Close the playback window to stop recording."
 
 # vrecord process!
 _setup_vrecord_process
-if [[ "${VERBOSE_GTKDIALOG}" = "Y" ]] ; then
-    echo "STEPS ${VRECORD_STEPS}"
-    echo "PLAY ${PLAYER_COMMAND[@]}"
-    echo "RECORD ${RECORD_COMMAND[@]}"
-    echo "QCLI ${QCLI_COMMAND_PIPE[@]}"
-fi
 if [[ "${VRECORD_STEPS}" = "2" ]] ; then
     _writeingestlog "Record command" "${RECORD_COMMAND[@]}"
     _writeingestlog "Playback command" "${PLAYER_COMMAND[@]}"
@@ -3382,12 +3634,7 @@ if [[ "${VRECORD_STEPS}" = "2" ]] ; then
     ## "${SCRIPTDIR}/cchex_to_display" "${FFREPORT_TMP}" "${CAP_DISPLAY_TMP}" > /dev/null 2> /dev/null &
     ## CC_PID=$!
     ## export FFREPORT="file=${FFREPORT_TMP}:level=32"
-    "${RECORD_COMMAND[@]}" 2> >(tee "${VRECORD_INPUT_TMP}" 1>&2) | \
-    if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] && [[ "${QCTOOLSXML_CHOICE}" = "Yes, concurrent with recording" ]]; then
-        tee >("${PLAYER_COMMAND[@]}") | "${QCLI_COMMAND_PIPE[@]}"
-    else
-        "${PLAYER_COMMAND[@]}"
-    fi
+    "${RECORD_COMMAND[@]}" 2> >(tee "${VRECORD_INPUT_TMP}" 1>&2) | "${PLAYER_COMMAND[@]}"
 else
     _report_unexpected_error VRECORD_STEPS
 fi
@@ -3424,11 +3671,17 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         _report -dt "Post-processing benchmarking files..."
         grep " bench: " "${FULL_CAPTURE_LOG}" > "${BENCHMARK_DETAILS_NAME}"
         grep -v " bench: " "${FULL_CAPTURE_LOG}" > "${FULL_CAPTURE_LOG}.tmp"
-        mv "${FULL_CAPTURE_LOG}.tmp" "${FULL_CAPTURE_LOG}"
+        _mv_tmp_file "${FULL_CAPTURE_LOG}.tmp" "${FULL_CAPTURE_LOG}"
         echo "# vrecord benchmarking summary data" > "${BENCHMARK_SUMMARY_NAME}"
         echo "# capture_log_file: ${INGESTLOG}, cores=${CORE_COUNT}" >> "${BENCHMARK_SUMMARY_NAME}"
-        awk 'BEGIN { printf "%-8s %-6s %-8s %-12s %-5s %-10s %-10s %-10s %-10s %-10s %-8s %-10s\n", "action","media","stream","label","n","user","sys","real","real/user","sys/user","%user","avg_us"
-                CEIL = 10000000 }
+        awk -v labels="${OUTPUT_LABELS}" 'BEGIN { printf "%-8s %-6s %-8s %-16s %-5s %-10s %-10s %-10s %-10s %-10s %-8s %-10s\n", "action","media","stream","label","n","user","sys","real","real/user","sys/user","%user","avg_us"
+                CEIL = 10000000
+                nlbl = split(labels, pairs, ",")
+                for (i = 1; i <= nlbl; i++) {
+                    split(pairs[i], kv, "=")
+                    label[kv[1]] = kv[2]
+                }
+            }
         $1 == "#label" { label[$2] = $3; next }
         $2 == "bench:" && $4 == "user" && $6 == "sys" && $8 == "real" {
             if ($3 !~ /^[0-9]+$/ || $5 !~ /^[0-9]+$/ || $7 !~ /^[0-9]+$/ ||
@@ -3447,7 +3700,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
                 sysratio = (u[k] > 0) ? s[k] / u[k] : 0
                 share    = (TOTAL_U > 0) ? 100 * u[k] / TOTAL_U : 0
                 avgus    = (n[k] > 0) ? r[k] / n[k] : 0
-                printf "%-8s %-6s %-8s %-12s %-5d %-10d %-10d %-10d %-10.3f %-10.3f %-8.2f %-10.1f\n", \
+                printf "%-8s %-6s %-8s %-16s %-5d %-10d %-10d %-10d %-10.3f %-10.3f %-8.2f %-10.1f\n", \
                     f[1], f[2], f[3], lbl[k], n[k], u[k], s[k], r[k], ratio, sysratio, share, avgus
             }
             if (bad > 0) printf "\n[skipped %d malformed/out-of-range bench line(s)]\n", bad
@@ -3471,21 +3724,37 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
             _report -dt "Wrapping the extracted captions into the Access MP4 file..."
             "${FFMPEG_BIN}" -nostdin -v 0 -y -i "${MP4NAME}" -i "${CAP2EMBED}" -map 0:v -map 0:a -map 1:s -c:v copy -c:a copy -c:s mov_text "${MP4NAME}.subs.mp4"
             if [[ $? -eq 0 ]]; then
-                mv -v "${MP4NAME}.subs.mp4" "${MP4NAME}"
+                _mv_tmp_file -f "${MP4NAME}.subs.mp4" "${MP4NAME}"
             fi
         fi
     fi
 
-    # qc tools process
-    if [[ "${QCTOOLSXML_CHOICE}" = "Yes, after recording" ]] ; then
-        "${QCLI_COMMAND_FILE[@]}"
-    fi
-    if [[ "${QCTOOLSXML_CHOICE}" != "No" ]] ; then
-        _report -d "Vrecord is analyzing your video file. Please be patient."
-        if [[ -s "${QCTOOLS_REPORT}" ]] ; then
-            if [[ ! -s "${QCXML}" ]] ; then
-                "${FFMPEG_BIN}" -nostdin -v 0 -y -dump_attachment:t "${QCXML}" -i "${QCTOOLS_REPORT}"
-            fi
+    # qctools process
+    if [[ "${QCTOOLSXML_V2_CHOICE}" = "true" ]] ; then
+        _report -d "Post-processing vrecord-native QCTools report (v2)..."
+        QC_WIDTH="${SIG_GEN_SIZE%x*}"
+        QC_HEIGHT="${SIG_GEN_SIZE#*x}"
+        if [[ "${PIXEL_FORMAT}" = "yuv422p10" ]] ; then
+            QC_PIXFMT="yuv422p10le"
+        else
+            QC_PIXFMT="${PIXEL_FORMAT}"
+        fi
+        QCTOOLS_REPORT="${LOGDIR}/${FULL_OUTPUT_ID}.${EXTENSION}.qctools.mkv"
+        QCXML="$(_maketemp .qctools.xml.gz)"
+        QC_DUMP_ARGS=("${QC_VIDEO_DUMP}" video 0)
+        for I in "${!QC_AUDIO_DUMPS[@]}" ; do
+            QC_DUMP_ARGS+=("${QC_AUDIO_DUMPS[$I]}" audio "$(( I + 1 ))")
+        done
+        _qc_dump_to_xml "${QCXML}" "${QC_WIDTH}" "${QC_HEIGHT}" "${QC_PIXFMT}" "${LOGDIR}/${FULL_OUTPUT_ID}.${EXTENSION}" "${QC_DUMP_ARGS[@]}"
+        if [[ -s "${QCTOOLS_THUMB_MKV_TMP}" ]] && [[ -s "${QCXML}" ]] && command -v mkvpropedit &> /dev/null ; then
+            QCTOOLS_REPORT="${LOGDIR}/${FULL_OUTPUT_ID}.${EXTENSION}.qctools.mkv"
+            mkvpropedit "${QCTOOLS_THUMB_MKV_TMP}" --edit info --set "title=QCTools Report for ${FULL_OUTPUT_ID}.${EXTENSION}" --attachment-name "${FULL_OUTPUT_ID}.${EXTENSION}.qctools.xml.gz" --attachment-mime-type application/x-gzip --add-attachment "${QCXML}"
+            _mv_tmp_file "${QCTOOLS_THUMB_MKV_TMP}" "${QCTOOLS_REPORT}"
+        else
+            _report -w "QCTools v2 report generation failed: missing thumbnail mkv, xml.gz, or mkvpropedit"
+        fi
+        _report -d "Vrecord is analyzing your video file from the QCTools data. Please be patient."
+        if [[ -s "${QCXML}" ]] ; then
             if [[ "${PIXEL_FORMAT}" = "yuv422p10" ]] ; then
                 SAT_OUTLIERS=$("${ZCAT_COMMAND}" "${QCXML}" | perl -nle 'print if not m{lavfi.(?!signalstats.SATMAX)}' | xmlstarlet sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>496])" -n)
             elif [[ "${PIXEL_FORMAT}" = "uyvy422" ]] ; then
@@ -3495,12 +3764,12 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
             BRNG_OUTLIERS=$("${ZCAT_COMMAND}" "${QCXML}" | perl -nle 'print if not m{lavfi.(?!signalstats.BRNG)}' | xmlstarlet sel -t -v "count(//tag[@key='lavfi.signalstats.BRNG'][@value>=0.03])" -n)
             AUDIO_PEAK=$("${ZCAT_COMMAND}" "${QCXML}" | grep lavfi.astats.Overall.Peak_level | cut -d '"' -f 4 | sort -n | tail -n 1)
             _writeingestlog "Peak Volume is (dB)" "${AUDIO_PEAK}"
-            if "$GNUPLOT_INSTALLED" && "$QCLI_INSTALLED" ; then
+            if "${GNUPLOT_INSTALLED}" ; then
                 _report -d "Vrecord is generating graphs from the QCTools data. One moment please."
                 _qcgraphimage "${QCXML}"
             fi
         else
-            _report -w "qctools XML ${QCTOOLS_REPORT} is empty or does not exist!"
+            _report -w "qctools XML ${QCXML} is empty or does not exist!"
         fi
         if [[ "${SAT_OUTLIERS}" -gt "${SAT_OUTLIER_THRSHLD}" ]] ; then
             cowsay "$(_report -w "WARNING: Your video file contains ${SAT_OUTLIERS} frames with illegal saturation values. Your deck may require cleaning.")"
@@ -3512,6 +3781,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
             cowsay "$(_report -w "WARNING: Your video file contains ${BRNG_OUTLIERS} frames with pixels out of broadcast range.")"
         fi
         _report -d "QCTools analysis is complete."
+        rm -f "${QC_VIDEO_DUMP}" "${QC_AUDIO_DUMPS[@]}" 2>/dev/null
     fi
 
     # make a timecode vtt
@@ -3564,25 +3834,39 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         _writeingestlog "Decklink input buffer overrun" "Yes"
     fi
 
-    # policy checks with mediaconch
-    if "$MEDIACONCH_INSTALLED" ; then
+    # mediaconch policy check on the preservation output
+    if "${MEDIACONCH_INSTALLED}" ; then
         _report -d "Checking file conformance against a mediaconch policy..."
-        STATUS=$(mediaconch -fx -p "${MEDIACONCH_POLICY_TMP}" "${VRECORD_OUTPUT}" | xmlstarlet sel -N mc="https://mediaarea.net/mediaconch" -t -v mc:MediaConch/mc:media/mc:policy/@outcome -n)
+        MEDIACONCH_REPORT="${DIR}/${FULL_OUTPUT_ID}_mediaconch_report.xml"
+        MEDIACONCH_REPORT_TMP="$(_maketemp _mediaconch_report.xml)"
+        MEDIACONCH_POLICY="${DIR}/${FULL_OUTPUT_ID}_mediaconch_policy.xml"
+        mediaconch -fx -p "${MEDIACONCH_POLICY_TMP}" "${VRECORD_OUTPUT}" | xmlstarlet fo > "${MEDIACONCH_REPORT_TMP}"
+        STATUS="$(xmlstarlet sel -N mc="https://mediaarea.net/mediaconch" -t -v mc:MediaConch/mc:media/mc:policy/@outcome -n "${MEDIACONCH_REPORT_TMP}")"
         if [[ "${STATUS}" = "pass" ]] ; then
             _report -dt "File passed policy check for the video."
             _writeingestlog "mediaconch_outcome" "passed"
         elif [[ "${STATUS}" = "fail" ]] ; then
             _report -wt "File did not pass vrecord policy check and may not conform to digital preservation standards."
-            mediaconch -fx -p "${MEDIACONCH_POLICY_TMP}" "${VRECORD_OUTPUT}" | xmlstarlet fo > "${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml"
-            _mv_tmp_file "${MEDIACONCH_POLICY_TMP}" "${DIR}/${FULL_OUTPUT_ID}_mediaconch_policy.xml"
-            _writeingestlog "mediaconch_outcome" "failed ${DIR}/${FULL_OUTPUT_ID}_mediaconch_policy.xml"
-            _report -wt "See ${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml for a full MediaConch policy report."
+            _mv_tmp_file "${MEDIACONCH_REPORT_TMP}" "${MEDIACONCH_REPORT}"
+            _mv_tmp_file "${MEDIACONCH_POLICY_TMP}" "${MEDIACONCH_POLICY}"
+            _writeingestlog "mediaconch_outcome" "failed ${MEDIACONCH_POLICY}"
+            _report -wt "See ${MEDIACONCH_REPORT} for a full MediaConch policy report."
             _report -wt "Or review this attempt to summarize the issue:"
-            xmlstarlet edit -N "mc=https://mediaarea.net/mediaconch" -d "//*[@outcome='pass']" "${DIR}/${FULL_OUTPUT_ID}_mediaconchreport.xml"
+            xmlstarlet edit -N "mc=https://mediaarea.net/mediaconch" -d "//*[@outcome='pass']" "${MEDIACONCH_REPORT}" | xmlstarlet fo
         else
-            _report -wt "Mediaconch ended in an unexpected way (${STATUS}). Here is its output."
-            mediaconch -p "${MEDIACONCH_POLICY_TMP}" "${VRECORD_OUTPUT}"
+            _report -wt "Mediaconch ended in an unexpected way (status: ${STATUS}). Here is its output."
+            _report -wt "${MEDIACONCH_REPORT}:"
+            cat "${MEDIACONCH_REPORT}"
+            _writeingestlog "mediaconch_outcome" "error ${STATUS}"
         fi
+    fi
+    # mediaconch policy check on the access MP4
+    _check_access_mp4_mediaconch
+
+    # check file truncation
+    _check_file_truncation "${VRECORD_OUTPUT}" "preservation"
+    if [[ "${MP4_CHOICE}" = "true" ]] && [[ -f "${MP4NAME}" ]] ; then
+        _check_file_truncation "${MP4NAME}" "access_mp4"
     fi
 
     # embed logs in Matroska files
@@ -3591,7 +3875,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
             _report -d "Vrecord is attaching logs to your Matroska file:"
             mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "Capture options selected by user during vrecord process" --add-attachment "${INGESTLOG}"
             mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "Full FFmpeg output from vrecord capture process" --add-attachment "${FULL_CAPTURE_LOG}"
-            if [[ "${QCTOOLSXML_CHOICE}" = "Yes" ]] ; then
+            if [[ "${QCTOOLSXML_V2_CHOICE}" = "true" ]] ; then
                 mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "QCTools report from vrecord capture process (zipped XML)" --add-attachment "${QCXML}"
                 mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "QCTools report from vrecord capture process (Matroska report)" --add-attachment "${QCTOOLS_REPORT}"
             fi
