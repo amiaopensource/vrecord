@@ -978,6 +978,15 @@ _get_audio_dev_num(){
     fi
 }
 
+_run_mkvpropedit(){
+    MKVPROPEDIT_OUTPUT="$(mkvpropedit "$@" 2>&1)"
+    STATUS=$?
+    FILTERED="$(grep -Ev '^(The file is being analyzed\.|The changes are written to the file\.|Done\.)$' <<< "${MKVPROPEDIT_OUTPUT}")"
+    [[ -n "${FILTERED}" ]] && _report -w "${FILTERED}"
+    _report -dvt "mkvpropedit ($*) exit=${STATUS}"
+    return "${STATUS}"
+}
+
 _set_up_edit_form() {
   _expand_list2items(){
     LIST=( "$@" )
@@ -3751,7 +3760,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         _qc_dump_to_xml "${QCXML}" "${QC_WIDTH}" "${QC_HEIGHT}" "${QC_PIXFMT}" "${LOGDIR}/${FULL_OUTPUT_ID}.${EXTENSION}" "${QC_DUMP_ARGS[@]}"
         if [[ -s "${QCTOOLS_THUMB_MKV_TMP}" ]] && [[ -s "${QCXML}" ]] && command -v mkvpropedit &> /dev/null ; then
             QCTOOLS_REPORT="${LOGDIR}/${FULL_OUTPUT_ID}.${EXTENSION}.qctools.mkv"
-            mkvpropedit "${QCTOOLS_THUMB_MKV_TMP}" --edit info --set "title=QCTools Report for ${FULL_OUTPUT_ID}.${EXTENSION}" --attachment-name "${FULL_OUTPUT_ID}.${EXTENSION}.qctools.xml.gz" --attachment-mime-type application/x-gzip --add-attachment "${QCXML}"
+            _run_mkvpropedit "${QCTOOLS_THUMB_MKV_TMP}" --edit info --set "title=QCTools Report for ${FULL_OUTPUT_ID}.${EXTENSION}" --attachment-name "${FULL_OUTPUT_ID}.${EXTENSION}.qctools.xml.gz" --attachment-mime-type application/x-gzip --add-attachment "${QCXML}"
             _mv_tmp_file "${QCTOOLS_THUMB_MKV_TMP}" "${QCTOOLS_REPORT}"
         else
             _report -wt "QCTools v2 report generation failed: missing thumbnail mkv, xml.gz, or mkvpropedit"
@@ -3876,11 +3885,11 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
     if "$MKVPROPEDIT_INSTALLED" ; then
         if [[ "${CONTAINER_CHOICE}" = "Matroska" ]] && [[ "${EMBED_LOGS_CHOICE}" = "Yes" ]] ; then
             _report -dt "Vrecord is attaching logs to your Matroska file:"
-            mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "Capture options selected by user during vrecord process" --add-attachment "${INGESTLOG}"
-            mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "Full FFmpeg output from vrecord capture process" --add-attachment "${FULL_CAPTURE_LOG}"
+            _run_mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "Capture options selected by user during vrecord process" --add-attachment "${INGESTLOG}"
+            _run_mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "Full FFmpeg output from vrecord capture process" --add-attachment "${FULL_CAPTURE_LOG}"
             if [[ "${QCTOOLSXML_V2_CHOICE}" = "true" ]] ; then
-                mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "QCTools report from vrecord capture process (zipped XML)" --add-attachment "${QCXML}"
-                mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "QCTools report from vrecord capture process (Matroska report)" --add-attachment "${QCTOOLS_REPORT}"
+                _run_mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "QCTools report from vrecord capture process (zipped XML)" --add-attachment "${QCXML}"
+                _run_mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "QCTools report from vrecord capture process (Matroska report)" --add-attachment "${QCTOOLS_REPORT}"
             fi
             _report -dt "Vrecord is done attaching logs to your Matroska file!"
         fi
