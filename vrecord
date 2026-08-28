@@ -1906,23 +1906,66 @@ _writeingestlog(){
 
 # create a jpeg of qc data graphs for quick assessment
 _qcgraphimage(){
-    # get audio data
+    QC_XML_GZ="$1"
+    STAGE_LOG="${LOGDIR}/${FULL_OUTPUT_ID}_qcgraphimage_debug.log"
+    : > "${STAGE_LOG}"
+
+    if ! gzip -t "${QC_XML_GZ}" 2>>"${STAGE_LOG}" ; then
+        _report -wt "ERROR: ${QC_XML_GZ} failed gzip integrity check (likely truncated). See ${STAGE_LOG}"
+        return 1
+    fi
+    _report -dvt "qcgraphimage: input verified, size=$(du -h "${QC_XML_GZ}" | cut -f1)"
+
+    # get audio data (Max/Min/Peak level only)
+    T0=$(date +%s)
     qctools_CONFIGFILE_A="$(_maketemp .astats_A.csv)"
-    "${ZCAT_COMMAND}" "$1" | perl -nle 'print if not m{lavfi.(?!astats.Overall.Min_level|astats.Overall.Max_level|astats.Overall.Peak_level)}' | xmlstarlet select -t -m "//ffprobe:ffprobe/frames/frame[@media_type='audio']" \
-       -v "@pkt_pts_time" -o " " \
-       -v "tag[@key='lavfi.astats.Overall.Max_level']/@value" -o " " \
-       -v "tag[@key='lavfi.astats.Overall.Min_level']/@value" -o " " \
-       -v "tag[@key='lavfi.astats.Overall.Peak_level']/@value" -n > "${qctools_CONFIGFILE_A}"
-    # get video data
+    set -o pipefail
+    "${ZCAT_COMMAND}" "${QC_XML_GZ}" \
+        | perl -nle 'print if not m{lavfi.(?!astats.Overall.Min_level|astats.Overall.Max_level|astats.Overall.Peak_level)}' \
+        | xmlstarlet select -t -m "//ffprobe:ffprobe/frames/frame[@media_type='audio']" \
+            -v "@pkt_pts_time" -o " " \
+            -v "tag[@key='lavfi.astats.Overall.Max_level']/@value" -o " " \
+            -v "tag[@key='lavfi.astats.Overall.Min_level']/@value" -o " " \
+            -v "tag[@key='lavfi.astats.Overall.Peak_level']/@value" -n \
+            > "${qctools_CONFIGFILE_A}" 2>>"${STAGE_LOG}"
+    A_STATUS=$?
+    set +o pipefail
+    T1=$(date +%s)
+    _report -dvt "qcgraphimage: audio CSV extraction took $((T1-T0))s, exit=${A_STATUS}, lines=$(wc -l < "${qctools_CONFIGFILE_A}")"
+    [[ "${A_STATUS}" -eq 0 ]] || _report -wt "WARNING: audio CSV extraction process failed, check ${STAGE_LOG}"
+    [[ -s "${qctools_CONFIGFILE_A}" ]] || _report -wt "WARNING: audio CSV (${qctools_CONFIGFILE_A}) is empty"
+
+    # get video data (TOUT/BRNG/SATMAX/SATAVG only)
+    T0=$(date +%s)
     qctools_CONFIGFILE_V="$(_maketemp .signalstats.V.csv)"
-    "${ZCAT_COMMAND}" "$1" | perl -nle 'print if not m{lavfi.(?!signalstats.BRNG|signalstats.TOUT|signalstats.SATMAX|signalstats.SATAVG)}' | xmlstarlet select -t -m "//ffprobe:ffprobe/frames/frame[@media_type='video']" \
-       -v "@pkt_pts_time" -o " " \
-       -v "tag[@key='lavfi.signalstats.TOUT']/@value" -o " " \
-       -v "tag[@key='lavfi.signalstats.BRNG']/@value" -o " " \
-       -v "tag[@key='lavfi.signalstats.SATMAX']/@value" -o " " \
-       -v "tag[@key='lavfi.signalstats.SATAVG']/@value" -n > "${qctools_CONFIGFILE_V}"
+    set -o pipefail
+    "${ZCAT_COMMAND}" "${QC_XML_GZ}" \
+        | perl -nle 'print if not m{lavfi.(?!signalstats.BRNG|signalstats.TOUT|signalstats.SATMAX|signalstats.SATAVG)}' \
+        | xmlstarlet select -t -m "//ffprobe:ffprobe/frames/frame[@media_type='video']" \
+            -v "@pkt_pts_time" -o " " \
+            -v "tag[@key='lavfi.signalstats.TOUT']/@value" -o " " \
+            -v "tag[@key='lavfi.signalstats.BRNG']/@value" -o " " \
+            -v "tag[@key='lavfi.signalstats.SATMAX']/@value" -o " " \
+            -v "tag[@key='lavfi.signalstats.SATAVG']/@value" -n \
+            > "${qctools_CONFIGFILE_V}" 2>>"${STAGE_LOG}"
+    V_STATUS=$?
+    set +o pipefail
+    T1=$(date +%s)
+    _report -dvt "qcgraphimage: video CSV extraction took $((T1-T0))s, exit=${V_STATUS}, lines=$(wc -l < "${qctools_CONFIGFILE_V}")"
+    [[ "${V_STATUS}" -eq 0 ]] || _report -wt "WARNING: video CSV extraction pipeline failed, check ${STAGE_LOG}"
+    [[ -s "${qctools_CONFIGFILE_V}" ]] || _report -wt "WARNING: video CSV (${qctools_CONFIGFILE_V}) is empty"
+
     # determine SATURATION scale
-    VBitdepth="$("${ZCAT_COMMAND}" "$1" | perl -nle 'print if not m{<frame |</frame>|<tag|</tag}' | xmlstarlet sel -t -v "//stream[@codec_type='video']/@pix_fmt" -n)"
+    T0=$(date +%s)
+    set -o pipefail
+    VBitdepth="$("${ZCAT_COMMAND}" "${QC_XML_GZ}" \
+        | perl -nle 'print if not m{<frame |</frame>|<tag|</tag}' \
+        | xmlstarlet sel -t -v "//stream[@codec_type='video']/@pix_fmt" -n 2>>"${STAGE_LOG}")"
+    local PIXFMT_STATUS=$?
+    set +o pipefail
+    T1=$(date +%s)
+    _report -dvt "qcgraphimage: pix_fmt lookup took $((T1-T0))s, exit=${PIXFMT_STATUS}, VBitdepth='${VBitdepth}'"
+    [[ -z "${VBitdepth}" ]] && _report -wt "WARNING: VBitdepth is empty, check ${STAGE_LOG} for xmlstarlet DOM errors"
     if [[ "${VBitdepth}" = "yuv422p10le" ]] ; then
         SATpalette="(0'#a0a0a0',80'#bebebe',177.4'#c8c800',322'#a0ff20',354.8'#00ff00',413.8'#006400',433.46'#00ff00',453.13'#a0ff20',472.8'#ffa500',496'#ff0000')"
         SATcbrange="[0:496]"
@@ -1932,6 +1975,8 @@ _qcgraphimage(){
         SATcbrange="[0:124]"
         SATyrange="[0:183]"
     fi
+
+    T0=$(date +%s)
     echo "set terminal jpeg size 1920, 1080
     set output '${LOGDIR}/${FULL_OUTPUT_ID}_QC_output_graphs.jpeg'
     set term jpeg font 'times,12'
@@ -1994,7 +2039,9 @@ _qcgraphimage(){
     set x2tics border mirror in scale 1.5,.7 format ''
     set xtics border out nomirror format '%tH:%tM:%.1tS' time
     plot '' using 1:4:4 with boxes palette title 'SatMax', '' using 1:5 with lines ls 5 title 'SatAvg'
-    " | gnuplot
+    " | gnuplot 2>>"${STAGE_LOG}"
+    T1=$(date +%s)
+    _report -dvt "qcgraphimage: gnuplot render took $((T1-T0))s"
 }
 
 _bench_plot() {
