@@ -82,8 +82,9 @@ _report(){
     local COLOR=""
     local STARTMESSAGE=""
     local ECHOOPT=""
+    local VERBOSE_ONLY=""
     OPTIND=1
-    while getopts "qdwxstn" opt ; do
+    while getopts "qdwxstnv" opt ; do
         case "${opt}" in
             q) COLOR="${BLUE}" ;;                        # question mode, use color blue
             d) COLOR="${GREEN}" ;;                       # declaration mode, use color green
@@ -92,10 +93,12 @@ _report(){
             s) STARTMESSAGE+=([${SCRIPTNAME}] ) ;;       # prepend scriptname to the message
             t) STARTMESSAGE+=($(_get_iso8601) '- ' ) ;;  # prepend timestamp to the message
             n) ECHOOPT="-n" ;;                           # to avoid line breaks after echo
+            v) VERBOSE_ONLY="true" ;;                    # only print if VERBOSE="true"
         esac
     done
     shift "$((OPTIND-1))"
     MESSAGE="${1}"
+    [[ "${VERBOSE_ONLY}" = "true" && "${VERBOSE}" != "true" ]] && return 0
     echo ${ECHOOPT} "${COLOR}${STARTMESSAGE[@]}${MESSAGE}${NC}"
 }
 
