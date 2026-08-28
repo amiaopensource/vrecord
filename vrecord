@@ -596,7 +596,7 @@ _gtk_vbox_list() {
 _setup_vrecord_input(){
     _set_ffmpeg_loglevel(){
         if [[ "$VERBOSE" = "true" ]] ; then
-            GRAB_INPUT+=(-loglevel debug)
+            GRAB_INPUT+=(-loglevel verbose)
             _report -wt "When running vrecord in verbose mode, avoid using Visual + Numerical option."
         elif [[ "${BENCHMARK_CHOICE}" = "true" ]] ; then
             GRAB_INPUT+=(-loglevel info -loglevel +time)
