@@ -3514,7 +3514,6 @@ else
 fi
 FULL_CAPTURE_LOG="${LOGDIR}/${FULL_OUTPUT_ID}${CAPTURELOGSUFFIX}"
 TIMECODE_LOG="${LOGDIR}/${FULL_OUTPUT_ID}${TIMECODELOGSUFFIX}"
-CAPTION_LOG="${LOGDIR}/${FULL_OUTPUT_ID}_frame_eia608data.txt"
 CAPTION_SCC="${LOGDIR}/${FULL_OUTPUT_ID}.scc"
 VRECORD_OUTPUT="${DIR}/${FULL_OUTPUT_ID}.${EXTENSION}"
 if [[ -f "${VRECORD_OUTPUT}" ]] ; then
@@ -3709,8 +3708,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
     fi
     # caption handling
     if [[ -s "${CAPTION_TMP}" ]] ; then
-        _mv_tmp_file "${CAPTION_TMP}" "${CAPTION_LOG}"
-        _eia608dump2scc "${CAPTION_LOG}" "${CAPTION_SCC}"
+        _eia608dump2scc "${CAPTION_TMP}" "${CAPTION_SCC}"
         if [[ "${CC2VTT}" = 'true' ]] ; then
             "${FFMPEG_BIN}" -nostdin -v 0 -y -i "${CAPTION_SCC}" -f webvtt - | sed -E 's/\\h//g; s/\{\\an[0-9]\}//g; s/<[^>]+>//g' > "${CAPTION_SCC%.*}.vtt"
             _add_fadgi_header2vtt "${CAPTION_SCC%.*}.vtt" "caption"
