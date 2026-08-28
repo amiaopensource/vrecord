@@ -3153,7 +3153,7 @@ _add_mediaconch_rule_set(){
 
 _check_access_mp4_mediaconch() {
     if [[ "${MP4_CHOICE}" = "true" ]] && [[ -f "${MP4NAME}" ]] && "${MEDIACONCH_INSTALLED}" ; then
-        _report -d "Checking access MP4 conformance against a mediaconch policy..."
+        _report -dt "Checking access MP4 conformance against a mediaconch policy..."
         MP4_POLICY_TMP="$(_maketemp .mediaconch_mp4.xml)"
         cat <<MC_MP4_START > "${MP4_POLICY_TMP}"
 <?xml version="1.0"?>
@@ -3731,7 +3731,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
 
     # qctools process
     if [[ "${QCTOOLSXML_V2_CHOICE}" = "true" ]] ; then
-        _report -d "Post-processing vrecord-native QCTools report (v2)..."
+        _report -dt "Post-processing vrecord-native QCTools report (v2)..."
         QC_WIDTH="${SIG_GEN_SIZE%x*}"
         QC_HEIGHT="${SIG_GEN_SIZE#*x}"
         if [[ "${PIXEL_FORMAT}" = "yuv422p10" ]] ; then
@@ -3751,9 +3751,9 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
             mkvpropedit "${QCTOOLS_THUMB_MKV_TMP}" --edit info --set "title=QCTools Report for ${FULL_OUTPUT_ID}.${EXTENSION}" --attachment-name "${FULL_OUTPUT_ID}.${EXTENSION}.qctools.xml.gz" --attachment-mime-type application/x-gzip --add-attachment "${QCXML}"
             _mv_tmp_file "${QCTOOLS_THUMB_MKV_TMP}" "${QCTOOLS_REPORT}"
         else
-            _report -w "QCTools v2 report generation failed: missing thumbnail mkv, xml.gz, or mkvpropedit"
+            _report -wt "QCTools v2 report generation failed: missing thumbnail mkv, xml.gz, or mkvpropedit"
         fi
-        _report -d "Vrecord is analyzing your video file from the QCTools data. Please be patient."
+        _report -dt "Vrecord is analyzing your video file from the QCTools data. Please be patient."
         if [[ -s "${QCXML}" ]] ; then
             if [[ "${PIXEL_FORMAT}" = "yuv422p10" ]] ; then
                 SAT_OUTLIERS=$("${ZCAT_COMMAND}" "${QCXML}" | perl -nle 'print if not m{lavfi.(?!signalstats.SATMAX)}' | xmlstarlet sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>496])" -n)
@@ -3765,11 +3765,11 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
             AUDIO_PEAK=$("${ZCAT_COMMAND}" "${QCXML}" | grep lavfi.astats.Overall.Peak_level | cut -d '"' -f 4 | sort -n | tail -n 1)
             _writeingestlog "Peak Volume is (dB)" "${AUDIO_PEAK}"
             if "${GNUPLOT_INSTALLED}" ; then
-                _report -d "Vrecord is generating graphs from the QCTools data. One moment please."
+                _report -dt "Vrecord is generating graphs from the QCTools data. One moment please."
                 _qcgraphimage "${QCXML}"
             fi
         else
-            _report -w "qctools XML ${QCXML} is empty or does not exist!"
+            _report -wt "qctools XML ${QCXML} is empty or does not exist!"
         fi
         if [[ "${SAT_OUTLIERS}" -gt "${SAT_OUTLIER_THRSHLD}" ]] ; then
             cowsay "$(_report -w "WARNING: Your video file contains ${SAT_OUTLIERS} frames with illegal saturation values. Your deck may require cleaning.")"
@@ -3780,13 +3780,13 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         if [[ "${BRNG_OUTLIERS}" -gt "${BRNG_OUTLIER_THRSHLD}" ]] ; then
             cowsay "$(_report -w "WARNING: Your video file contains ${BRNG_OUTLIERS} frames with pixels out of broadcast range.")"
         fi
-        _report -d "QCTools analysis is complete."
+        _report -dt "QCTools analysis is complete."
         rm -f "${QC_VIDEO_DUMP}" "${QC_AUDIO_DUMPS[@]}" 2>/dev/null
     fi
 
     # make a timecode vtt
     if [[ "${TIMECODEVTT_CHOICE}" = "true" ]] && [[ "${FORMAT}" = "matroska" ]] && [[ "${SIGNAL_INPUT}" != 'true' ]] && [[ -z "${ALT_INPUT}" ]] ; then
-        _report -d "Working on the timecode vtt file..."
+        _report -dt "Working on the timecode vtt file..."
         TIMECODEXML_TMP="$(_maketemp .mediatimecode.txt)"
         TIMECODEXML_VTT="${LOGDIR}/${FULL_OUTPUT_ID}.timecode.vtt"
         mediainfo --ParseSpeed=1 --Output=TimeCodeXML "${VRECORD_OUTPUT}" > "${TIMECODEXML_TMP}"
@@ -3836,7 +3836,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
 
     # mediaconch policy check on the preservation output
     if "${MEDIACONCH_INSTALLED}" ; then
-        _report -d "Checking file conformance against a mediaconch policy..."
+        _report -dt "Checking file conformance against a mediaconch policy..."
         MEDIACONCH_REPORT="${DIR}/${FULL_OUTPUT_ID}_mediaconch_report.xml"
         MEDIACONCH_REPORT_TMP="$(_maketemp _mediaconch_report.xml)"
         MEDIACONCH_POLICY="${DIR}/${FULL_OUTPUT_ID}_mediaconch_policy.xml"
@@ -3872,14 +3872,14 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
     # embed logs in Matroska files
     if "$MKVPROPEDIT_INSTALLED" ; then
         if [[ "${CONTAINER_CHOICE}" = "Matroska" ]] && [[ "${EMBED_LOGS_CHOICE}" = "Yes" ]] ; then
-            _report -d "Vrecord is attaching logs to your Matroska file:"
+            _report -dt "Vrecord is attaching logs to your Matroska file:"
             mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "Capture options selected by user during vrecord process" --add-attachment "${INGESTLOG}"
             mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "Full FFmpeg output from vrecord capture process" --add-attachment "${FULL_CAPTURE_LOG}"
             if [[ "${QCTOOLSXML_V2_CHOICE}" = "true" ]] ; then
                 mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "QCTools report from vrecord capture process (zipped XML)" --add-attachment "${QCXML}"
                 mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "QCTools report from vrecord capture process (Matroska report)" --add-attachment "${QCTOOLS_REPORT}"
             fi
-            _report -d "Vrecord is done attaching logs to your Matroska file!"
+            _report -dt "Vrecord is done attaching logs to your Matroska file!"
         fi
     fi
     if [[ -f "${QCXML}" ]] ; then
