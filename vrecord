@@ -897,7 +897,7 @@ _setup_vrecord_process(){
         fi
         PLAYER_COMMAND=(mpv "${MPVOPTS[@]}" -)
     else
-        FFPLAY_OPTIONS=(-v info)
+        FFPLAY_OPTIONS=($([[ "${VERBOSE}" = "true" ]] && echo "-v info" || echo "-v error"))
         FFPLAY_OPTIONS+=(-hide_banner)
         FFPLAY_OPTIONS+=(-stats)
         FFPLAY_OPTIONS+=(-autoexit)
