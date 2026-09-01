@@ -92,6 +92,7 @@ _update_config_file(){
         echo "MEDIA_ID_TYPE=\"${MEDIA_ID_TYPE}\""
         echo "WEBVTT_EXTRA=\"${WEBVTT_EXTRA}\""
         echo "HD_CHOICE=\"${HD_CHOICE}\""
+        echo "COLOR_SAFE=\"${COLOR_SAFE}\""
     } > "${CONFIG_FILE}"
     . "${CONFIG_FILE}"
 }
