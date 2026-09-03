@@ -74,11 +74,19 @@ _get_iso8601(){
 }
 
 _report(){
-    local RED="$(tput setaf 1)"    # Red      - For Warnings
-    local BG_RED="$(tput setab 1)"    # Background Red      - For STRONG Warnings
-    local GREEN="$(tput setaf 2)"  # Green    - For Declarations
-    local BLUE="$(tput setaf 4)"   # Blue     - For Questions
-    local NC="$(tput sgr0)"        # No Color
+    if [[ "${COLOR_SAFE}" == 'true' ]] ; then
+        local RED="$(tput bold)$(tput smso)"    # Bold text and inverted background - For Warnings
+        local BG_RED="$(tput setab 1)"          # Background Red - For STRONG Warnings
+        local GREEN="$(tput smso)"              # Inverted background - For Declarations
+        local BLUE=""$(tput sitm)$(tput smso)"" # Italic text and inverted background - For Questions
+        local NC="$(tput rmso)$(tput ritm)"     # No Color
+    else
+        local RED="$(tput setaf 1)"    # Red      - For Warnings
+        local BG_RED="$(tput setab 1)" # Background Red      - For STRONG Warnings
+        local GREEN="$(tput setaf 2)"  # Green    - For Declarations
+        local BLUE="$(tput setaf 4)"   # Blue     - For Questions
+        local NC="$(tput sgr0)"        # No Color
+    fi
     local COLOR=""
     local STARTMESSAGE=""
     local ECHOOPT=""
@@ -1053,7 +1061,7 @@ PLAYBACK_OPT_GUI="
 OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
 <frame Preferences>
     <hbox>
-        <notebook tab-labels="Player|Aspect Ratio|Closed Captioning|FADGI WebVTT header">
+        <notebook tab-labels="Player|Aspect Ratio|Closed Captioning|FADGI WebVTT header|Color Options">
             <frame Player Settings>
                 <hbox>
                 $(_gtk_vbox_list "WAVEFORM_SCALE_CHOICE" "100" "Select Waveform Scale"            "${WAVEFORM_SCALE_OPTIONS[@]}")
@@ -1120,6 +1128,18 @@ OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
                             <variable>WEBVTT_EXTRA</variable>
                         </entry>
                     </vbox>
+                </vbox>
+            </frame>
+            <frame Color Options>
+                <vbox>
+                    <text width-chars="-1">
+                        <label>Change color settings used in vrecord</label>
+                    </text>
+                    <checkbox>
+                        <label>Enable color free alerts</label>
+                        <default>"${COLOR_SAFE}"</default>
+                        <variable>COLOR_SAFE</variable>
+                    </checkbox>
                 </vbox>
             </frame>
         </notebook>
