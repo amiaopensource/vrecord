@@ -132,6 +132,59 @@ local function updateOSD()
   ass_osd(msg, duration);
 end
 
+local function set_up_drawtext()
+  local drawtext1 = assert(io.open('/tmp/drawtext.txt', 'w'))
+  drawtext1:write([[
+%{pts:hms}
+
+  Y
+ Low  %{metadata:lavfi.signalstats.YLOW}
+ Avg  %{metadata:lavfi.signalstats.YAVG}
+ High %{metadata:lavfi.signalstats.YHIGH}
+ Diff %{metadata:lavfi.signalstats.YDIF}
+
+  U
+ Low  %{metadata:lavfi.signalstats.ULOW}
+ Avg  %{metadata:lavfi.signalstats.UAVG}
+ High %{metadata:lavfi.signalstats.UHIGH}
+ Diff %{metadata:lavfi.signalstats.UDIF}
+
+  V
+ Low  %{metadata:lavfi.signalstats.VLOW}
+ Avg  %{metadata:lavfi.signalstats.VAVG}
+ High %{metadata:lavfi.signalstats.VHIGH}
+ Diff %{metadata:lavfi.signalstats.VDIF}
+
+  SAT
+ Low  %{metadata:lavfi.signalstats.SATLOW}
+ Avg  %{metadata:lavfi.signalstats.SATAVG}
+ High %{metadata:lavfi.signalstats.SATHIGH}
+]])
+  drawtext1:close()
+
+  local drawtext2 = assert(io.open('/tmp/drawtext2.txt', 'w'))
+  drawtext2:write([[
+ HUE(med) %{metadata:lavfi.signalstats.HUEMED}
+ HUE(avg) %{metadata:lavfi.signalstats.HUEAVG}
+ TOUT     %{metadata:lavfi.signalstats.TOUT}
+ VREP     %{metadata:lavfi.signalstats.VREP}
+
+ Used Bitdepths
+ Y        %{metadata:lavfi.signalstats.YBITDEPTH}
+ U        %{metadata:lavfi.signalstats.UBITDEPTH}
+ V        %{metadata:lavfi.signalstats.VBITDEPTH}
+]])
+  drawtext2:close()
+
+  local drawtext3 = assert(io.open('/tmp/drawtext3.txt', 'w'))
+  drawtext3:write([[
+BRNG
+%{metadata:lavfi.signalstats.BRNG}
+]])
+  drawtext3:close()
+end
+
+set_up_drawtext()
 
 local function getBind(key, index)
   return function()  -- onKey
@@ -217,8 +270,8 @@ local function getBind(key, index)
     filters = {
       {filter = {'[vid1]split=5[a][b][c][d][e],[b]field=top[b1],[c]field=bottom[c1],[b1]format=yuv422p,waveform=c='..comp..':d='..disp..':f='..filW..':g='..grat..':e='..env..':fl=numbers+dots:s=ire:i='..intensity..',scale=iw:256[b2],[c1]format=yuv422p,waveform=c='..comp..':d='..disp..':f='..filW..':g='..grat..':e='..env..':fl=numbers+dots:s=ire:i='..intensity..',scale=iw:256[c2],[a][b2][c2]vstack=inputs=3,format=yuv422p[abc1],[d]format=yuv422p,vectorscope=m='..filV..':g='..grat..':e='..env..':i='..intensity..':c=601,scale=512:512,drawbox=w=9:h=9:t=1:x=128-3:y=512-452-5:c=sienna@0.8,drawbox=w=9:h=9:t=1:x=160-3:y=512-404-5:c=sienna@0.8,drawbox=w=9:h=9:t=1:x=192-3:y=512-354-5:c=sienna@0.8,drawbox=w=9:h=9:t=1:x=224-3:y=512-304-5:c=sienna@0.8,drawgrid=w=32:h=32:t=1:c=white@0.1,drawgrid=w=256:h=256:t=1:c=white@0.2[d1],[e]signalstats=out=brng,scale=512:ih[e1],[e1][d1]vstack[de1],[abc1][de1]hstack[vo]'}}, --1 broadcast
       {filter = {'[vid1]split=5[a][b][c][d][e],[b]field=top[b1],[c]field=bottom[c1],[b1]format=yuv422p,waveform=c='..comp..':d='..disp..':f='..filW..':g='..grat..':e='..env..':fl=numbers+dots:s=ire:i='..intensity..',scale=iw:256[b2],[c1]format=yuv422p,waveform=c='..comp..':d='..disp..':f='..filW..':g='..grat..':e='..env..':fl=numbers+dots:s=ire:i='..intensity..',scale=iw:256[c2],[a][b2][c2]vstack=inputs=3,format=yuv422p[abc1],[d]format=yuv422p,vectorscope=m='..filV..':g='..grat..':e='..env..':i='..intensity..':c=601,scale=512:512,drawbox=w=9:h=9:t=1:x=128-3:y=512-452-5:c=sienna@0.8,drawbox=w=9:h=9:t=1:x=160-3:y=512-404-5:c=sienna@0.8,drawbox=w=9:h=9:t=1:x=192-3:y=512-354-5:c=sienna@0.8,drawbox=w=9:h=9:t=1:x=224-3:y=512-304-5:c=sienna@0.8,drawgrid=w=32:h=32:t=1:c=white@0.1,drawgrid=w=256:h=256:t=1:c=white@0.2[d1],[e]format=yuv444p,pseudocolor=if(between(1\\,val\\,amax)+between(val\\,254\\,amax)\\,65\\,-1):if(between(1\\,val\\,amax)+between(val\\,254\\,amax)\\,100\\,-1):if(between(1\\,val\\,amax)+between(val\\,254\\,amax)\\,212\\,-1),scale=512:ih[e1],[e1][d1]vstack[de1],[abc1][de1]hstack[vo]'}}, --2 full range
-      {filter = {'split=7[a][b][c][d][e][f][g],[b]field=top[b1],[c]field=bottom[c1],[b1]format=yuv422p,waveform=c='..comp..':d='..disp..':f='..filW..':g='..grat..':e='..env..':fl=numbers+dots:s=ire:i='..intensity..',scale=iw:256[b2],[c1]format=yuv422p,waveform=c='..comp..':d='..disp..':f='..filW..':g='..grat..':e='..env..':fl=numbers+dots:s=ire:i='..intensity..',scale=iw:256[c2],[a][b2][c2]vstack=inputs=3,format=yuv422p[abc1],[d]format=yuv422p,vectorscope=m='..filV..':g='..grat..':e='..env..':i='..intensity..':c=601,scale=512:512,drawbox=w=9:h=9:t=1:x=128-3:y=512-452-5:c=sienna@0.8,drawbox=w=9:h=9:t=1:x=160-3:y=512-404-5:c=sienna@0.8,drawbox=w=9:h=9:t=1:x=192-3:y=512-354-5:c=sienna@0.8,drawbox=w=9:h=9:t=1:x=224-3:y=512-304-5:c=sienna@0.8,drawgrid=w=32:h=32:t=1:c=white@0.1,drawgrid=w=256:h=256:t=1:c=white@0.2[d1],[e]signalstats=out=brng,scale=512:ih[e1],[e1][d1]vstack[de1],[f]signalstats=stat=brng+vrep+tout,format=yuv422p,geq=lum=60:cb=128:cr=128,scale=180:ih+512,setsar=1/1,drawtext=fontcolor=white:fontsize=22:fontfile='..defaultfont..':textfile=/tmp/drawtext.txt,drawtext=fontcolor=white:fontsize=17:fontfile='..defaultfont..':textfile=/tmp/drawtext2.txt,drawtext=fontcolor=white:fontsize=52:fontfile='..defaultfont..':textfile=/tmp/drawtext3.txt[f1],[abc1][de1][f1]hstack=inputs=3[abcdef1],[g]scale=iw+512+180:82,format=yuv422p,geq=lum=60:cb=128:cr=128,drawtext=fontcolor=white:fontsize=22:fontfile='..defaultfont..':textfile=/tmp/vrecord_input.log:reload=1:y=100-th[g1],[abcdef1][g1]vstack[vo]'}}, --3 visual + numerical
-      {filter = {'[vid1]split=7[a][b][c][d][e][f][g],[b]field=top[b1],[c]field=bottom[c1],[b1]format=yuv422p,waveform=c='..comp..':d='..disp..':f='..filW..':g='..grat..':e='..env..':fl=numbers+dots:s=ire:i='..intensity..',scale=iw:256[b2],[c1]format=yuv422p,waveform=c='..comp..':d='..disp..':f='..filW..':g='..grat..':e='..env..':fl=numbers+dots:s=ire:i='..intensity..',scale=iw:256[c2],[a][b2][c2]vstack=inputs=3,format=yuv422p[abc1],[d]format=yuv422p,vectorscope=m='..filV..':g='..grat..':e='..env..':i='..intensity..':c=601,scale=512:512,drawbox=w=9:h=9:t=1:x=128-3:y=512-452-5:c=sienna@0.8,drawbox=w=9:h=9:t=1:x=160-3:y=512-404-5:c=sienna@0.8,drawbox=w=9:h=9:t=1:x=192-3:y=512-354-5:c=sienna@0.8,drawbox=w=9:h=9:t=1:x=224-3:y=512-304-5:c=sienna@0.8,drawgrid=w=32:h=32:t=1:c=white@0.1,drawgrid=w=256:h=256:t=1:c=white@0.2[d1],[e]format=yuv444p,pseudocolor=if(between(1\\,val\\,amax)+between(val\\,254\\,amax)\\,65\\,-1):if(between(1\\,val\\,amax)+between(val\\,254\\,amax)\\,100\\,-1):if(between(1\\,val\\,amax)+between(val\\,254\\,amax)\\,212\\,-1),scale=512:ih[e1],[e1][d1]vstack[de1],[f]signalstats=stat=brng+vrep+tout,format=yuv422p,geq=lum=60:cb=128:cr=128,scale=180:ih+512,setsar=1/1,drawtext=fontcolor=white:fontsize=22:fontfile='..defaultfont..':textfile=/tmp/drawtext.txt,drawtext=fontcolor=white:fontsize=17:fontfile='..defaultfont..':textfile=/tmp/drawtext2.txt,drawtext=fontcolor=white:fontsize=52:fontfile='..defaultfont..':textfile=/tmp/drawtext3.txt[f1],[abc1][de1][f1]hstack=inputs=3[abcdef1],[g]scale=iw+512+180:82,format=yuv422p,geq=lum=60:cb=128:cr=128,drawtext=fontcolor=white:fontsize=22:fontfile='..defaultfont..':textfile=/tmp/vrecord_input.log:reload=1:y=100-th[g1],[abcdef1][g1]vstack[vo]'}}, --4 visual + numerical, full range
+      {filter = {'[vid1]split=6[a][b][c][d][e][f],[b]field=top[b1],[c]field=bottom[c1],[b1]format=yuv422p,waveform=c='..comp..':d='..disp..':f='..filW..':g='..grat..':e='..env..':fl=numbers+dots:s=ire:i='..intensity..',scale=iw:256[b2],[c1]format=yuv422p,waveform=c='..comp..':d='..disp..':f='..filW..':g='..grat..':e='..env..':fl=numbers+dots:s=ire:i='..intensity..',scale=iw:256[c2],[a][b2][c2]vstack=inputs=3,format=yuv422p[abc1],[d]format=yuv422p,vectorscope=m='..filV..':g='..grat..':e='..env..':i='..intensity..':c=601,scale=512:512,drawbox=w=9:h=9:t=1:x=128-3:y=512-452-5:c=sienna@0.8,drawbox=w=9:h=9:t=1:x=160-3:y=512-404-5:c=sienna@0.8,drawbox=w=9:h=9:t=1:x=192-3:y=512-354-5:c=sienna@0.8,drawbox=w=9:h=9:t=1:x=224-3:y=512-304-5:c=sienna@0.8,drawgrid=w=32:h=32:t=1:c=white@0.1,drawgrid=w=256:h=256:t=1:c=white@0.2[d1],[e]signalstats=out=brng,scale=512:ih[e1],[e1][d1]vstack[de1],[f]signalstats=stat=brng+vrep+tout,format=yuv422p,geq=lum=60:cb=128:cr=128,scale=180:ih+512,setsar=1/1,drawtext=fontcolor=white:fontsize=20:fontfile='..defaultfont..':textfile=/tmp/drawtext.txt,drawtext=fontcolor=white:fontsize=15:fontfile='..defaultfont..':textfile=/tmp/drawtext2.txt:y=670,drawtext=fontcolor=white:fontsize=15:fontfile='..defaultfont..':textfile=/tmp/drawtext3.txt:y=870[f1],[abc1][de1][f1]hstack=inputs=3[vo]'}}, --3 visual + numerical
+      {filter = {'[vid1]split=6[a][b][c][d][e][f],[b]field=top[b1],[c]field=bottom[c1],[b1]format=yuv422p,waveform=c='..comp..':d='..disp..':f='..filW..':g='..grat..':e='..env..':fl=numbers+dots:s=ire:i='..intensity..',scale=iw:256[b2],[c1]format=yuv422p,waveform=c='..comp..':d='..disp..':f='..filW..':g='..grat..':e='..env..':fl=numbers+dots:s=ire:i='..intensity..',scale=iw:256[c2],[a][b2][c2]vstack=inputs=3,format=yuv422p[abc1],[d]format=yuv422p,vectorscope=m='..filV..':g='..grat..':e='..env..':i='..intensity..':c=601,scale=512:512,drawbox=w=9:h=9:t=1:x=128-3:y=512-452-5:c=sienna@0.8,drawbox=w=9:h=9:t=1:x=160-3:y=512-404-5:c=sienna@0.8,drawbox=w=9:h=9:t=1:x=192-3:y=512-354-5:c=sienna@0.8,drawbox=w=9:h=9:t=1:x=224-3:y=512-304-5:c=sienna@0.8,drawgrid=w=32:h=32:t=1:c=white@0.1,drawgrid=w=256:h=256:t=1:c=white@0.2[d1],[e]format=yuv444p,pseudocolor=if(between(1\\,val\\,amax)+between(val\\,254\\,amax)\\,65\\,-1):if(between(1\\,val\\,amax)+between(val\\,254\\,amax)\\,100\\,-1):if(between(1\\,val\\,amax)+between(val\\,254\\,amax)\\,212\\,-1),scale=512:ih[e1],[e1][d1]vstack[de1],[f]signalstats=stat=brng+vrep+tout,format=yuv422p,geq=lum=60:cb=128:cr=128,scale=180:ih+512,setsar=1/1,drawtext=fontcolor=white:fontsize=20:fontfile='..defaultfont..':textfile=/tmp/drawtext.txt,drawtext=fontcolor=white:fontsize=15:fontfile='..defaultfont..':textfile=/tmp/drawtext2.txt:y=670,drawtext=fontcolor=white:fontsize=15:fontfile='..defaultfont..':textfile=/tmp/drawtext3.txt:y=870[f1],[abc1][de1][f1]hstack=inputs=3[vo]'}}, --4 visual + numerical, full range
       {filter = {'[vid1]scale=iw/4:ih/4,split=9[x][hm][hp][sm][sp][hmsm][hmsp][hpsm][hpsp],[hm]hue=h=-'..hue..'[hm1],[hp]hue=h='..hue..'[hp1],[sm]hue=s=1-'..sat..'[sm1],[sp]hue=s=1+'..sat..'[sp1],[hmsm]hue=h=-'..hue..':s=1-'..sat..'[hmsm1],[hmsp]hue=h=-'..hue..':s=1+'..sat..'[hmsp1],[hpsm]hue=h='..hue..':s=1-'..sat..'[hpsm1],[hpsp]hue=h='..hue..':s=1+'..sat..'[hpsp1],[hpsm1][hp1][hpsp1]hstack=3[top],[sm1][x][sp1]hstack=3[mid],[hmsm1][hm1][hmsp1]hstack=3[bottom],[top][mid][bottom]vstack=3[vo]'}}, --5 color matrix
       {filter = {'[vid1]format=yuv420p10le|yuv422p10le|yuv444p10le|yuv440p10le,split=10[b0][b1][b2][b3][b4][b5][b6][b7][b8][b9],'..bitplanes1..','..bitplanes2..',[b0c][b1c][b2c][b3c][b4c][b5c][b6c][b7c][b8c][b9c]hstack=10,format=yuv444p,drawgrid=w=iw/10:h=ih:t=2:c=green@0.5[vo]'}}, --6 bit planes
       {filter = {'[vid1]format=yuv444p,split=4[f][y][u][v],[f]il=l=d:c=d,pad=iw+10:ih+10:10:10[f1],[y]il=l=d,extractplanes=y,pad=iw+10:ih+10:10:10[y1],[u]il=c=d,extractplanes=u,pad=iw+10:ih+10:10:10[u1],[v]il=c=d,extractplanes=v,pad=iw+10:ih+10:10:10[v1],[f1][y1]hstack=2[a],[u1][v1]hstack=2[b],[a][b]vstack=2[vo]'}}, --7 split fields/planes view
