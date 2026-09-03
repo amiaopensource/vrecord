@@ -2431,66 +2431,79 @@ _lookup_choice(){
             if [[ "${STANDARD}" = "ntsc" ]] ; then
                 RECORDINGFILTER+=",setsar=${NTSC_43_SAR_CHOICE}"
                 RECORDINGFILTER_MP4+=",setsar=${NTSC_43_SAR_CHOICE}"
+                _build_sar_mediaconch_test "${NTSC_43_SAR_CHOICE}"
                 ACCESS_MP4_LEVEL="3.1"
                 ACCESS_MP4_BITRATE="3500k"
             elif [[ "${STANDARD}" = "pal " ]] ; then
                 RECORDINGFILTER+=",setsar=${PAL_43_SAR_CHOICE}"
                 RECORDINGFILTER_MP4+=",setsar=${PAL_43_SAR_CHOICE}"
+                _build_sar_mediaconch_test "${PAL_43_SAR_CHOICE}"
                 ACCESS_MP4_LEVEL="3.1"
                 ACCESS_MP4_BITRATE="3500k"
             elif [[ "${STANDARD}" = "23ps" ]] ; then
                 RECORDINGFILTER+=",setdar=4/3"
                 RECORDINGFILTER_MP4+=",setdar=4/3"
+                _build_dar_mediaconch_test "4/3"
                 ACCESS_MP4_LEVEL="4.0"
                 ACCESS_MP4_BITRATE="8000k"
             elif [[ "${STANDARD}" = "24ps" ]] ; then
                 RECORDINGFILTER+=",setdar=4/3"
                 RECORDINGFILTER_MP4+=",setdar=4/3"
+                _build_dar_mediaconch_test "4/3"
                 ACCESS_MP4_LEVEL="4.0"
                 ACCESS_MP4_BITRATE="8000k"
             elif [[ "${STANDARD}" = "Hp25" ]] ; then
                 RECORDINGFILTER+=",setdar=4/3"
                 RECORDINGFILTER_MP4+=",setdar=4/3"
+                _build_dar_mediaconch_test "4/3"
                 ACCESS_MP4_LEVEL="4.0"
                 ACCESS_MP4_BITRATE="8000k"
             elif [[ "${STANDARD}" = "Hp29" ]] ; then
                 RECORDINGFILTER+=",setdar=4/3"
                 RECORDINGFILTER_MP4+=",setdar=4/3"
+                _build_dar_mediaconch_test "4/3"
                 ACCESS_MP4_LEVEL="4.0"
                 ACCESS_MP4_BITRATE="8000k"
             elif [[ "${STANDARD}" = "Hp30" ]] ; then
                 RECORDINGFILTER+=",setdar=4/3"
                 RECORDINGFILTER_MP4+=",setdar=4/3"
+                _build_dar_mediaconch_test "4/3"
                 ACCESS_MP4_LEVEL="4.0"
                 ACCESS_MP4_BITRATE="8000k"
             elif [[ "${STANDARD}" = "Hi50" ]] ; then
                 RECORDINGFILTER+=",setdar=4/3"
                 RECORDINGFILTER_MP4+=",setdar=4/3"
+                _build_dar_mediaconch_test "4/3"
                 ACCESS_MP4_LEVEL="4.0"
                 ACCESS_MP4_BITRATE="10000k"
             elif [[ "${STANDARD}" = "Hi59" ]] ; then
                 RECORDINGFILTER+=",setdar=4/3"
                 RECORDINGFILTER_MP4+=",setdar=4/3"
+                _build_dar_mediaconch_test "4/3"
                 ACCESS_MP4_LEVEL="4.2"
                 ACCESS_MP4_BITRATE="12000k"
             elif [[ "${STANDARD}" = "Hi60" ]] ; then
                 RECORDINGFILTER+=",setdar=4/3"
                 RECORDINGFILTER_MP4+=",setdar=4/3"
+                _build_dar_mediaconch_test "4/3"
                 ACCESS_MP4_LEVEL="4.2"
                 ACCESS_MP4_BITRATE="12000k"
             elif [[ "${STANDARD}" = "hp50" ]] ; then
                 RECORDINGFILTER+=",setdar=4/3"
                 RECORDINGFILTER_MP4+=",setdar=4/3"
+                _build_dar_mediaconch_test "4/3"
                 ACCESS_MP4_LEVEL="3.2"
                 ACCESS_MP4_BITRATE="5000k"
             elif [[ "${STANDARD}" = "hp59" ]] ; then
                 RECORDINGFILTER+=",setdar=4/3"
                 RECORDINGFILTER_MP4+=",setdar=4/3"
+                _build_dar_mediaconch_test "4/3"
                 ACCESS_MP4_LEVEL="3.2"
                 ACCESS_MP4_BITRATE="7000k"
             elif [[ "${STANDARD}" = "hp60" ]] ; then
                 RECORDINGFILTER+=",setdar=4/3"
                 RECORDINGFILTER_MP4+=",setdar=4/3"
+                _build_dar_mediaconch_test "4/3"
                 ACCESS_MP4_LEVEL="3.2"
                 ACCESS_MP4_BITRATE="7000k"
             else
@@ -2500,66 +2513,79 @@ _lookup_choice(){
             if [[ "${STANDARD}" = "ntsc" ]] ; then
                 RECORDINGFILTER+=",setsar=${NTSC_169_SAR_CHOICE}"
                 RECORDINGFILTER_MP4+=",setsar=${NTSC_169_SAR_CHOICE}"
+                _build_sar_mediaconch_test "${NTSC_169_SAR_CHOICE}"
                 ACCESS_MP4_LEVEL="3.1"
                 ACCESS_MP4_BITRATE="3500k"
             elif [[ "${STANDARD}" = "pal " ]] ; then
                 RECORDINGFILTER+=",setsar=${PAL_169_SAR_CHOICE}"
                 RECORDINGFILTER_MP4+=",setsar=${PAL_169_SAR_CHOICE}"
+                _build_sar_mediaconch_test "${PAL_169_SAR_CHOICE}"
                 ACCESS_MP4_LEVEL="3.1"
                 ACCESS_MP4_BITRATE="3500k"
             elif [[ "${STANDARD}" = "23ps" ]] ; then
                 RECORDINGFILTER+=",setdar=16/9"
                 RECORDINGFILTER_MP4+=",setdar=16/9"
+                _build_dar_mediaconch_test "16/9"
                 ACCESS_MP4_LEVEL="4.0"
                 ACCESS_MP4_BITRATE="8000k"
             elif [[ "${STANDARD}" = "24ps" ]] ; then
                 RECORDINGFILTER+=",setdar=16/9"
                 RECORDINGFILTER_MP4+=",setdar=16/9"
+                _build_dar_mediaconch_test "16/9"
                 ACCESS_MP4_LEVEL="4.0"
                 ACCESS_MP4_BITRATE="8000k"
             elif [[ "${STANDARD}" = "Hp25" ]] ; then
                 RECORDINGFILTER+=",setdar=16/9"
                 RECORDINGFILTER_MP4+=",setdar=16/9"
+                _build_dar_mediaconch_test "16/9"
                 ACCESS_MP4_LEVEL="4.0"
                 ACCESS_MP4_BITRATE="8000k"
             elif [[ "${STANDARD}" = "Hp29" ]] ; then
                 RECORDINGFILTER+=",setdar=16/9"
                 RECORDINGFILTER_MP4+=",setdar=16/9"
+                _build_dar_mediaconch_test "16/9"
                 ACCESS_MP4_LEVEL="4.0"
                 ACCESS_MP4_BITRATE="8000k"
             elif [[ "${STANDARD}" = "Hp30" ]] ; then
                 RECORDINGFILTER+=",setdar=16/9"
                 RECORDINGFILTER_MP4+=",setdar=16/9"
+                _build_dar_mediaconch_test "16/9"
                 ACCESS_MP4_LEVEL="4.0"
                 ACCESS_MP4_BITRATE="8000k"
             elif [[ "${STANDARD}" = "Hi50" ]] ; then
                 RECORDINGFILTER+=",setdar=16/9"
                 RECORDINGFILTER_MP4+=",setdar=16/9"
+                _build_dar_mediaconch_test "16/9"
                 ACCESS_MP4_LEVEL="4.0"
                 ACCESS_MP4_BITRATE="10000k"
             elif [[ "${STANDARD}" = "Hi59" ]] ; then
                 RECORDINGFILTER+=",setdar=16/9"
                 RECORDINGFILTER_MP4+=",setdar=16/9"
+                _build_dar_mediaconch_test "16/9"
                 ACCESS_MP4_LEVEL="4.2"
                 ACCESS_MP4_BITRATE="12000k"
             elif [[ "${STANDARD}" = "Hi60" ]] ; then
                 RECORDINGFILTER+=",setdar=16/9"
                 RECORDINGFILTER_MP4+=",setdar=16/9"
+                _build_dar_mediaconch_test "16/9"
                 ACCESS_MP4_LEVEL="4.2"
                 ACCESS_MP4_BITRATE="12000k"
             elif [[ "${STANDARD}" = "hp50" ]] ; then
                 RECORDINGFILTER+=",setdar=16/9"
                 RECORDINGFILTER_MP4+=",setdar=16/9"
+                _build_dar_mediaconch_test "16/9"
                 ACCESS_MP4_LEVEL="3.2"
                 ACCESS_MP4_BITRATE="5000k"
             elif [[ "${STANDARD}" = "hp59" ]] ; then
                 RECORDINGFILTER+=",setdar=16/9"
                 RECORDINGFILTER_MP4+=",setdar=16/9"
+                _build_dar_mediaconch_test "16/9"
                 ACCESS_MP4_LEVEL="3.2"
                 ACCESS_MP4_BITRATE="7000k"
             elif [[ "${STANDARD}" = "hp60" ]] ; then
                 RECORDINGFILTER+=",setdar=16/9"
                 RECORDINGFILTER_MP4+=",setdar=16/9"
+                _build_dar_mediaconch_test "16/9"
                 ACCESS_MP4_LEVEL="3.2"
                 ACCESS_MP4_BITRATE="7000k"
             else
@@ -3123,6 +3149,34 @@ AUDIO_CODEC_AAC_TEST='
     </policy>
     <rule name="Is the sample rate 48kHz?" value="SamplingRate" tracktype="Audio" operator="=">48000</rule>
 '
+
+_build_sar_mediaconch_test() {
+    SAR_FRACTION="${1}"
+    SAR_DECIMAL="$(awk -v f="${SAR_FRACTION}" 'BEGIN{split(f,a,"/"); printf "%.4f", a[1]/a[2]}')"
+    SAR_LOW="$(awk -v d="${SAR_DECIMAL}" 'BEGIN{printf "%.4f", d-0.0015}')"
+    SAR_HIGH="$(awk -v d="${SAR_DECIMAL}" 'BEGIN{printf "%.4f", d+0.0015}')"
+    SAR_MEDIACONCH_TEST="
+    <policy type=\"and\" name=\"Is the pixel aspect ratio ${SAR_FRACTION} (${SAR_DECIMAL})?\">
+        <rule name=\"Is PixelAspectRatio &gt;= ${SAR_LOW}?\" value=\"PixelAspectRatio\" tracktype=\"Video\" operator=\"&gt;=\">${SAR_LOW}</rule>
+        <rule name=\"Is PixelAspectRatio &lt;= ${SAR_HIGH}?\" value=\"PixelAspectRatio\" tracktype=\"Video\" operator=\"&lt;=\">${SAR_HIGH}</rule>
+    </policy>
+"
+    _add_mediaconch_rule_set "${SAR_MEDIACONCH_TEST}"
+}
+
+_build_dar_mediaconch_test() {
+    DAR_FRACTION="${1}"
+    DAR_DECIMAL="$(awk -v f="${DAR_FRACTION}" 'BEGIN{split(f,a,"/"); if (a[2]=="") a[2]=1; printf "%.4f", a[1]/a[2]}')"
+    DAR_LOW="$(awk -v d="${DAR_DECIMAL}" 'BEGIN{printf "%.4f", d-0.0015}')"
+    DAR_HIGH="$(awk -v d="${DAR_DECIMAL}" 'BEGIN{printf "%.4f", d+0.0015}')"
+    DAR_MEDIACONCH_TEST="
+    <policy type=\"and\" name=\"Is the display aspect ratio ${DAR_FRACTION} (${DAR_DECIMAL})?\">
+        <rule name=\"Is DisplayAspectRatio &gt;= ${DAR_LOW}?\" value=\"DisplayAspectRatio\" tracktype=\"Video\" operator=\"&gt;=\">${DAR_LOW}</rule>
+        <rule name=\"Is DisplayAspectRatio &lt;= ${DAR_HIGH}?\" value=\"DisplayAspectRatio\" tracktype=\"Video\" operator=\"&lt;=\">${DAR_HIGH}</rule>
+    </policy>
+"
+    _add_mediaconch_rule_set "${DAR_MEDIACONCH_TEST}"
+}
 
 
 # define mediaconch test fragment -end
