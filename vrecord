@@ -892,7 +892,11 @@ _setup_vrecord_process(){
         if [[ "${MONITOR_AUDIO_CHOICE}" = "No" ]] ; then
             MPVOPTS+=(--aid=no)
         fi
-        PLAYER_COMMAND=(mpv "${MPVOPTS[@]}" -)
+        if [[ -n "${ALT_INPUT}" ]] ; then
+            PLAYER_COMMAND=(mpv "${MPVOPTS[@]}" "${ALT_INPUT}")
+        else
+            PLAYER_COMMAND=(mpv "${MPVOPTS[@]}" -)
+        fi
     else
         FFPLAY_OPTIONS=(-v info)
         FFPLAY_OPTIONS+=(-hide_banner)
