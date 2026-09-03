@@ -620,7 +620,7 @@ _setup_vrecord_input(){
         GRAB_INPUT+=(-f lavfi -i "${TEST_SIGNAL_CHOICE}")
         GRAB_INPUT+=("${TIME_LIMIT[@]}")
         GRAB_INPUT+=(-f lavfi -i sine=440:r=48000)
-        GRAB_INPUT+=(-pix_fmt yuv422p10le)
+        GRAB_INPUT+=(-pix_fmt:v:0 yuv422p10le)
         AUDIOMAP=$(sed "s/0:a:0/1:a:0/g" <<< "$AUDIOMAP")
     elif [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         _set_ffmpeg_loglevel
