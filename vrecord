@@ -79,7 +79,7 @@ _report(){
         local BG_RED="$(tput setab 1)"          # Background Red - For STRONG Warnings
         local GREEN="$(tput smso)"              # Inverted background - For Declarations
         local BLUE=""$(tput sitm)$(tput smso)"" # Italic text and inverted background - For Questions
-        local NC="$(tput rmso)$(tput ritm)"     # No Color
+        local NC="$(tput sgr0)"                 # No Color
     else
         local RED="$(tput setaf 1)"    # Red      - For Warnings
         local BG_RED="$(tput setab 1)" # Background Red      - For STRONG Warnings
