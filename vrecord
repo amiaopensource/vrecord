@@ -75,6 +75,7 @@ _get_iso8601(){
 
 _report(){
     if [[ "${COLOR_SAFE}" == 'true' ]] ; then
+        export AV_LOG_FORCE_NOCOLOR=1
         local RED="$(tput bold)$(tput smso)"    # Bold text and inverted background - For Warnings
         local BG_RED="$(tput setab 1)"          # Background Red - For STRONG Warnings
         local GREEN="$(tput smso)"              # Inverted background - For Declarations
