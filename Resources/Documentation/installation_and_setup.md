@@ -10,7 +10,7 @@ brew tap amiaopensource/amiaos
 brew trust amiaopensource/amiaos
 brew install vrecord
 ```
-(The first taps the homebrew recipes of the amiaopensource account; the second installs vrecord and the other programs that it requires.)
+(The first taps the homebrew recipes of the amiaopensource account; the second trusts the amiaopensource account; the third installs vrecord and the other programs that it requires.)
 
 Once vrecord has been successfully installed, you can update it to the latest release by first running:
 ```
