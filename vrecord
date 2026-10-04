@@ -91,8 +91,9 @@ _report(){
     local COLOR=""
     local STARTMESSAGE=""
     local ECHOOPT=""
+    local VERBOSE_ONLY=""
     OPTIND=1
-    while getopts "qdwxstn" opt ; do
+    while getopts "qdwxstnv" opt ; do
         case "${opt}" in
             q) COLOR="${BLUE}" ;;                        # question mode, use color blue
             d) COLOR="${GREEN}" ;;                       # declaration mode, use color green
@@ -101,10 +102,12 @@ _report(){
             s) STARTMESSAGE+=([${SCRIPTNAME}] ) ;;       # prepend scriptname to the message
             t) STARTMESSAGE+=($(_get_iso8601) '- ' ) ;;  # prepend timestamp to the message
             n) ECHOOPT="-n" ;;                           # to avoid line breaks after echo
+            v) VERBOSE_ONLY="true" ;;                    # only print if VERBOSE="true"
         esac
     done
     shift "$((OPTIND-1))"
     MESSAGE="${1}"
+    [[ "${VERBOSE_ONLY}" = "true" && "${VERBOSE}" != "true" ]] && return 0
     echo ${ECHOOPT} "${COLOR}${STARTMESSAGE[@]}${MESSAGE}${NC}"
 }
 
@@ -602,7 +605,7 @@ _gtk_vbox_list() {
 _setup_vrecord_input(){
     _set_ffmpeg_loglevel(){
         if [[ "$VERBOSE" = "true" ]] ; then
-            GRAB_INPUT+=(-loglevel debug)
+            GRAB_INPUT+=(-loglevel verbose)
             _report -wt "When running vrecord in verbose mode, avoid using Visual + Numerical option."
         elif [[ "${BENCHMARK_CHOICE}" = "true" ]] ; then
             GRAB_INPUT+=(-loglevel info -loglevel +time)
@@ -903,7 +906,7 @@ _setup_vrecord_process(){
         fi
         PLAYER_COMMAND=(mpv "${MPVOPTS[@]}" -)
     else
-        FFPLAY_OPTIONS=(-v info)
+        FFPLAY_OPTIONS=($([[ "${VERBOSE}" = "true" ]] && echo "-v info" || echo "-v error"))
         FFPLAY_OPTIONS+=(-hide_banner)
         FFPLAY_OPTIONS+=(-stats)
         FFPLAY_OPTIONS+=(-autoexit)
@@ -982,6 +985,15 @@ _get_audio_dev_num(){
       AUDIO_DEV_FULL=$(printf '%s\n' "${AUDIO_DEVICES[@]}" | grep -F "$AUDIO_DEV_CHOICE")
       AUDIO_DEV_NUM="$(echo "$AUDIO_DEV_FULL" | cut -d ':' -f1 | sed 's|card ||g'),$(echo "$AUDIO_DEV_FULL" | rev | cut -d ' ' -f1)"
     fi
+}
+
+_run_mkvpropedit(){
+    MKVPROPEDIT_OUTPUT="$(mkvpropedit "$@" 2>&1)"
+    STATUS=$?
+    FILTERED="$(grep -Ev '^(The file is being analyzed\.|The changes are written to the file\.|Done\.)$' <<< "${MKVPROPEDIT_OUTPUT}")"
+    [[ -n "${FILTERED}" ]] && _report -w "${FILTERED}"
+    _report -dvt "mkvpropedit ($*) exit=${STATUS}"
+    return "${STATUS}"
 }
 
 _set_up_edit_form() {
@@ -3228,7 +3240,7 @@ _add_mediaconch_rule_set(){
 
 _check_access_mp4_mediaconch() {
     if [[ "${MP4_CHOICE}" = "true" ]] && [[ -f "${MP4NAME}" ]] && "${MEDIACONCH_INSTALLED}" ; then
-        _report -d "Checking access MP4 conformance against a mediaconch policy..."
+        _report -dt "Checking access MP4 conformance against a mediaconch policy..."
         MP4_POLICY_TMP="$(_maketemp .mediaconch_mp4.xml)"
         cat <<MC_MP4_START > "${MP4_POLICY_TMP}"
 <?xml version="1.0"?>
@@ -3804,7 +3816,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
 
     # qctools process
     if [[ "${QCTOOLSXML_V2_CHOICE}" = "true" ]] ; then
-        _report -d "Post-processing vrecord-native QCTools report (v2)..."
+        _report -dt "Post-processing vrecord-native QCTools report (v2)..."
         QC_WIDTH="${SIG_GEN_SIZE%x*}"
         QC_HEIGHT="${SIG_GEN_SIZE#*x}"
         if [[ "${PIXEL_FORMAT}" = "yuv422p10" ]] ; then
@@ -3821,12 +3833,12 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         _qc_dump_to_xml "${QCXML}" "${QC_WIDTH}" "${QC_HEIGHT}" "${QC_PIXFMT}" "${LOGDIR}/${FULL_OUTPUT_ID}.${EXTENSION}" "${QC_DUMP_ARGS[@]}"
         if [[ -s "${QCTOOLS_THUMB_MKV_TMP}" ]] && [[ -s "${QCXML}" ]] && command -v mkvpropedit &> /dev/null ; then
             QCTOOLS_REPORT="${LOGDIR}/${FULL_OUTPUT_ID}.${EXTENSION}.qctools.mkv"
-            mkvpropedit "${QCTOOLS_THUMB_MKV_TMP}" --edit info --set "title=QCTools Report for ${FULL_OUTPUT_ID}.${EXTENSION}" --attachment-name "${FULL_OUTPUT_ID}.${EXTENSION}.qctools.xml.gz" --attachment-mime-type application/x-gzip --add-attachment "${QCXML}"
+            _run_mkvpropedit "${QCTOOLS_THUMB_MKV_TMP}" --edit info --set "title=QCTools Report for ${FULL_OUTPUT_ID}.${EXTENSION}" --attachment-name "${FULL_OUTPUT_ID}.${EXTENSION}.qctools.xml.gz" --attachment-mime-type application/x-gzip --add-attachment "${QCXML}"
             _mv_tmp_file "${QCTOOLS_THUMB_MKV_TMP}" "${QCTOOLS_REPORT}"
         else
-            _report -w "QCTools v2 report generation failed: missing thumbnail mkv, xml.gz, or mkvpropedit"
+            _report -wt "QCTools v2 report generation failed: missing thumbnail mkv, xml.gz, or mkvpropedit"
         fi
-        _report -d "Vrecord is analyzing your video file from the QCTools data. Please be patient."
+        _report -dt "Vrecord is analyzing your video file from the QCTools data. Please be patient."
         if [[ -s "${QCXML}" ]] ; then
             if [[ "${PIXEL_FORMAT}" = "yuv422p10" ]] ; then
                 SAT_OUTLIERS=$("${ZCAT_COMMAND}" "${QCXML}" | perl -nle 'print if not m{lavfi.(?!signalstats.SATMAX)}' | xmlstarlet sel -t -v "count(//tag[@key='lavfi.signalstats.SATMAX'][@value>496])" -n)
@@ -3838,11 +3850,11 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
             AUDIO_PEAK=$("${ZCAT_COMMAND}" "${QCXML}" | grep lavfi.astats.Overall.Peak_level | cut -d '"' -f 4 | sort -n | tail -n 1)
             _writeingestlog "Peak Volume is (dB)" "${AUDIO_PEAK}"
             if "${GNUPLOT_INSTALLED}" ; then
-                _report -d "Vrecord is generating graphs from the QCTools data. One moment please."
+                _report -dt "Vrecord is generating graphs from the QCTools data. One moment please."
                 _qcgraphimage "${QCXML}"
             fi
         else
-            _report -w "qctools XML ${QCXML} is empty or does not exist!"
+            _report -wt "qctools XML ${QCXML} is empty or does not exist!"
         fi
         if [[ "${SAT_OUTLIERS}" -gt "${SAT_OUTLIER_THRSHLD}" ]] ; then
             cowsay "$(_report -w "WARNING: Your video file contains ${SAT_OUTLIERS} frames with illegal saturation values. Your deck may require cleaning.")"
@@ -3853,13 +3865,13 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         if [[ "${BRNG_OUTLIERS}" -gt "${BRNG_OUTLIER_THRSHLD}" ]] ; then
             cowsay "$(_report -w "WARNING: Your video file contains ${BRNG_OUTLIERS} frames with pixels out of broadcast range.")"
         fi
-        _report -d "QCTools analysis is complete."
+        _report -dt "QCTools analysis is complete."
         rm -f "${QC_VIDEO_DUMP}" "${QC_AUDIO_DUMPS[@]}" 2>/dev/null
     fi
 
     # make a timecode vtt
     if [[ "${TIMECODEVTT_CHOICE}" = "true" ]] && [[ "${FORMAT}" = "matroska" ]] && [[ "${SIGNAL_INPUT}" != 'true' ]] && [[ -z "${ALT_INPUT}" ]] ; then
-        _report -d "Working on the timecode vtt file..."
+        _report -dt "Working on the timecode vtt file..."
         TIMECODEXML_TMP="$(_maketemp .mediatimecode.txt)"
         TIMECODEXML_VTT="${LOGDIR}/${FULL_OUTPUT_ID}.timecode.vtt"
         mediainfo --ParseSpeed=1 --Output=TimeCodeXML "${VRECORD_OUTPUT}" > "${TIMECODEXML_TMP}"
@@ -3909,7 +3921,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
 
     # mediaconch policy check on the preservation output
     if "${MEDIACONCH_INSTALLED}" ; then
-        _report -d "Checking file conformance against a mediaconch policy..."
+        _report -dt "Checking file conformance against a mediaconch policy..."
         MEDIACONCH_REPORT="${DIR}/${FULL_OUTPUT_ID}_mediaconch_report.xml"
         MEDIACONCH_REPORT_TMP="$(_maketemp _mediaconch_report.xml)"
         MEDIACONCH_POLICY="${DIR}/${FULL_OUTPUT_ID}_mediaconch_policy.xml"
@@ -3945,14 +3957,14 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
     # embed logs in Matroska files
     if "$MKVPROPEDIT_INSTALLED" ; then
         if [[ "${CONTAINER_CHOICE}" = "Matroska" ]] && [[ "${EMBED_LOGS_CHOICE}" = "Yes" ]] ; then
-            _report -d "Vrecord is attaching logs to your Matroska file:"
-            mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "Capture options selected by user during vrecord process" --add-attachment "${INGESTLOG}"
-            mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "Full FFmpeg output from vrecord capture process" --add-attachment "${FULL_CAPTURE_LOG}"
+            _report -dt "Vrecord is attaching logs to your Matroska file:"
+            _run_mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "Capture options selected by user during vrecord process" --add-attachment "${INGESTLOG}"
+            _run_mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "Full FFmpeg output from vrecord capture process" --add-attachment "${FULL_CAPTURE_LOG}"
             if [[ "${QCTOOLSXML_V2_CHOICE}" = "true" ]] ; then
-                mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "QCTools report from vrecord capture process (zipped XML)" --add-attachment "${QCXML}"
-                mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "QCTools report from vrecord capture process (Matroska report)" --add-attachment "${QCTOOLS_REPORT}"
+                _run_mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "QCTools report from vrecord capture process (zipped XML)" --add-attachment "${QCXML}"
+                _run_mkvpropedit "${VRECORD_OUTPUT}" --attachment-description "QCTools report from vrecord capture process (Matroska report)" --add-attachment "${QCTOOLS_REPORT}"
             fi
-            _report -d "Vrecord is done attaching logs to your Matroska file!"
+            _report -dt "Vrecord is done attaching logs to your Matroska file!"
         fi
     fi
     if [[ -f "${QCXML}" ]] ; then
