@@ -816,7 +816,7 @@ _setup_vrecord_process(){
                     (( AUDIO_STREAM_N++ ))
                 done
             fi
-
+            RECORD_COMMAND+=(-shortest)
             RECORD_COMMAND+=(-filter_complex "[0:v:0]${RECORDINGFILTER#,*}${TC_WRITE}${CAPTION_WRITE}${RECORD_COMMAND_SPLIT};${AUDIOMAP}${RECORD_COMMAND_MP4_FILTER}${RECORD_COMMAND_QC_FILTER}" "${SPLIT_MAPS[@]}" "${AUDIO_CHANNEL_MAP[@]}" $([[ "${MP4_CHOICE}" = "true" ]] && echo "${AUDIO_MP4_MAP[@]}") "${EXTRAOPTIONS[@]}")
 
             # Build tee string
