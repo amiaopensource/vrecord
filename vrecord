@@ -816,7 +816,7 @@ _setup_vrecord_process(){
                     (( AUDIO_STREAM_N++ ))
                 done
             fi
-
+            RECORD_COMMAND+=(-shortest)
             RECORD_COMMAND+=(-filter_complex "[0:v:0]${RECORDINGFILTER#,*}${TC_WRITE}${CAPTION_WRITE}${RECORD_COMMAND_SPLIT};${AUDIOMAP}${RECORD_COMMAND_MP4_FILTER}${RECORD_COMMAND_QC_FILTER}" "${SPLIT_MAPS[@]}" "${AUDIO_CHANNEL_MAP[@]}" $([[ "${MP4_CHOICE}" = "true" ]] && echo "${AUDIO_MP4_MAP[@]}") "${EXTRAOPTIONS[@]}")
 
             # Build tee string
@@ -3761,7 +3761,7 @@ if [[ "${DEVICE_INPUT_CHOICE}" = 0 ]] ; then
         _report -dt "Post-processing benchmarking files..."
         grep " bench: " "${FULL_CAPTURE_LOG}" > "${BENCHMARK_DETAILS_NAME}"
         grep -v " bench: " "${FULL_CAPTURE_LOG}" > "${FULL_CAPTURE_LOG}.tmp"
-        _mv_tmp_file "${FULL_CAPTURE_LOG}.tmp" "${FULL_CAPTURE_LOG}"
+        _mv_tmp_file -f "${FULL_CAPTURE_LOG}.tmp" "${FULL_CAPTURE_LOG}"
         echo "# vrecord benchmarking summary data" > "${BENCHMARK_SUMMARY_NAME}"
         echo "# capture_log_file: ${INGESTLOG}, cores=${CORE_COUNT}" >> "${BENCHMARK_SUMMARY_NAME}"
         awk -v labels="${OUTPUT_LABELS}" 'BEGIN { printf "%-8s %-6s %-8s %-16s %-5s %-10s %-10s %-10s %-10s %-10s %-8s %-10s\n", "action","media","stream","label","n","user","sys","real","real/user","sys/user","%user","avg_us"
