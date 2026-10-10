@@ -322,7 +322,7 @@ _eia608dump2scc(){
     _write_cc(){
         CC="$1"
         if [[ "$START" == "Y" ]] ; then
-            echo -n "	${CC}" >> "${SCC_OUT}"
+            echo -n "   ${CC}" >> "${SCC_OUT}"
         else
             echo -n " ${CC}" >> "${SCC_OUT}"
         fi
@@ -1078,7 +1078,7 @@ PLAYBACK_OPT_GUI="
 OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
 <frame Preferences>
     <hbox>
-        <notebook tab-labels="Player|Aspect Ratio|Closed Captioning|FADGI WebVTT header|Color Options">
+        <notebook tab-labels="Player|Aspect Ratio|Closed Captioning|FADGI WebVTT header|Color Options|QC Options">
             <frame Player Settings>
                 <hbox>
                 $(_gtk_vbox_list "WAVEFORM_SCALE_CHOICE" "100" "Select Waveform Scale"            "${WAVEFORM_SCALE_OPTIONS[@]}")
@@ -1157,6 +1157,16 @@ OPTIONAL_TOOLS_GUI=$(cat << CONFIG_FORM
                         <default>"${COLOR_SAFE}"</default>
                         <variable>COLOR_SAFE</variable>
                     </checkbox>
+                </vbox>
+            </frame>
+            <frame QC Options>
+                <vbox>
+                    <text width-chars="-1">
+                        <label>Change color settings used in vrecord</label>
+                    </text>
+                    <hbox space-expand="true">
+                        $(_gtk_vbox_list "QC_CONTAINER_CHOICE"         "100" "Select Target QC Format"            "${CONTAINER_OPTIONS[@]}")
+                    </hbox>
                 </vbox>
             </frame>
         </notebook>
@@ -1610,6 +1620,7 @@ export MAIN_DIALOG='
                 '"${DECKLINK_INPUT_GUI}"'
                 '"${DVRESCUE_INPUT_GUI}"'
                 '"${AUDIO_INPUT_GUI}"'
+                '"${QC_Options}"'
                 '"${OPTIONAL_TOOLS_GUI}"'
                 <variable>DEVICE_INPUT_CHOICE</variable>
                 <action signal="button-release-event" type="refresh">VRECORD_OUTPUT_NAME</action>
@@ -1898,6 +1909,32 @@ _passthrough_mode(){
     fi
     if [[ "${VRECORD_STEPS}" = "1" ]] ; then
         "${PLAYER_COMMAND[@]}" 2> "${VRECORD_INPUT_TMP}"
+    elif [[ "${VRECORD_STEPS}" = "2" ]] ; then
+        "${RECORD_COMMAND[@]}" 2> "${VRECORD_INPUT_TMP}" | "${PLAYER_COMMAND[@]}"
+    fi
+    if [[ "${PLAYBACKVIEW_CHOICE_PASS}" == "Captions" ]] && [[ "${RUNTYPE}" == "passthrough" ]] ; then
+        kill "$CC_PID"
+    fi
+}
+
+_qc_mode(){
+    echo "QCing: ${ALT_INPUT}"
+    _setup_vrecord_process
+    if [[ "${VERBOSE_GTKDIALOG}" = "Y" ]] ; then
+        echo "RUNTYPE ${RUNTYPE}"
+        echo "STEPS ${VRECORD_STEPS}"
+        echo "PLAY ${PLAYER_COMMAND[@]}"
+        echo "RECORD ${RECORD_COMMAND[@]}"
+    fi
+
+    if [[ "${PLAYBACKVIEW_CHOICE_PASS}" == "Captions" ]] && [[ "${RUNTYPE}" == "passthrough" ]] ; then
+        "${SCRIPTDIR}/cchex_to_display" "${FFREPORT_TMP}" "${CAP_DISPLAY_TMP}" > /dev/null 2> /dev/null &
+        CC_PID=$!
+        export FFREPORT="file=${FFREPORT_TMP}:level=32"
+    fi
+    if [[ "${VRECORD_STEPS}" = "1" ]] ; then
+        # "$(awk -v time=" -ss ${QC_TIME} -i " '{sub(/ -i /, time )} 1' <<< "${PLAYER_COMMAND[@]}")""
+        "${PLAYER_COMMAND[@]}"
     elif [[ "${VRECORD_STEPS}" = "2" ]] ; then
         "${RECORD_COMMAND[@]}" 2> "${VRECORD_INPUT_TMP}" | "${PLAYER_COMMAND[@]}"
     fi
@@ -3334,7 +3371,7 @@ _mv_tmp_file -f "${VTT_TMP}" "${VTT_FILE}"
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":hc:erpaxnvI:O:D:i:sGb" opt ; do
+while getopts ":hc:erpaq:xnvI:O:D:i:sGb" opt ; do
     case "${opt}" in
         h) _usage ; exit 0 ;;
         c) CONFIG_FILE="${OPTARG}" ;;
@@ -3342,6 +3379,7 @@ while getopts ":hc:erpaxnvI:O:D:i:sGb" opt ; do
         r) RUNTYPE="record" ;;
         p) RUNTYPE="passthrough" ;;
         a) RUNTYPE="audiopassthrough" ;;
+        q) RUNTYPE="qcmode" && QC_TARGET="${OPTARG}";;
         x) RUNTYPE="reset" ;;
         n) RUNTYPE="resetenvironment" ;;
         v) VERBOSE="true" ;;
@@ -3547,6 +3585,21 @@ else
     _review_all_options
 fi
 
+if [[ "${RUNTYPE}" = "qcmode" ]] ; then
+    _review_all_options
+    _lookup_choice "$QC_CONTAINER_CHOICE"
+    if [[ -d "${QC_TARGET}" ]] ; then
+        while read i ; do
+            ALT_INPUT="${i}"
+            _qc_mode
+        done < <(find "${QC_TARGET}" -iname "*.${EXTENSION}")
+    else
+        ALT_INPUT="${QC_TARGET}"
+        _qc_mode
+    fi
+    exit
+fi
+
 while [[ -z "${ID}" ]] ; do
     _report -q -n "Enter ${AHEM}Identifier: "
     read ID
@@ -3588,6 +3641,10 @@ elif [[ "${DEVICE_INPUT_CHOICE}" = "2" ]] ; then
     _review_option "AUDIO_MODE_CODEC_CHOICE" "${AUDIO_CODEC_OPTIONS[@]}"
     EXTENSION="${AUDIO_EXT}"
     FORMAT="${AUDIO_EXT}"
+elif [[ "${DEVICE_INPUT_CHOICE}" = "3" ]] ; then
+    _review_option "QC_CONTAINER_CHOICE" "${CONTAINER_OPTIONS[@]}"
+    echo 'test'
+    exit
 fi
 
 _end_mediaconch_policy
