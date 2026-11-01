@@ -29,7 +29,7 @@ rm -f "${release_directory}/vrecord_${version}_Mac.dmg"
 rm -f "${release_directory}/vrecord.unsigned.pkg"
 rm -f "${release_directory}/vrecord.pkg"
 
-rm -f "${release_directory}/FFmpeg_Bin_Latest_Mac_Static_x64.zip"
+rm -f "${release_directory}/FFmpeg_Bin_Latest_Mac_Static_universal.zip"
 
 rm -fr "${release_directory}/mediainfo_ROOT"
 rm -f "${release_directory}/MediaInfo.dmg"
@@ -71,8 +71,8 @@ popd
 #-----------------------------------------------------------------------
 # Get ffmpeg-ma
 pushd "${release_directory}/"
-    curl -LO "https://mediaarea.net/download/snapshots/binary/ffmpeg/latest/FFmpeg_Bin_Latest_Mac_Static_x64.zip"
-    unzip -d vrecord_ROOT/usr/local/lib/vrecord -x FFmpeg_Bin_Latest_Mac_Static_x64.zip bin/ffmpeg bin/ffplay
+    curl -LO "https://mediaarea.net/download/snapshots/binary/ffmpeg/latest/FFmpeg_Bin_Latest_Mac_Static_universal.zip"
+    unzip -d vrecord_ROOT/usr/local/lib/vrecord -x FFmpeg_Bin_Latest_Mac_Static_universal.zip bin/ffmpeg bin/ffplay
     mv vrecord_ROOT/usr/local/lib/vrecord/bin/ffmpeg vrecord_ROOT/usr/local/lib/vrecord/bin/ffmpeg-ma
     mv vrecord_ROOT/usr/local/lib/vrecord/bin/ffplay vrecord_ROOT/usr/local/lib/vrecord//bin/ffplay-ma
 popd
@@ -131,7 +131,7 @@ popd
 #-----------------------------------------------------------------------
 # Get MKVToolNix
 pushd "${release_directory}/"
-    curl -L https://mkvtoolnix.download/macos/MKVToolNix-42.0.0.dmg -o MKVToolNix-42.0.0.dmg
+    curl -L https://mkvtoolnix.download/macos/releases/42.0.0/MKVToolNix-42.0.0.dmg -o MKVToolNix-42.0.0.dmg
 
     hdiutil attach -noverify MKVToolNix-42.0.0.dmg
     cp -a "/Volumes/MKVToolNix-42.0.0/MKVToolNix-42.0.0.app/Contents/MacOS/mkvextract" vrecord_ROOT/usr/local/lib/vrecord/bin
