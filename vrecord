@@ -116,12 +116,25 @@ _report_unexpected_error(){
     ERROR_VAR_VALUE="${!1}"
     shift
     ERROR_DETAIL=("${@}")
-    _report -d -wt "vrecord exited a form in an unexpected way (${ERROR_VAR_NAME}=${ERROR_VAR_VALUE}), please report this error to https://github.com/amiaopensource/vrecord/issues"
+    ERROR_LABEL=""
+    case "${ERROR_VAR_NAME}" in
+        P1_ERR) ERROR_LABEL="recording process" ;;
+        P2_ERR) ERROR_LABEL="playback process" ;;
+    esac
+    if [[ -n "${ERROR_LABEL}" ]] ; then
+        _report -d -wt "vrecord ${ERROR_LABEL} exited with status ${ERROR_VAR_VALUE}."
+    else
+        _report -d -wt "vrecord exited a form in an unexpected way (${ERROR_VAR_NAME}=${ERROR_VAR_VALUE}), please report this error to https://github.com/amiaopensource/vrecord/issues"
+    fi
     if [[ -n "${ERROR_DETAIL[@]}" ]] ; then
         _report -d -wt "Error details: ${ERROR_DETAIL[@]}"
     fi
     if [[ -f "${INGESTLOG}" ]] ; then
-        _writeingestlog "vrecord command Error" "invalid ${ERROR_VAR_NAME} value of ${ERROR_VAR_VALUE}"
+        if [[ -n "${ERROR_LABEL}" ]] ; then
+            _writeingestlog "vrecord command Error" "${ERROR_LABEL} exited with status ${ERROR_VAR_VALUE}"
+        else
+            _writeingestlog "vrecord command Error" "invalid ${ERROR_VAR_NAME} value of ${ERROR_VAR_VALUE}"
+        fi
     fi
     exit 1
 }
